@@ -8,36 +8,52 @@
 #include <iomanip>
 #include <cmath>
 
-void Visualizer::setupImGui() {
-    // Setup Dear ImGui context
+bool Visualizer::setupImGui() {
+    if (!window_) {
+        std::cerr << "ImGui initialization failed: window not created" << std::endl;
+        return false;
+    }
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
-    // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    
-    // Customize style for audio visualizer
+
     ImGuiStyle& style = ImGui::GetStyle();
     style.WindowRounding = 8.0f;
     style.FrameRounding = 4.0f;
     style.GrabRounding = 4.0f;
     style.Alpha = 0.9f;
-    
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window_, true);
+
+    if (!ImGui_ImplGlfw_InitForOpenGL(window_, true)) {
+        std::cerr << "ImGui initialization failed: ImGui_ImplGlfw_InitForOpenGL" << std::endl;
+        ImGui::DestroyContext();
+        return false;
+    }
+
     const char* glsl_version = "#version 130";
-    ImGui_ImplOpenGL3_Init(glsl_version);
-    
+    if (!ImGui_ImplOpenGL3_Init(glsl_version)) {
+        std::cerr << "ImGui initialization failed: ImGui_ImplOpenGL3_Init" << std::endl;
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+        return false;
+    }
+
     showImGuiWindow_ = true;
     showDeviceSelector_ = false;
     showDiagnosticInfo_ = false;
     showConsoleMode_ = false;
+
+    return true;
 }
 
 void Visualizer::shutdownImGui() {
+    if (!ImGui::GetCurrentContext()) {
+        return;
+    }
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -81,11 +97,51 @@ void Visualizer::renderMainImGuiWindow() {
     // Device information
     ImGui::Separator();
     ImGui::Text("🎤 Current Device:");
-    std::string deviceName = "Default";
+    std::string deviceName = "System Default";
+    bool currentInternal = false;
     if (selectedDevice_ >= 0 && selectedDevice_ < deviceNames_.size()) {
         deviceName = deviceNames_[selectedDevice_];
+        if (selectedDevice_ < deviceIsInternal_.size()) {
+            currentInternal = deviceIsInternal_[selectedDevice_];
+        }
     }
     ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.8f, 1.0f), "%s", deviceName.c_str());
+    if (currentInternal) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.3f, 1.0f), "(Internal / Loopback)");
+    }
+
+    ImGui::Spacing();
+    ImGui::Text("Input Source:");
+    std::string comboLabel = currentInternal ? deviceName + "  (Internal)" : deviceName;
+    if (ImGui::BeginCombo("##InputDeviceCombo", comboLabel.c_str())) {
+        if (ImGui::Selectable("System Default", selectedDevice_ < 0)) {
+            selectedDevice_ = -1;
+            showDeviceSelector_ = false;
+        }
+        for (int i = 0; i < static_cast<int>(deviceNames_.size()); ++i) {
+            if (deviceNames_[i].empty()) continue;
+            std::string label = deviceNames_[i];
+            if (i < deviceIsInternal_.size() && deviceIsInternal_[i]) {
+                label += "  (Internal)";
+            }
+            bool isSelected = (i == selectedDevice_);
+            if (ImGui::Selectable(label.c_str(), isSelected)) {
+                selectedDevice_ = i;
+                showDeviceSelector_ = false;
+            }
+            if (isSelected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+
+    ImGui::TextWrapped("Selecciona un dispositivo interno (Loopback/Monitor) para capturar audio del sistema, por ejemplo la salida del navegador. En Windows busca entradas 'WASAPI (loopback)', en Linux 'Monitor', en macOS 'Loopback'.");
+
+    ImGui::Spacing();
+    ImGui::Text("🖥️ GPU Renderer:");
+    ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%s", rendererName_.c_str());
     
     // Control buttons
     ImGui::Spacing();
@@ -161,6 +217,53 @@ void Visualizer::renderMainImGuiWindow() {
     ImVec4 statusColor = rms > 0.01f ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f) : ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
     ImGui::TextColored(statusColor, "Status: %s", rms > 0.01f ? "🟢 RECEIVING AUDIO" : "🔴 NO AUDIO INPUT");
 
+    // Legacy color customization
+    ImGui::Separator();
+    ImGui::Text("🎨 Legacy Color Scheme:");
+    ImGui::TextWrapped("Ajusta los multiplicadores de color para los elementos del render legacy.");
+
+    if (ImGui::Button("Restablecer Colores")) {
+        resetLegacyColorAdjustments();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Randomizar Ahora")) {
+        randomizeLegacyColors();
+    }
+
+    ImGui::Checkbox("Random auto", &autoRandomizeColors_);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(160.0f);
+    if (ImGui::SliderFloat("Intervalo (s)", &colorRandomInterval_, 1.0f, 60.0f)) {
+        colorRandomInterval_ = std::max(1.0f, colorRandomInterval_);
+    }
+
+    ImGuiColorEditFlags colorFlags = ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float;
+    if (ImGui::BeginTable("LegacyColorAdjustTable", 2, ImGuiTableFlags_SizingStretchProp)) {
+        auto colorRow = [&](const char* label, Visualizer::ColorAdjust& adjust) {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::TextUnformatted(label);
+            ImGui::TableSetColumnIndex(1);
+            ImGui::ColorEdit4(label, adjust.data(), colorFlags | ImGuiColorEditFlags_NoInputs);
+        };
+
+        colorRow("Circle Fill", legacyColorAdjust_.circleFill);
+        colorRow("Circle Outline", legacyColorAdjust_.circleOutline);
+        colorRow("Bloom Centro", legacyColorAdjust_.bloomInner);
+        colorRow("Bloom Halo", legacyColorAdjust_.bloomOuter);
+        colorRow("Barras Graves", legacyColorAdjust_.bassBars);
+        colorRow("Barras Medios", legacyColorAdjust_.midBars);
+        colorRow("Barras Agudos", legacyColorAdjust_.highBars);
+        colorRow("Explosion Beat", legacyColorAdjust_.beatExplosion);
+        colorRow("Anillos", legacyColorAdjust_.rings);
+        colorRow("Órbitas", legacyColorAdjust_.orbit);
+        colorRow("Trail Órbitas", legacyColorAdjust_.orbitTrail);
+        colorRow("Chispas", legacyColorAdjust_.sparkles);
+        colorRow("Waveform", legacyColorAdjust_.waveform);
+
+        ImGui::EndTable();
+    }
+
     // Instructions
     ImGui::Separator();
     ImGui::Text("🎮 Controls:");
@@ -184,6 +287,9 @@ void Visualizer::renderDeviceSelectorImGui() {
     for (int i = 0; i < deviceNames_.size(); ++i) {
         if (!deviceNames_[i].empty()) {
             std::string label = std::to_string(displayIndex + 1) + ". " + deviceNames_[i];
+            if (i < deviceIsInternal_.size() && deviceIsInternal_[i]) {
+                label += "  (Internal)";
+            }
             if (i == selectedDevice_) {
                 label += " [CURRENT]";
             }

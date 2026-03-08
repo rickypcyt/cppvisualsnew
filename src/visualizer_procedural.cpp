@@ -46,18 +46,13 @@ void Visualizer::renderProceduralVisualization() {
     // 2. Frequency bars around the center
     renderFrequencyBars(smoothBass, smoothMid, smoothHigh);
     
-    // 3. Particles on beat detection
-    if (audioFeatures_.beat > 0.5f) {
-        renderBeatExplosion(smoothBass, smoothMid, smoothHigh);
-    }
-    
-    // 4. Rotating rings (mid frequency driven)
+    // 3. Rotating rings (mid frequency driven)
     renderRotatingRings(smoothMid, time_);
     
-    // 5. High frequency sparkles
+    // 4. High frequency sparkles
     renderHighFrequencySparkles(smoothHigh);
     
-    // 6. Waveform visualization
+    // 5. Waveform visualization
     renderWaveformVisualization();
     
     // Restore state
@@ -176,61 +171,6 @@ void Visualizer::renderFrequencyBars(float bass, float mid, float high) {
         glVertex2f(x2, y2);
         glEnd();
     }
-}
-
-void Visualizer::renderBeatExplosion(float bass, float mid, float high) {
-    static std::vector<Particle> particles;
-    static float lastBeatTime = 0.0f;
-    
-    // Create new particles on beat
-    if (time_ - lastBeatTime > 0.1f) { // Prevent too many particles
-        lastBeatTime = time_;
-        
-        for (int i = 0; i < 20; ++i) {
-            Particle p;
-            p.x = windowWidth_ / 2.0f;
-            p.y = windowHeight_ / 2.0f;
-            p.z = 0.0f;
-            
-            float angle = (2.0f * M_PI * i) / 20.0f;
-            float speed = 100.0f + bass * 200.0f;
-            p.vx = cosf(angle) * speed;
-            p.vy = sinf(angle) * speed;
-            p.vz = 0.0f;
-            
-            p.life = 1.0f;
-            p.size = 3.0f + high * 5.0f;
-            
-            p.r = 1.0f;
-            p.g = 0.5f + mid * 0.5f;
-            p.b = 0.2f + high * 0.8f;
-            
-            particles.push_back(p);
-        }
-    }
-    
-    // Update and render particles
-    glPointSize(5.0f);
-    glBegin(GL_POINTS);
-    
-    for (auto it = particles.begin(); it != particles.end();) {
-        // Update particle
-        it->x += it->vx * 0.016f; // 60 FPS assumption
-        it->y += it->vy * 0.016f;
-        it->life -= 0.02f;
-        it->vx *= 0.98f; // Damping
-        it->vy *= 0.98f;
-        
-        if (it->life <= 0.0f) {
-            it = particles.erase(it);
-        } else {
-            glColor4f(it->r, it->g, it->b, it->life);
-            glVertex2f(it->x, it->y);
-            ++it;
-        }
-    }
-    
-    glEnd();
 }
 
 void Visualizer::renderRotatingRings(float mid, float time) {

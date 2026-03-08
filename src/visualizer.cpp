@@ -157,8 +157,16 @@ Visualizer::Visualizer()
     : window_(nullptr), windowWidth_(800), windowHeight_(600), time_(0.0f),
       quadVAO_(0), quadVBO_(0), waveformVAO_(0), waveformVBO_(0),
       selectedDevice_(-1), showDeviceMenu_(false), showDiagnostic_(false), consoleMode_(false),
-      showImGuiWindow_(true), showDeviceSelector_(false), showDiagnosticInfo_(false), showConsoleMode_(false) {
+      showImGuiWindow_(true), showDeviceSelector_(false), showDiagnosticInfo_(false), showConsoleMode_(false),
+      imguiInitialized_(false), autoRandomizeColors_(false), colorRandomInterval_(12.0f),
+      colorRandomTimer_(0.0f), deltaTime_(0.0f), rng_(std::random_device{}()), currentPresetIndex_(0) {
     waveformBuffer_.resize(512); // Same as audio buffer size
+    buildColorPresets();
+    if (!colorPresets_.empty()) {
+        applyLegacyPreset(0);
+    } else {
+        legacyColorAdjust_ = LegacyColorAdjust{};
+    }
     setupDeviceList();
 }
 
@@ -183,15 +191,164 @@ bool Visualizer::initialize(int width, int height) {
         shader_.reset(); // Will trigger fallback triangle
     }
 
-    // Don't setup ImGui for simple version
-    showImGuiWindow_ = false;
+    if (setupImGui()) {
+        imguiInitialized_ = true;
+    } else {
+        std::cout << "ImGui initialization failed, continuing without ImGui interface" << std::endl;
+        showImGuiWindow_ = false;
+        imguiInitialized_ = false;
+    }
+
+    const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    rendererName_ = renderer ? renderer : "Unknown";
 
     return true;
 }
 
+void Visualizer::setColorWithAdjust(float r, float g, float b, float a, const ColorAdjust& adjust) const {
+    auto clampComponent = [](float value) {
+        if (value < 0.0f) return 0.0f;
+        if (value > 1.0f) return 1.0f;
+        return value;
+    };
+
+    glColor4f(
+        clampComponent(r * adjust.r),
+        clampComponent(g * adjust.g),
+        clampComponent(b * adjust.b),
+        clampComponent(a * adjust.a)
+    );
+}
+
+void Visualizer::buildColorPresets() {
+    colorPresets_.clear();
+
+    auto makeAdjust = [](float r, float g, float b, float a) {
+        ColorAdjust adjust;
+        adjust.r = r;
+        adjust.g = g;
+        adjust.b = b;
+        adjust.a = a;
+        return adjust;
+    };
+
+    {
+        LegacyColorAdjust preset;
+        preset.circleFill = makeAdjust(0.7f, 1.35f, 1.6f, 1.0f);
+        preset.circleOutline = makeAdjust(0.6f, 1.3f, 1.6f, 1.0f);
+        preset.bloomInner = makeAdjust(0.5f, 1.3f, 1.5f, 0.85f);
+        preset.bloomOuter = makeAdjust(0.4f, 1.2f, 1.5f, 0.45f);
+        preset.bassBars = makeAdjust(0.6f, 1.4f, 1.5f, 1.0f);
+        preset.midBars = makeAdjust(0.6f, 1.5f, 1.45f, 1.0f);
+        preset.highBars = makeAdjust(0.6f, 1.55f, 1.6f, 1.0f);
+        preset.beatExplosion = makeAdjust(0.6f, 1.35f, 1.6f, 1.0f);
+        preset.rings = makeAdjust(0.5f, 1.4f, 1.4f, 0.55f);
+        preset.orbit = makeAdjust(0.5f, 1.6f, 1.6f, 1.0f);
+        preset.orbitTrail = makeAdjust(0.4f, 1.4f, 1.4f, 0.35f);
+        preset.sparkles = makeAdjust(0.6f, 1.6f, 1.6f, 1.0f);
+        preset.waveform = makeAdjust(0.4f, 1.4f, 1.4f, 1.0f);
+        colorPresets_.push_back({"Neon Aqua", preset});
+    }
+
+    {
+        LegacyColorAdjust preset;
+        preset.circleFill = makeAdjust(1.5f, 0.6f, 1.6f, 1.0f);
+        preset.circleOutline = makeAdjust(1.6f, 0.5f, 1.7f, 1.0f);
+        preset.bloomInner = makeAdjust(1.4f, 0.5f, 1.6f, 0.85f);
+        preset.bloomOuter = makeAdjust(1.3f, 0.4f, 1.5f, 0.45f);
+        preset.bassBars = makeAdjust(1.6f, 0.5f, 1.6f, 1.0f);
+        preset.midBars = makeAdjust(1.5f, 0.6f, 1.7f, 1.0f);
+        preset.highBars = makeAdjust(1.4f, 0.5f, 1.8f, 1.0f);
+        preset.beatExplosion = makeAdjust(1.6f, 0.4f, 1.6f, 1.0f);
+        preset.rings = makeAdjust(1.5f, 0.5f, 1.5f, 0.55f);
+        preset.orbit = makeAdjust(1.6f, 0.5f, 1.8f, 1.0f);
+        preset.orbitTrail = makeAdjust(1.4f, 0.4f, 1.6f, 0.35f);
+        preset.sparkles = makeAdjust(1.6f, 0.5f, 1.8f, 1.0f);
+        preset.waveform = makeAdjust(1.4f, 0.5f, 1.6f, 1.0f);
+        colorPresets_.push_back({"Magenta Pulse", preset});
+    }
+
+    {
+        LegacyColorAdjust preset;
+        preset.circleFill = makeAdjust(0.7f, 1.6f, 0.6f, 1.0f);
+        preset.circleOutline = makeAdjust(0.6f, 1.7f, 0.6f, 1.0f);
+        preset.bloomInner = makeAdjust(0.5f, 1.6f, 0.5f, 0.85f);
+        preset.bloomOuter = makeAdjust(0.4f, 1.5f, 0.4f, 0.45f);
+        preset.bassBars = makeAdjust(0.6f, 1.7f, 0.6f, 1.0f);
+        preset.midBars = makeAdjust(0.6f, 1.6f, 0.5f, 1.0f);
+        preset.highBars = makeAdjust(0.6f, 1.8f, 0.6f, 1.0f);
+        preset.beatExplosion = makeAdjust(0.6f, 1.7f, 0.4f, 1.0f);
+        preset.rings = makeAdjust(0.5f, 1.6f, 0.5f, 0.55f);
+        preset.orbit = makeAdjust(0.5f, 1.8f, 0.6f, 1.0f);
+        preset.orbitTrail = makeAdjust(0.4f, 1.5f, 0.4f, 0.35f);
+        preset.sparkles = makeAdjust(0.6f, 1.7f, 0.5f, 1.0f);
+        preset.waveform = makeAdjust(0.4f, 1.6f, 0.5f, 1.0f);
+        colorPresets_.push_back({"Electric Lime", preset});
+    }
+
+    {
+        LegacyColorAdjust preset;
+        preset.circleFill = makeAdjust(1.6f, 0.7f, 0.5f, 1.0f);
+        preset.circleOutline = makeAdjust(1.6f, 0.6f, 0.4f, 1.0f);
+        preset.bloomInner = makeAdjust(1.5f, 0.6f, 0.4f, 0.85f);
+        preset.bloomOuter = makeAdjust(1.4f, 0.5f, 0.3f, 0.45f);
+        preset.bassBars = makeAdjust(1.7f, 0.6f, 0.4f, 1.0f);
+        preset.midBars = makeAdjust(1.6f, 0.5f, 0.3f, 1.0f);
+        preset.highBars = makeAdjust(1.7f, 0.6f, 0.4f, 1.0f);
+        preset.beatExplosion = makeAdjust(1.8f, 0.6f, 0.4f, 1.0f);
+        preset.rings = makeAdjust(1.6f, 0.6f, 0.4f, 0.55f);
+        preset.orbit = makeAdjust(1.7f, 0.5f, 0.3f, 1.0f);
+        preset.orbitTrail = makeAdjust(1.4f, 0.4f, 0.2f, 0.35f);
+        preset.sparkles = makeAdjust(1.8f, 0.6f, 0.4f, 1.0f);
+        preset.waveform = makeAdjust(1.5f, 0.5f, 0.3f, 1.0f);
+        colorPresets_.push_back({"Inferno Neon", preset});
+    }
+}
+
+void Visualizer::resetLegacyColorAdjustments() {
+    if (currentPresetIndex_ >= 0 && currentPresetIndex_ < static_cast<int>(colorPresets_.size())) {
+        legacyColorAdjust_ = colorPresets_[currentPresetIndex_].adjust;
+    } else {
+        legacyColorAdjust_ = LegacyColorAdjust{};
+    }
+    colorRandomTimer_ = 0.0f;
+}
+
+void Visualizer::applyLegacyPreset(int index) {
+    if (index < 0 || index >= static_cast<int>(colorPresets_.size())) {
+        return;
+    }
+
+    legacyColorAdjust_ = colorPresets_[index].adjust;
+    currentPresetIndex_ = index;
+    colorRandomTimer_ = 0.0f;
+}
+
+void Visualizer::randomizeLegacyColors() {
+    if (colorPresets_.empty()) {
+        return;
+    }
+
+    std::uniform_int_distribution<int> dist(0, static_cast<int>(colorPresets_.size()) - 1);
+    int nextIndex = dist(rng_);
+    if (colorPresets_.size() > 1) {
+        int guard = 0;
+        while (nextIndex == currentPresetIndex_ && guard < 8) {
+            nextIndex = dist(rng_);
+            ++guard;
+        }
+    }
+
+    applyLegacyPreset(nextIndex);
+}
+
 void Visualizer::shutdown() {
-    // Don't shutdown ImGui for simple version
-    
+    if (imguiInitialized_) {
+        shutdownImGui();
+        imguiInitialized_ = false;
+        showImGuiWindow_ = false;
+    }
+
     if (quadVAO_) {
         glDeleteVertexArrays(1, &quadVAO_);
         quadVAO_ = 0;
@@ -224,7 +381,18 @@ bool Visualizer::shouldClose() {
 
 void Visualizer::beginFrame() {
     glfwPollEvents();
-    
+
+    if (window_) {
+        int fbWidth = 0;
+        int fbHeight = 0;
+        glfwGetFramebufferSize(window_, &fbWidth, &fbHeight);
+        if (fbWidth > 0 && fbHeight > 0 && (fbWidth != windowWidth_ || fbHeight != windowHeight_)) {
+            windowWidth_ = fbWidth;
+            windowHeight_ = fbHeight;
+            glViewport(0, 0, windowWidth_, windowHeight_);
+        }
+    }
+
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
@@ -238,6 +406,17 @@ void Visualizer::endFrame() {
     float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
     lastTime = currentTime;
     time_ += deltaTime;
+    deltaTime_ = deltaTime;
+
+    if (autoRandomizeColors_) {
+        if (colorRandomInterval_ < 0.5f) {
+            colorRandomInterval_ = 0.5f;
+        }
+        colorRandomTimer_ += deltaTime;
+        if (colorRandomTimer_ >= colorRandomInterval_) {
+            randomizeLegacyColors();
+        }
+    }
 }
 
 void Visualizer::updateAudioData(const AudioAnalyzer::AudioFeatures& features) {
@@ -258,8 +437,11 @@ void Visualizer::render() {
     // Render legacy visualization (works with software rendering)
     renderLegacyVisualization();
     
-    // Render ImGui GUI
-    renderImGui();
+    if (imguiInitialized_) {
+        renderImGui();
+    } else {
+        renderGUI();
+    }
 }
 
 bool Visualizer::setupOpenGL() {
@@ -414,13 +596,39 @@ void Visualizer::setupDeviceList() {
     
     int numDevices = Pa_GetDeviceCount();
     deviceNames_.clear();
+    deviceIsInternal_.clear();
     
     for (int i = 0; i < numDevices; ++i) {
         const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
         if (deviceInfo && deviceInfo->maxInputChannels > 0) {
             deviceNames_.push_back(deviceInfo->name);
+            bool isInternalLoopback = false;
+            if (const PaHostApiInfo* hostInfo = Pa_GetHostApiInfo(deviceInfo->hostApi)) {
+                const std::string hostName(hostInfo->name ? hostInfo->name : "");
+                const std::string deviceName(deviceInfo->name ? deviceInfo->name : "");
+                if (hostName.find("WASAPI") != std::string::npos) {
+                    if (deviceName.find("(loopback)") != std::string::npos) {
+                        isInternalLoopback = true;
+                    }
+                } else if (hostName.find("WDM-KS") != std::string::npos) {
+                    if (deviceName.find("Loopback") != std::string::npos ||
+                        deviceName.find("(loopback)") != std::string::npos) {
+                        isInternalLoopback = true;
+                    }
+                } else if (hostName.find("Core Audio") != std::string::npos) {
+                    if (deviceName.find("Loopback") != std::string::npos) {
+                        isInternalLoopback = true;
+                    }
+                } else if (hostName.find("ALSA") != std::string::npos) {
+                    if (deviceName.find("Monitor") != std::string::npos) {
+                        isInternalLoopback = true;
+                    }
+                }
+            }
+            deviceIsInternal_.push_back(isInternalLoopback);
         } else {
             deviceNames_.push_back(""); // No input channels
+            deviceIsInternal_.push_back(false);
         }
     }
     
