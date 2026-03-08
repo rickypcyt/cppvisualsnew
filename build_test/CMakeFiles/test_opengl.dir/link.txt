@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/test_opengl.dir/link.d CMakeFiles/test_opengl.dir/src/test_opengl.cpp.o -o test_opengl  /usr/lib/libGL.so /usr/lib/libGLU.so /usr/lib/libGLEW.so /usr/lib/libglfw.so.3.4 -lm -lpthread

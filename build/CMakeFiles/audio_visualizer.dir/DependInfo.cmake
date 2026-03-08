@@ -23,6 +23,8 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/ricky/coding/proyects/visuals/src/visualizer_console.cpp" "CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o" "gcc" "CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o.d"
   "/home/ricky/coding/proyects/visuals/src/visualizer_diagnostic.cpp" "CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o" "gcc" "CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o.d"
   "/home/ricky/coding/proyects/visuals/src/visualizer_imgui.cpp" "CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o" "gcc" "CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o.d"
+  "/home/ricky/coding/proyects/visuals/src/visualizer_legacy.cpp" "CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.o" "gcc" "CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.o.d"
+  "/home/ricky/coding/proyects/visuals/src/visualizer_procedural.cpp" "CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o" "gcc" "CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o.d"
   "/home/ricky/coding/proyects/visuals/src/visualizer_triangle.cpp" "CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o" "gcc" "CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o.d"
   "" "audio_visualizer" "gcc" "CMakeFiles/audio_visualizer.dir/link.d"
   )

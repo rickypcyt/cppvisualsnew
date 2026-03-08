@@ -1,0 +1,3 @@
+/home/ricky/coding/proyects/visuals/build_test/CMakeFiles/test_opengl.dir
+/home/ricky/coding/proyects/visuals/build_test/CMakeFiles/edit_cache.dir
+/home/ricky/coding/proyects/visuals/build_test/CMakeFiles/rebuild_cache.dir

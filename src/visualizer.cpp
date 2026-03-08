@@ -252,31 +252,12 @@ void Visualizer::updateAudioBuffer(const std::vector<float>& audioBuffer) {
 }
 
 void Visualizer::render() {
-    // Try main visualization first
-    if (shader_) {
-        shader_->use();
-        
-        // Set uniforms
-        shader_->setUniform1f("uTime", time_);
-        shader_->setUniform1f("uBass", audioFeatures_.bassEnergy);
-        shader_->setUniform1f("uMid", audioFeatures_.midEnergy);
-        shader_->setUniform1f("uHigh", audioFeatures_.highEnergy);
-        shader_->setUniform1f("uEnergy", audioFeatures_.energy);
-        shader_->setUniform1f("uOnset", audioFeatures_.onset);
-        shader_->setUniform1f("uBeat", audioFeatures_.beat);
-        shader_->setUniform2f("uResolution", windowWidth_, windowHeight_);
-        
-        // Render quad
-        glBindVertexArray(quadVAO_);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        glBindVertexArray(0);
-    } else {
-        // Fallback: render simple triangle
-        renderFallbackTriangle();
-    }
+    // Clear screen
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
     
-    // Render waveform overlay
-    renderWaveform(waveformBuffer_);
+    // Render legacy visualization (works with software rendering)
+    renderLegacyVisualization();
     
     // Render ImGui GUI
     renderImGui();
@@ -288,29 +269,17 @@ bool Visualizer::setupOpenGL() {
         return false;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);  // Use OpenGL 2.1 for compatibility
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);  // Don't force core profile
     
     // Try with OpenGL ES if desktop OpenGL fails
     bool useGLES = false;
 
     window_ = glfwCreateWindow(windowWidth_, windowHeight_, "Audio Visualizer", nullptr, nullptr);
     if (!window_) {
-        std::cerr << "Failed to create GLFW window with OpenGL 3.3" << std::endl;
-        
-        // Try OpenGL ES
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-        
-        window_ = glfwCreateWindow(windowWidth_, windowHeight_, "Audio Visualizer", nullptr, nullptr);
-        if (!window_) {
-            std::cerr << "Failed to create GLFW window with OpenGL ES" << std::endl;
-            glfwTerminate();
-            return false;
-        }
-        useGLES = true;
+        std::cerr << "Failed to create GLFW window" << std::endl;
+        return false;
     }
 
     glfwMakeContextCurrent(window_);

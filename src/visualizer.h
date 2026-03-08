@@ -81,6 +81,24 @@ private:
     void renderDeviceSelectorImGui();
     void renderDiagnosticImGui();
     void renderConsoleImGui();
+    
+    // Procedural visualization methods
+    void renderProceduralVisualization();
+    void renderReactiveCircle(float bass, float mid, float high);
+    void renderFrequencyBars(float bass, float mid, float high);
+    void renderBeatExplosion(float bass, float mid, float high);
+    void renderRotatingRings(float mid, float time);
+    void renderHighFrequencySparkles(float high);
+    void renderWaveformVisualization();
+    
+    // Legacy OpenGL methods for software rendering
+    void renderLegacyVisualization();
+    void renderLegacyCircle(float bass, float mid, float high);
+    void renderLegacyFrequencyBars(float bass, float mid, float high);
+    void renderLegacyBeatExplosion(float bass, float mid, float high);
+    void renderLegacyRings(float mid, float time);
+    void renderLegacySparkles(float high);
+    void renderLegacyWaveform();
 };
 
 #endif // VISUALIZER_H

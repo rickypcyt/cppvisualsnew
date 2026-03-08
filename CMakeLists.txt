@@ -80,6 +80,8 @@ add_executable(audio_visualizer
     src/visualizer_console.cpp
     src/visualizer_triangle.cpp
     src/visualizer_imgui.cpp
+    src/visualizer_procedural.cpp
+    src/visualizer_legacy.cpp
     src/shader.cpp
     ${IMGUI_SOURCES}
 )

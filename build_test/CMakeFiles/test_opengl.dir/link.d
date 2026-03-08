@@ -1,37 +1,12 @@
-audio_visualizer: \
+test_opengl: \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/Scrt1.o \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/crti.o \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtbeginS.o \
-  CMakeFiles/audio_visualizer.dir/src/main.cpp.o \
-  CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o \
-  CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o \
-  CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o \
-  CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o \
-  CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o \
-  CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o \
-  CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o \
-  CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o \
-  CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.o \
-  CMakeFiles/audio_visualizer.dir/src/shader.cpp.o \
-  CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o \
-  CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o \
-  CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o \
-  CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o \
-  CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o \
-  CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o \
-  CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o \
+  CMakeFiles/test_opengl.dir/src/test_opengl.cpp.o \
   /usr/lib/libGL.so \
   /usr/lib/libGLU.so \
   /usr/lib/libGLEW.so \
   /usr/lib/libglfw.so.3.4 \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libportaudio.so \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libasound.so \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libpthread.a \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so \
-  /usr/lib/libm.so.6 \
-  /usr/lib/libmvec.so.1 \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libpthread.a \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libstdc++.so \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so \
@@ -65,12 +40,9 @@ audio_visualizer: \
   /usr/lib/libGLX.so.0 \
   /usr/lib32/libOpenGL.so.0 \
   /usr/lib/libOpenGL.so.0 \
-  /usr/lib/libjack.so.0 \
   /usr/lib/ld-linux-x86-64.so.2 \
   /usr/lib32/libX11.so.6 \
   /usr/lib/libX11.so.6 \
-  /usr/lib32/libpipewire-0.3.so.0 \
-  /usr/lib/libpipewire-0.3.so.0 \
   /usr/lib32/libxcb.so.1 \
   /usr/lib/libxcb.so.1 \
   /usr/lib32/libXau.so.6 \
@@ -84,41 +56,7 @@ audio_visualizer: \
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtbeginS.o:
 
-CMakeFiles/audio_visualizer.dir/src/main.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/src/shader.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
+CMakeFiles/test_opengl.dir/src/test_opengl.cpp.o:
 
 /usr/lib/libGL.so:
 
@@ -127,22 +65,6 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 /usr/lib/libGLEW.so:
 
 /usr/lib/libglfw.so.3.4:
-
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libportaudio.so:
-
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libasound.so:
-
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libpthread.a:
-
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so:
-
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so:
-
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so:
-
-/usr/lib/libm.so.6:
-
-/usr/lib/libmvec.so.1:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libpthread.a:
 
@@ -210,17 +132,11 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
 /usr/lib/libOpenGL.so.0:
 
-/usr/lib/libjack.so.0:
-
 /usr/lib/ld-linux-x86-64.so.2:
 
 /usr/lib32/libX11.so.6:
 
 /usr/lib/libX11.so.6:
-
-/usr/lib32/libpipewire-0.3.so.0:
-
-/usr/lib/libpipewire-0.3.so.0:
 
 /usr/lib32/libxcb.so.1:
 
