@@ -1,0 +1,3 @@
+/home/ricky/coding/proyects/visuals/build_simple/CMakeFiles/audio_visualizer_simple.dir
+/home/ricky/coding/proyects/visuals/build_simple/CMakeFiles/edit_cache.dir
+/home/ricky/coding/proyects/visuals/build_simple/CMakeFiles/rebuild_cache.dir

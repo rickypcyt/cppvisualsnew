@@ -257,9 +257,6 @@ void Visualizer::render() {
     
     // Render legacy visualization (works with software rendering)
     renderLegacyVisualization();
-    
-    // Render ImGui GUI
-    renderImGui();
 }
 
 bool Visualizer::setupOpenGL() {

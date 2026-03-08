@@ -32,7 +32,7 @@ public:
     void toggleConsoleMode() { consoleMode_ = !consoleMode_; }
     bool isConsoleMode() const { return consoleMode_; }
     
-    // No-ImGui methods
+    // No-ImGui methods (public)
     void renderNoImGuiLoop();
     
     // ImGui methods
