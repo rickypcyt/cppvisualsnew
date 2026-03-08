@@ -1,5 +1,5 @@
-CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: \
- /home/ricky/coding/proyects/visuals/src/visualizer.cpp \
+CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: \
+ /home/ricky/coding/proyects/visuals/src/visualizer_diagnostic.cpp \
  /usr/include/stdc-predef.h \
  /home/ricky/coding/proyects/visuals/src/visualizer.h \
  /usr/include/GL/glew.h /usr/include/c++/15.2.1/cstddef \
@@ -193,12 +193,9 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: \
  /usr/include/c++/15.2.1/bits/istream.tcc \
  /usr/include/c++/15.2.1/bits/sstream.tcc \
  /home/ricky/coding/proyects/visuals/src/shader.h \
- /usr/include/c++/15.2.1/iostream /usr/include/c++/15.2.1/chrono \
- /usr/include/c++/15.2.1/bits/chrono.h /usr/include/c++/15.2.1/ratio \
- /usr/include/c++/15.2.1/ctime \
- /usr/include/c++/15.2.1/bits/parse_numbers.h \
- /home/ricky/coding/proyects/visuals/src/audio_capture.h \
- /usr/local/include/portaudio.h /usr/include/c++/15.2.1/mutex \
- /usr/include/c++/15.2.1/bits/std_mutex.h \
- /usr/include/c++/15.2.1/bits/unique_lock.h \
- /usr/include/c++/15.2.1/atomic
+ /usr/include/c++/15.2.1/algorithm \
+ /usr/include/c++/15.2.1/bits/stl_algo.h \
+ /usr/include/c++/15.2.1/bits/algorithmfwd.h \
+ /usr/include/c++/15.2.1/bits/stl_heap.h \
+ /usr/include/c++/15.2.1/bits/uniform_int_dist.h \
+ /usr/include/c++/15.2.1/pstl/glue_algorithm_defs.h

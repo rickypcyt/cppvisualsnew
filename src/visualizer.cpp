@@ -1,6 +1,7 @@
 #include "visualizer.h"
 #include <iostream>
 #include <chrono>
+#include "audio_capture.h"
 
 const char* vertexShaderSource = R"(
 #version 330 core
@@ -154,7 +155,12 @@ void main() {
 
 Visualizer::Visualizer() 
     : window_(nullptr), windowWidth_(800), windowHeight_(600), time_(0.0f),
-      quadVAO_(0), quadVBO_(0) {}
+      quadVAO_(0), quadVBO_(0), waveformVAO_(0), waveformVBO_(0),
+      selectedDevice_(-1), showDeviceMenu_(false), showDiagnostic_(false), consoleMode_(false),
+      showImGuiWindow_(true), showDeviceSelector_(false), showDiagnosticInfo_(false), showConsoleMode_(false) {
+    waveformBuffer_.resize(512); // Same as audio buffer size
+    setupDeviceList();
+}
 
 Visualizer::~Visualizer() {
     shutdown();
@@ -173,13 +179,20 @@ bool Visualizer::initialize(int width, int height) {
     }
 
     if (!loadShaders()) {
-        return false;
+        std::cout << "Failed to load shaders, using fallback rendering" << std::endl;
+        shader_.reset(); // Will trigger fallback triangle
     }
+
+    // Setup ImGui
+    setupImGui();
 
     return true;
 }
 
 void Visualizer::shutdown() {
+    // Shutdown ImGui first
+    shutdownImGui();
+    
     if (quadVAO_) {
         glDeleteVertexArrays(1, &quadVAO_);
         quadVAO_ = 0;
@@ -187,6 +200,14 @@ void Visualizer::shutdown() {
     if (quadVBO_) {
         glDeleteBuffers(1, &quadVBO_);
         quadVBO_ = 0;
+    }
+    if (waveformVAO_) {
+        glDeleteVertexArrays(1, &waveformVAO_);
+        waveformVAO_ = 0;
+    }
+    if (waveformVBO_) {
+        glDeleteBuffers(1, &waveformVBO_);
+        waveformVBO_ = 0;
     }
     
     shader_.reset();
@@ -224,23 +245,41 @@ void Visualizer::updateAudioData(const AudioAnalyzer::AudioFeatures& features) {
     audioFeatures_ = features;
 }
 
+void Visualizer::updateAudioBuffer(const std::vector<float>& audioBuffer) {
+    if (audioBuffer.size() >= waveformBuffer_.size()) {
+        std::copy(audioBuffer.begin(), audioBuffer.begin() + waveformBuffer_.size(), waveformBuffer_.begin());
+    }
+}
+
 void Visualizer::render() {
-    shader_->use();
+    // Try main visualization first
+    if (shader_) {
+        shader_->use();
+        
+        // Set uniforms
+        shader_->setUniform1f("uTime", time_);
+        shader_->setUniform1f("uBass", audioFeatures_.bassEnergy);
+        shader_->setUniform1f("uMid", audioFeatures_.midEnergy);
+        shader_->setUniform1f("uHigh", audioFeatures_.highEnergy);
+        shader_->setUniform1f("uEnergy", audioFeatures_.energy);
+        shader_->setUniform1f("uOnset", audioFeatures_.onset);
+        shader_->setUniform1f("uBeat", audioFeatures_.beat);
+        shader_->setUniform2f("uResolution", windowWidth_, windowHeight_);
+        
+        // Render quad
+        glBindVertexArray(quadVAO_);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
+    } else {
+        // Fallback: render simple triangle
+        renderFallbackTriangle();
+    }
     
-    // Set uniforms
-    shader_->setUniform1f("uTime", time_);
-    shader_->setUniform1f("uBass", audioFeatures_.bassEnergy);
-    shader_->setUniform1f("uMid", audioFeatures_.midEnergy);
-    shader_->setUniform1f("uHigh", audioFeatures_.highEnergy);
-    shader_->setUniform1f("uEnergy", audioFeatures_.energy);
-    shader_->setUniform1f("uOnset", audioFeatures_.onset);
-    shader_->setUniform1f("uBeat", audioFeatures_.beat);
-    shader_->setUniform2f("uResolution", windowWidth_, windowHeight_);
+    // Render waveform overlay
+    renderWaveform(waveformBuffer_);
     
-    // Render quad
-    glBindVertexArray(quadVAO_);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
+    // Render ImGui GUI
+    renderImGui();
 }
 
 bool Visualizer::setupOpenGL() {
@@ -296,6 +335,7 @@ bool Visualizer::setupOpenGL() {
 
 bool Visualizer::setupGeometry() {
     setupQuad();
+    setupWaveform();
     return true;
 }
 
@@ -329,4 +369,246 @@ void Visualizer::setupQuad() {
     glEnableVertexAttribArray(1);
     
     glBindVertexArray(0);
+}
+
+void Visualizer::setupWaveform() {
+    glGenVertexArrays(1, &waveformVAO_);
+    glGenBuffers(1, &waveformVBO_);
+    
+    glBindVertexArray(waveformVAO_);
+    glBindBuffer(GL_ARRAY_BUFFER, waveformVBO_);
+    
+    // Allocate buffer memory (will be updated dynamically)
+    glBufferData(GL_ARRAY_BUFFER, waveformBuffer_.size() * sizeof(float) * 2, nullptr, GL_DYNAMIC_DRAW);
+    
+    // position attribute
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    
+    glBindVertexArray(0);
+}
+
+void Visualizer::renderWaveform(const std::vector<float>& audioBuffer) {
+    if (audioBuffer.empty()) return;
+    
+    // Create vertices for waveform
+    std::vector<float> vertices;
+    vertices.reserve(audioBuffer.size() * 2);
+    
+    float waveHeight = 100.0f; // Height of waveform display
+    float waveY = windowHeight_ - waveHeight - 20.0f; // Position at bottom
+    
+    for (size_t i = 0; i < audioBuffer.size(); ++i) {
+        float x = (float)i / (audioBuffer.size() - 1) * windowWidth_;
+        float y = waveY + audioBuffer[i] * waveHeight * 0.5f;
+        vertices.push_back(x);
+        vertices.push_back(y);
+    }
+    
+    // Update VBO with new waveform data
+    glBindBuffer(GL_ARRAY_BUFFER, waveformVBO_);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
+    
+    // Simple shader for waveform (colored line)
+    glUseProgram(0); // Use fixed function pipeline for simplicity
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, windowWidth_, windowHeight_, 0, -1, 1);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    // Disable depth test for overlay
+    glDisable(GL_DEPTH_TEST);
+    
+    // Draw waveform as line strip
+    glColor3f(0.0f, 1.0f, 0.5f); // Cyan color
+    glLineWidth(2.0f);
+    
+    glBindVertexArray(waveformVAO_);
+    glDrawArrays(GL_LINE_STRIP, 0, audioBuffer.size());
+    glBindVertexArray(0);
+    
+    // Restore state
+    glEnable(GL_DEPTH_TEST);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
+
+void Visualizer::setupDeviceList() {
+    // Get device names
+    PaError err = Pa_Initialize();
+    if (err != paNoError) return;
+    
+    int numDevices = Pa_GetDeviceCount();
+    deviceNames_.clear();
+    
+    for (int i = 0; i < numDevices; ++i) {
+        const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
+        if (deviceInfo && deviceInfo->maxInputChannels > 0) {
+            deviceNames_.push_back(deviceInfo->name);
+        } else {
+            deviceNames_.push_back(""); // No input channels
+        }
+    }
+    
+    Pa_Terminate();
+}
+
+void Visualizer::renderGUI() {
+    // Check for 'D' key toggle
+    if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) {
+        static double lastPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastPress > 0.5) { // 500ms debounce
+            showDeviceMenu_ = !showDeviceMenu_;
+            lastPress = currentTime;
+        }
+    }
+    
+    // Check for 'I' key toggle for diagnostic mode
+    if (glfwGetKey(window_, GLFW_KEY_I) == GLFW_PRESS) {
+        static double lastPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastPress > 0.5) { // 500ms debounce
+            showDiagnostic_ = !showDiagnostic_;
+            lastPress = currentTime;
+        }
+    }
+    
+    // Check for 'C' key toggle for console mode
+    if (glfwGetKey(window_, GLFW_KEY_C) == GLFW_PRESS) {
+        static double lastPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastPress > 0.5) { // 500ms debounce
+            consoleMode_ = !consoleMode_;
+            lastPress = currentTime;
+        }
+    }
+    
+    if (showDeviceMenu_) {
+        showDeviceSelector();
+    }
+    
+    // Show current device info
+    std::string deviceInfo = "Device: ";
+    if (selectedDevice_ >= 0 && selectedDevice_ < deviceNames_.size()) {
+        deviceInfo += deviceNames_[selectedDevice_];
+    } else {
+        deviceInfo += "Default";
+    }
+    deviceInfo += " (D:devices I:diagnostics C:console)";
+    renderText(deviceInfo, 10, 30);
+    
+    // Show diagnostic info if enabled
+    if (showDiagnostic_) {
+        renderDiagnosticInfo();
+    }
+    
+    // Show console visualization if enabled
+    if (consoleMode_) {
+        renderConsoleVisualization();
+    }
+}
+
+bool Visualizer::showDeviceSelector() {
+    // Simple device selector using text rendering
+    float menuX = 50.0f;
+    float menuY = 100.0f;
+    float lineHeight = 25.0f;
+    
+    renderText("=== Select Audio Device ===", menuX, menuY);
+    renderText("Use number keys 1-9 to select", menuX, menuY + lineHeight);
+    renderText("Press ESC to cancel", menuX, menuY + lineHeight * 2);
+    renderText("", menuX, menuY + lineHeight * 3);
+    
+    // Show available devices
+    int displayCount = 0;
+    for (int i = 0; i < deviceNames_.size() && displayCount < 9; ++i) {
+        if (!deviceNames_[i].empty()) {
+            std::string deviceText = std::to_string(displayCount + 1) + ". " + deviceNames_[i];
+            if (i == selectedDevice_) {
+                deviceText += " [CURRENT]";
+            }
+            renderText(deviceText, menuX, menuY + lineHeight * (4 + displayCount));
+            displayCount++;
+        }
+    }
+    
+    // Handle number key presses
+    for (int i = 0; i < 9; ++i) {
+        if (glfwGetKey(window_, GLFW_KEY_1 + i) == GLFW_PRESS) {
+            // Find the actual device index
+            int actualIndex = -1;
+            int count = 0;
+            for (int j = 0; j < deviceNames_.size(); ++j) {
+                if (!deviceNames_[j].empty()) {
+                    if (count == i) {
+                        actualIndex = j;
+                        break;
+                    }
+                    count++;
+                }
+            }
+            
+            if (actualIndex >= 0) {
+                selectedDevice_ = actualIndex;
+                showDeviceMenu_ = false;
+                return true; // Device changed
+            }
+        }
+    }
+    
+    // Handle ESC
+    if (glfwGetKey(window_, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        showDeviceMenu_ = false;
+    }
+    
+    return false;
+}
+
+void Visualizer::renderText(const std::string& text, float x, float y) {
+    // Simple text rendering using bitmap characters (basic implementation)
+    // For now, we'll use a very simple approach with line segments
+    
+    glUseProgram(0); // Use fixed function pipeline
+    
+    // Setup 2D projection
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, windowWidth_, windowHeight_, 0, -1, 1);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    // Disable depth test for overlay
+    glDisable(GL_DEPTH_TEST);
+    
+    // Set text color
+    glColor3f(1.0f, 1.0f, 1.0f);
+    
+    // Very basic text rendering (just show the text as a placeholder)
+    // In a real implementation, you'd use a proper font rendering system
+    glRasterPos2f(x, y);
+    
+    // For now, just print to console as a fallback
+    // This is a placeholder - proper text rendering would require a font library
+    static std::string lastText;
+    if (text != lastText) {
+        std::cout << "GUI: " << text << std::endl;
+        lastText = text;
+    }
+    
+    // Restore state
+    glEnable(GL_DEPTH_TEST);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
 }

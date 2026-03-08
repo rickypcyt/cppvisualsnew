@@ -129,6 +129,174 @@ audio_visualizer/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/build
 .PHONY : audio_visualizer/fast
 
+imgui/backends/imgui_impl_glfw.o: imgui/backends/imgui_impl_glfw.cpp.o
+.PHONY : imgui/backends/imgui_impl_glfw.o
+
+# target to build an object file
+imgui/backends/imgui_impl_glfw.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o
+.PHONY : imgui/backends/imgui_impl_glfw.cpp.o
+
+imgui/backends/imgui_impl_glfw.i: imgui/backends/imgui_impl_glfw.cpp.i
+.PHONY : imgui/backends/imgui_impl_glfw.i
+
+# target to preprocess a source file
+imgui/backends/imgui_impl_glfw.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.i
+.PHONY : imgui/backends/imgui_impl_glfw.cpp.i
+
+imgui/backends/imgui_impl_glfw.s: imgui/backends/imgui_impl_glfw.cpp.s
+.PHONY : imgui/backends/imgui_impl_glfw.s
+
+# target to generate assembly for a file
+imgui/backends/imgui_impl_glfw.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.s
+.PHONY : imgui/backends/imgui_impl_glfw.cpp.s
+
+imgui/backends/imgui_impl_opengl3.o: imgui/backends/imgui_impl_opengl3.cpp.o
+.PHONY : imgui/backends/imgui_impl_opengl3.o
+
+# target to build an object file
+imgui/backends/imgui_impl_opengl3.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o
+.PHONY : imgui/backends/imgui_impl_opengl3.cpp.o
+
+imgui/backends/imgui_impl_opengl3.i: imgui/backends/imgui_impl_opengl3.cpp.i
+.PHONY : imgui/backends/imgui_impl_opengl3.i
+
+# target to preprocess a source file
+imgui/backends/imgui_impl_opengl3.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.i
+.PHONY : imgui/backends/imgui_impl_opengl3.cpp.i
+
+imgui/backends/imgui_impl_opengl3.s: imgui/backends/imgui_impl_opengl3.cpp.s
+.PHONY : imgui/backends/imgui_impl_opengl3.s
+
+# target to generate assembly for a file
+imgui/backends/imgui_impl_opengl3.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.s
+.PHONY : imgui/backends/imgui_impl_opengl3.cpp.s
+
+imgui/imgui.o: imgui/imgui.cpp.o
+.PHONY : imgui/imgui.o
+
+# target to build an object file
+imgui/imgui.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o
+.PHONY : imgui/imgui.cpp.o
+
+imgui/imgui.i: imgui/imgui.cpp.i
+.PHONY : imgui/imgui.i
+
+# target to preprocess a source file
+imgui/imgui.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.i
+.PHONY : imgui/imgui.cpp.i
+
+imgui/imgui.s: imgui/imgui.cpp.s
+.PHONY : imgui/imgui.s
+
+# target to generate assembly for a file
+imgui/imgui.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.s
+.PHONY : imgui/imgui.cpp.s
+
+imgui/imgui_demo.o: imgui/imgui_demo.cpp.o
+.PHONY : imgui/imgui_demo.o
+
+# target to build an object file
+imgui/imgui_demo.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o
+.PHONY : imgui/imgui_demo.cpp.o
+
+imgui/imgui_demo.i: imgui/imgui_demo.cpp.i
+.PHONY : imgui/imgui_demo.i
+
+# target to preprocess a source file
+imgui/imgui_demo.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.i
+.PHONY : imgui/imgui_demo.cpp.i
+
+imgui/imgui_demo.s: imgui/imgui_demo.cpp.s
+.PHONY : imgui/imgui_demo.s
+
+# target to generate assembly for a file
+imgui/imgui_demo.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.s
+.PHONY : imgui/imgui_demo.cpp.s
+
+imgui/imgui_draw.o: imgui/imgui_draw.cpp.o
+.PHONY : imgui/imgui_draw.o
+
+# target to build an object file
+imgui/imgui_draw.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o
+.PHONY : imgui/imgui_draw.cpp.o
+
+imgui/imgui_draw.i: imgui/imgui_draw.cpp.i
+.PHONY : imgui/imgui_draw.i
+
+# target to preprocess a source file
+imgui/imgui_draw.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.i
+.PHONY : imgui/imgui_draw.cpp.i
+
+imgui/imgui_draw.s: imgui/imgui_draw.cpp.s
+.PHONY : imgui/imgui_draw.s
+
+# target to generate assembly for a file
+imgui/imgui_draw.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.s
+.PHONY : imgui/imgui_draw.cpp.s
+
+imgui/imgui_tables.o: imgui/imgui_tables.cpp.o
+.PHONY : imgui/imgui_tables.o
+
+# target to build an object file
+imgui/imgui_tables.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o
+.PHONY : imgui/imgui_tables.cpp.o
+
+imgui/imgui_tables.i: imgui/imgui_tables.cpp.i
+.PHONY : imgui/imgui_tables.i
+
+# target to preprocess a source file
+imgui/imgui_tables.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.i
+.PHONY : imgui/imgui_tables.cpp.i
+
+imgui/imgui_tables.s: imgui/imgui_tables.cpp.s
+.PHONY : imgui/imgui_tables.s
+
+# target to generate assembly for a file
+imgui/imgui_tables.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.s
+.PHONY : imgui/imgui_tables.cpp.s
+
+imgui/imgui_widgets.o: imgui/imgui_widgets.cpp.o
+.PHONY : imgui/imgui_widgets.o
+
+# target to build an object file
+imgui/imgui_widgets.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o
+.PHONY : imgui/imgui_widgets.cpp.o
+
+imgui/imgui_widgets.i: imgui/imgui_widgets.cpp.i
+.PHONY : imgui/imgui_widgets.i
+
+# target to preprocess a source file
+imgui/imgui_widgets.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.i
+.PHONY : imgui/imgui_widgets.cpp.i
+
+imgui/imgui_widgets.s: imgui/imgui_widgets.cpp.s
+.PHONY : imgui/imgui_widgets.s
+
+# target to generate assembly for a file
+imgui/imgui_widgets.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.s
+.PHONY : imgui/imgui_widgets.cpp.s
+
 src/audio_analyzer.o: src/audio_analyzer.cpp.o
 .PHONY : src/audio_analyzer.o
 
@@ -249,6 +417,102 @@ src/visualizer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.s
 .PHONY : src/visualizer.cpp.s
 
+src/visualizer_console.o: src/visualizer_console.cpp.o
+.PHONY : src/visualizer_console.o
+
+# target to build an object file
+src/visualizer_console.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o
+.PHONY : src/visualizer_console.cpp.o
+
+src/visualizer_console.i: src/visualizer_console.cpp.i
+.PHONY : src/visualizer_console.i
+
+# target to preprocess a source file
+src/visualizer_console.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.i
+.PHONY : src/visualizer_console.cpp.i
+
+src/visualizer_console.s: src/visualizer_console.cpp.s
+.PHONY : src/visualizer_console.s
+
+# target to generate assembly for a file
+src/visualizer_console.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.s
+.PHONY : src/visualizer_console.cpp.s
+
+src/visualizer_diagnostic.o: src/visualizer_diagnostic.cpp.o
+.PHONY : src/visualizer_diagnostic.o
+
+# target to build an object file
+src/visualizer_diagnostic.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o
+.PHONY : src/visualizer_diagnostic.cpp.o
+
+src/visualizer_diagnostic.i: src/visualizer_diagnostic.cpp.i
+.PHONY : src/visualizer_diagnostic.i
+
+# target to preprocess a source file
+src/visualizer_diagnostic.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.i
+.PHONY : src/visualizer_diagnostic.cpp.i
+
+src/visualizer_diagnostic.s: src/visualizer_diagnostic.cpp.s
+.PHONY : src/visualizer_diagnostic.s
+
+# target to generate assembly for a file
+src/visualizer_diagnostic.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.s
+.PHONY : src/visualizer_diagnostic.cpp.s
+
+src/visualizer_imgui.o: src/visualizer_imgui.cpp.o
+.PHONY : src/visualizer_imgui.o
+
+# target to build an object file
+src/visualizer_imgui.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o
+.PHONY : src/visualizer_imgui.cpp.o
+
+src/visualizer_imgui.i: src/visualizer_imgui.cpp.i
+.PHONY : src/visualizer_imgui.i
+
+# target to preprocess a source file
+src/visualizer_imgui.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.i
+.PHONY : src/visualizer_imgui.cpp.i
+
+src/visualizer_imgui.s: src/visualizer_imgui.cpp.s
+.PHONY : src/visualizer_imgui.s
+
+# target to generate assembly for a file
+src/visualizer_imgui.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.s
+.PHONY : src/visualizer_imgui.cpp.s
+
+src/visualizer_triangle.o: src/visualizer_triangle.cpp.o
+.PHONY : src/visualizer_triangle.o
+
+# target to build an object file
+src/visualizer_triangle.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o
+.PHONY : src/visualizer_triangle.cpp.o
+
+src/visualizer_triangle.i: src/visualizer_triangle.cpp.i
+.PHONY : src/visualizer_triangle.i
+
+# target to preprocess a source file
+src/visualizer_triangle.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.i
+.PHONY : src/visualizer_triangle.cpp.i
+
+src/visualizer_triangle.s: src/visualizer_triangle.cpp.s
+.PHONY : src/visualizer_triangle.s
+
+# target to generate assembly for a file
+src/visualizer_triangle.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.s
+.PHONY : src/visualizer_triangle.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -258,6 +522,27 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... audio_visualizer"
+	@echo "... imgui/backends/imgui_impl_glfw.o"
+	@echo "... imgui/backends/imgui_impl_glfw.i"
+	@echo "... imgui/backends/imgui_impl_glfw.s"
+	@echo "... imgui/backends/imgui_impl_opengl3.o"
+	@echo "... imgui/backends/imgui_impl_opengl3.i"
+	@echo "... imgui/backends/imgui_impl_opengl3.s"
+	@echo "... imgui/imgui.o"
+	@echo "... imgui/imgui.i"
+	@echo "... imgui/imgui.s"
+	@echo "... imgui/imgui_demo.o"
+	@echo "... imgui/imgui_demo.i"
+	@echo "... imgui/imgui_demo.s"
+	@echo "... imgui/imgui_draw.o"
+	@echo "... imgui/imgui_draw.i"
+	@echo "... imgui/imgui_draw.s"
+	@echo "... imgui/imgui_tables.o"
+	@echo "... imgui/imgui_tables.i"
+	@echo "... imgui/imgui_tables.s"
+	@echo "... imgui/imgui_widgets.o"
+	@echo "... imgui/imgui_widgets.i"
+	@echo "... imgui/imgui_widgets.s"
 	@echo "... src/audio_analyzer.o"
 	@echo "... src/audio_analyzer.i"
 	@echo "... src/audio_analyzer.s"
@@ -273,6 +558,18 @@ help:
 	@echo "... src/visualizer.o"
 	@echo "... src/visualizer.i"
 	@echo "... src/visualizer.s"
+	@echo "... src/visualizer_console.o"
+	@echo "... src/visualizer_console.i"
+	@echo "... src/visualizer_console.s"
+	@echo "... src/visualizer_diagnostic.o"
+	@echo "... src/visualizer_diagnostic.i"
+	@echo "... src/visualizer_diagnostic.s"
+	@echo "... src/visualizer_imgui.o"
+	@echo "... src/visualizer_imgui.i"
+	@echo "... src/visualizer_imgui.s"
+	@echo "... src/visualizer_triangle.o"
+	@echo "... src/visualizer_triangle.i"
+	@echo "... src/visualizer_triangle.s"
 .PHONY : help
 
 

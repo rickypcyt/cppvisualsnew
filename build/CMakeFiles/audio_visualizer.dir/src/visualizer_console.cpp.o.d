@@ -1,5 +1,5 @@
-CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: \
- /home/ricky/coding/proyects/visuals/src/visualizer.cpp \
+CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: \
+ /home/ricky/coding/proyects/visuals/src/visualizer_console.cpp \
  /usr/include/stdc-predef.h \
  /home/ricky/coding/proyects/visuals/src/visualizer.h \
  /usr/include/GL/glew.h /usr/include/c++/15.2.1/cstddef \
@@ -193,12 +193,13 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: \
  /usr/include/c++/15.2.1/bits/istream.tcc \
  /usr/include/c++/15.2.1/bits/sstream.tcc \
  /home/ricky/coding/proyects/visuals/src/shader.h \
- /usr/include/c++/15.2.1/iostream /usr/include/c++/15.2.1/chrono \
- /usr/include/c++/15.2.1/bits/chrono.h /usr/include/c++/15.2.1/ratio \
+ /usr/include/c++/15.2.1/iostream /usr/include/c++/15.2.1/iomanip \
+ /usr/include/c++/15.2.1/locale \
+ /usr/include/c++/15.2.1/bits/locale_facets_nonio.h \
  /usr/include/c++/15.2.1/ctime \
- /usr/include/c++/15.2.1/bits/parse_numbers.h \
- /home/ricky/coding/proyects/visuals/src/audio_capture.h \
- /usr/local/include/portaudio.h /usr/include/c++/15.2.1/mutex \
- /usr/include/c++/15.2.1/bits/std_mutex.h \
- /usr/include/c++/15.2.1/bits/unique_lock.h \
- /usr/include/c++/15.2.1/atomic
+ /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/time_members.h \
+ /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/messages_members.h \
+ /usr/include/libintl.h /usr/include/c++/15.2.1/bits/codecvt.h \
+ /usr/include/c++/15.2.1/bits/locale_facets_nonio.tcc \
+ /usr/include/c++/15.2.1/bits/locale_conv.h \
+ /usr/include/c++/15.2.1/bits/quoted_string.h

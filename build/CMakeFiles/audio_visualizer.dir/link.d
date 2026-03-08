@@ -6,7 +6,18 @@ audio_visualizer: \
   CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o \
   CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o \
   CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o \
+  CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o \
+  CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o \
+  CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o \
+  CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o \
   CMakeFiles/audio_visualizer.dir/src/shader.cpp.o \
+  CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o \
+  CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o \
+  CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o \
+  CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o \
+  CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o \
+  CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o \
+  CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o \
   /usr/lib/libGL.so \
   /usr/lib/libGLU.so \
   /usr/lib/libGLEW.so \
@@ -79,7 +90,29 @@ CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o:
 
 CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o:
 
+CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o:
+
+CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o:
+
+CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o:
+
+CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o:
+
 CMakeFiles/audio_visualizer.dir/src/shader.cpp.o:
+
+CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o:
+
+CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o:
+
+CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o:
+
+CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o:
+
+CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o:
+
+CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o:
+
+CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
 /usr/lib/libGL.so:
 

@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = 
+CXX_INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends
 
 CXX_FLAGS = -std=gnu++17 -pthread
 

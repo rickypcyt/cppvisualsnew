@@ -15,6 +15,31 @@ if(NOT GLEW_INCLUDE_DIRS OR NOT GLEW_LIBRARIES)
     message(FATAL_ERROR "GLEW not found. Please install libglew-dev or equivalent")
 endif()
 
+# ImGui (as submodule)
+set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
+set(IMGUI_SOURCES
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_demo.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+)
+set(IMGUI_HEADERS
+    ${IMGUI_DIR}/imgui.h
+    ${IMGUI_DIR}/imgui_internal.h
+    ${IMGUI_DIR}/imgui_demo.h
+    ${IMGUI_DIR}/imgui_draw.h
+    ${IMGUI_DIR}/imgui_tables.h
+    ${IMGUI_DIR}/imgui_widgets.h
+    ${IMGUI_DIR}/backends/imgui_impl_glfw.h
+    ${IMGUI_DIR}/backends/imgui_impl_opengl3.h
+    ${IMGUI_DIR}/imstb_rectpack.h
+    ${IMGUI_DIR}/imstb_textedit.h
+    ${IMGUI_DIR}/imconfig.h
+)
+
 # PortAudio
 pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
 
@@ -42,6 +67,8 @@ if(GLEW_INCLUDE_DIRS)
     include_directories(${GLEW_INCLUDE_DIRS})
 endif()
 include_directories(${PORTAUDIO_INCLUDE_DIRS})
+include_directories(${IMGUI_DIR})
+include_directories(${IMGUI_DIR}/backends)
 
 # Add executable
 add_executable(audio_visualizer
@@ -49,7 +76,12 @@ add_executable(audio_visualizer
     src/audio_capture.cpp
     src/audio_analyzer.cpp
     src/visualizer.cpp
+    src/visualizer_diagnostic.cpp
+    src/visualizer_console.cpp
+    src/visualizer_triangle.cpp
+    src/visualizer_imgui.cpp
     src/shader.cpp
+    ${IMGUI_SOURCES}
 )
 
 # Link libraries

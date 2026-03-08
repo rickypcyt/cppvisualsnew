@@ -64,10 +64,40 @@ make -j4
 
 ## Uso
 
-1. Conecta un micrófono o asegúrate de que el micrófono integrado funcione
-2. Ejecuta el programa: `./audio_visualizer`
-3. Reproduce música electrónica cerca del micrófono
-4. Los visuales reaccionarán en tiempo real al audio
+1. **Lista los dispositivos de audio disponibles:**
+   ```bash
+   ./audio_visualizer --list-devices
+   # o
+   ./audio_visualizer -l
+   ```
+
+2. **Ejecuta con el dispositivo por defecto:**
+   ```bash
+   ./audio_visualizer
+   ```
+
+3. **Ejecuta con un dispositivo específico:**
+   ```bash
+   ./audio_visualizer --device 8
+   # o
+   ./audio_visualizer -d 8
+   ```
+
+4. **Muestra ayuda:**
+   ```bash
+   ./audio_visualizer --help
+   # o
+   ./audio_visualizer -h
+   ```
+
+### Dispositivos Comunes
+
+- **Dispositivo 4**: HD-Audio Generic: ALC233 Analog (micrófono integrado) [DEFAULT]
+- **Dispositivo 7**: pipewire (sistema de audio moderno)
+- **Dispositivo 8**: pulse (PulseAudio)
+- **Dispositivo 6**: jack (Jack Audio Connection Kit)
+
+Selecciona el dispositivo que tenga canales de entrada (Max Inputs > 0) y que corresponda a tu hardware.
 
 ## Features de Audio Extraídos
 

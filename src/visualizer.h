@@ -7,6 +7,9 @@
 #include "audio_analyzer.h"
 #include "shader.h"
 
+// Forward declarations for ImGui
+struct ImGuiIO;
+
 class Visualizer {
 public:
     Visualizer();
@@ -18,7 +21,21 @@ public:
     void beginFrame();
     void endFrame();
     void updateAudioData(const AudioAnalyzer::AudioFeatures& features);
+    void updateAudioBuffer(const std::vector<float>& audioBuffer);
     void render();
+    void renderGUI();
+    bool showDeviceSelector();
+    int getSelectedDevice() const { return selectedDevice_; }
+    void setSelectedDevice(int device) { selectedDevice_ = device; }
+    void toggleDiagnosticMode() { showDiagnostic_ = !showDiagnostic_; }
+    bool isDiagnosticMode() const { return showDiagnostic_; }
+    void toggleConsoleMode() { consoleMode_ = !consoleMode_; }
+    bool isConsoleMode() const { return consoleMode_; }
+    
+    // ImGui methods
+    void setupImGui();
+    void shutdownImGui();
+    void renderImGui();
 
 private:
     GLFWwindow* window_;
@@ -29,14 +46,41 @@ private:
     // OpenGL objects
     GLuint quadVAO_;
     GLuint quadVBO_;
+    GLuint waveformVAO_;
+    GLuint waveformVBO_;
     
     std::unique_ptr<Shader> shader_;
     AudioAnalyzer::AudioFeatures audioFeatures_;
+    std::vector<float> waveformBuffer_;
+    int selectedDevice_;
+    bool showDeviceMenu_;
+    bool showDiagnostic_;
+    bool consoleMode_;
+    std::vector<std::string> deviceNames_;
+    
+    // ImGui state
+    bool showImGuiWindow_;
+    bool showDeviceSelector_;
+    bool showDiagnosticInfo_;
+    bool showConsoleMode_;
 
     bool setupOpenGL();
     bool setupGeometry();
     bool loadShaders();
     void setupQuad();
+    void setupWaveform();
+    void renderWaveform(const std::vector<float>& audioBuffer);
+    void renderText(const std::string& text, float x, float y);
+    void setupDeviceList();
+    void renderDiagnosticInfo();
+    void renderConsoleVisualization();
+    void renderFallbackTriangle();
+    
+    // ImGui rendering methods
+    void renderMainImGuiWindow();
+    void renderDeviceSelectorImGui();
+    void renderDiagnosticImGui();
+    void renderConsoleImGui();
 };
 
 #endif // VISUALIZER_H

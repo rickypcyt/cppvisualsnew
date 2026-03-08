@@ -12,35 +12,73 @@ AudioCapture::~AudioCapture() {
 }
 
 bool AudioCapture::initialize() {
+    return initialize(getDefaultInputDevice());
+}
+
+bool AudioCapture::initialize(int deviceIndex) {
     PaError err = Pa_Initialize();
     if (err != paNoError) {
         std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
         return false;
     }
 
-    PaStreamParameters inputParameters;
-    inputParameters.device = Pa_GetDefaultInputDevice();
-    if (inputParameters.device == paNoDevice) {
-        std::cerr << "No default input device found" << std::endl;
+    // Validate device index
+    int numDevices = Pa_GetDeviceCount();
+    if (deviceIndex < 0 || deviceIndex >= numDevices) {
+        std::cerr << "Invalid device index: " << deviceIndex << std::endl;
         return false;
     }
 
+    const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(deviceIndex);
+    if (!deviceInfo) {
+        std::cerr << "Failed to get device info for index: " << deviceIndex << std::endl;
+        return false;
+    }
+
+    std::cout << "Using audio device: " << deviceInfo->name << std::endl;
+
+    // Try different sample rates if the default doesn't work
+    std::vector<double> sampleRates = {44100.0, 48000.0, 22050.0, 16000.0, 8000.0};
+    PaStreamParameters inputParameters;
+    
+    inputParameters.device = deviceIndex;
     inputParameters.channelCount = CHANNELS;
     inputParameters.sampleFormat = paFloat32;
-    inputParameters.suggestedLatency = Pa_GetDeviceInfo(inputParameters.device)->defaultLowInputLatency;
+    inputParameters.suggestedLatency = deviceInfo->defaultLowInputLatency;
     inputParameters.hostApiSpecificStreamInfo = nullptr;
 
-    err = Pa_OpenStream(&stream_,
-                       &inputParameters,
-                       nullptr,
-                       SAMPLE_RATE,
-                       FRAMES_PER_BUFFER,
-                       paClipOff,
-                       audioCallback,
-                       this);
+    bool streamOpened = false;
+    double actualSampleRate = SAMPLE_RATE;
 
-    if (err != paNoError) {
-        std::cerr << "Failed to open stream: " << Pa_GetErrorText(err) << std::endl;
+    for (double sampleRate : sampleRates) {
+        std::cout << "Trying sample rate: " << sampleRate << " Hz..." << std::endl;
+        
+        err = Pa_IsFormatSupported(&inputParameters, nullptr, sampleRate);
+        if (err == paFormatIsSupported) {
+            err = Pa_OpenStream(&stream_,
+                               &inputParameters,
+                               nullptr,
+                               sampleRate,
+                               FRAMES_PER_BUFFER,
+                               paClipOff,
+                               audioCallback,
+                               this);
+
+            if (err == paNoError) {
+                actualSampleRate = sampleRate;
+                streamOpened = true;
+                std::cout << "Successfully opened stream with sample rate: " << actualSampleRate << " Hz" << std::endl;
+                break;
+            } else {
+                std::cerr << "Failed to open stream with " << sampleRate << " Hz: " << Pa_GetErrorText(err) << std::endl;
+            }
+        } else {
+            std::cout << "Sample rate " << sampleRate << " Hz not supported" << std::endl;
+        }
+    }
+
+    if (!streamOpened) {
+        std::cerr << "Failed to open stream with any supported sample rate" << std::endl;
         return false;
     }
 
@@ -107,4 +145,48 @@ int AudioCapture::audioCallback(const void* inputBuffer,
     self->hasNewData_.store(true);
 
     return paContinue;
+}
+
+void AudioCapture::listAvailableDevices() {
+    PaError err = Pa_Initialize();
+    if (err != paNoError) {
+        std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
+        return;
+    }
+
+    int numDevices = Pa_GetDeviceCount();
+    if (numDevices < 0) {
+        std::cerr << "No audio devices found" << std::endl;
+        Pa_Terminate();
+        return;
+    }
+
+    std::cout << "\n=== Available Audio Devices ===" << std::endl;
+    std::cout << "Index | Name                    | Max Inputs | Max Outputs" << std::endl;
+    std::cout << "------|-------------------------|------------|------------" << std::endl;
+
+    int defaultInput = getDefaultInputDevice();
+    
+    for (int i = 0; i < numDevices; ++i) {
+        const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
+        if (!deviceInfo) continue;
+        
+        std::string marker = (i == defaultInput) ? " [DEFAULT]" : "";
+        
+        printf("%-6d| %-23s | %-10d | %-11d%s\n", 
+               i, 
+               deviceInfo->name, 
+               deviceInfo->maxInputChannels, 
+               deviceInfo->maxOutputChannels,
+               marker.c_str());
+    }
+    
+    std::cout << "\nUse the device index to select input device." << std::endl;
+    std::cout << "Example: ./audio_visualizer --device 2" << std::endl;
+    
+    Pa_Terminate();
+}
+
+int AudioCapture::getDefaultInputDevice() {
+    return Pa_GetDefaultInputDevice();
 }

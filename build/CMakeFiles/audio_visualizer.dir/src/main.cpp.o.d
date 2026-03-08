@@ -171,6 +171,8 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: \
  /usr/include/c++/15.2.1/backward/auto_ptr.h \
  /usr/include/c++/15.2.1/pstl/glue_memory_defs.h \
  /usr/include/c++/15.2.1/pstl/execution_defs.h \
+ /usr/include/c++/15.2.1/cstring /usr/include/string.h \
+ /usr/include/strings.h \
  /home/ricky/coding/proyects/visuals/src/audio_capture.h \
  /usr/local/include/portaudio.h /usr/include/c++/15.2.1/vector \
  /usr/include/c++/15.2.1/bits/stl_vector.h \
