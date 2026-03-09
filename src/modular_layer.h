@@ -1,0 +1,55 @@
+#pragma once
+
+#include <GL/glew.h>
+#include <memory>
+
+#include "audio_analyzer.h"
+#include "shader.h"
+
+struct LayerContext {
+    int screenWidth;
+    int screenHeight;
+    float time;
+    float tempo;
+    const AudioAnalyzer::AudioFeatures* audio;
+};
+
+class ModularLayer {
+public:
+    ModularLayer();
+    ~ModularLayer();
+
+    bool initialize(int width, int height);
+    void shutdown();
+    void resize(int width, int height);
+
+    void render(const LayerContext& context);
+    void composite(const LayerContext& context, float opacity);
+
+    void setEnabled(bool enabled) { enabled_ = enabled; }
+    bool isEnabled() const { return enabled_; }
+    void setDebugPreview(bool enabled) { debugPreview_ = enabled; }
+    bool debugPreview() const { return debugPreview_; }
+    void setMode(int mode) { mode_ = mode; }
+    int mode() const { return mode_; }
+
+private:
+    bool createResources(int width, int height);
+    void destroyResources();
+    bool ensureShader();
+    bool ensureCompositeShader();
+
+    GLuint fbo_{0};
+    GLuint colorTexture_{0};
+    GLuint quadVAO_{0};
+    GLuint quadVBO_{0};
+    int width_{0};
+    int height_{0};
+    bool initialized_{false};
+    bool enabled_{true};
+    bool debugPreview_{false};
+    int mode_{0};
+
+    std::unique_ptr<Shader> proceduralShader_;
+    std::unique_ptr<Shader> compositeShader_;
+};

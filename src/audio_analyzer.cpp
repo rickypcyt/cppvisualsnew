@@ -12,7 +12,7 @@ AudioAnalyzer::AudioAnalyzer()
       bassEnergyEMA_(1e-3f), midEnergyEMA_(1e-3f), highEnergyEMA_(1e-3f),
       bassPeak_(1e-3f), midPeak_(1e-3f), highPeak_(1e-3f), energyPeak_(1e-3f),
       onsetThreshold_(1.25f), beatCounter_(0), beatTimer_(0.0f),
-      beatIntervals_(), bpmEstimate_(0.0f),
+      beatIntervals_(), bpmEstimate_(0.0f), lastBeatInterval_(0.5f),
       kickTimer_(1.0f), clapTimer_(1.0f), hiHatTimer_(1.0f) {
     
     // Create Hann window
@@ -160,7 +160,18 @@ void AudioAnalyzer::extractFeatures() {
     if (features_.onset > 0.5f && features_.bassEnergy > 0.1f) {
         beatCounter_++;
         features_.beat = 1.0f;
-        if (beatTimer_ > 0.1f && beatTimer_ < 2.0f) {
+
+        const float minInterval = 0.24f;   // ~250 BPM upper bound
+        const float maxInterval = 2.0f;     // ~30 BPM lower bound
+        bool acceptBeat = beatTimer_ >= minInterval && beatTimer_ <= maxInterval;
+        if (acceptBeat && lastBeatInterval_ > 1e-3f) {
+            float minSpacing = std::max(0.18f, lastBeatInterval_ * 0.6f);
+            if (beatTimer_ < minSpacing) {
+                acceptBeat = false;
+            }
+        }
+
+        if (acceptBeat) {
             beatIntervals_.push_back(beatTimer_);
             if (beatIntervals_.size() > MAX_BEAT_HISTORY) {
                 beatIntervals_.pop_front();
@@ -171,7 +182,10 @@ void AudioAnalyzer::extractFeatures() {
             if (avgInterval > 1e-3f) {
                 bpmEstimate_ = 60.0f / avgInterval;
             }
+
+            lastBeatInterval_ = beatTimer_;
         }
+
         beatTimer_ = 0.0f;
     } else {
         features_.beat = 0.0f;

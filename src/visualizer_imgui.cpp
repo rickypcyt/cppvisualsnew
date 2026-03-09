@@ -252,6 +252,87 @@ void Visualizer::renderMainImGuiWindow() {
         ImGui::SetTooltip("Superpone el render legacy encima del moderno");
     }
 
+    if (useModernPipeline_) {
+        if (ImGui::TreeNode("Capas núcleo shader")) {
+            ImGui::Checkbox("Base", &coreShowBase_);
+            ImGui::SameLine();
+            ImGui::Checkbox("Corona", &coreShowCorona_);
+            ImGui::SameLine();
+            ImGui::Checkbox("Spokes", &coreShowSpokes_);
+
+            ImGui::Checkbox("Runas", &coreShowRunes_);
+            ImGui::SameLine();
+            ImGui::Checkbox("Sparkles", &coreShowSparkles_);
+            ImGui::SameLine();
+            ImGui::Checkbox("Bloom", &coreShowBloom_);
+            ImGui::TreePop();
+        }
+
+        ImGui::Checkbox("Chispas shader", &showShaderSparks_);
+        ImGui::SameLine();
+        ImGui::Checkbox("Orbes esquina", &showCornerOrbs_);
+
+        if (ImGui::TreeNode("Capa procedural")) {
+            ImGui::Checkbox("Mostrar", &showProceduralLayer_);
+            ImGui::SameLine();
+            ImGui::Checkbox("Debug preview", &proceduralLayerDebug_);
+            ImGui::SliderFloat("Opacidad", &proceduralLayerOpacity_, 0.0f, 1.0f, "%.2f");
+
+            static const char* kProceduralModes[] = {
+                "Nebula",
+                "ASCII Ocean",
+                "Sacred Geometry",
+                "Glitch Grid"
+            };
+            int modeIndex = std::clamp(proceduralLayerMode_, 0, static_cast<int>(std::size(kProceduralModes)) - 1);
+            if (ImGui::BeginCombo("Modo", kProceduralModes[modeIndex])) {
+                for (int i = 0; i < static_cast<int>(std::size(kProceduralModes)); ++i) {
+                    bool selected = (proceduralLayerMode_ == i);
+                    if (ImGui::Selectable(kProceduralModes[i], selected)) {
+                        proceduralLayerMode_ = i;
+                        proceduralLayer_.setMode(i);
+                    }
+                    if (selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNode("Post proceso")) {
+            static const char* kModes[] = {
+                "Off",
+                "Grayscale",
+                "Filmic",
+                "Digital Wave",
+                "Pulse Shift"
+            };
+
+            int currentMode = postProcessMode_;
+            if (currentMode < 0 || currentMode >= static_cast<int>(std::size(kModes))) {
+                currentMode = 0;
+            }
+
+            if (ImGui::BeginCombo("Modo", kModes[currentMode])) {
+                for (int i = 0; i < static_cast<int>(std::size(kModes)); ++i) {
+                    bool selected = (postProcessMode_ == i);
+                    if (ImGui::Selectable(kModes[i], selected)) {
+                        postProcessMode_ = i;
+                    }
+                    if (selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            ImGui::SliderFloat("Intensidad", &postProcessStrength_, 0.0f, 1.0f, "%.2f");
+            ImGui::TreePop();
+        }
+    }
+
     ImGui::Checkbox("Random auto", &autoRandomizeColors_);
     ImGui::SameLine();
     ImGui::Checkbox("Cambiar colores cada 2 onsets", &onsetColorCyclingEnabled_);

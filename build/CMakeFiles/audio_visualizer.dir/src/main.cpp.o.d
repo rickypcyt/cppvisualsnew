@@ -215,4 +215,6 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: \
  /usr/include/c++/15.2.1/bits/stl_numeric.h \
  /usr/include/c++/15.2.1/pstl/glue_numeric_defs.h \
  /usr/include/c++/15.2.1/array /usr/include/c++/15.2.1/compare \
- /home/ricky/coding/proyects/visuals/src/shader.h
+ /home/ricky/coding/proyects/visuals/src/shader.h \
+ /home/ricky/coding/proyects/visuals/src/modular_layer.h \
+ /home/ricky/coding/proyects/visuals/src/post_processor.h

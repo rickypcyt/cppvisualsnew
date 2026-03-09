@@ -10,6 +10,8 @@
 #include <array>
 #include "audio_analyzer.h"
 #include "shader.h"
+#include "modular_layer.h"
+#include "post_processor.h"
 
 // Forward declarations for ImGui
 struct ImGuiIO;
@@ -83,6 +85,9 @@ private:
         float energy = 0.0f;
         float kickEnvelope = 0.0f;
         float harmonicEnvelope = 0.0f;
+        float growthTrend = 0.0f;
+        float growthEnvelope = 0.0f;
+        float maturity = 0.0f;
     };
 
     struct GearNode {
@@ -127,9 +132,19 @@ private:
     GLuint coreVAO_;
     GLuint coreVBO_;
     GLsizei coreVertexCount_;
+    GLuint sparkVAO_;
+    GLuint sparkVBO_;
+    GLsizei sparkVertexCount_;
+    GLuint cornerVAO_;
+    GLuint cornerVBO_;
+    GLsizei cornerVertexCount_;
 
     std::unique_ptr<Shader> shader_;
     std::unique_ptr<Shader> coreShader_;
+    std::unique_ptr<Shader> sparkShader_;
+    std::unique_ptr<Shader> cornerShader_;
+    ModularLayer proceduralLayer_;
+    PostProcessor postProcessor_;
     AudioAnalyzer::AudioFeatures audioFeatures_;
     std::vector<float> waveformBuffer_;
     int selectedDevice_;
@@ -170,6 +185,20 @@ private:
     float tempoMultiplier_;
     bool mixColorSchemes_;
     bool overlayLegacyOnModern_;
+    bool coreShowBase_;
+    bool coreShowCorona_;
+    bool coreShowSpokes_;
+    bool coreShowRunes_;
+    bool coreShowSparkles_;
+    bool coreShowBloom_;
+    bool showShaderSparks_;
+    bool showCornerOrbs_;
+    bool showProceduralLayer_;
+    bool proceduralLayerDebug_;
+    float proceduralLayerOpacity_;
+    int proceduralLayerMode_;
+    int postProcessMode_;
+    float postProcessStrength_;
 
     CoreState core_;
     std::vector<GearNode> gears_;
@@ -184,9 +213,13 @@ private:
     bool setupGeometry();
     bool loadShaders();
     bool loadCoreShader();
+    bool loadSparkShader();
+    bool loadCornerShader();
     void setupQuad();
     void setupWaveform();
     void setupCoreMesh();
+    void setupSparkField();
+    void setupCornerQuad();
     void renderWaveform(const std::vector<float>& audioBuffer);
     void renderText(const std::string& text, float x, float y);
     void setupDeviceList();
@@ -195,6 +228,9 @@ private:
     void renderFallbackTriangle();
     void renderModernVisualization();
     void renderModernCore();
+    void renderShaderSparkles();
+    void renderCornerOrbs();
+    void renderProceduralLayer();
 
     // ImGui rendering methods
     void renderMainImGuiWindow();

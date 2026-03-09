@@ -66,6 +66,7 @@ private:
     float beatTimer_;
     std::deque<float> beatIntervals_;
     float bpmEstimate_;
+    float lastBeatInterval_;
     float kickTimer_;
     float clapTimer_;
     float hiHatTimer_;

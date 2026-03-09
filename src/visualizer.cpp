@@ -20,6 +20,249 @@ void main() {
 }
 )";
 
+const char* cornerVertexShaderSource = R"(
+#version 330 core
+layout (location = 0) in vec3 aCorner; // clipPos.xy, size factor
+
+uniform vec2 uResolution;
+uniform float uTime;
+uniform float uTempo;
+uniform float uPulse;
+uniform float uEnergy;
+
+out float vSize;
+out float vAngle;
+
+void main() {
+    vec2 basePos = aCorner.xy;
+    float wobble = sin(uTime * (0.6 + uTempo * 0.2) + basePos.x * 3.1 + basePos.y * 2.2) * 0.02;
+    vec2 offset = vec2(wobble, wobble * 0.4);
+    vec2 pos = basePos + offset;
+
+    float base = min(uResolution.x, uResolution.y);
+    float scale = aCorner.z;
+    float size = base * scale * (0.85 + uPulse * 0.35 + uEnergy * 0.25);
+
+    gl_Position = vec4(pos, 0.0, 1.0);
+    gl_PointSize = size;
+
+    vSize = size;
+    vAngle = atan(pos.y, pos.x);
+}
+)";
+
+const char* cornerFragmentShaderSource = R"(
+#version 330 core
+in float vSize;
+in float vAngle;
+
+out vec4 FragColor;
+
+uniform float uBass;
+uniform float uMid;
+uniform float uHigh;
+uniform float uEnergy;
+uniform float uPulse;
+uniform float uKick;
+
+void main() {
+    vec2 uv = gl_PointCoord * 2.0 - 1.0;
+    float dist = length(uv);
+    if (dist > 1.0) discard;
+
+    float petal = abs(sin(vAngle * (5.0 + uMid * 3.0) + uv.x * 4.0 + uPulse * 2.0));
+    float ring = smoothstep(0.9, 0.4, dist) - smoothstep(0.6, 0.15, dist);
+    float inner = smoothstep(0.35, 0.0, dist);
+
+    vec3 baseColor = vec3(0.18 + uBass * 0.6,
+                          0.22 + uMid * 0.5,
+                          0.3 + uHigh * 0.8);
+    vec3 neon = vec3(0.55 + uHigh * 0.8,
+                     0.4 + uMid * 0.7,
+                     1.05 + uBass * 0.4);
+    vec3 rim = vec3(0.9, 0.85, 1.0);
+
+    vec3 color = baseColor * inner;
+    color += neon * petal * 0.6;
+    color += rim * ring * (0.5 + uKick * 0.4 + uPulse * 0.3);
+
+    float alpha = inner * (0.4 + uEnergy * 0.3) + ring * 0.6 + petal * 0.35;
+    alpha = clamp(alpha, 0.0, 1.0);
+
+    FragColor = vec4(color, alpha);
+}
+)";
+
+const char* sparkVertexShaderSource = R"(
+#version 330 core
+layout (location = 0) in vec2 aPolar;   // angle (rad), radial jitter
+layout (location = 1) in float aSeed;   // random seed [0,1)
+
+out float vGlow;
+out float vHueShift;
+out float vSeed;
+
+uniform vec2 uResolution;
+uniform float uBaseRadius;
+uniform float uTime;
+uniform float uTempo;
+uniform float uPulse;
+uniform float uEnergy;
+uniform float uBass;
+uniform float uMid;
+uniform float uHigh;
+
+const float TAU = 6.28318530718;
+
+void main() {
+    float angle = aPolar.x;
+    float radialLayer = aPolar.y;
+
+    float baseRadius = uBaseRadius * (1.35 + radialLayer * 0.8);
+    float audioStretch = (0.4 + uPulse * 0.55 + uEnergy * 0.35 + uBass * 0.45);
+    float sparkRadius = baseRadius + audioStretch * (45.0 + radialLayer * 120.0);
+
+    float swirl = sin(angle * (3.0 + uTempo * 0.4) + uTime * (0.6 + radialLayer * 0.8));
+    float harmonicWarp = sin(angle * (12.0 + uHigh * 4.0) + uTime * (3.2 + uTempo)) * (18.0 + uHigh * 25.0);
+    float kickBurst = sin(angle * 5.0 + uTime * (5.0 + uTempo)) * uPulse * 20.0;
+
+    sparkRadius += swirl * 18.0 + harmonicWarp + kickBurst;
+
+    vec2 dir = vec2(cos(angle), sin(angle));
+    vec2 pos = dir * sparkRadius;
+
+    float flicker = sin(uTime * (6.0 + uTempo * 0.5) + aSeed * TAU) * 0.5 + 0.5;
+    float burst = sin(angle * (9.0 + uHigh * 5.0) + uTime * (7.0 + uTempo * 1.4));
+    vGlow = clamp(flicker * (0.4 + uEnergy * 0.6) + max(0.0, burst) * (0.3 + uHigh * 0.5), 0.0, 1.6);
+    vHueShift = aSeed;
+    vSeed = aSeed;
+
+    vec2 scale = vec2(2.0 / uResolution.x, 2.0 / uResolution.y);
+    gl_Position = vec4(pos * scale, 0.0, 1.0);
+    gl_PointSize = 6.0 + vGlow * 18.0 + uPulse * 10.0;
+}
+)";
+
+const char* sparkFragmentShaderSource = R"(
+#version 330 core
+in float vGlow;
+in float vHueShift;
+in float vSeed;
+out vec4 FragColor;
+
+uniform float uBass;
+uniform float uMid;
+uniform float uHigh;
+uniform float uEnergy;
+
+vec3 hsv2rgb(vec3 c) {
+    vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+    return c.z * mix(vec3(1.0), rgb, c.y);
+}
+
+void main() {
+    vec2 uv = gl_PointCoord * 2.0 - 1.0;
+    float dist = length(uv);
+    if (dist > 1.0) {
+        discard;
+    }
+
+    float falloff = pow(1.0 - dist, 2.0);
+    float core = smoothstep(0.6, 0.0, dist);
+    float ring = smoothstep(1.0, 0.2, dist) * (1.0 - core);
+
+    float hue = fract(vHueShift + uHigh * 0.35 + uMid * 0.18);
+    float sat = clamp(0.6 + uEnergy * 0.35, 0.0, 1.0);
+    float val = clamp(0.45 + uEnergy * 0.55 + vGlow * 0.5, 0.0, 1.5);
+
+    vec3 innerColor = hsv2rgb(vec3(hue, sat, val));
+    vec3 outerColor = hsv2rgb(vec3(fract(hue + 0.1), clamp(sat * 0.6, 0.0, 1.0), clamp(val * 0.9, 0.0, 1.0)));
+
+    vec3 color = innerColor * core + outerColor * ring;
+
+    float alpha = (core * 0.75 + ring * 0.55) * clamp(0.4 + vGlow, 0.0, 1.5);
+    FragColor = vec4(color, alpha);
+}
+)";
+
+void Visualizer::renderCornerOrbs() {
+    if (!cornerShader_ || cornerVAO_ == 0) {
+        return;
+    }
+
+    GLboolean depthWasEnabled = glIsEnabled(GL_DEPTH_TEST);
+    if (depthWasEnabled) {
+        glDisable(GL_DEPTH_TEST);
+    }
+
+    GLboolean blendWasEnabled = glIsEnabled(GL_BLEND);
+    if (!blendWasEnabled) {
+        glEnable(GL_BLEND);
+    }
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+    GLboolean programPointEnabled = glIsEnabled(GL_PROGRAM_POINT_SIZE);
+    if (!programPointEnabled) {
+        glEnable(GL_PROGRAM_POINT_SIZE);
+    }
+
+    GLboolean pointSpriteEnabled = glIsEnabled(GL_POINT_SPRITE);
+    if (!pointSpriteEnabled) {
+        glEnable(GL_POINT_SPRITE);
+    }
+
+    cornerShader_->use();
+    cornerShader_->setUniform2f("uResolution", static_cast<float>(windowWidth_), static_cast<float>(windowHeight_));
+    cornerShader_->setUniform1f("uTime", time_);
+    cornerShader_->setUniform1f("uTempo", tempoMultiplier_);
+    cornerShader_->setUniform1f("uPulse", core_.pulse);
+    cornerShader_->setUniform1f("uEnergy", audioFeatures_.energy);
+    cornerShader_->setUniform1f("uBass", audioFeatures_.bassEnergy);
+    cornerShader_->setUniform1f("uMid", audioFeatures_.midEnergy);
+    cornerShader_->setUniform1f("uHigh", audioFeatures_.highEnergy);
+    cornerShader_->setUniform1f("uKick", core_.kickEnvelope);
+
+    glBindVertexArray(cornerVAO_);
+    glDrawArrays(GL_POINTS, 0, cornerVertexCount_);
+    glBindVertexArray(0);
+
+    glUseProgram(0);
+
+    if (!pointSpriteEnabled) {
+        glDisable(GL_POINT_SPRITE);
+    }
+    if (!programPointEnabled) {
+        glDisable(GL_PROGRAM_POINT_SIZE);
+    }
+    if (!blendWasEnabled) {
+        glDisable(GL_BLEND);
+    }
+    if (depthWasEnabled) {
+        glEnable(GL_DEPTH_TEST);
+    }
+}
+
+void Visualizer::renderProceduralLayer() {
+    if (!showProceduralLayer_ && !proceduralLayerDebug_) {
+        return;
+    }
+
+    LayerContext context{
+        windowWidth_,
+        windowHeight_,
+        time_,
+        tempoMultiplier_,
+        &audioFeatures_
+    };
+
+    proceduralLayer_.setEnabled(showProceduralLayer_);
+    proceduralLayer_.setDebugPreview(proceduralLayerDebug_);
+    proceduralLayer_.render(context);
+
+    float opacity = std::clamp(proceduralLayerOpacity_, 0.0f, 1.0f);
+    proceduralLayer_.composite(context, opacity);
+}
+
 const char* coreVertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec2 aDir;
@@ -28,12 +271,21 @@ layout (location = 2) in float aAngle;
 
 out float vAngle;
 out float vRadial;
+out float vWarp;
+out float vPetalMask;
+out float vSpiral;
+out float vInnerMask;
+out float vOuterMask;
+out float vVoidMask;
+out float vRadiusNorm;
 
 uniform vec2 uResolution;
 uniform float uBaseRadius;
 uniform float uPulse;
 uniform float uKick;
 uniform float uHarmonic;
+uniform float uGrowth;
+uniform float uMaturity;
 uniform float uEnergy;
 uniform float uBass;
 uniform float uMid;
@@ -45,14 +297,43 @@ void main() {
     vAngle = aAngle;
     vRadial = aRadial;
 
-    float pulseFactor = mix(0.35 + uPulse * 0.25, 1.15 + uKick * 0.4, aRadial);
-    float harmonicWarp = sin(aAngle * (4.0 + uHarmonic * 1.6) + uTime * (1.8 + uTempo * 0.5)) * (0.12 + uHarmonic * 0.18);
-    harmonicWarp += sin(aAngle * (9.0 + uHigh * 3.0) + uTime * (2.6 + uTempo * 0.35)) * (0.05 + uHigh * 0.12);
+    float petals = 6.0 + uHarmonic * 4.0;
+    float petalWave = cos(aAngle * petals + uTime * (1.2 + uTempo * 0.35));
+    float petalMask = smoothstep(-0.25, 0.65, petalWave + uPulse * 0.25);
 
-    float radius = uBaseRadius * pulseFactor * (1.0 + harmonicWarp);
-    radius += aRadial * (uBass * 60.0 + uMid * 40.0 + uHigh * 30.0);
+    float spiralWave = sin(aAngle * (2.0 + uTempo * 0.18) + uTime * (0.9 + uTempo * 0.2));
 
-    vec2 pos = aDir * radius;
+    float warp = sin(aAngle * (4.5 + uHarmonic * 1.9) + uTime * (1.7 + uTempo * 0.5)) * (0.16 + uHarmonic * 0.22);
+    warp += sin(aAngle * (10.5 + uHigh * 3.2) + uTime * (2.6 + uTempo * 0.55)) * (0.07 + uHigh * 0.16);
+
+    float radialBase = uBaseRadius * (0.85 + aRadial * 0.7 + uPulse * 0.35);
+    float radius = radialBase * (1.0 + warp);
+    radius += (uBass * 65.0 + uMid * 42.0 + uHigh * 30.0) * aRadial;
+    radius += petalMask * (24.0 + uPulse * 40.0);
+    radius += spiralWave * (25.0 + uEnergy * 28.0);
+    radius += sin(aRadial * 4.5 + uTime * (1.5 + uTempo * 0.4)) * (uHarmonic * 18.0);
+    radius += sin((aAngle + aRadial * 3.1) * (3.0 + uGrowth * 0.9) + uTime * (0.8 + uGrowth * 0.2)) * (uGrowth * 32.0);
+
+    float voidWave = sin(aAngle * (3.0 + uTempo * 0.3) + uTime * (2.2 + uTempo * 0.45))
+                   + sin(aAngle * 1.35 + uTime * 0.9);
+    voidWave += sin(aAngle * (1.2 + uGrowth * 0.3) + uTime * (1.1 + uGrowth * 0.2)) * 0.7;
+    float voidMask = smoothstep(0.25, 1.1, abs(voidWave) - (0.2 + uPulse * 0.2));
+
+    vec2 dir = vec2(cos(aAngle), sin(aAngle));
+    vec2 tangent = vec2(-dir.y, dir.x);
+    vec2 evolutionFlow = tangent * spiralWave * (18.0 + uHigh * 20.0);
+    evolutionFlow += dir * (uGrowth * 12.0);
+    evolutionFlow += tangent * (uMaturity * 8.0 * sin(aRadial * 5.0 + uTime * 0.9));
+    vec2 pos = dir * radius + evolutionFlow;
+
+    vWarp = warp;
+    vPetalMask = petalMask;
+    vSpiral = spiralWave;
+    vInnerMask = smoothstep(0.0, 0.5, aRadial + warp * 0.25);
+    vOuterMask = smoothstep(0.45, 1.15, aRadial + warp * 0.3);
+    vVoidMask = clamp(voidMask, 0.0, 1.0);
+    vRadiusNorm = clamp(radius / (uBaseRadius * (2.4 + uPulse * 0.6)), 0.0, 1.7);
+
     vec2 scale = vec2(2.0 / uResolution.x, 2.0 / uResolution.y);
     gl_Position = vec4(pos * scale, 0.0, 1.0);
 }
@@ -64,6 +345,13 @@ out vec4 FragColor;
 
 in float vAngle;
 in float vRadial;
+in float vWarp;
+in float vPetalMask;
+in float vSpiral;
+in float vInnerMask;
+in float vOuterMask;
+in float vVoidMask;
+in float vRadiusNorm;
 
 uniform float uBass;
 uniform float uMid;
@@ -72,31 +360,106 @@ uniform float uEnergy;
 uniform float uPulse;
 uniform float uKick;
 uniform float uHarmonic;
+uniform float uGrowth;
+uniform float uMaturity;
 uniform float uTime;
 uniform float uTempo;
+uniform float uShowBase;
+uniform float uShowCorona;
+uniform float uShowSpokes;
+uniform float uShowRunes;
+uniform float uShowSparkles;
+uniform float uShowBloom;
+
+float hash(float n) {
+    return fract(sin(n) * 43758.5453);
+}
 
 void main() {
-    float glow = smoothstep(0.05, 1.0, vRadial);
-    float harmonicWaves = sin(vAngle * (6.0 + uHarmonic * 2.2) + uTime * (2.5 + uTempo * 0.6));
-    float spark = sin(vAngle * (14.0 + uHigh * 5.0) + uTime * (4.0 + uTempo * 0.9));
+    float innerLayer = vInnerMask;
+    float outerLayer = vOuterMask;
+    float petals = smoothstep(0.0, 1.0, vPetalMask);
+    float spiral = vSpiral * (0.6 + uHarmonic * 0.4);
 
-    vec3 baseColor = vec3(0.32 + uBass * 0.8,
-                          0.36 + uMid * 0.7,
-                          0.48 + uHigh * 0.9);
-    vec3 accentColor = vec3(0.65 + uHigh * 0.8,
-                            0.45 + uMid * 0.6,
-                            0.92 + uBass * 0.7);
+    float runeWave = sin(vAngle * (8.0 + uHarmonic * 3.1) + uTime * (3.6 + uTempo * 0.7));
+    float runeMask = smoothstep(-0.3, 0.6, runeWave + outerLayer * 0.4);
 
-    float accentMix = glow * (0.5 + uPulse * 0.3 + uKick * 0.35);
-    vec3 color = mix(baseColor, accentColor, clamp(accentMix, 0.0, 1.0));
-    color += vec3(0.2, 0.18, 0.28) * harmonicWaves * (0.25 + uHarmonic * 0.4);
-    color += vec3(0.35, 0.28, 0.55) * spark * (0.12 + uHigh * 0.25);
+    float sparkSeed = hash(floor((vAngle + uTime) * 7.5));
+    float sparkPulse = sin(vAngle * (16.0 + uHigh * 5.5) + uTime * (5.4 + uTempo * 1.3));
+    float spark = pow(max(0.0, sparkPulse), 2.2) * (0.22 + uHigh * 0.6) * outerLayer * sparkSeed;
+
+    float voidMask = vVoidMask;
+    float bloom = (0.35 + uPulse * 0.45) * outerLayer * (0.6 + petals * 0.4) * (1.0 - voidMask);
+
+    vec3 coreColor = vec3(0.22 + uBass * 0.65,
+                          0.30 + uMid * 0.55,
+                          0.44 + uHigh * 0.8);
+    vec3 petalColor = vec3(0.6 + uHigh * 0.85,
+                           0.42 + uMid * 0.7,
+                           0.95 + uBass * 0.55);
+    vec3 runeColor = vec3(0.75 + uHigh * 0.6,
+                          0.48 + uMid * 0.4,
+                          1.1 + uBass * 0.4);
+    vec3 sparkColor = vec3(1.0, 0.92, 0.65 + uHigh * 0.3);
+
+    vec3 color = vec3(0.0);
+
+    float baseIntensity = innerLayer * (0.35 + uEnergy * 0.25);
+    float filamentCount = 18.0 + uHarmonic * 6.0 + uTempo * 2.0 + uGrowth * 1.5;
+    float filamentPhase = uTime * (0.7 + uTempo * 0.5) + vRadiusNorm * 1.6;
+    float filamentWave = sin(vAngle * filamentCount + filamentPhase);
+    float filamentCore = 1.0 - smoothstep(0.0, 0.35, abs(filamentWave));
+    float filamentCross = sin((vAngle + vRadiusNorm * 2.2) * (filamentCount * 0.45) - uTime * (1.4 + uHigh * 0.7));
+    float filamentNoise = smoothstep(0.1, 0.8, filamentCross * 0.5 + 0.5);
+    float filamentMask = pow(clamp(filamentCore * filamentNoise, 0.0, 1.0), 2.2);
+    filamentMask *= innerLayer;
+    filamentMask *= smoothstep(0.0, 0.65, vRadiusNorm) * (1.0 - smoothstep(0.9, 1.6, vRadiusNorm));
+    filamentMask *= 1.0 + uGrowth * 0.25;
+
+    vec3 filamentColor = mix(coreColor * 1.25,
+                             vec3(0.9 + uHigh * 0.7,
+                                  0.5 + uMid * 0.6,
+                                  1.2 + uBass * 0.5),
+                             clamp(vRadiusNorm, 0.0, 1.0));
+
+    float growthSpiral = sin(vAngle * (4.0 + uGrowth * 2.2) + uTime * (1.6 + uGrowth * 0.35));
+    float growthShell = smoothstep(0.15, 0.85, vRadiusNorm + growthSpiral * 0.12);
+    float growthPulse = smoothstep(0.2, 0.95, sin(vAngle * (2.4 + uGrowth) + uTime * (0.9 + uTempo * 0.4)) * 0.5 + 0.5);
+    vec3 growthColor = mix(vec3(0.25 + uBass * 0.7, 0.45 + uMid * 0.6, 0.9 + uHigh * 0.4),
+                           vec3(0.95, 0.5 + uMid * 0.4, 0.35 + uBass * 0.4),
+                           clamp(uGrowth * 0.35, 0.0, 1.0));
+
+    float maturityVeins = smoothstep(0.3, 0.92, sin(vAngle * (7.0 + uMaturity * 1.4) - uTime * (1.5 + uTempo * 0.4)) * 0.5 + 0.5);
+    float maturityHalo = smoothstep(0.45, 1.15, vRadiusNorm + sin(vAngle * 3.2 + uTime * 0.6) * 0.08);
+    vec3 maturityColor = vec3(1.05 + uHigh * 0.4, 0.84 + uMid * 0.35, 0.65 + uBass * 0.28);
+
+    color += coreColor * baseIntensity * uShowBase;
+    color += filamentColor * filamentMask * (0.7 + uPulse * 0.5) * uShowBase;
+    color += growthColor * growthShell * growthPulse * (0.6 + uGrowth * 0.4) * uShowCorona;
+    color += petalColor * petals * (0.45 + uPulse * 0.28 + spiral * 0.2) * uShowCorona;
+    color += runeColor * runeMask * (0.18 + uHarmonic * 0.35) * uShowRunes;
+    color += sparkColor * spark * uShowSparkles;
+    color += petalColor * bloom * uShowBloom;
+    color += maturityColor * maturityVeins * (0.18 + uMaturity * 0.25) * uShowRunes;
+
+    float spokeMask = smoothstep(0.6, 1.05, vRadiusNorm + sin(vAngle * 12.0) * 0.08);
+    color += runeColor * spokeMask * (0.25 + uHigh * 0.35) * uShowSpokes;
+    color += maturityColor * maturityHalo * (0.15 + uMaturity * 0.18) * uShowSpokes;
+
     color = max(color, vec3(0.0));
 
-    float alpha = 0.18 + glow * 0.55 + uEnergy * 0.18 + uKick * 0.25;
-    alpha = clamp(alpha, 0.1, 0.85);
+    float alpha = 0.1
+                + baseIntensity * uShowBase
+                + filamentMask * (0.35 + uPulse * 0.3) * uShowBase
+                + growthShell * growthPulse * 0.35 * uShowCorona
+                + petals * (0.25 + uPulse * 0.28) * uShowCorona
+                + spokeMask * 0.25 * uShowSpokes
+                + maturityVeins * 0.22 * uShowRunes
+                + spark * 0.42 * uShowSparkles
+                + bloom * 0.32 * uShowBloom;
+    alpha = clamp(alpha, 0.08, 0.9);
 
-    FragColor = vec4(color, alpha);
+    FragColor = vec4(max(color, vec3(0.0)), alpha);
 }
 )";
 
@@ -110,7 +473,7 @@ void Visualizer::setupCoreMesh() {
         coreVBO_ = 0;
     }
 
-    const int segments = 180;
+    const int segments = 360;
     std::vector<float> data;
     data.reserve((segments + 1) * 2 * 4);
 
@@ -232,9 +595,17 @@ void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures& featur
     float high = std::clamp(features.highEnergy, 0.0f, 2.0f);
     float energy = std::clamp(features.energy, 0.0f, 3.0f);
 
+    float currentMagnitude = bass * 0.6f + mid * 0.35f + high * 0.25f + energy * 0.4f;
+    currentMagnitude += features.kick * 0.9f + features.beat * 0.7f + features.onset * 0.45f;
+    currentMagnitude *= std::clamp(1.0f - idleState_ * 0.6f, 0.25f, 1.0f);
+
     core_.pulse = energy;
     core_.kickEnvelope = core_.kickEnvelope * std::pow(0.08f, tempoDt) + features.kick * 0.9f;
     core_.kickEnvelope = std::clamp(core_.kickEnvelope, 0.0f, 2.5f);
+
+    core_.growthTrend = core_.growthTrend * std::pow(0.18f, tempoDt) + currentMagnitude * (1.0f - std::pow(0.18f, tempoDt));
+    core_.growthTrend = std::clamp(core_.growthTrend, 0.0f, 6.0f);
+    core_.growthEnvelope = std::max(core_.growthEnvelope * std::pow(0.12f, tempoDt), core_.growthTrend * 0.85f);
 
     float harmonicInput = mid * 0.6f + high * 0.85f
                           + features.clap * 0.7f
@@ -261,7 +632,9 @@ void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures& featur
                  + minDim * 0.0045f * std::clamp(core_.harmonicEnvelope, 0.0f, 1.5f);
     core_.baseRadius = std::max(12.0f, base);
     float harmonicScale = 0.22f * std::clamp(core_.harmonicEnvelope, 0.0f, 1.6f);
-    core_.radius = core_.baseRadius * (1.0f + 0.38f * core_.kickEnvelope + 0.2f * features.beat + harmonicScale);
+    float growthWave = 0.35f + 0.25f * std::sin(time_ * (0.6f + tempoMultiplier_ * 0.3f) + core_.growthTrend * 0.2f);
+    float growthFactor = 0.12f + 0.32f * std::tanh(core_.growthEnvelope * 0.35f);
+    core_.radius = core_.baseRadius * (1.0f + 0.38f * core_.kickEnvelope + 0.2f * features.beat + harmonicScale + growthWave * growthFactor);
 
     float harmonicContribution = core_.harmonicEnvelope * 1.05f + harmonicInput * 0.4f;
     float injection = (energy * 0.55f + bass * 0.75f + mid * 0.45f + high * 0.4f)
@@ -271,6 +644,8 @@ void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures& featur
     core_.energy += injection * tempoDt;
     core_.energy *= std::pow(0.45f, tempoDt);
     core_.energy = std::clamp(core_.energy, 0.0f, 8.0f);
+    core_.maturity = core_.maturity * std::pow(0.35f, tempoDt) + std::min(1.0f, injection * 0.12f);
+    core_.maturity = std::clamp(core_.maturity, 0.0f, 10.0f);
 }
 
 float Visualizer::sampleCoreEnergyField(float x, float y) const {
@@ -818,6 +1193,8 @@ Visualizer::Visualizer()
     : window_(nullptr), windowWidth_(800), windowHeight_(600), time_(0.0f),
       quadVAO_(0), quadVBO_(0), waveformVAO_(0), waveformVBO_(0),
       coreVAO_(0), coreVBO_(0), coreVertexCount_(0),
+      sparkVAO_(0), sparkVBO_(0), sparkVertexCount_(0),
+      cornerVAO_(0), cornerVBO_(0), cornerVertexCount_(0),
       audioFeatures_{},
       selectedDevice_(-1), showDeviceMenu_(false), showDiagnostic_(false), consoleMode_(false),
       showImGuiWindow_(true), showDeviceSelector_(false), showDiagnosticInfo_(false), showConsoleMode_(false),
@@ -827,6 +1204,20 @@ Visualizer::Visualizer()
       tempoMultiplier_(1.0f),
       mixColorSchemes_(true),
       overlayLegacyOnModern_(false),
+      coreShowBase_(true),
+      coreShowCorona_(true),
+      coreShowSpokes_(true),
+      coreShowRunes_(true),
+      coreShowSparkles_(true),
+      coreShowBloom_(true),
+      showShaderSparks_(true),
+      showCornerOrbs_(true),
+      showProceduralLayer_(true),
+      proceduralLayerDebug_(false),
+      proceduralLayerOpacity_(0.85f),
+      proceduralLayerMode_(0),
+      postProcessMode_(0),
+      postProcessStrength_(1.0f),
       legacyMotionBlend_(0.0f), legacyMotionPhase_(0.0f), legacySensitivity_(1.0f),
       showLegacyCore_(true), showLegacyArcs_(true), showLegacyRings_(true),
       showLegacySparkles_(true), showLegacyOrbs_(true), showLegacyWaveforms_(true),
@@ -861,6 +1252,20 @@ bool Visualizer::initialize(int width, int height) {
     }
 
     setupCoreMesh();
+    setupSparkField();
+    setupCornerQuad();
+
+    if (!proceduralLayer_.initialize(windowWidth_, windowHeight_)) {
+        std::cout << "Procedural layer initialization failed, disabling procedural overlay" << std::endl;
+        showProceduralLayer_ = false;
+        proceduralLayerDebug_ = false;
+    }
+
+    if (!postProcessor_.initialize(windowWidth_, windowHeight_)) {
+        std::cout << "Post processor initialization failed, disabling post effects" << std::endl;
+        postProcessMode_ = 0;
+        postProcessStrength_ = 0.0f;
+    }
 
     if (!loadShaders()) {
         std::cout << "Failed to load shaders, using fallback rendering" << std::endl;
@@ -872,6 +1277,14 @@ bool Visualizer::initialize(int width, int height) {
 
     if (!loadCoreShader()) {
         coreShader_.reset();
+    }
+
+    if (!loadSparkShader()) {
+        sparkShader_.reset();
+    }
+
+    if (!loadCornerShader()) {
+        cornerShader_.reset();
     }
 
     if (setupImGui()) {
@@ -1064,6 +1477,9 @@ void Visualizer::shutdown() {
         showImGuiWindow_ = false;
     }
 
+    proceduralLayer_.shutdown();
+    postProcessor_.shutdown();
+
     if (quadVAO_) {
         glDeleteVertexArrays(1, &quadVAO_);
         quadVAO_ = 0;
@@ -1080,6 +1496,22 @@ void Visualizer::shutdown() {
         glDeleteBuffers(1, &coreVBO_);
         coreVBO_ = 0;
     }
+    if (sparkVAO_) {
+        glDeleteVertexArrays(1, &sparkVAO_);
+        sparkVAO_ = 0;
+    }
+    if (sparkVBO_) {
+        glDeleteBuffers(1, &sparkVBO_);
+        sparkVBO_ = 0;
+    }
+    if (cornerVAO_) {
+        glDeleteVertexArrays(1, &cornerVAO_);
+        cornerVAO_ = 0;
+    }
+    if (cornerVBO_) {
+        glDeleteBuffers(1, &cornerVBO_);
+        cornerVBO_ = 0;
+    }
     if (waveformVAO_) {
         glDeleteVertexArrays(1, &waveformVAO_);
         waveformVAO_ = 0;
@@ -1091,6 +1523,7 @@ void Visualizer::shutdown() {
     
     shader_.reset();
     coreShader_.reset();
+    sparkShader_.reset();
 
     if (window_) {
         glfwDestroyWindow(window_);
@@ -1114,6 +1547,8 @@ void Visualizer::beginFrame() {
             windowWidth_ = fbWidth;
             windowHeight_ = fbHeight;
             glViewport(0, 0, windowWidth_, windowHeight_);
+            proceduralLayer_.resize(windowWidth_, windowHeight_);
+            postProcessor_.resize(windowWidth_, windowHeight_);
         }
     }
 
@@ -1204,9 +1639,16 @@ void Visualizer::updateAudioBuffer(const std::vector<float>& audioBuffer) {
 }
 
 void Visualizer::render() {
-    // Clear screen
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    bool usePost = postProcessMode_ != 0 && postProcessStrength_ > 0.0f;
+
+    if (usePost) {
+        postProcessor_.beginCapture(windowWidth_, windowHeight_);
+    } else {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, windowWidth_, windowHeight_);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
 
     if (useModernPipeline_ && shader_) {
         renderModernVisualization();
@@ -1217,12 +1659,26 @@ void Visualizer::render() {
         renderLegacyVisualization();
     }
 
+    renderProceduralLayer();
+
     renderIdleSpinner(time_);
 
     if (imguiInitialized_ && showImGuiWindow_) {
         renderImGui();
     } else if (!imguiInitialized_) {
         renderGUI();
+    }
+
+    if (usePost) {
+        postProcessor_.endCapture();
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, windowWidth_, windowHeight_);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        float strength = std::clamp(postProcessStrength_, 0.0f, 1.0f);
+        postProcessor_.apply(postProcessMode_, strength, time_);
     }
 }
 
@@ -1271,6 +1727,96 @@ bool Visualizer::setupGeometry() {
     return true;
 }
 
+void Visualizer::setupSparkField() {
+    if (sparkVAO_) {
+        glDeleteVertexArrays(1, &sparkVAO_);
+        sparkVAO_ = 0;
+    }
+    if (sparkVBO_) {
+        glDeleteBuffers(1, &sparkVBO_);
+        sparkVBO_ = 0;
+    }
+
+    const int layers = 6;
+    const int sparksPerLayer = 96;
+    const int totalSparks = layers * sparksPerLayer;
+    std::vector<float> data;
+    data.reserve(totalSparks * 3);
+
+    std::uniform_real_distribution<float> randomAngle(0.0f, 6.28318530718f);
+    std::uniform_real_distribution<float> randomSeed(0.0f, 1.0f);
+
+    for (int layer = 0; layer < layers; ++layer) {
+        float radialLayer = static_cast<float>(layer) / static_cast<float>(std::max(1, layers - 1));
+        for (int i = 0; i < sparksPerLayer; ++i) {
+            float angle = (static_cast<float>(i) / sparksPerLayer) * 6.28318530718f;
+            angle += randomAngle(rng_) * 0.08f;
+            float seed = randomSeed(rng_);
+            data.push_back(angle);
+            data.push_back(radialLayer);
+            data.push_back(seed);
+        }
+    }
+
+    sparkVertexCount_ = static_cast<GLsizei>(data.size() / 3);
+
+    glGenVertexArrays(1, &sparkVAO_);
+    glGenBuffers(1, &sparkVBO_);
+
+    glBindVertexArray(sparkVAO_);
+    glBindBuffer(GL_ARRAY_BUFFER, sparkVBO_);
+    glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
+
+    GLsizei stride = 3 * sizeof(float);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(0));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void Visualizer::setupCornerQuad() {
+    if (cornerVAO_) {
+        glDeleteVertexArrays(1, &cornerVAO_);
+        cornerVAO_ = 0;
+    }
+    if (cornerVBO_) {
+        glDeleteBuffers(1, &cornerVBO_);
+        cornerVBO_ = 0;
+    }
+
+    // clip space corner positions with size factors
+    struct CornerVertex {
+        float x;
+        float y;
+        float size;
+    };
+
+    std::array<CornerVertex, 4> corners = {
+        CornerVertex{-0.9f,  0.9f, 0.08f}, // top-left
+        CornerVertex{ 0.9f,  0.9f, 0.08f}, // top-right
+        CornerVertex{-0.9f, -0.9f, 0.08f}, // bottom-left
+        CornerVertex{ 0.9f, -0.9f, 0.08f}  // bottom-right
+    };
+
+    cornerVertexCount_ = static_cast<GLsizei>(corners.size());
+
+    glGenVertexArrays(1, &cornerVAO_);
+    glGenBuffers(1, &cornerVBO_);
+
+    glBindVertexArray(cornerVAO_);
+    glBindBuffer(GL_ARRAY_BUFFER, cornerVBO_);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(corners), corners.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(CornerVertex), reinterpret_cast<void*>(0));
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 bool Visualizer::loadShaders() {
     shader_ = std::make_unique<Shader>();
     return shader_->loadFromSource(vertexShaderSource, fragmentShaderSource);
@@ -1279,6 +1825,16 @@ bool Visualizer::loadShaders() {
 bool Visualizer::loadCoreShader() {
     coreShader_ = std::make_unique<Shader>();
     return coreShader_->loadFromSource(coreVertexShaderSource, coreFragmentShaderSource);
+}
+
+bool Visualizer::loadSparkShader() {
+    sparkShader_ = std::make_unique<Shader>();
+    return sparkShader_->loadFromSource(sparkVertexShaderSource, sparkFragmentShaderSource);
+}
+
+bool Visualizer::loadCornerShader() {
+    cornerShader_ = std::make_unique<Shader>();
+    return cornerShader_->loadFromSource(cornerVertexShaderSource, cornerFragmentShaderSource);
 }
 
 void Visualizer::setupQuad() {
@@ -1419,6 +1975,61 @@ void Visualizer::renderModernVisualization() {
     }
 
     renderModernCore();
+    if (showShaderSparks_) {
+        renderShaderSparkles();
+    }
+    if (showCornerOrbs_) {
+        renderCornerOrbs();
+    }
+}
+
+void Visualizer::renderShaderSparkles() {
+    if (!sparkShader_ || sparkVAO_ == 0) {
+        return;
+    }
+
+    GLboolean depthWasEnabled = glIsEnabled(GL_DEPTH_TEST);
+    if (depthWasEnabled) {
+        glDisable(GL_DEPTH_TEST);
+    }
+
+    GLboolean blendWasEnabled = glIsEnabled(GL_BLEND);
+    if (!blendWasEnabled) {
+        glEnable(GL_BLEND);
+    }
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+    GLboolean programPointEnabled = glIsEnabled(GL_PROGRAM_POINT_SIZE);
+    if (!programPointEnabled) {
+        glEnable(GL_PROGRAM_POINT_SIZE);
+    }
+
+    sparkShader_->use();
+    sparkShader_->setUniform2f("uResolution", static_cast<float>(windowWidth_), static_cast<float>(windowHeight_));
+    sparkShader_->setUniform1f("uBaseRadius", core_.baseRadius);
+    sparkShader_->setUniform1f("uTime", time_);
+    sparkShader_->setUniform1f("uTempo", tempoMultiplier_);
+    sparkShader_->setUniform1f("uPulse", core_.pulse);
+    sparkShader_->setUniform1f("uEnergy", audioFeatures_.energy);
+    sparkShader_->setUniform1f("uBass", audioFeatures_.bassEnergy);
+    sparkShader_->setUniform1f("uMid", audioFeatures_.midEnergy);
+    sparkShader_->setUniform1f("uHigh", audioFeatures_.highEnergy);
+
+    glBindVertexArray(sparkVAO_);
+    glDrawArrays(GL_POINTS, 0, sparkVertexCount_);
+    glBindVertexArray(0);
+
+    glUseProgram(0);
+
+    if (!programPointEnabled) {
+        glDisable(GL_PROGRAM_POINT_SIZE);
+    }
+    if (!blendWasEnabled) {
+        glDisable(GL_BLEND);
+    }
+    if (depthWasEnabled) {
+        glEnable(GL_DEPTH_TEST);
+    }
 }
 
 void Visualizer::renderModernCore() {
@@ -1444,12 +2055,20 @@ void Visualizer::renderModernCore() {
     coreShader_->setUniform1f("uPulse", core_.pulse);
     coreShader_->setUniform1f("uKick", core_.kickEnvelope);
     coreShader_->setUniform1f("uHarmonic", core_.harmonicEnvelope);
+    coreShader_->setUniform1f("uGrowth", std::clamp(core_.growthEnvelope * 0.35f, 0.0f, 3.5f));
+    coreShader_->setUniform1f("uMaturity", std::clamp(core_.maturity * 0.2f, 0.0f, 3.0f));
     coreShader_->setUniform1f("uEnergy", audioFeatures_.energy);
     coreShader_->setUniform1f("uBass", audioFeatures_.bassEnergy);
     coreShader_->setUniform1f("uMid", audioFeatures_.midEnergy);
     coreShader_->setUniform1f("uHigh", audioFeatures_.highEnergy);
     coreShader_->setUniform1f("uTime", time_);
     coreShader_->setUniform1f("uTempo", tempoMultiplier_);
+    coreShader_->setUniform1f("uShowBase", coreShowBase_ ? 1.0f : 0.0f);
+    coreShader_->setUniform1f("uShowCorona", coreShowCorona_ ? 1.0f : 0.0f);
+    coreShader_->setUniform1f("uShowSpokes", coreShowSpokes_ ? 1.0f : 0.0f);
+    coreShader_->setUniform1f("uShowRunes", coreShowRunes_ ? 1.0f : 0.0f);
+    coreShader_->setUniform1f("uShowSparkles", coreShowSparkles_ ? 1.0f : 0.0f);
+    coreShader_->setUniform1f("uShowBloom", coreShowBloom_ ? 1.0f : 0.0f);
 
     glBindVertexArray(coreVAO_);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, coreVertexCount_);

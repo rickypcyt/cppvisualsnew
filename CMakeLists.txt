@@ -82,6 +82,8 @@ add_executable(audio_visualizer
     src/visualizer_imgui.cpp
     src/visualizer_procedural.cpp
     src/visualizer_legacy.cpp
+    src/post_processor.cpp
+    src/modular_layer.cpp
     src/shader.cpp
     ${IMGUI_SOURCES}
 )

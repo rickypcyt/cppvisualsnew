@@ -369,6 +369,54 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/modular_layer.o: src/modular_layer.cpp.o
+.PHONY : src/modular_layer.o
+
+# target to build an object file
+src/modular_layer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o
+.PHONY : src/modular_layer.cpp.o
+
+src/modular_layer.i: src/modular_layer.cpp.i
+.PHONY : src/modular_layer.i
+
+# target to preprocess a source file
+src/modular_layer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.i
+.PHONY : src/modular_layer.cpp.i
+
+src/modular_layer.s: src/modular_layer.cpp.s
+.PHONY : src/modular_layer.s
+
+# target to generate assembly for a file
+src/modular_layer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.s
+.PHONY : src/modular_layer.cpp.s
+
+src/post_processor.o: src/post_processor.cpp.o
+.PHONY : src/post_processor.o
+
+# target to build an object file
+src/post_processor.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o
+.PHONY : src/post_processor.cpp.o
+
+src/post_processor.i: src/post_processor.cpp.i
+.PHONY : src/post_processor.i
+
+# target to preprocess a source file
+src/post_processor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.i
+.PHONY : src/post_processor.cpp.i
+
+src/post_processor.s: src/post_processor.cpp.s
+.PHONY : src/post_processor.s
+
+# target to generate assembly for a file
+src/post_processor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.s
+.PHONY : src/post_processor.cpp.s
+
 src/shader.o: src/shader.cpp.o
 .PHONY : src/shader.o
 
@@ -600,6 +648,12 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/modular_layer.o"
+	@echo "... src/modular_layer.i"
+	@echo "... src/modular_layer.s"
+	@echo "... src/post_processor.o"
+	@echo "... src/post_processor.i"
+	@echo "... src/post_processor.s"
 	@echo "... src/shader.o"
 	@echo "... src/shader.i"
 	@echo "... src/shader.s"
