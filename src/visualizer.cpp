@@ -159,7 +159,10 @@ Visualizer::Visualizer()
       selectedDevice_(-1), showDeviceMenu_(false), showDiagnostic_(false), consoleMode_(false),
       showImGuiWindow_(true), showDeviceSelector_(false), showDiagnosticInfo_(false), showConsoleMode_(false),
       imguiInitialized_(false), autoRandomizeColors_(false), colorRandomInterval_(12.0f),
-      colorRandomTimer_(0.0f), deltaTime_(0.0f), rng_(std::random_device{}()), currentPresetIndex_(0) {
+      colorRandomTimer_(0.0f), deltaTime_(0.0f), rng_(std::random_device{}()), currentPresetIndex_(0),
+      legacyMotionBlend_(0.0f), legacyMotionPhase_(0.0f),
+      showLegacyCore_(true), showLegacyArcs_(true), showLegacyRings_(true),
+      showLegacySparkles_(true), showLegacyOrbs_(true), showLegacyWaveforms_(true) {
     waveformBuffer_.resize(512); // Same as audio buffer size
     buildColorPresets();
     if (!colorPresets_.empty()) {
@@ -437,9 +440,9 @@ void Visualizer::render() {
     // Render legacy visualization (works with software rendering)
     renderLegacyVisualization();
     
-    if (imguiInitialized_) {
+    if (imguiInitialized_ && showImGuiWindow_) {
         renderImGui();
-    } else {
+    } else if (!imguiInitialized_) {
         renderGUI();
     }
 }

@@ -96,6 +96,14 @@ private:
     std::vector<std::string> deviceNames_;
     std::vector<bool> deviceIsInternal_;
     std::string rendererName_;
+    float legacyMotionBlend_;
+    float legacyMotionPhase_;
+    bool showLegacyCore_;
+    bool showLegacyArcs_;
+    bool showLegacyRings_;
+    bool showLegacySparkles_;
+    bool showLegacyOrbs_;
+    bool showLegacyWaveforms_;
     
     // ImGui state
     bool showImGuiWindow_;
@@ -146,11 +154,11 @@ private:
     
     // Legacy OpenGL methods for software rendering
     void renderLegacyVisualization();
-    void renderLegacyCircle(float bass, float mid, float high);
-    void renderLegacyFrequencyBars(float bass, float mid, float high);
-    void renderLegacyRings(float mid, float time);
-    void renderLegacySparkles(float high);
-    void renderLegacyWaveform();
+    void renderLegacyCircle(float bass, float mid, float high, float motionBlend, float animatedTime);
+    void renderLegacyFrequencyBars(float bass, float mid, float high, float motionBlend, float animatedTime);
+    void renderLegacyRings(float mid, float animatedTime, float motionBlend);
+    void renderLegacySparkles(float high, float animatedTime, float motionBlend);
+    void renderLegacyWaveform(float animatedTime, float motionBlend);
 };
 
 #endif // VISUALIZER_H

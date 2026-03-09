@@ -266,7 +266,21 @@ void Visualizer::renderMainImGuiWindow() {
 
     // Instructions
     ImGui::Separator();
-    ImGui::Text("🎮 Controls:");
+    ImGui::Text("�️ Visual Layers:");
+    ImGui::Checkbox("Núcleo", &showLegacyCore_);
+    ImGui::SameLine();
+    ImGui::Checkbox("Arcos", &showLegacyArcs_);
+    ImGui::SameLine();
+    ImGui::Checkbox("Anillos", &showLegacyRings_);
+
+    ImGui::Checkbox("Chispas", &showLegacySparkles_);
+    ImGui::SameLine();
+    ImGui::Checkbox("Órbitas", &showLegacyOrbs_);
+    ImGui::SameLine();
+    ImGui::Checkbox("Wormholes", &showLegacyWaveforms_);
+
+    ImGui::Spacing();
+    ImGui::Text("�🎮 Controls:");
     ImGui::BulletText("Click buttons to toggle panels");
     ImGui::BulletText("ESC to exit application");
     ImGui::BulletText("Close windows to hide panels");
