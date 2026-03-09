@@ -22,32 +22,68 @@ void main() {
 
 const char* cornerVertexShaderSource = R"(
 #version 330 core
-layout (location = 0) in vec3 aCorner; // clipPos.xy, size factor
+layout (location = 0) in vec2 aCornerPos;
+layout (location = 1) in vec4 aParams; // size, orbitRadius, orbitPhase, profile
 
 uniform vec2 uResolution;
 uniform float uTime;
 uniform float uTempo;
 uniform float uPulse;
 uniform float uEnergy;
+uniform float uBass;
+uniform float uMid;
+uniform float uHigh;
+uniform float uOnset;
+uniform float uBeat;
+uniform float uKick;
 
 out float vSize;
 out float vAngle;
+out float vActivation;
+out float vProfile;
+
+float hash11(float x) {
+    return fract(sin(x) * 43758.5453);
+}
 
 void main() {
-    vec2 basePos = aCorner.xy;
-    float wobble = sin(uTime * (0.6 + uTempo * 0.2) + basePos.x * 3.1 + basePos.y * 2.2) * 0.02;
-    vec2 offset = vec2(wobble, wobble * 0.4);
-    vec2 pos = basePos + offset;
+    float baseScale = min(uResolution.x, uResolution.y);
+    float profile = aParams.w;
 
-    float base = min(uResolution.x, uResolution.y);
-    float scale = aCorner.z;
-    float size = base * scale * (0.85 + uPulse * 0.35 + uEnergy * 0.25);
+    float spectralDrive = uEnergy * 0.55 + uBass * 0.35 + uMid * 0.25 + uHigh * 0.28;
+    float rhythmDrive = uOnset * 0.9 + uBeat * 1.05 + uPulse * 0.45 + uKick * 0.4;
+    float spawn = clamp(spectralDrive + rhythmDrive, 0.0, 2.8);
+
+    float rawActivation = clamp(spawn - profile * 0.35, 0.0, 1.2);
+    float activation = smoothstep(0.02, 0.8, rawActivation);
+    activation = clamp(activation + (1.0 - profile) * 0.3, 0.0, 1.0);
+
+    vec2 basePos = aCornerPos;
+    float wobble = sin(uTime * (0.6 + uTempo * 0.2) + basePos.x * 3.1 + basePos.y * 2.2);
+    vec2 offset = vec2(wobble, wobble * 0.4) * (0.02 + 0.015 * activation);
+
+    float orbitRadius = aParams.y * (0.4 + activation * 2.2);
+    float orbitSpeed = 0.7 + uTempo * 0.5 + profile * 0.35;
+    float orbitPhase = aParams.z + uTime * orbitSpeed + uBeat * (0.4 + profile * 0.25);
+    vec2 orbit = vec2(cos(orbitPhase), sin(orbitPhase)) * orbitRadius;
+
+    float jitterSeed = hash11(gl_VertexID * 3.71 + profile * 17.3 + uTime * 0.23);
+    vec2 jitter = vec2(cos(orbitPhase + jitterSeed * 6.28318),
+                       sin(orbitPhase - jitterSeed * 4.71239)) * (0.01 + activation * 0.03);
+
+    vec2 pos = basePos + offset + orbit + jitter * profile;
+
+    float baseSize = aParams.x;
+    float sizeBoost = 0.14 + profile * 0.1;
+    float size = baseScale * activation * (baseSize + activation * sizeBoost + uHigh * 0.04 + uOnset * 0.05);
 
     gl_Position = vec4(pos, 0.0, 1.0);
     gl_PointSize = size;
 
     vSize = size;
     vAngle = atan(pos.y, pos.x);
+    vActivation = activation;
+    vProfile = profile;
 }
 )";
 
@@ -55,6 +91,8 @@ const char* cornerFragmentShaderSource = R"(
 #version 330 core
 in float vSize;
 in float vAngle;
+in float vActivation;
+in float vProfile;
 
 out vec4 FragColor;
 
@@ -64,15 +102,20 @@ uniform float uHigh;
 uniform float uEnergy;
 uniform float uPulse;
 uniform float uKick;
+uniform float uTime;
+uniform float uTempo;
 
 void main() {
     vec2 uv = gl_PointCoord * 2.0 - 1.0;
     float dist = length(uv);
     if (dist > 1.0) discard;
 
-    float petal = abs(sin(vAngle * (5.0 + uMid * 3.0) + uv.x * 4.0 + uPulse * 2.0));
-    float ring = smoothstep(0.9, 0.4, dist) - smoothstep(0.6, 0.15, dist);
-    float inner = smoothstep(0.35, 0.0, dist);
+    float activation = clamp(vActivation, 0.0, 1.0);
+    float profileMask = smoothstep(0.0, 0.5, vProfile);
+
+    float petal = abs(sin(vAngle * (5.0 + uMid * 3.0 + activation * 2.0) + uv.x * 4.0 + uPulse * 2.2));
+    float ring = smoothstep(0.9, 0.35, dist) - smoothstep(0.6, 0.12, dist);
+    float inner = smoothstep(0.45, 0.0, dist);
 
     vec3 baseColor = vec3(0.18 + uBass * 0.6,
                           0.22 + uMid * 0.5,
@@ -82,11 +125,22 @@ void main() {
                      1.05 + uBass * 0.4);
     vec3 rim = vec3(0.9, 0.85, 1.0);
 
-    vec3 color = baseColor * inner;
-    color += neon * petal * 0.6;
-    color += rim * ring * (0.5 + uKick * 0.4 + uPulse * 0.3);
+    vec2 grid = fract((uv + vec2(1.0)) * (2.0 + profileMask * 1.5 + activation * 2.0)) - 0.5;
+    float cluster = smoothstep(0.45, 0.0, length(grid)) * activation * profileMask;
 
-    float alpha = inner * (0.4 + uEnergy * 0.3) + ring * 0.6 + petal * 0.35;
+    float swirl = sin(uTime * (4.0 + uTempo * 1.2 + vProfile * 0.6) + vAngle * 3.4 + uv.y * 6.5);
+    float shard = smoothstep(0.7, 0.0, length(vec2(uv.x + sin(vAngle * 2.0), uv.y + cos(vAngle * 2.0)))) * activation;
+
+    vec3 color = baseColor * (inner * (0.65 + activation * 0.45));
+    color += neon * petal * (0.35 + activation * 0.6);
+    color += neon.zyx * cluster * (0.5 + activation * 0.6);
+    color += rim * ring * (0.4 + activation * 0.6 + max(0.0, swirl) * (0.2 + profileMask * 0.3));
+    color += rim * shard * (0.20 + activation * 0.35 + profileMask * 0.25);
+
+    float alpha = inner * (0.35 + uEnergy * 0.35 + activation * 0.45);
+    alpha += ring * (0.4 + activation * 0.5);
+    alpha += petal * (0.25 + activation * 0.35);
+    alpha += cluster * 0.55;
     alpha = clamp(alpha, 0.0, 1.0);
 
     FragColor = vec4(color, alpha);
@@ -221,6 +275,8 @@ void Visualizer::renderCornerOrbs() {
     cornerShader_->setUniform1f("uMid", audioFeatures_.midEnergy);
     cornerShader_->setUniform1f("uHigh", audioFeatures_.highEnergy);
     cornerShader_->setUniform1f("uKick", core_.kickEnvelope);
+    cornerShader_->setUniform1f("uOnset", audioFeatures_.onset);
+    cornerShader_->setUniform1f("uBeat", audioFeatures_.beat);
 
     glBindVertexArray(cornerVAO_);
     glDrawArrays(GL_POINTS, 0, cornerVertexCount_);
@@ -278,6 +334,11 @@ out float vInnerMask;
 out float vOuterMask;
 out float vVoidMask;
 out float vRadiusNorm;
+out float vNodePulse;
+out float vBondMask;
+out float vFacetFlow;
+out float vRibbonMask;
+out vec2 vChemFlow;
 
 uniform vec2 uResolution;
 uniform float uBaseRadius;
@@ -292,39 +353,85 @@ uniform float uMid;
 uniform float uHigh;
 uniform float uTime;
 uniform float uTempo;
+uniform float uIdlePulse;
+uniform float uIdleWarp;
+uniform float uIdleSpin;
+uniform float uOnset;
+uniform float uBeat;
 
 void main() {
-    vAngle = aAngle;
+    float spinAngle = aAngle + uIdleSpin;
+    vAngle = spinAngle;
     vRadial = aRadial;
 
     float petals = 6.0 + uHarmonic * 4.0;
-    float petalWave = cos(aAngle * petals + uTime * (1.2 + uTempo * 0.35));
-    float petalMask = smoothstep(-0.25, 0.65, petalWave + uPulse * 0.25);
+    float petalWave = cos(spinAngle * petals + uTime * (1.2 + uTempo * 0.35));
+    float petalMask = smoothstep(-0.25, 0.65, petalWave + uPulse * 0.25 + uIdlePulse * 0.3);
 
-    float spiralWave = sin(aAngle * (2.0 + uTempo * 0.18) + uTime * (0.9 + uTempo * 0.2));
+    float spiralWave = sin(spinAngle * (2.0 + uTempo * 0.18) + uTime * (0.9 + uTempo * 0.2));
 
-    float warp = sin(aAngle * (4.5 + uHarmonic * 1.9) + uTime * (1.7 + uTempo * 0.5)) * (0.16 + uHarmonic * 0.22);
-    warp += sin(aAngle * (10.5 + uHigh * 3.2) + uTime * (2.6 + uTempo * 0.55)) * (0.07 + uHigh * 0.16);
+    float warp = sin(spinAngle * (4.5 + uHarmonic * 1.9) + uTime * (1.7 + uTempo * 0.5)) * (0.16 + uHarmonic * 0.22);
+    warp += sin(spinAngle * (10.5 + uHigh * 3.2) + uTime * (2.6 + uTempo * 0.55)) * (0.07 + uHigh * 0.16);
+    warp += uIdleWarp * (0.45 + 0.35 * aRadial);
 
-    float radialBase = uBaseRadius * (0.85 + aRadial * 0.7 + uPulse * 0.35);
+    float radialBase = uBaseRadius * (0.85 + aRadial * 0.7 + uPulse * 0.35 + uIdlePulse * 0.5);
     float radius = radialBase * (1.0 + warp);
-    radius += (uBass * 65.0 + uMid * 42.0 + uHigh * 30.0) * aRadial;
-    radius += petalMask * (24.0 + uPulse * 40.0);
-    radius += spiralWave * (25.0 + uEnergy * 28.0);
-    radius += sin(aRadial * 4.5 + uTime * (1.5 + uTempo * 0.4)) * (uHarmonic * 18.0);
-    radius += sin((aAngle + aRadial * 3.1) * (3.0 + uGrowth * 0.9) + uTime * (0.8 + uGrowth * 0.2)) * (uGrowth * 32.0);
+    radius += (uBass * 65.0 + uMid * 42.0 + uHigh * 30.0 + uIdlePulse * 24.0) * aRadial;
+    radius += petalMask * (24.0 + uPulse * 40.0 + uIdlePulse * 28.0);
+    radius += spiralWave * (25.0 + uEnergy * 28.0 + uIdlePulse * 20.0);
+    radius += sin(aRadial * 4.5 + uTime * (1.5 + uTempo * 0.4)) * (uHarmonic * 18.0 + uIdlePulse * 10.0);
+    radius += sin((spinAngle + aRadial * 3.1) * (3.0 + uGrowth * 0.9) + uTime * (0.8 + uGrowth * 0.2)) * (uGrowth * 32.0 + uIdlePulse * 14.0);
 
-    float voidWave = sin(aAngle * (3.0 + uTempo * 0.3) + uTime * (2.2 + uTempo * 0.45))
-                   + sin(aAngle * 1.35 + uTime * 0.9);
-    voidWave += sin(aAngle * (1.2 + uGrowth * 0.3) + uTime * (1.1 + uGrowth * 0.2)) * 0.7;
+    float polyTri = cos(spinAngle * (3.0 + uGrowth * 0.6));
+    float polyHex = cos(spinAngle * (6.0 + uHarmonic * 1.6) + uTime * (0.6 + uTempo * 0.2));
+    float facetShape = polyTri * 0.68 + polyHex * 0.32;
+    float facetBreathe = sin(aRadial * (6.0 + uGrowth * 0.8) + uTime * (1.5 + uTempo * 0.35));
+    float facetGain = (0.26 + uHarmonic * 0.2 + uGrowth * 0.18 + uIdlePulse * 0.25);
+    radius *= (1.0 + facetShape * facetGain * (0.45 + aRadial * 0.55));
+    radius += facetBreathe * (18.0 + uPulse * 20.0 + uIdlePulse * 16.0);
+
+    float ribbonTide = sin(spinAngle * (1.4 + uTempo * 0.25) + uTime * (2.1 + uBeat * 0.9)
+                           + aRadial * (3.5 + uHarmonic * 0.4));
+    float ribbonMask = smoothstep(-0.4, 0.6, ribbonTide + uPulse * 0.25 + uIdlePulse * 0.3);
+
+    float voidWave = sin(spinAngle * (3.0 + uTempo * 0.3) + uTime * (2.2 + uTempo * 0.45))
+                   + sin(spinAngle * 1.35 + uTime * 0.9);
+    voidWave += sin(spinAngle * (1.2 + uGrowth * 0.3) + uTime * (1.1 + uGrowth * 0.2)) * 0.7;
     float voidMask = smoothstep(0.25, 1.1, abs(voidWave) - (0.2 + uPulse * 0.2));
 
-    vec2 dir = vec2(cos(aAngle), sin(aAngle));
+    vec2 dir = vec2(cos(spinAngle), sin(spinAngle));
     vec2 tangent = vec2(-dir.y, dir.x);
-    vec2 evolutionFlow = tangent * spiralWave * (18.0 + uHigh * 20.0);
-    evolutionFlow += dir * (uGrowth * 12.0);
-    evolutionFlow += tangent * (uMaturity * 8.0 * sin(aRadial * 5.0 + uTime * 0.9));
+    vec2 evolutionFlow = tangent * spiralWave * (18.0 + uHigh * 20.0 + uIdlePulse * 12.0);
+    evolutionFlow += dir * (uGrowth * 12.0 + uIdlePulse * 18.0);
+    evolutionFlow += tangent * (uMaturity * 8.0 * sin(aRadial * 5.0 + uTime * 0.9) + uIdleWarp * 9.0);
     vec2 pos = dir * radius + evolutionFlow;
+
+    vec2 chemFlow = vec2(0.0);
+    float bondPulse = 0.0;
+    for (int n = 0; n < 3; ++n) {
+        float fn = float(n);
+        float nodePhase = uTime * (0.55 + uTempo * 0.25 + fn * 0.05)
+                          + fn * 2.0943951
+                          + spinAngle * (0.6 + fn * 0.18)
+                          + aRadial * (2.1 + uGrowth * 0.6);
+        float nodeWave = sin(nodePhase);
+        float spectralEnvelope = clamp(0.25 + uEnergy * 0.45 + uBass * 0.3 + fn * 0.12, 0.1, 1.4);
+        vec2 nodeDir = vec2(cos(nodePhase), sin(nodePhase));
+        chemFlow += nodeDir * nodeWave * spectralEnvelope;
+        bondPulse += abs(nodeWave) * spectralEnvelope;
+    }
+    vec2 curl = vec2(-chemFlow.y, chemFlow.x) * (0.3 + uHarmonic * 0.25 + uOnset * 0.2);
+    chemFlow += curl;
+    chemFlow *= (0.55 + uPulse * 0.28 + uEnergy * 0.18 + uBeat * 0.35);
+    pos += chemFlow * (0.9 + uGrowth * 0.35 + uMaturity * 0.2);
+
+    float ribbonOffset = (ribbonMask - 0.5) * (18.0 + uPulse * 26.0 + uBeat * 20.0 + uIdlePulse * 14.0);
+    pos += tangent * ribbonOffset * (0.16 + aRadial * 0.55);
+    pos += dir * (ribbonMask * (14.0 + uEnergy * 22.0 + uBeat * 18.0)) * (0.12 + aRadial * 0.35);
+    vec2 prismatic = vec2(cos(spinAngle * 0.5 + uTime * 0.35), sin(spinAngle * 0.5 + uTime * 0.35));
+    pos += prismatic * uBaseRadius * (0.08 + 0.1 * aRadial) * (0.25 + uEnergy * 0.3 + uIdlePulse * 0.25);
+
+    float facetFlow = facetShape * (0.7 + uPulse * 0.4) + facetBreathe * 0.35;
 
     vWarp = warp;
     vPetalMask = petalMask;
@@ -332,7 +439,14 @@ void main() {
     vInnerMask = smoothstep(0.0, 0.5, aRadial + warp * 0.25);
     vOuterMask = smoothstep(0.45, 1.15, aRadial + warp * 0.3);
     vVoidMask = clamp(voidMask, 0.0, 1.0);
-    vRadiusNorm = clamp(radius / (uBaseRadius * (2.4 + uPulse * 0.6)), 0.0, 1.7);
+    vNodePulse = bondPulse;
+    vChemFlow = chemFlow;
+    vBondMask = clamp(length(chemFlow) * (6.0 + uEnergy * 2.3 + uBeat * 1.5), 0.0, 3.2);
+    vFacetFlow = clamp(facetFlow, -1.6, 1.6);
+    vRibbonMask = clamp(ribbonMask, 0.0, 1.0);
+
+    float chemicalRadius = length(pos);
+    vRadiusNorm = clamp(chemicalRadius / (uBaseRadius * (3.4 + uPulse * 0.9 + uGrowth * 0.45)), 0.0, 1.9);
 
     vec2 scale = vec2(2.0 / uResolution.x, 2.0 / uResolution.y);
     gl_Position = vec4(pos * scale, 0.0, 1.0);
@@ -352,6 +466,11 @@ in float vInnerMask;
 in float vOuterMask;
 in float vVoidMask;
 in float vRadiusNorm;
+in float vNodePulse;
+in float vBondMask;
+in float vFacetFlow;
+in float vRibbonMask;
+in vec2 vChemFlow;
 
 uniform float uBass;
 uniform float uMid;
@@ -364,6 +483,8 @@ uniform float uGrowth;
 uniform float uMaturity;
 uniform float uTime;
 uniform float uTempo;
+uniform float uOnset;
+uniform float uBeat;
 uniform float uShowBase;
 uniform float uShowCorona;
 uniform float uShowSpokes;
@@ -390,6 +511,15 @@ void main() {
 
     float voidMask = vVoidMask;
     float bloom = (0.35 + uPulse * 0.45) * outerLayer * (0.6 + petals * 0.4) * (1.0 - voidMask);
+    float chemStir = clamp(length(vChemFlow) * 1.2, 0.0, 3.5);
+    float nodePulse = clamp(vNodePulse * (0.45 + uOnset * 0.6 + uBeat * 0.5), 0.0, 2.8);
+    float bondCore = clamp(vBondMask * (0.5 + uPulse * 0.3 + uBeat * 0.4), 0.0, 2.0);
+    float facetMagnitude = clamp(abs(vFacetFlow) * (1.35 + uPulse * 0.45 + uBeat * 0.35), 0.0, 2.4);
+    float facetPrism = smoothstep(0.25, 1.15, facetMagnitude);
+    float facetShard = smoothstep(0.55, 1.35, facetMagnitude * (0.9 + uHigh * 0.45));
+    float ribbonFuse = smoothstep(0.25, 0.92, clamp(vRibbonMask, 0.0, 1.0));
+    float ribbonStrand = ribbonFuse * smoothstep(0.2, 0.95, sin(vAngle * (5.0 + uTempo * 0.6) + uTime * (3.6 + uPulse * 0.9)) * 0.5 + 0.5);
+    float ribbonSpark = ribbonFuse * pow(clamp(vRibbonMask, 0.0, 1.0), 2.2) * (0.55 + uPulse * 0.45 + uBeat * 0.6);
 
     vec3 coreColor = vec3(0.22 + uBass * 0.65,
                           0.30 + uMid * 0.55,
@@ -401,6 +531,21 @@ void main() {
                           0.48 + uMid * 0.4,
                           1.1 + uBass * 0.4);
     vec3 sparkColor = vec3(1.0, 0.92, 0.65 + uHigh * 0.3);
+    vec3 chemColor = vec3(0.32 + uBass * 0.58,
+                          0.82 + uMid * 0.6,
+                          1.25 + uHigh * 0.75);
+    vec3 bondColor = vec3(1.18 + uHigh * 0.45,
+                          0.78 + uMid * 0.32,
+                          0.48 + uBass * 0.26);
+    vec3 ribbonColor = vec3(1.28 + uHigh * 0.5,
+                            0.34 + uMid * 0.42,
+                            0.88 + uBass * 0.4);
+    vec3 facetColor = vec3(0.28 + uBass * 0.5,
+                           0.9 + uMid * 0.55,
+                           1.3 + uHigh * 0.6);
+    vec3 shardColor = vec3(0.95 + uHigh * 0.45,
+                           0.52 + uMid * 0.4,
+                           1.08 + uBass * 0.35);
 
     vec3 color = vec3(0.0);
 
@@ -441,6 +586,21 @@ void main() {
     color += sparkColor * spark * uShowSparkles;
     color += petalColor * bloom * uShowBloom;
     color += maturityColor * maturityVeins * (0.18 + uMaturity * 0.25) * uShowRunes;
+    color += ribbonColor * (ribbonStrand * (0.55 + uEnergy * 0.25) + ribbonSpark * 0.85) * uShowCorona;
+    color += facetColor * facetPrism * (0.32 + uEnergy * 0.28 + uShowBase * 0.25) * uShowBase;
+    color += shardColor * facetShard * (0.26 + uHigh * 0.35 + uPulse * 0.25) * uShowSparkles;
+
+    float chemAura = smoothstep(0.2, 1.4, chemStir + nodePulse * 0.5);
+    float arterial = smoothstep(0.3, 0.95, vRadiusNorm + sin(vAngle * 5.0 + uTime * 0.8) * 0.1);
+    float bondVeins = smoothstep(0.15, 0.85, bondCore * outerLayer);
+    vec3 phaseColor = mix(chemColor, chemColor.zyx, clamp(uHigh * 0.4 + uOnset * 0.3, 0.0, 1.0));
+    vec3 bondGlow = mix(bondColor, bondColor.yzx, clamp(uMid * 0.5, 0.0, 1.0));
+
+    color += phaseColor * chemAura * (0.3 + uShowCorona * 0.5 + uEnergy * 0.25);
+    color += bondGlow * bondVeins * (0.35 + nodePulse * 0.3) * uShowRunes;
+    color += chemColor * arterial * outerLayer * (0.22 + uPulse * 0.3) * uShowBase;
+    color += ribbonColor * ribbonFuse * 0.28 * uShowBloom;
+    color += facetColor * facetPrism * 0.22 * uShowRunes;
 
     float spokeMask = smoothstep(0.6, 1.05, vRadiusNorm + sin(vAngle * 12.0) * 0.08);
     color += runeColor * spokeMask * (0.25 + uHigh * 0.35) * uShowSpokes;
@@ -456,7 +616,12 @@ void main() {
                 + spokeMask * 0.25 * uShowSpokes
                 + maturityVeins * 0.22 * uShowRunes
                 + spark * 0.42 * uShowSparkles
-                + bloom * 0.32 * uShowBloom;
+                + bloom * 0.32 * uShowBloom
+                + chemAura * 0.28 * uShowCorona
+                + bondVeins * 0.26 * uShowRunes
+                + ribbonStrand * 0.32 * uShowCorona
+                + ribbonSpark * 0.28 * uShowSparkles
+                + facetPrism * 0.22 * uShowBase;
     alpha = clamp(alpha, 0.08, 0.9);
 
     FragColor = vec4(max(color, vec3(0.0)), alpha);
@@ -646,6 +811,23 @@ void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures& featur
     core_.energy = std::clamp(core_.energy, 0.0f, 8.0f);
     core_.maturity = core_.maturity * std::pow(0.35f, tempoDt) + std::min(1.0f, injection * 0.12f);
     core_.maturity = std::clamp(core_.maturity, 0.0f, 10.0f);
+
+    float idleStrength = std::clamp(idleState_, 0.0f, 1.0f);
+    float idlePulsePhase = idlePhase_ * (0.85f + idleStrength * 0.35f);
+    float idleBasePulse = 0.06f + idleStrength * 0.24f;
+    float idleWave = std::sin(idlePulsePhase) * (0.18f + 0.12f * idleStrength);
+    core_.idlePulse = std::clamp(idleBasePulse + idleWave, 0.05f, 0.6f);
+
+    float warpPrimary = std::sin(idlePhase_ * (0.8f + idleStrength * 0.5f));
+    float warpSecondary = std::sin(idlePhase_ * (1.65f + idleStrength * 0.75f) + 1.2f);
+    core_.idleWarp = (warpPrimary * 0.22f + warpSecondary * 0.18f) * idleStrength;
+
+    float spinMultiplier = 0.35f + idleStrength * 0.65f;
+    float spinPhase = idlePhase_ * spinMultiplier;
+    core_.idleSpin = std::fmod(spinPhase, 6.2831853f);
+    if (core_.idleSpin < 0.0f) {
+        core_.idleSpin += 6.2831853f;
+    }
 }
 
 float Visualizer::sampleCoreEnergyField(float x, float y) const {
@@ -875,7 +1057,7 @@ void Visualizer::renderGears(float animatedTime) const {
                                0.82f + mid * 0.35f + prismShift * 0.18f,
                                1.25f + high * 0.5f + gate * 0.25f,
                                alpha,
-                               legacyColorAdjust_.sparkles);
+                               legacyColorAdjust_.bloomOuter);
             glVertex2f(cx, cy);
             glVertex2f(a.x, a.y);
             glVertex2f(b.x, b.y);
@@ -977,7 +1159,7 @@ void Visualizer::renderGears(float animatedTime) const {
                            0.82f + mid * 0.35f + sparkle * 0.2f + prismShift * 0.12f,
                            1.25f + high * 0.5f + sparkle * 0.25f + prismShift * 0.22f,
                            0.4f + 0.45f * sparkle,
-                           legacyColorAdjust_.sparkles);
+                           legacyColorAdjust_.bloomInner);
         glVertex2f(point.x, point.y);
     }
     glEnd();
@@ -1215,12 +1397,12 @@ Visualizer::Visualizer()
       showProceduralLayer_(true),
       proceduralLayerDebug_(false),
       proceduralLayerOpacity_(0.85f),
-      proceduralLayerMode_(0),
+      proceduralLayerMode_(3),
       postProcessMode_(0),
       postProcessStrength_(1.0f),
       legacyMotionBlend_(0.0f), legacyMotionPhase_(0.0f), legacySensitivity_(1.0f),
       showLegacyCore_(true), showLegacyArcs_(true), showLegacyRings_(true),
-      showLegacySparkles_(true), showLegacyOrbs_(true), showLegacyWaveforms_(true),
+      showLegacyWaveforms_(true),
       useModernPipeline_(false) {
     waveformBuffer_.resize(512); // Same as audio buffer size
     buildColorPresets();
@@ -1259,6 +1441,8 @@ bool Visualizer::initialize(int width, int height) {
         std::cout << "Procedural layer initialization failed, disabling procedural overlay" << std::endl;
         showProceduralLayer_ = false;
         proceduralLayerDebug_ = false;
+    } else {
+        proceduralLayer_.setMode(proceduralLayerMode_);
     }
 
     if (!postProcessor_.initialize(windowWidth_, windowHeight_)) {
@@ -1332,74 +1516,62 @@ void Visualizer::buildColorPresets() {
 
     {
         LegacyColorAdjust preset;
-        preset.circleFill = makeAdjust(0.7f, 1.35f, 1.6f, 1.0f);
-        preset.circleOutline = makeAdjust(0.6f, 1.3f, 1.6f, 1.0f);
-        preset.bloomInner = makeAdjust(0.5f, 1.3f, 1.5f, 0.85f);
-        preset.bloomOuter = makeAdjust(0.4f, 1.2f, 1.5f, 0.45f);
-        preset.bassBars = makeAdjust(0.6f, 1.4f, 1.5f, 1.0f);
-        preset.midBars = makeAdjust(0.6f, 1.5f, 1.45f, 1.0f);
-        preset.highBars = makeAdjust(0.6f, 1.55f, 1.6f, 1.0f);
-        preset.beatExplosion = makeAdjust(0.6f, 1.35f, 1.6f, 1.0f);
-        preset.rings = makeAdjust(0.5f, 1.4f, 1.4f, 0.55f);
-        preset.orbit = makeAdjust(0.5f, 1.6f, 1.6f, 1.0f);
-        preset.orbitTrail = makeAdjust(0.4f, 1.4f, 1.4f, 0.35f);
-        preset.sparkles = makeAdjust(0.6f, 1.6f, 1.6f, 1.0f);
-        preset.waveform = makeAdjust(0.4f, 1.4f, 1.4f, 1.0f);
-        colorPresets_.push_back({"Neon Aqua", preset});
+        preset.circleFill = makeAdjust(1.55f, 0.45f, 1.65f, 1.0f);
+        preset.circleOutline = makeAdjust(1.70f, 0.50f, 1.85f, 1.0f);
+        preset.bloomInner = makeAdjust(1.25f, 0.55f, 1.70f, 0.92f);
+        preset.bloomOuter = makeAdjust(0.55f, 0.60f, 1.50f, 0.50f);
+        preset.bassBars = makeAdjust(1.45f, 0.50f, 1.65f, 1.0f);
+        preset.midBars = makeAdjust(1.35f, 0.60f, 1.70f, 1.0f);
+        preset.highBars = makeAdjust(1.20f, 0.70f, 1.80f, 1.0f);
+        preset.beatExplosion = makeAdjust(1.60f, 0.50f, 1.80f, 1.0f);
+        preset.rings = makeAdjust(1.50f, 0.55f, 1.75f, 0.58f);
+        preset.waveform = makeAdjust(1.20f, 0.60f, 1.60f, 1.0f);
+        colorPresets_.push_back({"Neon Mirage", preset});
     }
 
     {
         LegacyColorAdjust preset;
-        preset.circleFill = makeAdjust(1.5f, 0.6f, 1.6f, 1.0f);
-        preset.circleOutline = makeAdjust(1.6f, 0.5f, 1.7f, 1.0f);
-        preset.bloomInner = makeAdjust(1.4f, 0.5f, 1.6f, 0.85f);
-        preset.bloomOuter = makeAdjust(1.3f, 0.4f, 1.5f, 0.45f);
-        preset.bassBars = makeAdjust(1.6f, 0.5f, 1.6f, 1.0f);
-        preset.midBars = makeAdjust(1.5f, 0.6f, 1.7f, 1.0f);
-        preset.highBars = makeAdjust(1.4f, 0.5f, 1.8f, 1.0f);
-        preset.beatExplosion = makeAdjust(1.6f, 0.4f, 1.6f, 1.0f);
-        preset.rings = makeAdjust(1.5f, 0.5f, 1.5f, 0.55f);
-        preset.orbit = makeAdjust(1.6f, 0.5f, 1.8f, 1.0f);
-        preset.orbitTrail = makeAdjust(1.4f, 0.4f, 1.6f, 0.35f);
-        preset.sparkles = makeAdjust(1.6f, 0.5f, 1.8f, 1.0f);
-        preset.waveform = makeAdjust(1.4f, 0.5f, 1.6f, 1.0f);
-        colorPresets_.push_back({"Magenta Pulse", preset});
+        preset.circleFill = makeAdjust(0.55f, 1.25f, 1.85f, 1.0f);
+        preset.circleOutline = makeAdjust(0.60f, 1.30f, 1.90f, 1.0f);
+        preset.bloomInner = makeAdjust(0.40f, 1.20f, 1.70f, 0.90f);
+        preset.bloomOuter = makeAdjust(0.30f, 0.90f, 1.40f, 0.48f);
+        preset.bassBars = makeAdjust(0.50f, 1.40f, 1.80f, 1.0f);
+        preset.midBars = makeAdjust(0.45f, 1.50f, 1.90f, 1.0f);
+        preset.highBars = makeAdjust(0.40f, 1.60f, 1.95f, 1.0f);
+        preset.beatExplosion = makeAdjust(1.30f, 0.60f, 1.70f, 1.0f);
+        preset.rings = makeAdjust(0.50f, 1.40f, 1.90f, 0.56f);
+        preset.waveform = makeAdjust(0.45f, 1.35f, 1.85f, 1.0f);
+        colorPresets_.push_back({"Synthwave Cyan", preset});
     }
 
     {
         LegacyColorAdjust preset;
-        preset.circleFill = makeAdjust(0.7f, 1.6f, 0.6f, 1.0f);
-        preset.circleOutline = makeAdjust(0.6f, 1.7f, 0.6f, 1.0f);
-        preset.bloomInner = makeAdjust(0.5f, 1.6f, 0.5f, 0.85f);
-        preset.bloomOuter = makeAdjust(0.4f, 1.5f, 0.4f, 0.45f);
-        preset.bassBars = makeAdjust(0.6f, 1.7f, 0.6f, 1.0f);
-        preset.midBars = makeAdjust(0.6f, 1.6f, 0.5f, 1.0f);
-        preset.highBars = makeAdjust(0.6f, 1.8f, 0.6f, 1.0f);
-        preset.beatExplosion = makeAdjust(0.6f, 1.7f, 0.4f, 1.0f);
-        preset.rings = makeAdjust(0.5f, 1.6f, 0.5f, 0.55f);
-        preset.orbit = makeAdjust(0.5f, 1.8f, 0.6f, 1.0f);
-        preset.orbitTrail = makeAdjust(0.4f, 1.5f, 0.4f, 0.35f);
-        preset.sparkles = makeAdjust(0.6f, 1.7f, 0.5f, 1.0f);
-        preset.waveform = makeAdjust(0.4f, 1.6f, 0.5f, 1.0f);
-        colorPresets_.push_back({"Electric Lime", preset});
+        preset.circleFill = makeAdjust(1.60f, 0.55f, 0.95f, 1.0f);
+        preset.circleOutline = makeAdjust(1.70f, 0.60f, 0.80f, 1.0f);
+        preset.bloomInner = makeAdjust(1.50f, 0.70f, 0.60f, 0.88f);
+        preset.bloomOuter = makeAdjust(1.20f, 0.55f, 0.40f, 0.48f);
+        preset.bassBars = makeAdjust(1.50f, 0.65f, 0.60f, 1.0f);
+        preset.midBars = makeAdjust(1.45f, 0.80f, 0.55f, 1.0f);
+        preset.highBars = makeAdjust(1.60f, 0.70f, 0.50f, 1.0f);
+        preset.beatExplosion = makeAdjust(1.80f, 0.90f, 0.45f, 1.0f);
+        preset.rings = makeAdjust(1.55f, 0.70f, 0.60f, 0.60f);
+        preset.waveform = makeAdjust(1.35f, 0.70f, 0.55f, 1.0f);
+        colorPresets_.push_back({"Magenta Ember", preset});
     }
 
     {
         LegacyColorAdjust preset;
-        preset.circleFill = makeAdjust(1.6f, 0.7f, 0.5f, 1.0f);
-        preset.circleOutline = makeAdjust(1.6f, 0.6f, 0.4f, 1.0f);
-        preset.bloomInner = makeAdjust(1.5f, 0.6f, 0.4f, 0.85f);
-        preset.bloomOuter = makeAdjust(1.4f, 0.5f, 0.3f, 0.45f);
-        preset.bassBars = makeAdjust(1.7f, 0.6f, 0.4f, 1.0f);
-        preset.midBars = makeAdjust(1.6f, 0.5f, 0.3f, 1.0f);
-        preset.highBars = makeAdjust(1.7f, 0.6f, 0.4f, 1.0f);
-        preset.beatExplosion = makeAdjust(1.8f, 0.6f, 0.4f, 1.0f);
-        preset.rings = makeAdjust(1.6f, 0.6f, 0.4f, 0.55f);
-        preset.orbit = makeAdjust(1.7f, 0.5f, 0.3f, 1.0f);
-        preset.orbitTrail = makeAdjust(1.4f, 0.4f, 0.2f, 0.35f);
-        preset.sparkles = makeAdjust(1.8f, 0.6f, 0.4f, 1.0f);
-        preset.waveform = makeAdjust(1.5f, 0.5f, 0.3f, 1.0f);
-        colorPresets_.push_back({"Inferno Neon", preset});
+        preset.circleFill = makeAdjust(0.65f, 0.90f, 1.50f, 1.0f);
+        preset.circleOutline = makeAdjust(0.60f, 1.00f, 1.60f, 1.0f);
+        preset.bloomInner = makeAdjust(0.50f, 0.80f, 1.40f, 0.88f);
+        preset.bloomOuter = makeAdjust(0.35f, 0.60f, 1.20f, 0.48f);
+        preset.bassBars = makeAdjust(0.60f, 1.20f, 1.60f, 1.0f);
+        preset.midBars = makeAdjust(0.55f, 1.30f, 1.70f, 1.0f);
+        preset.highBars = makeAdjust(0.50f, 1.40f, 1.85f, 1.0f);
+        preset.beatExplosion = makeAdjust(1.40f, 0.60f, 1.70f, 1.0f);
+        preset.rings = makeAdjust(0.60f, 1.10f, 1.75f, 0.56f);
+        preset.waveform = makeAdjust(0.55f, 1.20f, 1.70f, 1.0f);
+        colorPresets_.push_back({"Night Circuit", preset});
     }
 }
 
@@ -1461,9 +1633,6 @@ void Visualizer::randomizeLegacyColors() {
     pickAdjust(&LegacyColorAdjust::highBars);
     pickAdjust(&LegacyColorAdjust::beatExplosion);
     pickAdjust(&LegacyColorAdjust::rings);
-    pickAdjust(&LegacyColorAdjust::orbit);
-    pickAdjust(&LegacyColorAdjust::orbitTrail);
-    pickAdjust(&LegacyColorAdjust::sparkles);
     pickAdjust(&LegacyColorAdjust::waveform);
 
     legacyColorAdjust_ = mixed;
@@ -1792,13 +1961,27 @@ void Visualizer::setupCornerQuad() {
         float x;
         float y;
         float size;
+        float orbitRadius;
+        float orbitPhase;
+        float profile;
     };
 
-    std::array<CornerVertex, 4> corners = {
-        CornerVertex{-0.9f,  0.9f, 0.08f}, // top-left
-        CornerVertex{ 0.9f,  0.9f, 0.08f}, // top-right
-        CornerVertex{-0.9f, -0.9f, 0.08f}, // bottom-left
-        CornerVertex{ 0.9f, -0.9f, 0.08f}  // bottom-right
+    std::array<CornerVertex, 12> corners = {
+        CornerVertex{-0.9f,  0.9f, 0.08f, 0.015f,  0.0f, 0.05f},
+        CornerVertex{-0.9f,  0.9f, 0.05f, 0.035f,  1.2f, 0.35f},
+        CornerVertex{-0.9f,  0.9f, 0.035f, 0.055f, -1.4f, 0.65f},
+
+        CornerVertex{ 0.9f,  0.9f, 0.078f, 0.018f,  0.7f, 0.1f},
+        CornerVertex{ 0.9f,  0.9f, 0.052f, 0.032f, -0.9f, 0.42f},
+        CornerVertex{ 0.9f,  0.9f, 0.04f, 0.058f,  2.1f, 0.72f},
+
+        CornerVertex{-0.9f, -0.9f, 0.082f, 0.02f,  0.6f, 0.12f},
+        CornerVertex{-0.9f, -0.9f, 0.05f, 0.038f, -1.8f, 0.38f},
+        CornerVertex{-0.9f, -0.9f, 0.037f, 0.06f,   1.4f, 0.68f},
+
+        CornerVertex{ 0.9f, -0.9f, 0.076f, 0.018f, -0.4f, 0.08f},
+        CornerVertex{ 0.9f, -0.9f, 0.052f, 0.034f,  1.7f, 0.48f},
+        CornerVertex{ 0.9f, -0.9f, 0.038f, 0.056f, -2.3f, 0.74f}
     };
 
     cornerVertexCount_ = static_cast<GLsizei>(corners.size());
@@ -1810,8 +1993,10 @@ void Visualizer::setupCornerQuad() {
     glBindBuffer(GL_ARRAY_BUFFER, cornerVBO_);
     glBufferData(GL_ARRAY_BUFFER, sizeof(corners), corners.data(), GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(CornerVertex), reinterpret_cast<void*>(0));
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(CornerVertex), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(CornerVertex), reinterpret_cast<void*>(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -2063,6 +2248,11 @@ void Visualizer::renderModernCore() {
     coreShader_->setUniform1f("uHigh", audioFeatures_.highEnergy);
     coreShader_->setUniform1f("uTime", time_);
     coreShader_->setUniform1f("uTempo", tempoMultiplier_);
+    coreShader_->setUniform1f("uOnset", audioFeatures_.onset);
+    coreShader_->setUniform1f("uBeat", audioFeatures_.beat);
+    coreShader_->setUniform1f("uIdlePulse", core_.idlePulse);
+    coreShader_->setUniform1f("uIdleWarp", core_.idleWarp);
+    coreShader_->setUniform1f("uIdleSpin", core_.idleSpin);
     coreShader_->setUniform1f("uShowBase", coreShowBase_ ? 1.0f : 0.0f);
     coreShader_->setUniform1f("uShowCorona", coreShowCorona_ ? 1.0f : 0.0f);
     coreShader_->setUniform1f("uShowSpokes", coreShowSpokes_ ? 1.0f : 0.0f);

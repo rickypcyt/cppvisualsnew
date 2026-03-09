@@ -132,110 +132,8 @@ void Visualizer::renderLegacyVisualization(bool overlay) {
         renderLegacyRings(mid, animatedTime, legacyMotionBlend_);
     }
 
-    // 4. Sparkles
-    if (showLegacySparkles_) {
-        float sparkleIntensity = std::min(1.0f, high + energy * 0.5f + onsetFlash * 0.4f);
-        renderLegacySparkles(bass, sparkleIntensity, animatedTime, legacyMotionBlend_);
-        renderLegacySparkles(bass * 0.7f + beatFlash * 0.6f,
-                             std::min(1.0f, sparkleIntensity * 0.6f + beatFlash * 0.4f),
-                             animatedTime + 0.77f,
-                             legacyMotionBlend_ * 0.8f);
-    }
-
-    // 5. Floating orbs
-    if (showLegacyOrbs_) {
-        float baseRadius = minDimension * (0.26f + energy * 0.10f + beatFlash * 0.05f);
-        float maxRadius = minDimension * (0.72f + legacyMotionBlend_ * 0.18f);
-        float segmentLength = minDimension * (0.035f + 0.04f * legacyMotionBlend_);
-        float expansionSpeed = 0.7f + energy * 0.8f + beatFlash * 0.6f;
-
-        int beamCount = 48;
-        glLineWidth(1.8f + 2.6f * std::clamp(high + legacyMotionBlend_ * 0.4f, 0.0f, 1.0f));
-
-        auto fract = [](float x) {
-            return x - std::floor(x);
-        };
-
-        auto hash = [&](float n) {
-            return fract(std::sin(n) * 43758.5453f);
-        };
-
-        for (int i = 0; i < beamCount; ++i) {
-            float laneSeed = hash(i * 8.37f + animatedTime * 0.27f);
-            float drift = std::sin(animatedTime * (0.6f + laneSeed * 1.4f)) * minDimension * 0.012f;
-            float laneAngle = (static_cast<float>(i) / beamCount) * 6.28318f
-                              + animatedTime * (0.4f + laneSeed * 0.9f)
-                              + drift;
-
-            float laneOffset = std::sin(animatedTime * 1.2f + i * 0.45f) * minDimension * 0.02f;
-            float startRadius = baseRadius + laneOffset;
-            float endRadius = std::min(maxRadius,
-                                       startRadius + segmentLength * (1.4f + laneSeed * 0.6f + beatFlash * 0.8f));
-
-            setColorWithAdjust(0.38f + 0.6f * laneSeed + 0.3f * energy,
-                               0.45f + 0.4f * mid + 0.15f * laneSeed,
-                               0.88f + 0.4f * high,
-                               0.28f + 0.5f * std::clamp(energy + beatFlash * 0.6f, 0.0f, 1.1f),
-                               legacyColorAdjust_.orbit);
-            glBegin(GL_LINES);
-            glVertex2f(centerX + cosf(laneAngle) * startRadius,
-                       centerY + sinf(laneAngle) * startRadius);
-            glVertex2f(centerX + cosf(laneAngle) * endRadius,
-                       centerY + sinf(laneAngle) * endRadius);
-            glEnd();
-
-            int capsuleCount = 5;
-            for (int c = 0; c < capsuleCount; ++c) {
-                float capsuleSeed = hash(i * 2.3f + c * 1.7f + animatedTime * 0.33f);
-                float capsuleRadius = startRadius + (endRadius - startRadius) * (static_cast<float>(c) / capsuleCount);
-                float capsuleWidth = minDimension * (0.0065f + capsuleSeed * 0.008f);
-                float capsuleLength = minDimension * (0.012f + capsuleSeed * 0.03f + beatFlash * 0.015f);
-                float capsuleAngle = laneAngle + std::sin(animatedTime * 2.0f + capsuleSeed * 6.28318f) * 0.12f;
-
-                float cosA = std::cos(capsuleAngle);
-                float sinA = std::sin(capsuleAngle);
-
-                float sx = centerX + cosf(laneAngle) * (capsuleRadius - capsuleLength * 0.5f);
-                float sy = centerY + sinf(laneAngle) * (capsuleRadius - capsuleLength * 0.5f);
-                float ex = centerX + cosf(laneAngle) * (capsuleRadius + capsuleLength * 0.5f);
-                float ey = centerY + sinf(laneAngle) * (capsuleRadius + capsuleLength * 0.5f);
-
-                setColorWithAdjust(0.55f + 0.45f * laneSeed,
-                                   0.6f + 0.35f * mid,
-                                   1.1f + 0.3f * high,
-                                   0.24f + 0.42f * std::clamp(energy + beatFlash * 0.4f, 0.0f, 1.0f),
-                                   legacyColorAdjust_.orbit);
-                glBegin(GL_TRIANGLE_STRIP);
-                glVertex2f(sx + cosA * capsuleWidth, sy + sinA * capsuleWidth);
-                glVertex2f(sx - cosA * capsuleWidth, sy - sinA * capsuleWidth);
-                glVertex2f(ex + cosA * capsuleWidth, ey + sinA * capsuleWidth);
-                glVertex2f(ex - cosA * capsuleWidth, ey - sinA * capsuleWidth);
-                glEnd();
-            }
-        }
-
-        int waveSegments = 160;
-        glLineWidth(1.1f + 1.5f * energy);
-        glBegin(GL_LINE_STRIP);
-        for (int i = 0; i <= waveSegments; ++i) {
-            float t = static_cast<float>(i) / waveSegments;
-            float angle = t * 6.28318f + animatedTime * expansionSpeed;
-            float radiusSpan = (maxRadius - baseRadius) * t;
-            float phase = animatedTime * (0.8f + energy * 0.6f) + t * 8.0f;
-            float radialOffset = std::sin(phase) * minDimension * (0.01f + 0.02f * legacyMotionBlend_);
-
-            float radius = baseRadius + radiusSpan + radialOffset;
-            float px = centerX + std::cos(angle) * radius;
-            float py = centerY + std::sin(angle) * radius;
-
-            setColorWithAdjust(0.75f + 0.25f * energy,
-                               0.7f + 0.2f * mid,
-                               1.2f + 0.25f * high,
-                               0.16f + 0.35f * std::clamp(energy + beatFlash * 0.5f, 0.0f, 1.0f),
-                               legacyColorAdjust_.orbitTrail);
-            glVertex2f(px, py);
-        }
-        glEnd();
+    if (depthWasEnabled) {
+        glEnable(GL_DEPTH_TEST);
     }
 
     // 6. Waveform portals
@@ -279,54 +177,101 @@ void Visualizer::renderLegacyCircle(float bass, float mid, float high, float mot
     float harmonicPulse = harmonicSwell * (0.85f + 0.15f * std::sin(animatedTime * 3.2f + harmonicSwell * 1.6f));
     float kickPulse = kickEnvelope * (1.08f + energyMix * 0.45f);
 
-    float baseRadius = minDimension * (0.016f
-                                       + energyMix * 0.010f
-                                       + motionBlend * 0.006f
-                                       + beatPulse * 0.0035f
-                                       + 0.0042f * std::clamp(harmonicSwell, 0.0f, 1.2f));
-    float kickScale = 0.65f + 1.35f * std::clamp(kickPulse, 0.0f, 1.6f);
-    float harmonicScale = 0.72f + 0.55f * std::clamp(harmonicPulse, 0.0f, 1.4f);
-    float radius = baseRadius * kickScale * harmonicScale;
-    radius = std::clamp(radius, minDimension * 0.009f, minDimension * 0.05f);
+    auto fract = [](float x) {
+        return x - std::floor(x);
+    };
 
-    int segments = 64;
-    float ringAlpha = std::clamp(0.32f + 0.38f * energyMix + 0.25f * kickEnvelope + 0.35f * std::clamp(harmonicPulse, 0.0f, 1.1f),
-                                 0.25f,
-                                 1.2f);
-    float wobble = sinf(animatedTime * (2.2f + high * 1.4f)) * radius * 0.12f
-                   + kickEnvelope * radius * 0.08f * std::sin(animatedTime * 12.0f)
-                   + harmonicPulse * radius * 0.09f * std::sin(animatedTime * 6.5f + 1.2f);
+    auto hash = [&](float n) {
+        return fract(std::sin(n) * 43758.5453f);
+    };
 
-    float kickGlow = std::clamp(0.25f + 0.75f * kickEnvelope, 0.25f, 1.05f);
-    float harmonicGlow = std::clamp(0.2f + 0.8f * harmonicPulse, 0.2f, 1.1f);
-    float ringThickness = std::clamp(minDimension * (0.0035f + 0.0065f * energyMix + 0.0075f * harmonicPulse + 0.0045f * motionBlend),
-                                     minDimension * 0.0025f,
-                                     minDimension * 0.022f);
+    float growthEnvelope = std::clamp(core_.growthEnvelope, 0.0f, 4.0f);
+    float maturity = std::clamp(core_.maturity, 0.0f, 6.0f);
+
+    float baseRadius = minDimension * (0.052f
+                                       + energyMix * 0.028f
+                                       + motionBlend * 0.020f
+                                       + beatPulse * 0.012f
+                                       + 0.014f * std::clamp(harmonicSwell, 0.0f, 1.2f)
+                                       + 0.010f * std::clamp(growthEnvelope, 0.0f, 1.5f)
+                                       + 0.008f * std::clamp(maturity, 0.0f, 1.8f));
+    float pulseDrive = std::clamp(kickPulse * 1.35f + energyMix * 0.6f, 0.0f, 3.5f);
+    float harmonicScale = 1.05f + 0.75f * std::clamp(harmonicPulse, 0.0f, 1.6f);
+    float growthScale = 1.0f + 0.55f * std::clamp(growthEnvelope * 0.22f + maturity * 0.15f, 0.0f, 1.8f);
+
+    float radius = baseRadius * (1.65f + pulseDrive) * harmonicScale * growthScale;
+    float glitchDrive = std::clamp(high * 0.9f + audioFeatures_.onset * 1.3f + audioFeatures_.beat * 1.1f + audioFeatures_.clap * 0.7f, 0.0f, 4.0f);
+    float tempoWarp = std::clamp(audioFeatures_.bpm > 10.0f ? (audioFeatures_.bpm - 70.0f) / 90.0f : energyMix, 0.0f, 1.0f);
+    radius += minDimension * (0.018f + glitchDrive * 0.022f + motionBlend * 0.015f + tempoWarp * 0.012f);
+    radius = std::clamp(radius, minDimension * 0.034f, minDimension * 0.22f);
+
+    int segments = 96;
+    float kickGlow = std::clamp(0.25f + 0.75f * kickEnvelope, 0.25f, 1.15f);
+    float harmonicGlow = std::clamp(0.2f + 0.8f * harmonicPulse, 0.2f, 1.2f);
+    float glitchPhase = animatedTime * (2.5f + glitchDrive * 0.4f + tempoWarp * 0.65f);
+    float glitchBeat = std::sin(glitchPhase * 2.2f + audioFeatures_.beat * 5.2f);
+    float glitchBurst = std::clamp(glitchDrive * 0.32f + audioFeatures_.onset * 0.52f + glitchBeat * 0.25f, 0.0f, 1.9f);
+
+    float wobble = sinf(animatedTime * (2.2f + high * 1.4f)) * radius * (0.16f + 0.12f * glitchBurst)
+                   + kickEnvelope * radius * 0.12f * std::sin(animatedTime * (13.5f + glitchBurst * 2.5f))
+                   + harmonicPulse * radius * 0.12f * std::sin(animatedTime * (7.2f + glitchBurst * 1.2f) + 1.8f);
+
+    float ringThickness = std::clamp(minDimension * (0.0065f + 0.0105f * energyMix + 0.0125f * harmonicPulse + 0.0075f * motionBlend + 0.010f * glitchBurst),
+                                     minDimension * 0.0045f,
+                                     minDimension * 0.04f);
+    float ringAlpha = std::clamp(0.42f + 0.48f * energyMix + 0.35f * kickEnvelope + 0.45f * std::clamp(harmonicPulse, 0.0f, 1.2f)
+                                 + glitchBurst * 0.35f,
+                                 0.35f,
+                                 1.35f);
 
     glBegin(GL_TRIANGLE_STRIP);
     for (int i = 0; i <= segments; ++i) {
         float t = static_cast<float>(i) / segments;
-        float angle = t * 6.28318f;
-        float ripple = sinf(angle * 3.5f + animatedTime * 3.0f) * radius * 0.08f
-                       + harmonicPulse * radius * 0.05f * std::sin(angle * 6.0f + animatedTime * 2.4f);
-        float currentRadius = radius + wobble + ripple;
-        float innerRadius = std::max(currentRadius - ringThickness * 0.55f, minDimension * 0.005f);
-        float outerRadius = innerRadius + ringThickness;
+        float angleBase = t * 6.28318f;
+        float jitterSeed = hash(i * 7.31f + glitchPhase * 0.71f);
+        float jitterAngle = (jitterSeed - 0.5f) * (0.22f + glitchBurst * 0.55f);
+        float angle = angleBase + jitterAngle;
+
+        float ripple = sinf(angle * (3.5f + glitchBurst * 1.8f) + animatedTime * (3.0f + glitchBurst * 1.7f)) * radius * (0.14f + 0.05f * glitchBurst)
+                       + harmonicPulse * radius * 0.07f * std::sin(angle * (6.0f + glitchBurst * 2.5f) + animatedTime * 2.8f)
+                       + (jitterSeed - 0.5f) * minDimension * (0.012f + glitchBurst * 0.02f);
+
+        float glitchStep = std::fmod(glitchPhase * 4.0f + i * 0.6f, 1.0f);
+        float angularTear = std::sin(glitchStep * 6.28318f + jitterSeed * 12.0f) * minDimension * (0.01f + glitchBurst * 0.018f);
+
+        float currentRadius = radius + wobble + ripple + angularTear;
+        float innerRadius = std::max(currentRadius - ringThickness * (0.45f + 0.25f * jitterSeed), minDimension * 0.008f);
+        float outerRadius = innerRadius + ringThickness * (0.9f + 0.35f * jitterSeed + 0.25f * glitchBurst);
 
         float cosA = cosf(angle);
         float sinA = sinf(angle);
 
-        setColorWithAdjust(0.35f + 0.45f * energyMix + kickGlow * 0.22f + harmonicGlow * 0.28f,
-                           0.32f + 0.38f * mid + kickGlow * 0.12f + harmonicGlow * 0.33f,
-                           0.55f + 0.52f * high + kickGlow * 0.15f + harmonicGlow * 0.24f,
+        float fillPulse = std::clamp(energyMix * 0.55f + harmonicPulse * 0.35f + glitchBurst * 0.6f, 0.0f, 2.0f);
+        float fillHueShift = jitterSeed * 0.35f;
+
+        setColorWithAdjust(0.45f + 0.55f * energyMix + kickGlow * (0.28f + 0.3f * jitterSeed)
+                           + harmonicGlow * (0.32f + 0.2f * fillHueShift)
+                           + 0.25f * fillPulse,
+                           0.38f + 0.48f * mid + kickGlow * (0.18f + 0.12f * jitterSeed)
+                           + harmonicGlow * (0.38f + 0.22f * fillHueShift)
+                           + 0.18f * fillPulse,
+                           0.68f + 0.7f * high + kickGlow * (0.3f + 0.18f * fillHueShift)
+                           + harmonicGlow * (0.28f + 0.22f * jitterSeed)
+                           + 0.28f * fillPulse,
                            ringAlpha * 0.6f,
                            legacyColorAdjust_.circleFill);
         glVertex2f(centerX + cosA * innerRadius,
                    centerY + sinA * innerRadius);
 
-        setColorWithAdjust(0.45f + 0.55f * energyMix + kickGlow * 0.3f + harmonicGlow * 0.36f,
-                           0.4f + 0.45f * mid + kickGlow * 0.16f + harmonicGlow * 0.4f,
-                           0.68f + 0.6f * high + kickGlow * 0.25f + harmonicGlow * 0.32f,
+        setColorWithAdjust(0.58f + 0.65f * energyMix + kickGlow * (0.38f + 0.32f * jitterSeed)
+                           + harmonicGlow * (0.42f + 0.28f * fillHueShift)
+                           + 0.32f * fillPulse,
+                           0.48f + 0.55f * mid + kickGlow * (0.24f + 0.15f * jitterSeed)
+                           + harmonicGlow * (0.45f + 0.18f * fillHueShift)
+                           + 0.24f * fillPulse,
+                           0.82f + 0.82f * high + kickGlow * (0.34f + 0.22f * fillHueShift)
+                           + harmonicGlow * (0.35f + 0.25f * jitterSeed)
+                           + 0.34f * fillPulse,
                            ringAlpha,
                            legacyColorAdjust_.circleFill);
         glVertex2f(centerX + cosA * outerRadius,
@@ -334,20 +279,51 @@ void Visualizer::renderLegacyCircle(float bass, float mid, float high, float mot
     }
     glEnd();
 
-    glLineWidth(1.6f + 1.2f * std::clamp(harmonicPulse, 0.0f, 1.2f));
+    glLineWidth(2.2f + 1.8f * std::clamp(harmonicPulse + glitchBurst, 0.0f, 1.6f));
     glBegin(GL_LINE_LOOP);
     for (int i = 0; i <= segments; ++i) {
-        float angle = (static_cast<float>(i) / segments) * 6.28318f;
+        float t = static_cast<float>(i) / segments;
+        float angleBase = t * 6.28318f;
+        float intensitySeed = hash(i * 9.19f + glitchPhase * 0.92f);
+        float angle = angleBase + (intensitySeed - 0.5f) * (0.18f + glitchBurst * 0.42f);
         float outlineRadius = radius + wobble
-                              + harmonicPulse * minDimension * 0.0045f * std::sin(angle * 2.5f + animatedTime * 1.6f)
-                              + kickEnvelope * minDimension * 0.0035f * std::sin(angle * 4.0f + animatedTime * 2.5f);
-        setColorWithAdjust(0.85f,
-                           0.88f,
-                           1.25f + 0.18f * high + harmonicGlow * 0.35f,
-                           0.28f + 0.35f * energyMix + 0.22f * kickEnvelope + 0.3f * harmonicPulse,
+                              + harmonicPulse * minDimension * (0.0075f + 0.003f * intensitySeed) * std::sin(angle * (2.5f + 1.1f * glitchBurst) + animatedTime * 1.9f)
+                              + kickEnvelope * minDimension * (0.0065f + 0.0025f * intensitySeed) * std::sin(angle * (4.3f + 1.6f * glitchBurst) + animatedTime * 2.8f)
+                              + (intensitySeed - 0.5f) * minDimension * (0.016f + glitchBurst * 0.026f);
+        setColorWithAdjust(0.92f + 0.25f * intensitySeed,
+                           0.95f + 0.18f * intensitySeed,
+                           1.35f + 0.28f * high + harmonicGlow * (0.45f + 0.18f * intensitySeed),
+                           0.32f + 0.38f * energyMix + 0.26f * kickEnvelope + 0.38f * harmonicPulse + 0.32f * glitchBurst,
                            legacyColorAdjust_.circleOutline);
         glVertex2f(centerX + cosf(angle) * outlineRadius,
                    centerY + sinf(angle) * outlineRadius);
+    }
+    glEnd();
+
+    int shardCount = 14 + static_cast<int>(glitchBurst * 12.0f + energyMix * 10.0f);
+    glLineWidth(1.0f + glitchBurst * 1.4f);
+    glBegin(GL_LINES);
+    for (int s = 0; s < shardCount; ++s) {
+        float shardSeed = hash(s * 5.63f + glitchPhase * 1.13f);
+        float shardAngle = shardSeed * 6.28318f;
+        float shardLength = minDimension * (0.028f + shardSeed * 0.045f + glitchBurst * 0.038f);
+        float shardOffset = radius * (0.65f + shardSeed * 0.55f);
+        float jitter = (hash(shardSeed * 19.17f + glitchPhase) - 0.5f) * minDimension * (0.016f + glitchBurst * 0.022f);
+
+        float sx = centerX + cosf(shardAngle) * (shardOffset + jitter);
+        float sy = centerY + sinf(shardAngle) * (shardOffset + jitter);
+        float ex = centerX + cosf(shardAngle) * (shardOffset + shardLength + jitter * 0.5f)
+                   - sinf(shardAngle) * minDimension * (0.01f + glitchBurst * 0.015f);
+        float ey = centerY + sinf(shardAngle) * (shardOffset + shardLength + jitter * 0.5f)
+                   + cosf(shardAngle) * minDimension * (0.01f + glitchBurst * 0.015f);
+
+        setColorWithAdjust(0.85f + 0.28f * shardSeed + glitchBurst * 0.22f,
+                           0.38f + 0.55f * shardSeed + 0.25f * glitchBurst,
+                           1.25f + 0.45f * shardSeed + 0.3f * glitchBurst,
+                           0.25f + 0.5f * glitchBurst,
+                           legacyColorAdjust_.circleOutline);
+        glVertex2f(sx, sy);
+        glVertex2f(ex, ey);
     }
     glEnd();
 }
@@ -568,85 +544,118 @@ void Visualizer::renderLegacyRings(float mid, float animatedTime, float motionBl
     float centerY = windowHeight_ / 2.0f;
     float minDimension = static_cast<float>(std::min(windowWidth_, windowHeight_));
 
-    float baseRadius = minDimension * (0.34f + 0.15f * mid + 0.12f * motionBlend);
-    float ringSpacing = minDimension * (0.072f + 0.032f * motionBlend);
-    float glitchStrength = 0.038f + 0.12f * motionBlend;
+    float beat = std::clamp(audioFeatures_.beat, 0.0f, 1.2f);
+    float onset = std::clamp(audioFeatures_.onset, 0.0f, 1.2f);
+    float clap = std::clamp(audioFeatures_.clap, 0.0f, 1.2f);
+    float hiHat = std::clamp(audioFeatures_.hiHat, 0.0f, 1.2f);
+    float spectral = std::clamp(mid * 0.9f + beat * 0.55f + onset * 0.5f + clap * 0.35f + hiHat * 0.32f,
+                                0.0f,
+                                2.8f);
+    float tempo = (audioFeatures_.bpm > 0.01f)
+        ? std::clamp((audioFeatures_.bpm - 65.0f) / 95.0f, 0.0f, 1.3f)
+        : spectral * 0.35f;
+    float veil = std::clamp(audioFeatures_.energy * 0.35f + mid * 0.35f + motionBlend * 0.5f, 0.0f, 2.0f);
 
-    int baseRingCount = 3;
-    int extraRings = static_cast<int>(std::floor(mid * 3.0f + motionBlend * 2.0f));
-    int numRings = std::min(12, baseRingCount + extraRings);
+    float baseRadius = minDimension * (0.24f + 0.19f * motionBlend + 0.22f * spectral + 0.06f * tempo);
+    float layerSpacing = minDimension * (0.055f + 0.028f * spectral + 0.02f * motionBlend);
+    int layers = std::clamp(4 + static_cast<int>(std::floor(spectral * 3.6f + motionBlend * 4.6f)), 4, 11);
 
-    const float goldenAngle = 2.39996323f;
     auto fract = [](float x) {
         return x - std::floor(x);
     };
 
     auto hash = [&](float n) {
-        return fract(std::sin(n) * 43758.5453f);
+        return fract(std::sin(n) * 43758.5453123f);
     };
 
-    for (int ring = 0; ring < numRings; ++ring) {
-        float radius = baseRadius + ring * ringSpacing;
-        radius += minDimension * 0.018f * std::clamp(mid, 0.0f, 1.0f) * (ring * 0.35f);
-        float rotation = animatedTime * (0.9f + ring * 0.22f * motionBlend) + mid * 1.8f * motionBlend;
-        float ringEnergy = std::clamp(mid * (0.6f + ring * 0.12f) + motionBlend * 0.4f, 0.0f, 1.4f);
-        float alpha = 0.1f + 0.45f * ringEnergy * (1.0f - ring / std::max(1, numRings - 1));
-        float lineWidth = 1.0f + 1.6f * (1.0f - ring / std::max(1, numRings - 1)) * (0.35f + 0.65f * motionBlend);
+    for (int layer = 0; layer < layers; ++layer) {
+        float layerSeed = hash(layer * 7.19f + animatedTime * 0.17f);
+        float radius = baseRadius + layerSpacing * layer;
+        float swing = std::sin(animatedTime * (0.95f + layer * 0.24f) + layerSeed * 6.28318f);
+        radius *= 1.0f + swing * (0.16f + 0.11f * motionBlend);
+        radius += minDimension * (0.02f + 0.018f * spectral * (layer / std::max(1, layers - 1)))
+                  + minDimension * 0.012f * layerSeed;
 
-        setColorWithAdjust(0.72f + 0.28f * ringEnergy,
-                           0.75f + 0.20f * mid,
-                           0.95f + 0.25f * ringEnergy,
-                           alpha,
-                           legacyColorAdjust_.rings);
-        glLineWidth(lineWidth);
-        glBegin(GL_LINE_LOOP);
+        float layerEnergy = std::clamp(spectral * (0.55f + layer * 0.08f) + motionBlend * 0.35f, 0.1f, 3.0f);
+        float layerTempo = tempo * (0.8f + layer * 0.06f);
+        float swirl = animatedTime * (0.75f + layerTempo * 1.5f) + layerSeed * 6.28318f;
 
-        int segments = 140;
-        for (int i = 0; i <= segments; ++i) {
-            float t = static_cast<float>(i) / segments;
-            float angle = t * 6.28318f + rotation;
+        float thickness = minDimension * (0.02f + 0.013f * layerEnergy + 0.01f * motionBlend);
+        int arcCount = 6 + layer + static_cast<int>(layerEnergy * 3.2f);
+        int samples = 24;
 
-            float jitterSeed = hash(ring * 5.73f + i * 2.19f + animatedTime * 0.47f);
-            float smoothNoise = std::sin(angle * (2.6f + ringEnergy * 1.3f) + animatedTime * (1.8f + ring * 0.3f));
-            float glitchPulse = std::sin(angle * 12.0f + animatedTime * 9.0f + jitterSeed * 6.28318f);
-            glitchPulse = std::sin(glitchPulse * 0.5f) * std::exp(-std::fabs(glitchPulse) * 0.6f);
+        for (int arc = 0; arc < arcCount; ++arc) {
+            float arcSeed = hash(layer * 11.53f + arc * 5.37f + animatedTime * 0.23f);
+            float arcCenter = swirl + arcSeed * 6.28318f;
+            float extent = (0.17f + 0.28f * arcSeed + 0.24f * layerEnergy) * (0.65f + 0.52f * tempo);
+            float arcThickness = thickness * (0.95f + 0.6f * arcSeed + 0.45f * layerEnergy);
 
-            float warp = smoothNoise * glitchStrength * minDimension * (0.10f + 0.35f * ringEnergy);
-            float microRipple = std::sin(angle * 40.0f + animatedTime * 20.0f) * glitchStrength * minDimension * 0.03f;
-            float randomPush = (jitterSeed - 0.5f) * glitchStrength * minDimension * (0.08f + 0.12f * motionBlend);
+            glBegin(GL_TRIANGLE_STRIP);
+            for (int i = 0; i <= samples; ++i) {
+                float u = static_cast<float>(i) / samples;
+                float offset = (u - 0.5f) * extent * 6.28318f;
+                float angle = arcCenter + offset;
 
-            float glitchOffset = glitchPulse * glitchStrength * minDimension * (0.12f + 0.28f * motionBlend);
-            float currentRadius = radius + warp + microRipple + randomPush + glitchOffset;
+                float modulation = std::sin(angle * (2.6f + layerEnergy) + animatedTime * (2.5f + tempo * 1.4f) + arcSeed * 5.3f);
+                float glitch = std::sin(angle * (12.0f + layer * 2.1f) + animatedTime * (7.0f + onset * 3.2f) + arcSeed * 11.0f);
+                glitch = std::sin(glitch * 0.6f) * (0.6f + 0.4f * veil);
 
-            float x = centerX + std::cos(angle) * currentRadius;
-            float y = centerY + std::sin(angle) * currentRadius;
-            setColorWithAdjust(0.72f + 0.28f * ringEnergy,
-                               0.75f + 0.20f * mid,
-                               0.95f + 0.25f * ringEnergy,
-                               alpha,
-                               legacyColorAdjust_.rings);
-            glVertex2f(x, y);
+                float radialJitter = modulation * minDimension * (0.014f + 0.02f * layerEnergy)
+                                     + glitch * minDimension * (0.012f + 0.018f * onset);
+                float inner = radius + radialJitter - arcThickness * (0.55f + 0.25f * arcSeed);
+                float outer = inner + arcThickness;
+
+                float cosA = std::cos(angle);
+                float sinA = std::sin(angle);
+
+                float pulse = std::clamp(0.32f + layerEnergy * 0.42f + modulation * 0.25f + glitch * 0.2f,
+                                         0.12f,
+                                         1.6f);
+                float hueShift = arcSeed * 0.35f;
+
+                setColorWithAdjust(0.52f + 0.5f * pulse + 0.2f * hueShift,
+                                   0.45f + 0.38f * mid + 0.2f * pulse,
+                                   0.9f + 0.58f * pulse + 0.3f * hueShift,
+                                   0.3f + 0.55f * pulse,
+                                   legacyColorAdjust_.rings);
+                glVertex2f(centerX + cosA * inner, centerY + sinA * inner);
+
+                setColorWithAdjust(0.66f + 0.62f * pulse + 0.3f * hueShift,
+                                   0.52f + 0.42f * mid + 0.26f * pulse,
+                                   1.08f + 0.72f * pulse + 0.35f * hueShift,
+                                   0.38f + 0.68f * pulse,
+                                   legacyColorAdjust_.rings);
+                glVertex2f(centerX + cosA * outer, centerY + sinA * outer);
+            }
+            glEnd();
         }
 
-        glEnd();
+        int threadCount = 8 + static_cast<int>(layerEnergy * 7.0f);
+        glLineWidth(1.1f + 0.9f * layerEnergy);
+        glBegin(GL_LINES);
+        for (int t = 0; t < threadCount; ++t) {
+            float threadSeed = hash(layer * 23.31f + t * 2.17f + animatedTime * 0.41f);
+            float angle = swirl + threadSeed * 6.28318f;
+            float sweep = std::sin(animatedTime * (4.4f + tempo * 1.5f) + threadSeed * 8.0f);
+            float startRadius = radius * (0.8f + 0.28f * threadSeed) - minDimension * 0.016f;
+            float endRadius = startRadius + minDimension * (0.085f + 0.12f * layerEnergy + 0.05f * sweep);
+            float cosA = std::cos(angle);
+            float sinA = std::sin(angle);
 
-        glBegin(GL_LINE_LOOP);
-        for (int i = 0; i <= segments; ++i) {
-            float t = static_cast<float>(i) / segments;
-            float angle = t * 6.28318f + rotation;
-            float jitterSeed = hash(i * goldenAngle + ring * 1.37f + animatedTime * 0.31f);
-            float haloRadius = radius + minDimension * (0.014f + 0.045f * ringEnergy)
-                               + std::sin(angle * 6.0f + animatedTime * 5.2f + jitterSeed * 4.0f)
-                                 * minDimension * 0.015f * motionBlend;
-
-            float x = centerX + std::cos(angle) * haloRadius;
-            float y = centerY + std::sin(angle) * haloRadius;
-            setColorWithAdjust(0.9f + 0.2f * ringEnergy,
-                               0.85f + 0.22f * mid,
-                               1.2f,
-                               0.08f + 0.3f * motionBlend,
+            float alpha = std::clamp(0.2f + layerEnergy * 0.3f + sweep * 0.22f, 0.12f, 1.0f);
+            setColorWithAdjust(0.78f + 0.22f * threadSeed,
+                               0.64f + 0.36f * mid,
+                               1.18f + 0.4f * threadSeed,
+                               alpha,
                                legacyColorAdjust_.rings);
-            glVertex2f(x, y);
+            glVertex2f(centerX + cosA * startRadius, centerY + sinA * startRadius);
+
+            setColorWithAdjust(0.96f + 0.3f * threadSeed,
+                               0.74f + 0.4f * mid,
+                               1.35f + 0.42f * threadSeed,
+                               alpha * (0.85f + 0.3f * sweep),
+                               legacyColorAdjust_.rings);
+            glVertex2f(centerX + cosA * endRadius, centerY + sinA * endRadius);
         }
         glEnd();
     }
@@ -705,7 +714,7 @@ void Visualizer::renderLegacySparkles(float bass, float high, float animatedTime
                            0.65f + shimmer * 0.45f,
                            1.0f + shimmer * 0.35f,
                            0.18f + 0.36f * highBurst,
-                           legacyColorAdjust_.sparkles);
+                           legacyColorAdjust_.bloomInner);
         glVertex2f(x, y);
     }
 
@@ -751,7 +760,7 @@ void Visualizer::renderLegacySparkles(float bass, float high, float animatedTime
             float b = 0.95f + 0.35f * laserStrength;
             float alpha = 0.18f + 0.38f * laserStrength;
 
-            setColorWithAdjust(r, g, b, alpha, legacyColorAdjust_.orbit);
+            setColorWithAdjust(r, g, b, alpha, legacyColorAdjust_.bloomOuter);
             glVertex2f(sx, sy);
             glVertex2f(ex, ey);
         }

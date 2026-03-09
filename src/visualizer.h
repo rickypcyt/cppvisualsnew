@@ -67,9 +67,6 @@ private:
         ColorAdjust highBars;
         ColorAdjust beatExplosion;
         ColorAdjust rings;
-        ColorAdjust orbit;
-        ColorAdjust orbitTrail;
-        ColorAdjust sparkles;
         ColorAdjust waveform;
     };
 
@@ -88,6 +85,9 @@ private:
         float growthTrend = 0.0f;
         float growthEnvelope = 0.0f;
         float maturity = 0.0f;
+        float idlePulse = 0.0f;
+        float idleWarp = 0.0f;
+        float idleSpin = 0.0f;
     };
 
     struct GearNode {
@@ -160,8 +160,6 @@ private:
     bool showLegacyCore_;
     bool showLegacyArcs_;
     bool showLegacyRings_;
-    bool showLegacySparkles_;
-    bool showLegacyOrbs_;
     bool showLegacyWaveforms_;
     bool useModernPipeline_;
 

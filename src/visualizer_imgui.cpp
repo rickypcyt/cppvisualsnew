@@ -282,7 +282,13 @@ void Visualizer::renderMainImGuiWindow() {
                 "Nebula",
                 "ASCII Ocean",
                 "Sacred Geometry",
-                "Glitch Grid"
+                "Glitch Grid",
+                "Chemical Flow",
+                "Crystal Lattice",
+                "Fractal Object",
+                "Pulsar Tunnel",
+                "Aurora Bloom",
+                "Ribbon Scanlines"
             };
             int modeIndex = std::clamp(proceduralLayerMode_, 0, static_cast<int>(std::size(kProceduralModes)) - 1);
             if (ImGui::BeginCombo("Modo", kProceduralModes[modeIndex])) {
@@ -363,9 +369,6 @@ void Visualizer::renderMainImGuiWindow() {
         colorRow("Barras Agudos", legacyColorAdjust_.highBars);
         colorRow("Explosion Beat", legacyColorAdjust_.beatExplosion);
         colorRow("Anillos", legacyColorAdjust_.rings);
-        colorRow("Órbitas", legacyColorAdjust_.orbit);
-        colorRow("Trail Órbitas", legacyColorAdjust_.orbitTrail);
-        colorRow("Chispas", legacyColorAdjust_.sparkles);
         colorRow("Waveform", legacyColorAdjust_.waveform);
 
         ImGui::EndTable();
@@ -380,10 +383,6 @@ void Visualizer::renderMainImGuiWindow() {
     ImGui::SameLine();
     ImGui::Checkbox("Anillos", &showLegacyRings_);
 
-    ImGui::Checkbox("Chispas", &showLegacySparkles_);
-    ImGui::SameLine();
-    ImGui::Checkbox("Órbitas", &showLegacyOrbs_);
-    ImGui::SameLine();
     ImGui::Checkbox("Wormholes", &showLegacyWaveforms_);
 
     ImGui::Spacing();
