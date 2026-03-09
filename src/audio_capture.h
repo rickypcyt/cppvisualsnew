@@ -6,11 +6,13 @@
 #include <mutex>
 #include <atomic>
 
+#include "audio_analyzer.h"
+
 class AudioCapture {
 public:
-    static const int SAMPLE_RATE = 44100;
-    static const int FRAMES_PER_BUFFER = 512;
-    static const int CHANNELS = 1;
+    static constexpr int SAMPLE_RATE = 48000;
+    static constexpr int FRAMES_PER_BUFFER = AudioAnalyzer::FFT_SIZE;
+    static constexpr int MAX_CAPTURE_CHANNELS = 2;
 
     AudioCapture();
     ~AudioCapture();
@@ -27,6 +29,7 @@ public:
     std::vector<float> getAudioBuffer();
     bool hasNewData();
     void clearNewDataFlag();
+    double getSampleRate() const { return sampleRate_; }
 
 private:
     PaStream* stream_;
@@ -34,6 +37,8 @@ private:
     std::mutex bufferMutex_;
     std::atomic<bool> hasNewData_;
     std::atomic<bool> isRunning_;
+    int channelCount_;
+    double sampleRate_;
 
     static int audioCallback(const void* inputBuffer,
                            void* outputBuffer,

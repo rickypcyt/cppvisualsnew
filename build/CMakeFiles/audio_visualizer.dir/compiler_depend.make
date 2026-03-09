@@ -1439,6 +1439,7 @@ CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o: /home/ricky/coding/pro
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
   /usr/include/c++/15.2.1/bits/cxxabi_init_exception.h \
+  /usr/include/c++/15.2.1/bits/deque.tcc \
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
@@ -1474,11 +1475,13 @@ CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o: /home/ricky/coding/pro
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
+  /usr/include/c++/15.2.1/bits/stl_deque.h \
   /usr/include/c++/15.2.1/bits/stl_function.h \
   /usr/include/c++/15.2.1/bits/stl_heap.h \
   /usr/include/c++/15.2.1/bits/stl_iterator.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_funcs.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_types.h \
+  /usr/include/c++/15.2.1/bits/stl_numeric.h \
   /usr/include/c++/15.2.1/bits/stl_pair.h \
   /usr/include/c++/15.2.1/bits/stl_tempbuf.h \
   /usr/include/c++/15.2.1/bits/stl_uninitialized.h \
@@ -1506,6 +1509,7 @@ CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o: /home/ricky/coding/pro
   /usr/include/c++/15.2.1/cwctype \
   /usr/include/c++/15.2.1/debug/assertions.h \
   /usr/include/c++/15.2.1/debug/debug.h \
+  /usr/include/c++/15.2.1/deque \
   /usr/include/c++/15.2.1/exception \
   /usr/include/c++/15.2.1/ext/alloc_traits.h \
   /usr/include/c++/15.2.1/ext/atomicity.h \
@@ -1519,9 +1523,11 @@ CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o: /home/ricky/coding/pro
   /usr/include/c++/15.2.1/istream \
   /usr/include/c++/15.2.1/limits \
   /usr/include/c++/15.2.1/new \
+  /usr/include/c++/15.2.1/numeric \
   /usr/include/c++/15.2.1/ostream \
   /usr/include/c++/15.2.1/pstl/execution_defs.h \
   /usr/include/c++/15.2.1/pstl/glue_algorithm_defs.h \
+  /usr/include/c++/15.2.1/pstl/glue_numeric_defs.h \
   /usr/include/c++/15.2.1/pstl/pstl_config.h \
   /usr/include/c++/15.2.1/sstream \
   /usr/include/c++/15.2.1/stdexcept \
@@ -1586,6 +1592,7 @@ CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o: /home/ricky/coding/pro
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stddef.h
 
 CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: /home/ricky/coding/proyects/visuals/src/audio_capture.cpp \
+  /home/ricky/coding/proyects/visuals/src/audio_analyzer.h \
   /home/ricky/coding/proyects/visuals/src/audio_capture.h \
   /usr/include/alloca.h \
   /usr/include/asm-generic/bitsperlong.h \
@@ -1607,9 +1614,19 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: /home/ricky/coding/proy
   /usr/include/bits/errno.h \
   /usr/include/bits/floatn-common.h \
   /usr/include/bits/floatn.h \
+  /usr/include/bits/flt-eval-method.h \
+  /usr/include/bits/fp-fast.h \
+  /usr/include/bits/fp-logb.h \
+  /usr/include/bits/iscanonical.h \
   /usr/include/bits/libc-header-start.h \
+  /usr/include/bits/libm-simd-decl-stubs.h \
   /usr/include/bits/locale.h \
   /usr/include/bits/long-double.h \
+  /usr/include/bits/math-vector.h \
+  /usr/include/bits/mathcalls-helper-functions.h \
+  /usr/include/bits/mathcalls-macros.h \
+  /usr/include/bits/mathcalls-narrow.h \
+  /usr/include/bits/mathcalls.h \
   /usr/include/bits/pthread_stack_min-dynamic.h \
   /usr/include/bits/pthreadtypes-arch.h \
   /usr/include/bits/pthreadtypes.h \
@@ -1660,9 +1677,11 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: /home/ricky/coding/proy
   /usr/include/bits/wchar.h \
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
+  /usr/include/c++/15.2.1/algorithm \
   /usr/include/c++/15.2.1/atomic \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
+  /usr/include/c++/15.2.1/bits/algorithmfwd.h \
   /usr/include/c++/15.2.1/bits/alloc_traits.h \
   /usr/include/c++/15.2.1/bits/allocator.h \
   /usr/include/c++/15.2.1/bits/atomic_base.h \
@@ -1678,6 +1697,7 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
   /usr/include/c++/15.2.1/bits/cxxabi_init_exception.h \
+  /usr/include/c++/15.2.1/bits/deque.tcc \
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
@@ -1707,22 +1727,29 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/bits/range_access.h \
   /usr/include/c++/15.2.1/bits/refwrap.h \
   /usr/include/c++/15.2.1/bits/requires_hosted.h \
+  /usr/include/c++/15.2.1/bits/specfun.h \
+  /usr/include/c++/15.2.1/bits/sstream.tcc \
   /usr/include/c++/15.2.1/bits/std_abs.h \
   /usr/include/c++/15.2.1/bits/std_mutex.h \
+  /usr/include/c++/15.2.1/bits/stl_algo.h \
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
+  /usr/include/c++/15.2.1/bits/stl_deque.h \
   /usr/include/c++/15.2.1/bits/stl_function.h \
+  /usr/include/c++/15.2.1/bits/stl_heap.h \
   /usr/include/c++/15.2.1/bits/stl_iterator.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_funcs.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_types.h \
   /usr/include/c++/15.2.1/bits/stl_pair.h \
+  /usr/include/c++/15.2.1/bits/stl_tempbuf.h \
   /usr/include/c++/15.2.1/bits/stl_uninitialized.h \
   /usr/include/c++/15.2.1/bits/stl_vector.h \
   /usr/include/c++/15.2.1/bits/streambuf.tcc \
   /usr/include/c++/15.2.1/bits/streambuf_iterator.h \
   /usr/include/c++/15.2.1/bits/string_view.tcc \
   /usr/include/c++/15.2.1/bits/stringfwd.h \
+  /usr/include/c++/15.2.1/bits/uniform_int_dist.h \
   /usr/include/c++/15.2.1/bits/unique_lock.h \
   /usr/include/c++/15.2.1/bits/uses_allocator.h \
   /usr/include/c++/15.2.1/bits/uses_allocator_args.h \
@@ -1732,6 +1759,8 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/cctype \
   /usr/include/c++/15.2.1/cerrno \
   /usr/include/c++/15.2.1/clocale \
+  /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
   /usr/include/c++/15.2.1/cstddef \
   /usr/include/c++/15.2.1/cstdint \
@@ -1743,6 +1772,7 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/cwctype \
   /usr/include/c++/15.2.1/debug/assertions.h \
   /usr/include/c++/15.2.1/debug/debug.h \
+  /usr/include/c++/15.2.1/deque \
   /usr/include/c++/15.2.1/exception \
   /usr/include/c++/15.2.1/ext/alloc_traits.h \
   /usr/include/c++/15.2.1/ext/atomicity.h \
@@ -1758,13 +1788,28 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/mutex \
   /usr/include/c++/15.2.1/new \
   /usr/include/c++/15.2.1/ostream \
+  /usr/include/c++/15.2.1/pstl/execution_defs.h \
+  /usr/include/c++/15.2.1/pstl/glue_algorithm_defs.h \
   /usr/include/c++/15.2.1/pstl/pstl_config.h \
   /usr/include/c++/15.2.1/ratio \
+  /usr/include/c++/15.2.1/sstream \
   /usr/include/c++/15.2.1/stdexcept \
   /usr/include/c++/15.2.1/streambuf \
   /usr/include/c++/15.2.1/string \
   /usr/include/c++/15.2.1/string_view \
   /usr/include/c++/15.2.1/system_error \
+  /usr/include/c++/15.2.1/tr1/bessel_function.tcc \
+  /usr/include/c++/15.2.1/tr1/beta_function.tcc \
+  /usr/include/c++/15.2.1/tr1/ell_integral.tcc \
+  /usr/include/c++/15.2.1/tr1/exp_integral.tcc \
+  /usr/include/c++/15.2.1/tr1/gamma.tcc \
+  /usr/include/c++/15.2.1/tr1/hypergeometric.tcc \
+  /usr/include/c++/15.2.1/tr1/legendre_function.tcc \
+  /usr/include/c++/15.2.1/tr1/modified_bessel_func.tcc \
+  /usr/include/c++/15.2.1/tr1/poly_hermite.tcc \
+  /usr/include/c++/15.2.1/tr1/poly_laguerre.tcc \
+  /usr/include/c++/15.2.1/tr1/riemann_zeta.tcc \
+  /usr/include/c++/15.2.1/tr1/special_function_util.h \
   /usr/include/c++/15.2.1/tuple \
   /usr/include/c++/15.2.1/type_traits \
   /usr/include/c++/15.2.1/typeinfo \
@@ -1793,6 +1838,7 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: /home/ricky/coding/proy
   /usr/include/linux/stddef.h \
   /usr/include/linux/types.h \
   /usr/include/locale.h \
+  /usr/include/math.h \
   /usr/include/pthread.h \
   /usr/include/sched.h \
   /usr/include/stdc-predef.h \
@@ -1926,6 +1972,7 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
   /usr/include/c++/15.2.1/bits/cxxabi_init_exception.h \
+  /usr/include/c++/15.2.1/bits/deque.tcc \
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
@@ -1968,6 +2015,7 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
+  /usr/include/c++/15.2.1/bits/stl_deque.h \
   /usr/include/c++/15.2.1/bits/stl_function.h \
   /usr/include/c++/15.2.1/bits/stl_iterator.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_funcs.h \
@@ -2008,6 +2056,7 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/cwctype \
   /usr/include/c++/15.2.1/debug/assertions.h \
   /usr/include/c++/15.2.1/debug/debug.h \
+  /usr/include/c++/15.2.1/deque \
   /usr/include/c++/15.2.1/exception \
   /usr/include/c++/15.2.1/ext/aligned_buffer.h \
   /usr/include/c++/15.2.1/ext/alloc_traits.h \
@@ -2321,6 +2370,8 @@ CMakeFiles/audio_visualizer.dir/src/shader.cpp.o: /home/ricky/coding/proyects/vi
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stdint.h
 
 CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyects/visuals/src/visualizer.cpp \
+  /home/ricky/coding/proyects/visuals/imgui/imconfig.h \
+  /home/ricky/coding/proyects/visuals/imgui/imgui.h \
   /home/ricky/coding/proyects/visuals/src/audio_analyzer.h \
   /home/ricky/coding/proyects/visuals/src/audio_capture.h \
   /home/ricky/coding/proyects/visuals/src/shader.h \
@@ -2341,6 +2392,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/asm/posix_types.h \
   /usr/include/asm/posix_types_64.h \
   /usr/include/asm/types.h \
+  /usr/include/assert.h \
   /usr/include/bits/atomic_wide_counter.h \
   /usr/include/bits/byteswap.h \
   /usr/include/bits/cpu-set.h \
@@ -2433,6 +2485,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
   /usr/include/c++/15.2.1/bits/cxxabi_init_exception.h \
+  /usr/include/c++/15.2.1/bits/deque.tcc \
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
@@ -2474,6 +2527,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
+  /usr/include/c++/15.2.1/bits/stl_deque.h \
   /usr/include/c++/15.2.1/bits/stl_function.h \
   /usr/include/c++/15.2.1/bits/stl_iterator.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_funcs.h \
@@ -2512,6 +2566,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/cwctype \
   /usr/include/c++/15.2.1/debug/assertions.h \
   /usr/include/c++/15.2.1/debug/debug.h \
+  /usr/include/c++/15.2.1/deque \
   /usr/include/c++/15.2.1/exception \
   /usr/include/c++/15.2.1/ext/aligned_buffer.h \
   /usr/include/c++/15.2.1/ext/alloc_traits.h \
@@ -2591,6 +2646,8 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/stdint.h \
   /usr/include/stdio.h \
   /usr/include/stdlib.h \
+  /usr/include/string.h \
+  /usr/include/strings.h \
   /usr/include/sys/cdefs.h \
   /usr/include/sys/select.h \
   /usr/include/sys/single_threaded.h \
@@ -2598,6 +2655,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/time.h \
   /usr/include/wchar.h \
   /usr/include/wctype.h \
+  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/float.h \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stdarg.h \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stddef.h \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stdint.h \
@@ -2714,6 +2772,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: /home/ricky/coding
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
   /usr/include/c++/15.2.1/bits/cxxabi_init_exception.h \
+  /usr/include/c++/15.2.1/bits/deque.tcc \
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
@@ -2757,6 +2816,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: /home/ricky/coding
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
+  /usr/include/c++/15.2.1/bits/stl_deque.h \
   /usr/include/c++/15.2.1/bits/stl_function.h \
   /usr/include/c++/15.2.1/bits/stl_iterator.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_funcs.h \
@@ -2793,6 +2853,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: /home/ricky/coding
   /usr/include/c++/15.2.1/cwctype \
   /usr/include/c++/15.2.1/debug/assertions.h \
   /usr/include/c++/15.2.1/debug/debug.h \
+  /usr/include/c++/15.2.1/deque \
   /usr/include/c++/15.2.1/exception \
   /usr/include/c++/15.2.1/ext/aligned_buffer.h \
   /usr/include/c++/15.2.1/ext/alloc_traits.h \
@@ -2998,6 +3059,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
   /usr/include/c++/15.2.1/bits/cxxabi_init_exception.h \
+  /usr/include/c++/15.2.1/bits/deque.tcc \
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
@@ -3038,6 +3100,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
+  /usr/include/c++/15.2.1/bits/stl_deque.h \
   /usr/include/c++/15.2.1/bits/stl_function.h \
   /usr/include/c++/15.2.1/bits/stl_heap.h \
   /usr/include/c++/15.2.1/bits/stl_iterator.h \
@@ -3074,6 +3137,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/cwctype \
   /usr/include/c++/15.2.1/debug/assertions.h \
   /usr/include/c++/15.2.1/debug/debug.h \
+  /usr/include/c++/15.2.1/deque \
   /usr/include/c++/15.2.1/exception \
   /usr/include/c++/15.2.1/ext/aligned_buffer.h \
   /usr/include/c++/15.2.1/ext/alloc_traits.h \
@@ -3258,9 +3322,11 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: /home/ricky/coding/p
   /usr/include/bits/wchar.h \
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
+  /usr/include/c++/15.2.1/algorithm \
   /usr/include/c++/15.2.1/backward/auto_ptr.h \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
+  /usr/include/c++/15.2.1/bits/algorithmfwd.h \
   /usr/include/c++/15.2.1/bits/align.h \
   /usr/include/c++/15.2.1/bits/alloc_traits.h \
   /usr/include/c++/15.2.1/bits/allocated_ptr.h \
@@ -3278,6 +3344,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: /home/ricky/coding/p
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
   /usr/include/c++/15.2.1/bits/cxxabi_init_exception.h \
+  /usr/include/c++/15.2.1/bits/deque.tcc \
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
@@ -3318,10 +3385,13 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: /home/ricky/coding/p
   /usr/include/c++/15.2.1/bits/specfun.h \
   /usr/include/c++/15.2.1/bits/sstream.tcc \
   /usr/include/c++/15.2.1/bits/std_abs.h \
+  /usr/include/c++/15.2.1/bits/stl_algo.h \
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
+  /usr/include/c++/15.2.1/bits/stl_deque.h \
   /usr/include/c++/15.2.1/bits/stl_function.h \
+  /usr/include/c++/15.2.1/bits/stl_heap.h \
   /usr/include/c++/15.2.1/bits/stl_iterator.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_funcs.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_types.h \
@@ -3357,6 +3427,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: /home/ricky/coding/p
   /usr/include/c++/15.2.1/cwctype \
   /usr/include/c++/15.2.1/debug/assertions.h \
   /usr/include/c++/15.2.1/debug/debug.h \
+  /usr/include/c++/15.2.1/deque \
   /usr/include/c++/15.2.1/exception \
   /usr/include/c++/15.2.1/ext/aligned_buffer.h \
   /usr/include/c++/15.2.1/ext/alloc_traits.h \
@@ -3378,6 +3449,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: /home/ricky/coding/p
   /usr/include/c++/15.2.1/numeric \
   /usr/include/c++/15.2.1/ostream \
   /usr/include/c++/15.2.1/pstl/execution_defs.h \
+  /usr/include/c++/15.2.1/pstl/glue_algorithm_defs.h \
   /usr/include/c++/15.2.1/pstl/glue_memory_defs.h \
   /usr/include/c++/15.2.1/pstl/glue_numeric_defs.h \
   /usr/include/c++/15.2.1/pstl/pstl_config.h \
@@ -3565,6 +3637,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.o: /home/ricky/coding/
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
   /usr/include/c++/15.2.1/bits/cxxabi_init_exception.h \
+  /usr/include/c++/15.2.1/bits/deque.tcc \
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
@@ -3605,6 +3678,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.o: /home/ricky/coding/
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
+  /usr/include/c++/15.2.1/bits/stl_deque.h \
   /usr/include/c++/15.2.1/bits/stl_function.h \
   /usr/include/c++/15.2.1/bits/stl_heap.h \
   /usr/include/c++/15.2.1/bits/stl_iterator.h \
@@ -3641,6 +3715,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.o: /home/ricky/coding/
   /usr/include/c++/15.2.1/cwctype \
   /usr/include/c++/15.2.1/debug/assertions.h \
   /usr/include/c++/15.2.1/debug/debug.h \
+  /usr/include/c++/15.2.1/deque \
   /usr/include/c++/15.2.1/exception \
   /usr/include/c++/15.2.1/ext/aligned_buffer.h \
   /usr/include/c++/15.2.1/ext/alloc_traits.h \
@@ -3842,6 +3917,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
   /usr/include/c++/15.2.1/bits/cxxabi_init_exception.h \
+  /usr/include/c++/15.2.1/bits/deque.tcc \
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
@@ -3882,6 +3958,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
+  /usr/include/c++/15.2.1/bits/stl_deque.h \
   /usr/include/c++/15.2.1/bits/stl_function.h \
   /usr/include/c++/15.2.1/bits/stl_heap.h \
   /usr/include/c++/15.2.1/bits/stl_iterator.h \
@@ -3918,6 +3995,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/cwctype \
   /usr/include/c++/15.2.1/debug/assertions.h \
   /usr/include/c++/15.2.1/debug/debug.h \
+  /usr/include/c++/15.2.1/deque \
   /usr/include/c++/15.2.1/exception \
   /usr/include/c++/15.2.1/ext/aligned_buffer.h \
   /usr/include/c++/15.2.1/ext/alloc_traits.h \
@@ -4118,6 +4196,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o: /home/ricky/codin
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
   /usr/include/c++/15.2.1/bits/cxxabi_init_exception.h \
+  /usr/include/c++/15.2.1/bits/deque.tcc \
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
@@ -4158,6 +4237,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o: /home/ricky/codin
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
+  /usr/include/c++/15.2.1/bits/stl_deque.h \
   /usr/include/c++/15.2.1/bits/stl_function.h \
   /usr/include/c++/15.2.1/bits/stl_heap.h \
   /usr/include/c++/15.2.1/bits/stl_iterator.h \
@@ -4194,6 +4274,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o: /home/ricky/codin
   /usr/include/c++/15.2.1/cwctype \
   /usr/include/c++/15.2.1/debug/assertions.h \
   /usr/include/c++/15.2.1/debug/debug.h \
+  /usr/include/c++/15.2.1/deque \
   /usr/include/c++/15.2.1/exception \
   /usr/include/c++/15.2.1/ext/aligned_buffer.h \
   /usr/include/c++/15.2.1/ext/alloc_traits.h \
@@ -4380,6 +4461,10 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o:
 
 /usr/lib/libxcb.so.1:
 
+/usr/lib/libpipewire-0.3.so.0:
+
+/usr/lib/libm.so.6:
+
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/emmintrin.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/clzerointrin.h:
@@ -4476,8 +4561,6 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
 /usr/include/bits/endian.h:
 
-/home/ricky/coding/proyects/visuals/imgui/imgui_internal.h:
-
 /usr/include/c++/15.2.1/tr1/poly_laguerre.tcc:
 
 /usr/include/c++/15.2.1/tr1/modified_bessel_func.tcc:
@@ -4561,8 +4644,6 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 /usr/include/c++/15.2.1/bits/version.h:
 
 /usr/include/X11/extensions/randr.h:
-
-/usr/include/bits/types/__sigval_t.h:
 
 /usr/include/gnu/stubs-64.h:
 
@@ -4699,6 +4780,10 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 /usr/include/c++/15.2.1/bits/allocated_ptr.h:
 
 /usr/include/X11/keysym.h:
+
+/usr/include/bits/types/__sigval_t.h:
+
+/usr/include/c++/15.2.1/bits/stl_deque.h:
 
 /usr/include/bits/stdlib-float.h:
 
@@ -4839,8 +4924,6 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o:
 /usr/include/bits/posix2_lim.h:
 
 /usr/include/X11/X.h:
-
-/usr/lib/libm.so.6:
 
 /usr/include/bits/iscanonical.h:
 
@@ -5021,8 +5104,6 @@ CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o:
 /usr/include/bits/endianness.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/lwpintrin.h:
-
-/usr/lib/libpipewire-0.3.so.0:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/lzcntintrin.h:
 
@@ -5216,6 +5297,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o:
 
 /usr/include/c++/15.2.1/bits/cxxabi_init_exception.h:
 
+/home/ricky/coding/proyects/visuals/imgui/imgui_internal.h:
+
+/usr/include/c++/15.2.1/bits/deque.tcc:
+
 /usr/include/c++/15.2.1/bits/functional_hash.h:
 
 /home/ricky/coding/proyects/visuals/imgui/imgui.h:
@@ -5298,6 +5383,8 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o:
 
 /usr/include/c++/15.2.1/cstdio:
 
+/usr/include/c++/15.2.1/deque:
+
 /usr/include/linux/types.h:
 
 /usr/include/c++/15.2.1/ext/string_conversions.h:
@@ -5309,6 +5396,8 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o:
 /usr/include/c++/15.2.1/pstl/execution_defs.h:
 
 /usr/include/c++/15.2.1/pstl/glue_algorithm_defs.h:
+
+/usr/include/c++/15.2.1/pstl/glue_numeric_defs.h:
 
 /usr/include/c++/15.2.1/stdexcept:
 
@@ -5335,6 +5424,12 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o:
 /home/ricky/coding/proyects/visuals/imgui/imstb_rectpack.h:
 
 /usr/include/linux/sched/types.h:
+
+/usr/lib/libmvec.so.1:
+
+/usr/include/bits/fp-logb.h:
+
+/usr/include/linux/stddef.h:
 
 /home/ricky/coding/proyects/visuals/imgui/imstb_textedit.h:
 
@@ -5393,8 +5488,6 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o:
 /usr/include/c++/15.2.1/memory:
 
 /usr/include/c++/15.2.1/pstl/glue_memory_defs.h:
-
-/usr/include/c++/15.2.1/pstl/glue_numeric_defs.h:
 
 /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/opt_random.h:
 
@@ -5471,9 +5564,3 @@ CMakeFiles/audio_visualizer.dir/src/shader.cpp.o:
 /usr/lib/libXdmcp.so.6:
 
 /usr/lib/libc_nonshared.a:
-
-/usr/include/bits/fp-logb.h:
-
-/usr/include/linux/stddef.h:
-
-/usr/lib/libmvec.so.1:

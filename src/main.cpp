@@ -38,6 +38,8 @@ public:
             return false;
         }
 
+        audioAnalyzer_.setSampleRate(static_cast<float>(audioCapture_.getSampleRate()));
+
         std::cout << "Audio Visualizer initialized successfully!" << std::endl;
         std::cout << "Listening to microphone input..." << std::endl;
         std::cout << "Press ESC or close window to exit" << std::endl;
@@ -65,6 +67,8 @@ public:
                 if (!audioCapture_.start()) {
                     std::cerr << "Failed to start audio with new device" << std::endl;
                 }
+
+                audioAnalyzer_.setSampleRate(static_cast<float>(audioCapture_.getSampleRate()));
                 
                 lastDevice = visualizer_.getSelectedDevice();
             }

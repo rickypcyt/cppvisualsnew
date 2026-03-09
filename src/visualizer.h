@@ -98,6 +98,7 @@ private:
     std::string rendererName_;
     float legacyMotionBlend_;
     float legacyMotionPhase_;
+    float legacySensitivity_;
     bool showLegacyCore_;
     bool showLegacyArcs_;
     bool showLegacyRings_;
@@ -157,7 +158,7 @@ private:
     void renderLegacyCircle(float bass, float mid, float high, float motionBlend, float animatedTime);
     void renderLegacyFrequencyBars(float bass, float mid, float high, float motionBlend, float animatedTime);
     void renderLegacyRings(float mid, float animatedTime, float motionBlend);
-    void renderLegacySparkles(float high, float animatedTime, float motionBlend);
+    void renderLegacySparkles(float bass, float high, float animatedTime, float motionBlend);
     void renderLegacyWaveform(float animatedTime, float motionBlend);
 };
 

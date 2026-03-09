@@ -197,7 +197,9 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: \
  /usr/include/c++/15.2.1/ostream /usr/include/c++/15.2.1/bits/ostream.h \
  /usr/include/c++/15.2.1/bits/ostream.tcc \
  /usr/include/c++/15.2.1/bits/istream.tcc \
- /usr/include/c++/15.2.1/bits/sstream.tcc \
+ /usr/include/c++/15.2.1/bits/sstream.tcc /usr/include/c++/15.2.1/deque \
+ /usr/include/c++/15.2.1/bits/stl_deque.h \
+ /usr/include/c++/15.2.1/bits/deque.tcc \
  /home/ricky/coding/proyects/visuals/src/shader.h \
  /usr/include/c++/15.2.1/iostream /usr/include/c++/15.2.1/chrono \
  /usr/include/c++/15.2.1/bits/chrono.h /usr/include/c++/15.2.1/ratio \
@@ -207,4 +209,8 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: \
  /usr/local/include/portaudio.h /usr/include/c++/15.2.1/mutex \
  /usr/include/c++/15.2.1/bits/std_mutex.h \
  /usr/include/c++/15.2.1/bits/unique_lock.h \
- /usr/include/c++/15.2.1/atomic
+ /usr/include/c++/15.2.1/atomic \
+ /home/ricky/coding/proyects/visuals/imgui/imgui.h \
+ /home/ricky/coding/proyects/visuals/imgui/imconfig.h \
+ /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/float.h \
+ /usr/include/string.h /usr/include/strings.h /usr/include/assert.h

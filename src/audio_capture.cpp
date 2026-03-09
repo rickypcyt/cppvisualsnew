@@ -1,9 +1,11 @@
 #include "audio_capture.h"
 #include <iostream>
 #include <cstring>
+#include <algorithm>
 
 AudioCapture::AudioCapture() 
-    : stream_(nullptr), hasNewData_(false), isRunning_(false) {
+    : stream_(nullptr), hasNewData_(false), isRunning_(false),
+      channelCount_(1), sampleRate_(SAMPLE_RATE) {
     audioBuffer_.resize(FRAMES_PER_BUFFER);
 }
 
@@ -37,18 +39,26 @@ bool AudioCapture::initialize(int deviceIndex) {
 
     std::cout << "Using audio device: " << deviceInfo->name << std::endl;
 
+    audioBuffer_.assign(FRAMES_PER_BUFFER, 0.0f);
+    hasNewData_.store(false);
+
     // Try different sample rates if the default doesn't work
-    std::vector<double> sampleRates = {44100.0, 48000.0, 22050.0, 16000.0, 8000.0};
+    std::vector<double> sampleRates;
+    if (deviceInfo->defaultSampleRate > 0.0) {
+        sampleRates.push_back(deviceInfo->defaultSampleRate);
+    }
+    sampleRates.insert(sampleRates.end(), {48000.0, 44100.0, 22050.0, 16000.0, 8000.0});
+    sampleRates.erase(std::unique(sampleRates.begin(), sampleRates.end()), sampleRates.end());
+
     PaStreamParameters inputParameters;
     
     inputParameters.device = deviceIndex;
-    inputParameters.channelCount = CHANNELS;
+    inputParameters.channelCount = std::clamp(deviceInfo->maxInputChannels, 1, MAX_CAPTURE_CHANNELS);
     inputParameters.sampleFormat = paFloat32;
     inputParameters.suggestedLatency = deviceInfo->defaultLowInputLatency;
     inputParameters.hostApiSpecificStreamInfo = nullptr;
 
     bool streamOpened = false;
-    double actualSampleRate = SAMPLE_RATE;
 
     for (double sampleRate : sampleRates) {
         std::cout << "Trying sample rate: " << sampleRate << " Hz..." << std::endl;
@@ -65,9 +75,14 @@ bool AudioCapture::initialize(int deviceIndex) {
                                this);
 
             if (err == paNoError) {
-                actualSampleRate = sampleRate;
+                if (const PaStreamInfo* info = Pa_GetStreamInfo(stream_)) {
+                    sampleRate_ = info->sampleRate;
+                } else {
+                    sampleRate_ = sampleRate;
+                }
+                channelCount_ = inputParameters.channelCount;
                 streamOpened = true;
-                std::cout << "Successfully opened stream with sample rate: " << actualSampleRate << " Hz" << std::endl;
+                std::cout << "Successfully opened stream with sample rate: " << sampleRate_ << " Hz" << std::endl;
                 break;
             } else {
                 std::cerr << "Failed to open stream with " << sampleRate << " Hz: " << Pa_GetErrorText(err) << std::endl;
@@ -141,7 +156,20 @@ int AudioCapture::audioCallback(const void* inputBuffer,
 
     std::lock_guard<std::mutex> lock(self->bufferMutex_);
     const float* samples = static_cast<const float*>(inputBuffer);
-    std::copy(samples, samples + framesPerBuffer, self->audioBuffer_.begin());
+
+    const int channels = std::max(1, self->channelCount_);
+    const size_t availableFrames = std::min<size_t>(framesPerBuffer, self->audioBuffer_.size());
+
+    for (size_t frame = 0; frame < availableFrames; ++frame) {
+        float mixed = 0.0f;
+        for (int ch = 0; ch < channels; ++ch) {
+            mixed += samples[frame * channels + ch];
+        }
+        self->audioBuffer_[frame] = mixed / static_cast<float>(channels);
+    }
+    if (availableFrames < self->audioBuffer_.size()) {
+        std::fill(self->audioBuffer_.begin() + availableFrames, self->audioBuffer_.end(), 0.0f);
+    }
     self->hasNewData_.store(true);
 
     return paContinue;

@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 #include <cmath>
 
 bool Visualizer::setupImGui() {
@@ -142,7 +143,7 @@ void Visualizer::renderMainImGuiWindow() {
     ImGui::Spacing();
     ImGui::Text("🖥️ GPU Renderer:");
     ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%s", rendererName_.c_str());
-    
+
     // Control buttons
     ImGui::Spacing();
     if (ImGui::Button("🔧 Select Device")) {
@@ -156,6 +157,10 @@ void Visualizer::renderMainImGuiWindow() {
     if (ImGui::Button("🖥️ Console Mode")) {
         showConsoleMode_ = !showConsoleMode_;
     }
+
+    ImGui::Spacing();
+    ImGui::Text("🎚️ Sensibilidad Visual");
+    ImGui::SliderFloat("##LegacySensitivitySlider", &legacySensitivity_, 0.2f, 3.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
     // Audio levels visualization
     ImGui::Separator();
@@ -189,18 +194,22 @@ void Visualizer::renderMainImGuiWindow() {
     // Frequency bars
     ImGui::Separator();
     ImGui::Text("🎵 Frequency Analysis:");
-    
-    ImGui::Text("Bass (20-120Hz):");
-    ImGui::SameLine();
-    ImGui::ProgressBar(audioFeatures_.bassEnergy, ImVec2(150, 15));
-    
-    ImGui::Text("Mid (120-2kHz):");
-    ImGui::SameLine();
-    ImGui::ProgressBar(audioFeatures_.midEnergy, ImVec2(150, 15));
-    
-    ImGui::Text("High (2k-12kHz):");
-    ImGui::SameLine();
-    ImGui::ProgressBar(audioFeatures_.highEnergy, ImVec2(150, 15));
+
+    auto renderBandRow = [](const char* label,
+                            float share,
+                            float energy) {
+        ImGui::Text("%s", label);
+        ImGui::SameLine();
+        float pct = share * 100.0f;
+        std::string overlay = std::to_string(static_cast<int>(pct)) + "%";
+        ImGui::ProgressBar(std::clamp(share, 0.0f, 1.0f), ImVec2(160, 15), overlay.c_str());
+        ImGui::SameLine();
+        ImGui::Text("energy %.2f", energy);
+    };
+
+    renderBandRow("Bass (20-120Hz):", audioFeatures_.bassShare, audioFeatures_.bassEnergy);
+    renderBandRow("Mid (120-2kHz):", audioFeatures_.midShare, audioFeatures_.midEnergy);
+    renderBandRow("High (2k-12kHz):", audioFeatures_.highShare, audioFeatures_.highEnergy);
 
     // Beat detection indicators
     ImGui::Separator();
@@ -280,7 +289,7 @@ void Visualizer::renderMainImGuiWindow() {
     ImGui::Checkbox("Wormholes", &showLegacyWaveforms_);
 
     ImGui::Spacing();
-    ImGui::Text("�🎮 Controls:");
+    ImGui::Text("�� Controls:");
     ImGui::BulletText("Click buttons to toggle panels");
     ImGui::BulletText("ESC to exit application");
     ImGui::BulletText("Close windows to hide panels");

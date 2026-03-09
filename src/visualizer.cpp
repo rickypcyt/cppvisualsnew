@@ -2,6 +2,7 @@
 #include <iostream>
 #include <chrono>
 #include "audio_capture.h"
+#include "imgui.h"
 
 const char* vertexShaderSource = R"(
 #version 330 core
@@ -158,9 +159,9 @@ Visualizer::Visualizer()
       quadVAO_(0), quadVBO_(0), waveformVAO_(0), waveformVBO_(0),
       selectedDevice_(-1), showDeviceMenu_(false), showDiagnostic_(false), consoleMode_(false),
       showImGuiWindow_(true), showDeviceSelector_(false), showDiagnosticInfo_(false), showConsoleMode_(false),
-      imguiInitialized_(false), autoRandomizeColors_(false), colorRandomInterval_(12.0f),
+      imguiInitialized_(false), autoRandomizeColors_(true), colorRandomInterval_(12.0f),
       colorRandomTimer_(0.0f), deltaTime_(0.0f), rng_(std::random_device{}()), currentPresetIndex_(0),
-      legacyMotionBlend_(0.0f), legacyMotionPhase_(0.0f),
+      legacyMotionBlend_(0.0f), legacyMotionPhase_(0.0f), legacySensitivity_(1.0f),
       showLegacyCore_(true), showLegacyArcs_(true), showLegacyRings_(true),
       showLegacySparkles_(true), showLegacyOrbs_(true), showLegacyWaveforms_(true) {
     waveformBuffer_.resize(512); // Same as audio buffer size
@@ -393,6 +394,25 @@ void Visualizer::beginFrame() {
             windowWidth_ = fbWidth;
             windowHeight_ = fbHeight;
             glViewport(0, 0, windowWidth_, windowHeight_);
+        }
+    }
+
+    if (imguiInitialized_ && window_) {
+        static double lastTabToggle = 0.0;
+        double now = glfwGetTime();
+        bool tabDown = glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_PRESS;
+        ImGuiIO* io = ImGui::GetCurrentContext() ? &ImGui::GetIO() : nullptr;
+        bool allowToggle = !tabDown ? false
+                          : (!io || !io->WantCaptureKeyboard || !showImGuiWindow_);
+
+        if (allowToggle && (now - lastTabToggle) > 0.25) {
+            showImGuiWindow_ = !showImGuiWindow_;
+            if (!showImGuiWindow_) {
+                showDeviceSelector_ = false;
+                showDiagnosticInfo_ = false;
+                showConsoleMode_ = false;
+            }
+            lastTabToggle = now;
         }
     }
 

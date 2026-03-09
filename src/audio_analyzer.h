@@ -4,6 +4,10 @@
 #include <vector>
 #include <complex>
 #include <cmath>
+#include <deque>
+
+// Forward declaration to avoid circular include
+class AudioCapture;
 
 class AudioAnalyzer {
 public:
@@ -15,8 +19,12 @@ public:
         float bassEnergy;
         float midEnergy;
         float highEnergy;
+        float bassShare;
+        float midShare;
+        float highShare;
         float onset;
         float beat;
+        float bpm;
     };
 
     AudioAnalyzer();
@@ -25,6 +33,7 @@ public:
     void processAudio(const std::vector<float>& audioBuffer);
     const AudioFeatures& getFeatures() const { return features_; }
     const std::vector<float>& getSpectrum() const { return spectrum_; }
+    void setSampleRate(float sampleRate);
 
 private:
     void applyWindow(std::vector<float>& buffer);
@@ -40,10 +49,19 @@ private:
     AudioFeatures features_;
     AudioFeatures smoothedFeatures_;
     
-    float previousEnergy_;
+    float sampleRate_;
+    float previousEnergyRaw_;
+    float bassPeak_;
+    float midPeak_;
+    float highPeak_;
+    float energyPeak_;
     float onsetThreshold_;
     int beatCounter_;
     float beatTimer_;
+    std::deque<float> beatIntervals_;
+    float bpmEstimate_;
+
+    static constexpr int MAX_BEAT_HISTORY = 8;
 };
 
 #endif // AUDIO_ANALYZER_H
