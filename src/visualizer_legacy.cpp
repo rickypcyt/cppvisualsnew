@@ -3,20 +3,23 @@
 #include <algorithm>
 #include <iostream>
 
-void Visualizer::renderLegacyVisualization() {
+void Visualizer::renderLegacyVisualization(bool overlay) {
     // Use legacy OpenGL 1.1 for maximum compatibility
     glUseProgram(0);  // Ensure no shader program is active
-    
-    // Setup projection using legacy matrix operations
+
     glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
     glLoadIdentity();
     glOrtho(0, windowWidth_, windowHeight_, 0, -1, 1);
-    
+
     glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
     glLoadIdentity();
-    
-    // Disable depth test for 2D rendering
-    glDisable(GL_DEPTH_TEST);
+
+    GLboolean depthWasEnabled = glIsEnabled(GL_DEPTH_TEST);
+    if (depthWasEnabled) {
+        glDisable(GL_DEPTH_TEST);
+    }
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
@@ -86,14 +89,16 @@ void Visualizer::renderLegacyVisualization() {
     float centerX = windowWidth_ / 2.0f;
     float centerY = windowHeight_ / 2.0f;
 
-    // Ambient background (solid black to satisfy request)
-    glBegin(GL_QUADS);
-    glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-    glVertex2f(0.0f, 0.0f);
-    glVertex2f(windowWidth_, 0.0f);
-    glVertex2f(windowWidth_, windowHeight_);
-    glVertex2f(0.0f, windowHeight_);
-    glEnd();
+    // Ambient background (solid black) only when not overlaying
+    if (!overlay) {
+        glBegin(GL_QUADS);
+        glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+        glVertex2f(0.0f, 0.0f);
+        glVertex2f(windowWidth_, 0.0f);
+        glVertex2f(windowWidth_, windowHeight_);
+        glVertex2f(0.0f, windowHeight_);
+        glEnd();
+    }
 
     float bloomRadius = minDimension * (0.60f + energy * 0.35f + globalPulse * 0.18f + beatFlash * 0.08f);
     glBegin(GL_TRIANGLE_FAN);
@@ -246,8 +251,16 @@ void Visualizer::renderLegacyVisualization() {
     }
 
     // Restore state
-    glEnable(GL_DEPTH_TEST);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_BLEND);
+    if (depthWasEnabled) {
+        glEnable(GL_DEPTH_TEST);
+    }
+
+    glPopMatrix(); // MODELVIEW
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
 }
 
 void Visualizer::renderLegacyCircle(float bass, float mid, float high, float motionBlend, float animatedTime) {

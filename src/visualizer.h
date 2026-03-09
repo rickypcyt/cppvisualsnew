@@ -124,8 +124,12 @@ private:
     GLuint quadVBO_;
     GLuint waveformVAO_;
     GLuint waveformVBO_;
-    
+    GLuint coreVAO_;
+    GLuint coreVBO_;
+    GLsizei coreVertexCount_;
+
     std::unique_ptr<Shader> shader_;
+    std::unique_ptr<Shader> coreShader_;
     AudioAnalyzer::AudioFeatures audioFeatures_;
     std::vector<float> waveformBuffer_;
     int selectedDevice_;
@@ -144,7 +148,8 @@ private:
     bool showLegacySparkles_;
     bool showLegacyOrbs_;
     bool showLegacyWaveforms_;
-    
+    bool useModernPipeline_;
+
     // ImGui state
     bool showImGuiWindow_;
     bool showDeviceSelector_;
@@ -159,6 +164,12 @@ private:
     std::mt19937 rng_;
     std::vector<ColorPreset> colorPresets_;
     int currentPresetIndex_;
+    bool onsetColorCyclingEnabled_;
+    int onsetTriggerCount_;
+    bool lastOnsetActive_;
+    float tempoMultiplier_;
+    bool mixColorSchemes_;
+    bool overlayLegacyOnModern_;
 
     CoreState core_;
     std::vector<GearNode> gears_;
@@ -172,15 +183,19 @@ private:
     bool setupOpenGL();
     bool setupGeometry();
     bool loadShaders();
+    bool loadCoreShader();
     void setupQuad();
     void setupWaveform();
+    void setupCoreMesh();
     void renderWaveform(const std::vector<float>& audioBuffer);
     void renderText(const std::string& text, float x, float y);
     void setupDeviceList();
     void renderDiagnosticInfo();
     void renderConsoleVisualization();
     void renderFallbackTriangle();
-    
+    void renderModernVisualization();
+    void renderModernCore();
+
     // ImGui rendering methods
     void renderMainImGuiWindow();
     void renderDeviceSelectorImGui();
@@ -202,7 +217,7 @@ private:
     void renderWaveformVisualization();
     
     // Legacy OpenGL methods for software rendering
-    void renderLegacyVisualization();
+    void renderLegacyVisualization(bool overlay = false);
     void renderLegacyCircle(float bass, float mid, float high, float motionBlend, float animatedTime);
     void renderLegacyFrequencyBars(float bass, float mid, float high, float motionBlend, float animatedTime);
     void renderLegacyRings(float mid, float animatedTime, float motionBlend);

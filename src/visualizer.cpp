@@ -9,16 +9,150 @@
 
 const char* vertexShaderSource = R"(
 #version 330 core
-layout (location = 0) in vec3 aPos;
+layout (location = 0) in vec2 aPos;
 layout (location = 1) in vec2 aTexCoord;
 
 out vec2 TexCoord;
 
 void main() {
     TexCoord = aTexCoord;
-    gl_Position = vec4(aPos, 1.0);
+    gl_Position = vec4(aPos, 0.0, 1.0);
 }
-")";
+)";
+
+const char* coreVertexShaderSource = R"(
+#version 330 core
+layout (location = 0) in vec2 aDir;
+layout (location = 1) in float aRadial;
+layout (location = 2) in float aAngle;
+
+out float vAngle;
+out float vRadial;
+
+uniform vec2 uResolution;
+uniform float uBaseRadius;
+uniform float uPulse;
+uniform float uKick;
+uniform float uHarmonic;
+uniform float uEnergy;
+uniform float uBass;
+uniform float uMid;
+uniform float uHigh;
+uniform float uTime;
+uniform float uTempo;
+
+void main() {
+    vAngle = aAngle;
+    vRadial = aRadial;
+
+    float pulseFactor = mix(0.35 + uPulse * 0.25, 1.15 + uKick * 0.4, aRadial);
+    float harmonicWarp = sin(aAngle * (4.0 + uHarmonic * 1.6) + uTime * (1.8 + uTempo * 0.5)) * (0.12 + uHarmonic * 0.18);
+    harmonicWarp += sin(aAngle * (9.0 + uHigh * 3.0) + uTime * (2.6 + uTempo * 0.35)) * (0.05 + uHigh * 0.12);
+
+    float radius = uBaseRadius * pulseFactor * (1.0 + harmonicWarp);
+    radius += aRadial * (uBass * 60.0 + uMid * 40.0 + uHigh * 30.0);
+
+    vec2 pos = aDir * radius;
+    vec2 scale = vec2(2.0 / uResolution.x, 2.0 / uResolution.y);
+    gl_Position = vec4(pos * scale, 0.0, 1.0);
+}
+)";
+
+const char* coreFragmentShaderSource = R"(
+#version 330 core
+out vec4 FragColor;
+
+in float vAngle;
+in float vRadial;
+
+uniform float uBass;
+uniform float uMid;
+uniform float uHigh;
+uniform float uEnergy;
+uniform float uPulse;
+uniform float uKick;
+uniform float uHarmonic;
+uniform float uTime;
+uniform float uTempo;
+
+void main() {
+    float glow = smoothstep(0.05, 1.0, vRadial);
+    float harmonicWaves = sin(vAngle * (6.0 + uHarmonic * 2.2) + uTime * (2.5 + uTempo * 0.6));
+    float spark = sin(vAngle * (14.0 + uHigh * 5.0) + uTime * (4.0 + uTempo * 0.9));
+
+    vec3 baseColor = vec3(0.32 + uBass * 0.8,
+                          0.36 + uMid * 0.7,
+                          0.48 + uHigh * 0.9);
+    vec3 accentColor = vec3(0.65 + uHigh * 0.8,
+                            0.45 + uMid * 0.6,
+                            0.92 + uBass * 0.7);
+
+    float accentMix = glow * (0.5 + uPulse * 0.3 + uKick * 0.35);
+    vec3 color = mix(baseColor, accentColor, clamp(accentMix, 0.0, 1.0));
+    color += vec3(0.2, 0.18, 0.28) * harmonicWaves * (0.25 + uHarmonic * 0.4);
+    color += vec3(0.35, 0.28, 0.55) * spark * (0.12 + uHigh * 0.25);
+    color = max(color, vec3(0.0));
+
+    float alpha = 0.18 + glow * 0.55 + uEnergy * 0.18 + uKick * 0.25;
+    alpha = clamp(alpha, 0.1, 0.85);
+
+    FragColor = vec4(color, alpha);
+}
+)";
+
+void Visualizer::setupCoreMesh() {
+    if (coreVAO_) {
+        glDeleteVertexArrays(1, &coreVAO_);
+        coreVAO_ = 0;
+    }
+    if (coreVBO_) {
+        glDeleteBuffers(1, &coreVBO_);
+        coreVBO_ = 0;
+    }
+
+    const int segments = 180;
+    std::vector<float> data;
+    data.reserve((segments + 1) * 2 * 4);
+
+    for (int i = 0; i <= segments; ++i) {
+        float t = static_cast<float>(i) / static_cast<float>(segments);
+        float angle = t * 6.28318530718f;
+        float c = std::cos(angle);
+        float s = std::sin(angle);
+
+        // inner vertex
+        data.push_back(c);
+        data.push_back(s);
+        data.push_back(0.0f);
+        data.push_back(angle);
+
+        // outer vertex
+        data.push_back(c);
+        data.push_back(s);
+        data.push_back(1.0f);
+        data.push_back(angle);
+    }
+
+    coreVertexCount_ = static_cast<GLsizei>((segments + 1) * 2);
+
+    glGenVertexArrays(1, &coreVAO_);
+    glGenBuffers(1, &coreVBO_);
+
+    glBindVertexArray(coreVAO_);
+    glBindBuffer(GL_ARRAY_BUFFER, coreVBO_);
+    glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
+
+    GLsizei stride = 4 * sizeof(float);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(0));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(3 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
 
 void Visualizer::initializeDynamicSystems() {
     core_ = {};
@@ -90,6 +224,8 @@ void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures& featur
         dt = 1.0f / 60.0f;
     }
 
+    float tempoDt = dt * tempoMultiplier_;
+
     float minDim = static_cast<float>(std::min(windowWidth_, windowHeight_));
     float bass = std::clamp(features.bassEnergy, 0.0f, 2.0f);
     float mid = std::clamp(features.midEnergy, 0.0f, 2.0f);
@@ -97,7 +233,7 @@ void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures& featur
     float energy = std::clamp(features.energy, 0.0f, 3.0f);
 
     core_.pulse = energy;
-    core_.kickEnvelope = core_.kickEnvelope * std::pow(0.08f, dt) + features.kick * 0.9f;
+    core_.kickEnvelope = core_.kickEnvelope * std::pow(0.08f, tempoDt) + features.kick * 0.9f;
     core_.kickEnvelope = std::clamp(core_.kickEnvelope, 0.0f, 2.5f);
 
     float harmonicInput = mid * 0.6f + high * 0.85f
@@ -105,8 +241,8 @@ void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures& featur
                           + features.hiHat * 0.75f
                           + features.onset * 0.4f;
     harmonicInput = std::clamp(harmonicInput, 0.0f, 2.5f);
-    float riseAlpha = 1.0f - std::pow(0.04f, dt);
-    float decayFactor = std::pow(0.35f, dt);
+    float riseAlpha = 1.0f - std::pow(0.04f, tempoDt);
+    float decayFactor = std::pow(0.35f, tempoDt);
     if (harmonicInput > core_.harmonicEnvelope) {
         core_.harmonicEnvelope += (harmonicInput - core_.harmonicEnvelope) * riseAlpha;
     } else {
@@ -116,9 +252,9 @@ void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures& featur
 
     float steadyEnergy = std::max({features.kick, features.clap, features.hiHat, features.beat, features.onset});
     steadyEnergy = std::clamp(steadyEnergy * 1.2f, 0.0f, 1.5f);
-    idleState_ = idleState_ * std::pow(0.2f, dt) + (1.0f - steadyEnergy) * dt * 0.8f;
+    idleState_ = idleState_ * std::pow(0.2f, tempoDt) + (1.0f - steadyEnergy) * tempoDt * 0.8f;
     idleState_ = std::clamp(idleState_, 0.0f, 1.0f);
-    idlePhase_ += dt * (0.3f + 0.4f * idleState_);
+    idlePhase_ += dt * tempoMultiplier_ * (0.3f + 0.4f * idleState_);
 
     float base = minDim * (0.015f + 0.018f * std::clamp(energy, 0.0f, 1.5f))
                  + minDim * 0.01f * std::clamp(mid, 0.0f, 1.0f)
@@ -132,8 +268,8 @@ void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures& featur
                       + core_.kickEnvelope * 1.1f
                       + harmonicContribution;
     injection *= std::clamp(1.0f - idleState_ * 0.75f, 0.2f, 1.0f);
-    core_.energy += injection * dt;
-    core_.energy *= std::pow(0.45f, dt);
+    core_.energy += injection * tempoDt;
+    core_.energy *= std::pow(0.45f, tempoDt);
     core_.energy = std::clamp(core_.energy, 0.0f, 8.0f);
 }
 
@@ -161,6 +297,8 @@ void Visualizer::updateGears(float dt, const AudioAnalyzer::AudioFeatures& featu
         dt = 1.0f / 60.0f;
     }
 
+    float tempoDt = dt * tempoMultiplier_;
+
     float bass = std::clamp(features.bassEnergy, 0.0f, 2.0f);
     float mid = std::clamp(features.midEnergy, 0.0f, 2.0f);
     float high = std::clamp(features.highEnergy, 0.0f, 2.0f);
@@ -180,10 +318,10 @@ void Visualizer::updateGears(float dt, const AudioAnalyzer::AudioFeatures& featu
         gear.orbitAngle = orientationBase;
 
         float targetRadius = gear.baseRadius * (1.0f + 0.25f * mid + 0.32f * core_.harmonicEnvelope + 0.2f * core_.kickEnvelope);
-        gear.radius = gear.radius + (targetRadius - gear.radius) * std::min(1.0f, dt * 4.5f);
+        gear.radius = gear.radius + (targetRadius - gear.radius) * std::min(1.0f, tempoDt * 4.5f);
 
-        gear.angularVelocity = gear.angularVelocity * std::pow(0.55f, dt);
-        gear.jitterPhase += (0.6f + high * 1.1f) * dt;
+        gear.angularVelocity = gear.angularVelocity * std::pow(0.55f, tempoDt);
+        gear.jitterPhase += (0.6f + high * 1.1f) * tempoDt;
         gear.angle = orientationBase;
     }
 }
@@ -622,7 +760,14 @@ vec3 raymarch(vec3 ro, vec3 rd) {
             // Color based on frequency bands
             vec3 baseColor = vec3(uBass, uMid, uHigh);
             vec3 color = baseColor * diff;
-            
+
+            float distToCenter = length(p);
+            float coreEnvelope = exp(-distToCenter * (2.2 - uBass * 0.6)) * (0.6 + uEnergy * 0.8);
+            float massGlow = smoothstep(0.0, 0.8 + uEnergy * 0.4, coreEnvelope);
+            vec3 coreColor = mix(baseColor, vec3(1.0), 0.25 + uHigh * 0.35);
+            color = mix(color, coreColor * (0.8 + uBass * 0.9), massGlow);
+            color += coreColor * coreEnvelope * 0.35;
+
             // Add glow on beats
             if (uBeat > 0.5) {
                 color *= 2.0;
@@ -672,13 +817,20 @@ void main() {
 Visualizer::Visualizer() 
     : window_(nullptr), windowWidth_(800), windowHeight_(600), time_(0.0f),
       quadVAO_(0), quadVBO_(0), waveformVAO_(0), waveformVBO_(0),
+      coreVAO_(0), coreVBO_(0), coreVertexCount_(0),
+      audioFeatures_{},
       selectedDevice_(-1), showDeviceMenu_(false), showDiagnostic_(false), consoleMode_(false),
       showImGuiWindow_(true), showDeviceSelector_(false), showDiagnosticInfo_(false), showConsoleMode_(false),
       imguiInitialized_(false), autoRandomizeColors_(true), colorRandomInterval_(12.0f),
       colorRandomTimer_(0.0f), deltaTime_(0.0f), rng_(std::random_device{}()), currentPresetIndex_(0),
+      onsetColorCyclingEnabled_(true), onsetTriggerCount_(0), lastOnsetActive_(false),
+      tempoMultiplier_(1.0f),
+      mixColorSchemes_(true),
+      overlayLegacyOnModern_(false),
       legacyMotionBlend_(0.0f), legacyMotionPhase_(0.0f), legacySensitivity_(1.0f),
       showLegacyCore_(true), showLegacyArcs_(true), showLegacyRings_(true),
-      showLegacySparkles_(true), showLegacyOrbs_(true), showLegacyWaveforms_(true) {
+      showLegacySparkles_(true), showLegacyOrbs_(true), showLegacyWaveforms_(true),
+      useModernPipeline_(false) {
     waveformBuffer_.resize(512); // Same as audio buffer size
     buildColorPresets();
     if (!colorPresets_.empty()) {
@@ -708,9 +860,18 @@ bool Visualizer::initialize(int width, int height) {
         return false;
     }
 
+    setupCoreMesh();
+
     if (!loadShaders()) {
         std::cout << "Failed to load shaders, using fallback rendering" << std::endl;
         shader_.reset(); // Will trigger fallback triangle
+        useModernPipeline_ = false;
+    } else {
+        useModernPipeline_ = shader_ != nullptr;
+    }
+
+    if (!loadCoreShader()) {
+        coreShader_.reset();
     }
 
     if (setupImGui()) {
@@ -854,16 +1015,46 @@ void Visualizer::randomizeLegacyColors() {
     }
 
     std::uniform_int_distribution<int> dist(0, static_cast<int>(colorPresets_.size()) - 1);
-    int nextIndex = dist(rng_);
-    if (colorPresets_.size() > 1) {
-        int guard = 0;
-        while (nextIndex == currentPresetIndex_ && guard < 8) {
-            nextIndex = dist(rng_);
-            ++guard;
+
+    if (!mixColorSchemes_ || colorPresets_.size() == 1) {
+        int nextIndex = dist(rng_);
+        if (colorPresets_.size() > 1) {
+            int guard = 0;
+            while (nextIndex == currentPresetIndex_ && guard < 8) {
+                nextIndex = dist(rng_);
+                ++guard;
+            }
         }
+        applyLegacyPreset(nextIndex);
+        return;
     }
 
-    applyLegacyPreset(nextIndex);
+    // Mix different presets across visual layers
+    LegacyColorAdjust mixed = legacyColorAdjust_;
+
+    auto pickAdjust = [&](ColorAdjust LegacyColorAdjust::*member) {
+        int idx = dist(rng_);
+        const auto& preset = colorPresets_[idx].adjust;
+        ColorAdjust value = preset.*member;
+        mixed.*member = value;
+    };
+
+    pickAdjust(&LegacyColorAdjust::circleFill);
+    pickAdjust(&LegacyColorAdjust::circleOutline);
+    pickAdjust(&LegacyColorAdjust::bloomInner);
+    pickAdjust(&LegacyColorAdjust::bloomOuter);
+    pickAdjust(&LegacyColorAdjust::bassBars);
+    pickAdjust(&LegacyColorAdjust::midBars);
+    pickAdjust(&LegacyColorAdjust::highBars);
+    pickAdjust(&LegacyColorAdjust::beatExplosion);
+    pickAdjust(&LegacyColorAdjust::rings);
+    pickAdjust(&LegacyColorAdjust::orbit);
+    pickAdjust(&LegacyColorAdjust::orbitTrail);
+    pickAdjust(&LegacyColorAdjust::sparkles);
+    pickAdjust(&LegacyColorAdjust::waveform);
+
+    legacyColorAdjust_ = mixed;
+    colorRandomTimer_ = 0.0f;
 }
 
 void Visualizer::shutdown() {
@@ -881,6 +1072,14 @@ void Visualizer::shutdown() {
         glDeleteBuffers(1, &quadVBO_);
         quadVBO_ = 0;
     }
+    if (coreVAO_) {
+        glDeleteVertexArrays(1, &coreVAO_);
+        coreVAO_ = 0;
+    }
+    if (coreVBO_) {
+        glDeleteBuffers(1, &coreVBO_);
+        coreVBO_ = 0;
+    }
     if (waveformVAO_) {
         glDeleteVertexArrays(1, &waveformVAO_);
         waveformVAO_ = 0;
@@ -891,7 +1090,8 @@ void Visualizer::shutdown() {
     }
     
     shader_.reset();
-    
+    coreShader_.reset();
+
     if (window_) {
         glfwDestroyWindow(window_);
         window_ = nullptr;
@@ -960,10 +1160,41 @@ void Visualizer::endFrame() {
             randomizeLegacyColors();
         }
     }
+
+    if (onsetColorCyclingEnabled_) {
+        bool onsetActive = audioFeatures_.onset > 0.5f;
+        if (onsetActive && !lastOnsetActive_) {
+            ++onsetTriggerCount_;
+            if (onsetTriggerCount_ >= 2) {
+                onsetTriggerCount_ = 0;
+                if (!colorPresets_.empty()) {
+                    int nextIndex = (currentPresetIndex_ + 1) % static_cast<int>(colorPresets_.size());
+                    applyLegacyPreset(nextIndex);
+                } else {
+                    randomizeLegacyColors();
+                }
+            }
+        }
+        lastOnsetActive_ = onsetActive;
+    } else {
+        onsetTriggerCount_ = 0;
+        lastOnsetActive_ = audioFeatures_.onset > 0.5f;
+    }
 }
 
 void Visualizer::updateAudioData(const AudioAnalyzer::AudioFeatures& features) {
     audioFeatures_ = features;
+
+    float targetTempo = 1.0f;
+    float bpm = features.bpm;
+    if (bpm > 30.0f) {
+        targetTempo = std::clamp(bpm / 120.0f, 0.35f, 1.8f);
+    } else {
+        float energy = std::clamp(features.energy, 0.0f, 1.2f);
+        targetTempo = 0.75f + energy * 0.35f;
+    }
+
+    tempoMultiplier_ = std::clamp(tempoMultiplier_ * 0.9f + targetTempo * 0.1f, 0.3f, 2.0f);
 }
 
 void Visualizer::updateAudioBuffer(const std::vector<float>& audioBuffer) {
@@ -977,8 +1208,15 @@ void Visualizer::render() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // Render legacy visualization (works with software rendering)
-    renderLegacyVisualization();
+    if (useModernPipeline_ && shader_) {
+        renderModernVisualization();
+        if (overlayLegacyOnModern_) {
+            renderLegacyVisualization(true);
+        }
+    } else {
+        renderLegacyVisualization();
+    }
+
     renderIdleSpinner(time_);
 
     if (imguiInitialized_ && showImGuiWindow_) {
@@ -1036,6 +1274,11 @@ bool Visualizer::setupGeometry() {
 bool Visualizer::loadShaders() {
     shader_ = std::make_unique<Shader>();
     return shader_->loadFromSource(vertexShaderSource, fragmentShaderSource);
+}
+
+bool Visualizer::loadCoreShader() {
+    coreShader_ = std::make_unique<Shader>();
+    return coreShader_->loadFromSource(coreVertexShaderSource, coreFragmentShaderSource);
 }
 
 void Visualizer::setupQuad() {
@@ -1131,6 +1374,95 @@ void Visualizer::renderWaveform(const std::vector<float>& audioBuffer) {
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
+}
+
+void Visualizer::renderModernVisualization() {
+    if (!shader_ || quadVAO_ == 0) {
+        renderFallbackTriangle();
+        return;
+    }
+
+    shader_->use();
+    shader_->setUniform1f("uTime", time_);
+    shader_->setUniform1f("uBass", audioFeatures_.bassEnergy);
+    shader_->setUniform1f("uMid", audioFeatures_.midEnergy);
+    shader_->setUniform1f("uHigh", audioFeatures_.highEnergy);
+    shader_->setUniform1f("uEnergy", audioFeatures_.energy);
+    shader_->setUniform1f("uOnset", audioFeatures_.onset);
+    shader_->setUniform1f("uBeat", audioFeatures_.beat);
+    shader_->setUniform2f("uResolution",
+                          static_cast<float>(windowWidth_),
+                          static_cast<float>(windowHeight_));
+
+    GLboolean depthWasEnabled = glIsEnabled(GL_DEPTH_TEST);
+    if (depthWasEnabled) {
+        glDisable(GL_DEPTH_TEST);
+    }
+
+    GLboolean blendWasEnabled = glIsEnabled(GL_BLEND);
+    if (!blendWasEnabled) {
+        glEnable(GL_BLEND);
+    }
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glBindVertexArray(quadVAO_);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+
+    glUseProgram(0);
+
+    if (!blendWasEnabled) {
+        glDisable(GL_BLEND);
+    }
+    if (depthWasEnabled) {
+        glEnable(GL_DEPTH_TEST);
+    }
+
+    renderModernCore();
+}
+
+void Visualizer::renderModernCore() {
+    if (!coreShader_ || coreVAO_ == 0) {
+        renderGears(time_);
+        return;
+    }
+
+    GLboolean depthWasEnabled = glIsEnabled(GL_DEPTH_TEST);
+    if (depthWasEnabled) {
+        glDisable(GL_DEPTH_TEST);
+    }
+
+    GLboolean blendWasEnabled = glIsEnabled(GL_BLEND);
+    if (!blendWasEnabled) {
+        glEnable(GL_BLEND);
+    }
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+    coreShader_->use();
+    coreShader_->setUniform2f("uResolution", static_cast<float>(windowWidth_), static_cast<float>(windowHeight_));
+    coreShader_->setUniform1f("uBaseRadius", core_.baseRadius);
+    coreShader_->setUniform1f("uPulse", core_.pulse);
+    coreShader_->setUniform1f("uKick", core_.kickEnvelope);
+    coreShader_->setUniform1f("uHarmonic", core_.harmonicEnvelope);
+    coreShader_->setUniform1f("uEnergy", audioFeatures_.energy);
+    coreShader_->setUniform1f("uBass", audioFeatures_.bassEnergy);
+    coreShader_->setUniform1f("uMid", audioFeatures_.midEnergy);
+    coreShader_->setUniform1f("uHigh", audioFeatures_.highEnergy);
+    coreShader_->setUniform1f("uTime", time_);
+    coreShader_->setUniform1f("uTempo", tempoMultiplier_);
+
+    glBindVertexArray(coreVAO_);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, coreVertexCount_);
+    glBindVertexArray(0);
+
+    glUseProgram(0);
+
+    if (!blendWasEnabled) {
+        glDisable(GL_BLEND);
+    }
+    if (depthWasEnabled) {
+        glEnable(GL_DEPTH_TEST);
+    }
 }
 
 void Visualizer::setupDeviceList() {

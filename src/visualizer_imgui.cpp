@@ -243,7 +243,20 @@ void Visualizer::renderMainImGuiWindow() {
         randomizeLegacyColors();
     }
 
+    ImGui::TextUnformatted("Motor visual:");
+    ImGui::SameLine();
+    ImGui::Checkbox("Shaders modernos", &useModernPipeline_);
+    ImGui::SameLine();
+    ImGui::Checkbox("Overlay legacy", &overlayLegacyOnModern_);
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Superpone el render legacy encima del moderno");
+    }
+
     ImGui::Checkbox("Random auto", &autoRandomizeColors_);
+    ImGui::SameLine();
+    ImGui::Checkbox("Cambiar colores cada 2 onsets", &onsetColorCyclingEnabled_);
+    ImGui::SameLine();
+    ImGui::Checkbox("Mezclar presets", &mixColorSchemes_);
     ImGui::SameLine();
     ImGui::SetNextItemWidth(160.0f);
     if (ImGui::SliderFloat("Intervalo (s)", &colorRandomInterval_, 1.0f, 60.0f)) {
