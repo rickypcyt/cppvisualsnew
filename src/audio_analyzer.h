@@ -24,6 +24,9 @@ public:
         float highShare;
         float onset;
         float beat;
+        float kick;
+        float clap;
+        float hiHat;
         float bpm;
     };
 
@@ -51,6 +54,9 @@ private:
     
     float sampleRate_;
     float previousEnergyRaw_;
+    float bassEnergyEMA_;
+    float midEnergyEMA_;
+    float highEnergyEMA_;
     float bassPeak_;
     float midPeak_;
     float highPeak_;
@@ -60,6 +66,9 @@ private:
     float beatTimer_;
     std::deque<float> beatIntervals_;
     float bpmEstimate_;
+    float kickTimer_;
+    float clapTimer_;
+    float hiHatTimer_;
 
     static constexpr int MAX_BEAT_HISTORY = 8;
 };

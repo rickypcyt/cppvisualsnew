@@ -1951,6 +1951,7 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/bits/wchar.h \
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
+  /usr/include/c++/15.2.1/array \
   /usr/include/c++/15.2.1/atomic \
   /usr/include/c++/15.2.1/backward/auto_ptr.h \
   /usr/include/c++/15.2.1/backward/binders.h \
@@ -2044,6 +2045,7 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/chrono \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
   /usr/include/c++/15.2.1/cstddef \
@@ -2464,10 +2466,13 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/bits/wchar.h \
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
+  /usr/include/c++/15.2.1/algorithm \
+  /usr/include/c++/15.2.1/array \
   /usr/include/c++/15.2.1/atomic \
   /usr/include/c++/15.2.1/backward/auto_ptr.h \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
+  /usr/include/c++/15.2.1/bits/algorithmfwd.h \
   /usr/include/c++/15.2.1/bits/align.h \
   /usr/include/c++/15.2.1/bits/alloc_traits.h \
   /usr/include/c++/15.2.1/bits/allocated_ptr.h \
@@ -2524,11 +2529,13 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/bits/sstream.tcc \
   /usr/include/c++/15.2.1/bits/std_abs.h \
   /usr/include/c++/15.2.1/bits/std_mutex.h \
+  /usr/include/c++/15.2.1/bits/stl_algo.h \
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
   /usr/include/c++/15.2.1/bits/stl_deque.h \
   /usr/include/c++/15.2.1/bits/stl_function.h \
+  /usr/include/c++/15.2.1/bits/stl_heap.h \
   /usr/include/c++/15.2.1/bits/stl_iterator.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_funcs.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_types.h \
@@ -2555,6 +2562,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/chrono \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
   /usr/include/c++/15.2.1/cstddef \
@@ -2587,6 +2595,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/numeric \
   /usr/include/c++/15.2.1/ostream \
   /usr/include/c++/15.2.1/pstl/execution_defs.h \
+  /usr/include/c++/15.2.1/pstl/glue_algorithm_defs.h \
   /usr/include/c++/15.2.1/pstl/glue_memory_defs.h \
   /usr/include/c++/15.2.1/pstl/glue_numeric_defs.h \
   /usr/include/c++/15.2.1/pstl/pstl_config.h \
@@ -2752,6 +2761,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: /home/ricky/coding
   /usr/include/bits/wchar.h \
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
+  /usr/include/c++/15.2.1/array \
   /usr/include/c++/15.2.1/backward/auto_ptr.h \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
@@ -2842,6 +2852,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: /home/ricky/coding
   /usr/include/c++/15.2.1/cerrno \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
   /usr/include/c++/15.2.1/cstddef \
@@ -3039,6 +3050,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/cod
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
   /usr/include/c++/15.2.1/algorithm \
+  /usr/include/c++/15.2.1/array \
   /usr/include/c++/15.2.1/backward/auto_ptr.h \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
@@ -3127,6 +3139,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/cerrno \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
   /usr/include/c++/15.2.1/cstddef \
@@ -3323,6 +3336,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: /home/ricky/coding/p
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
   /usr/include/c++/15.2.1/algorithm \
+  /usr/include/c++/15.2.1/array \
   /usr/include/c++/15.2.1/backward/auto_ptr.h \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
@@ -3416,6 +3430,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: /home/ricky/coding/p
   /usr/include/c++/15.2.1/cerrno \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
   /usr/include/c++/15.2.1/cstddef \
@@ -3617,6 +3632,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.o: /home/ricky/coding/
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
   /usr/include/c++/15.2.1/algorithm \
+  /usr/include/c++/15.2.1/array \
   /usr/include/c++/15.2.1/backward/auto_ptr.h \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
@@ -3705,6 +3721,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.o: /home/ricky/coding/
   /usr/include/c++/15.2.1/cerrno \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
   /usr/include/c++/15.2.1/cstddef \
@@ -3897,6 +3914,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/cod
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
   /usr/include/c++/15.2.1/algorithm \
+  /usr/include/c++/15.2.1/array \
   /usr/include/c++/15.2.1/backward/auto_ptr.h \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
@@ -3985,6 +4003,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/cerrno \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
   /usr/include/c++/15.2.1/cstddef \
@@ -4176,6 +4195,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o: /home/ricky/codin
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
   /usr/include/c++/15.2.1/algorithm \
+  /usr/include/c++/15.2.1/array \
   /usr/include/c++/15.2.1/backward/auto_ptr.h \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
@@ -4264,6 +4284,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o: /home/ricky/codin
   /usr/include/c++/15.2.1/cerrno \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
   /usr/include/c++/15.2.1/cstddef \
@@ -4465,6 +4486,12 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o:
 
 /usr/lib/libm.so.6:
 
+CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o:
+
+/usr/lib/libjack.so.0:
+
+/usr/lib/libglfw.so.3.4:
+
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/emmintrin.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/clzerointrin.h:
@@ -4486,6 +4513,8 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/avx512vlintrin.h:
 
 /usr/include/c++/15.2.1/cwctype:
+
+/usr/include/c++/15.2.1/compare:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/avx512dqintrin.h:
 
@@ -4893,8 +4922,6 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/sm4intrin.h:
 
-/usr/lib/libglfw.so.3.4:
-
 /usr/include/c++/15.2.1/numeric:
 
 /usr/include/c++/15.2.1/tr1/hypergeometric.tcc:
@@ -5016,10 +5043,6 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o:
 /usr/include/c++/15.2.1/tr1/special_function_util.h:
 
 /usr/include/c++/15.2.1/bits/std_abs.h:
-
-CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o:
-
-/usr/lib/libjack.so.0:
 
 /usr/include/bits/stdint-uintn.h:
 
@@ -5272,6 +5295,8 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o:
 /usr/lib/libGLdispatch.so.0:
 
 /usr/include/c++/15.2.1/backward/binders.h:
+
+/usr/include/c++/15.2.1/array:
 
 /usr/include/c++/15.2.1/bits/basic_ios.tcc:
 

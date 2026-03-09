@@ -6,12 +6,14 @@
 AudioAnalyzer::AudioAnalyzer() 
     : fftInput_(FFT_SIZE), fftOutput_(FFT_SIZE), spectrum_(SPECTRUM_SIZE),
       window_(FFT_SIZE),
-      features_{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
-      smoothedFeatures_{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+      features_{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+      smoothedFeatures_{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
       sampleRate_(48000.0f), previousEnergyRaw_(1e-4f),
+      bassEnergyEMA_(1e-3f), midEnergyEMA_(1e-3f), highEnergyEMA_(1e-3f),
       bassPeak_(1e-3f), midPeak_(1e-3f), highPeak_(1e-3f), energyPeak_(1e-3f),
       onsetThreshold_(1.25f), beatCounter_(0), beatTimer_(0.0f),
-      beatIntervals_(), bpmEstimate_(0.0f) {
+      beatIntervals_(), bpmEstimate_(0.0f),
+      kickTimer_(1.0f), clapTimer_(1.0f), hiHatTimer_(1.0f) {
     
     // Create Hann window
     for (int i = 0; i < FFT_SIZE; ++i) {
@@ -32,8 +34,13 @@ void AudioAnalyzer::processAudio(const std::vector<float>& audioBuffer) {
         return;
     }
 
+    float frameDuration = 0.0f;
     if (sampleRate_ > 0.0f) {
-        beatTimer_ += static_cast<float>(audioBuffer.size()) / sampleRate_;
+        frameDuration = static_cast<float>(audioBuffer.size()) / sampleRate_;
+        beatTimer_ += frameDuration;
+        kickTimer_ += frameDuration;
+        clapTimer_ += frameDuration;
+        hiHatTimer_ += frameDuration;
         if (beatTimer_ > 3.0f) {
             // If we lose the beat for a while, slowly decay the BPM estimate
             bpmEstimate_ *= 0.98f;
@@ -81,18 +88,26 @@ void AudioAnalyzer::performFFT(const std::vector<float>& input) {
 void AudioAnalyzer::extractFeatures() {
     const float BIN_RESOLUTION = sampleRate_ / static_cast<float>(FFT_SIZE);
     const int SPECTRUM_SIZE_LOCAL = FFT_SIZE / 2;
-    
+
     // Calculate frequency band indices
     int bassStart = 0;
     int bassEnd = static_cast<int>(120.0f / BIN_RESOLUTION);
     int midEnd = static_cast<int>(2000.0f / BIN_RESOLUTION);
     int highEnd = static_cast<int>(12000.0f / BIN_RESOLUTION);
-    
+    int clapStart = static_cast<int>(500.0f / BIN_RESOLUTION);
+    int clapEnd = static_cast<int>(2500.0f / BIN_RESOLUTION);
+    int hiHatStart = static_cast<int>(6000.0f / BIN_RESOLUTION);
+    int hiHatEnd = highEnd;
+
     // Clamp values
     bassEnd = std::min(bassEnd, SPECTRUM_SIZE_LOCAL);
     midEnd = std::min(midEnd, SPECTRUM_SIZE_LOCAL);
     highEnd = std::min(highEnd, SPECTRUM_SIZE_LOCAL);
-    
+    clapStart = std::clamp(clapStart, bassEnd, SPECTRUM_SIZE_LOCAL);
+    clapEnd = std::clamp(clapEnd, clapStart + 1, SPECTRUM_SIZE_LOCAL);
+    hiHatStart = std::clamp(hiHatStart, midEnd, SPECTRUM_SIZE_LOCAL);
+    hiHatEnd = std::clamp(hiHatEnd, hiHatStart + 1, SPECTRUM_SIZE_LOCAL);
+
     // Calculate energy in different bands
     features_.bassEnergy = 0.0f;
     for (int i = bassStart; i < bassEnd; ++i) {
@@ -108,7 +123,17 @@ void AudioAnalyzer::extractFeatures() {
     for (int i = midEnd; i < highEnd; ++i) {
         features_.highEnergy += spectrum_[i];
     }
-    
+
+    float clapBandEnergy = 0.0f;
+    for (int i = clapStart; i < clapEnd; ++i) {
+        clapBandEnergy += spectrum_[i];
+    }
+
+    float hiHatBandEnergy = 0.0f;
+    for (int i = hiHatStart; i < hiHatEnd; ++i) {
+        hiHatBandEnergy += spectrum_[i];
+    }
+
     // Total energy (RMS approximation)
     features_.energy = features_.bassEnergy + features_.midEnergy + features_.highEnergy + 1e-6f;
 
@@ -116,6 +141,15 @@ void AudioAnalyzer::extractFeatures() {
     features_.bassShare = features_.bassEnergy * invEnergy;
     features_.midShare = features_.midEnergy * invEnergy;
     features_.highShare = features_.highEnergy * invEnergy;
+
+    // Update band EMAs for adaptive thresholds (keep in raw energy domain)
+    const float EMA_ALPHA = 0.12f;
+    auto updateEMA = [EMA_ALPHA](float ema, float value) {
+        return (1.0f - EMA_ALPHA) * ema + EMA_ALPHA * value;
+    };
+    bassEnergyEMA_ = updateEMA(bassEnergyEMA_, features_.bassEnergy);
+    midEnergyEMA_ = updateEMA(midEnergyEMA_, clapBandEnergy);
+    highEnergyEMA_ = updateEMA(highEnergyEMA_, hiHatBandEnergy);
 
     // Onset detection based on raw energy changes
     float energyRatio = features_.energy / (previousEnergyRaw_ + 1e-6f);
@@ -144,6 +178,41 @@ void AudioAnalyzer::extractFeatures() {
     }
 
     features_.bpm = bpmEstimate_;
+
+    // Kick detection: strong bass spike on onset
+    bool kickDetected = false;
+    if (features_.onset > 0.5f && kickTimer_ > 0.08f) {
+        float kickThreshold = std::max(bassEnergyEMA_ * 1.6f, 0.0025f);
+        if (features_.bassEnergy > kickThreshold) {
+            kickDetected = true;
+            kickTimer_ = 0.0f;
+        }
+    }
+    features_.kick = kickDetected ? 1.0f : 0.0f;
+
+    // Clap detection: mid-band burst with onset and moderate bass dominance
+    bool clapDetected = false;
+    if (features_.onset > 0.5f && clapTimer_ > 0.1f) {
+        float clapThreshold = std::max(midEnergyEMA_ * 1.4f, 0.0015f);
+        float bassShareLimit = 0.55f;
+        if (clapBandEnergy > clapThreshold && features_.bassShare < bassShareLimit) {
+            clapDetected = true;
+            clapTimer_ = 0.0f;
+        }
+    }
+    features_.clap = clapDetected ? 1.0f : 0.0f;
+
+    // Hi-hat detection: persistent high-frequency spikes
+    bool hiHatDetected = false;
+    if (hiHatTimer_ > 0.05f) {
+        float hiHatThreshold = std::max(highEnergyEMA_ * 1.35f, 0.001f);
+        float highShareGuard = 0.18f;
+        if (hiHatBandEnergy > hiHatThreshold && features_.highShare > highShareGuard) {
+            hiHatDetected = true;
+            hiHatTimer_ = 0.0f;
+        }
+    }
+    features_.hiHat = hiHatDetected ? 1.0f : 0.0f;
 }
 
 void AudioAnalyzer::smoothFeatures() {
@@ -159,6 +228,9 @@ void AudioAnalyzer::smoothFeatures() {
     smoothedFeatures_.highShare = smoothedFeatures_.highShare * (1.0f - ALPHA) + features_.highShare * ALPHA;
     smoothedFeatures_.onset = features_.onset; // No smoothing for onset
     smoothedFeatures_.beat = features_.beat;   // No smoothing for beat
+    smoothedFeatures_.kick = features_.kick;
+    smoothedFeatures_.clap = features_.clap;
+    smoothedFeatures_.hiHat = features_.hiHat;
     smoothedFeatures_.bpm = smoothedFeatures_.bpm * (1.0f - BPM_ALPHA) + features_.bpm * BPM_ALPHA;
 
     features_ = smoothedFeatures_;

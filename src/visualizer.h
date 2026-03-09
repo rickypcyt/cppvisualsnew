@@ -7,6 +7,7 @@
 #include <random>
 #include <string>
 #include <vector>
+#include <array>
 #include "audio_analyzer.h"
 #include "shader.h"
 
@@ -75,6 +76,44 @@ private:
         LegacyColorAdjust adjust;
     };
 
+    struct CoreState {
+        float radius = 0.0f;
+        float baseRadius = 0.0f;
+        float pulse = 0.0f;
+        float energy = 0.0f;
+        float kickEnvelope = 0.0f;
+        float harmonicEnvelope = 0.0f;
+    };
+
+    struct GearNode {
+        float x;
+        float y;
+        float radius;
+        float baseRadius;
+        float ringRadius;
+        float angle;
+        float angularVelocity;
+        float orbitAngle;
+        float orbitSpeed;
+        int teeth;
+        float jitterPhase;
+        float orbitDirection;
+        float anchorAngle;
+        float anchorRadius;
+        int ringIndex;
+        float baseOffsetRadius;
+        float baseOffsetAngle;
+        float baseCenterX;
+        float baseCenterY;
+    };
+
+    struct LifeCellGrid {
+        static constexpr int WIDTH = 96;
+        static constexpr int HEIGHT = 96;
+        std::array<uint8_t, WIDTH * HEIGHT> cells{};
+        std::array<uint8_t, WIDTH * HEIGHT> next{};
+    };
+
     GLFWwindow* window_;
     int windowWidth_;
     int windowHeight_;
@@ -121,6 +160,15 @@ private:
     std::vector<ColorPreset> colorPresets_;
     int currentPresetIndex_;
 
+    CoreState core_;
+    std::vector<GearNode> gears_;
+    LifeCellGrid lifeGrid_;
+    float lifeTimeAccumulator_ = 0.0f;
+    float gearSpawnRadius_ = 0.0f;
+    float lastLifeSeedTime_ = 0.0f;
+    float idleState_ = 0.0f;
+    float idlePhase_ = 0.0f;
+
     bool setupOpenGL();
     bool setupGeometry();
     bool loadShaders();
@@ -160,6 +208,18 @@ private:
     void renderLegacyRings(float mid, float animatedTime, float motionBlend);
     void renderLegacySparkles(float bass, float high, float animatedTime, float motionBlend);
     void renderLegacyWaveform(float animatedTime, float motionBlend);
+
+    void initializeDynamicSystems();
+    void updateCore(float dt, const AudioAnalyzer::AudioFeatures& features);
+    float sampleCoreEnergyField(float x, float y) const;
+    void updateGears(float dt, const AudioAnalyzer::AudioFeatures& features);
+    void renderGears(float animatedTime) const;
+
+    void seedLifeFromCore(float amount);
+    void updateLife(float dt, const AudioAnalyzer::AudioFeatures& features);
+    void renderLife(float animatedTime) const;
+    void renderIdleSpinner(float animatedTime) const;
+
 };
 
 #endif // VISUALIZER_H
