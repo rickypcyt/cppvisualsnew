@@ -42,47 +42,37 @@ out float vAngle;
 out float vActivation;
 out float vProfile;
 
-float hash11(float x) {
-    return fract(sin(x) * 43758.5453);
-}
-
 void main() {
     float baseScale = min(uResolution.x, uResolution.y);
     float profile = aParams.w;
 
-    float spectralDrive = uEnergy * 0.55 + uBass * 0.35 + uMid * 0.25 + uHigh * 0.28;
-    float rhythmDrive = uOnset * 0.9 + uBeat * 1.05 + uPulse * 0.45 + uKick * 0.4;
-    float spawn = clamp(spectralDrive + rhythmDrive, 0.0, 2.8);
-
-    float rawActivation = clamp(spawn - profile * 0.35, 0.0, 1.2);
-    float activation = smoothstep(0.02, 0.8, rawActivation);
-    activation = clamp(activation + (1.0 - profile) * 0.3, 0.0, 1.0);
+    float spectralDrive = uEnergy * 0.35 + uBass * 0.28 + uMid * 0.24 + uHigh * 0.2;
+    float rhythmDrive = uOnset * 0.45 + uBeat * 0.55 + uPulse * 0.3 + uKick * 0.25;
+    float blended = spectralDrive * (0.65 + profile * 0.15) + rhythmDrive * (0.45 + profile * 0.1);
+    float activation = smoothstep(0.08, 0.95 + profile * 0.1, clamp(blended, 0.0, 1.6));
+    activation = mix(activation, pow(activation, 0.7), 0.6);
 
     vec2 basePos = aCornerPos;
-    float wobble = sin(uTime * (0.6 + uTempo * 0.2) + basePos.x * 3.1 + basePos.y * 2.2);
-    vec2 offset = vec2(wobble, wobble * 0.4) * (0.02 + 0.015 * activation);
+    vec2 drift = vec2(sin(uTime * 0.55 + basePos.x * 2.8),
+                      cos(uTime * 0.5 + basePos.y * 2.4)) * (0.012 + 0.01 * activation);
 
-    float orbitRadius = aParams.y * (0.4 + activation * 2.2);
-    float orbitSpeed = 0.7 + uTempo * 0.5 + profile * 0.35;
-    float orbitPhase = aParams.z + uTime * orbitSpeed + uBeat * (0.4 + profile * 0.25);
+    float orbitRadius = aParams.y * (0.25 + activation * 1.1);
+    float orbitSpeed = 0.35 + uTempo * 0.25 + profile * 0.2;
+    float orbitPhase = aParams.z + uTime * orbitSpeed + uBeat * (0.2 + profile * 0.15);
     vec2 orbit = vec2(cos(orbitPhase), sin(orbitPhase)) * orbitRadius;
 
-    float jitterSeed = hash11(gl_VertexID * 3.71 + profile * 17.3 + uTime * 0.23);
-    vec2 jitter = vec2(cos(orbitPhase + jitterSeed * 6.28318),
-                       sin(orbitPhase - jitterSeed * 4.71239)) * (0.01 + activation * 0.03);
+    vec2 pos = basePos + drift + orbit;
 
-    vec2 pos = basePos + offset + orbit + jitter * profile;
-
-    float baseSize = aParams.x;
-    float sizeBoost = 0.14 + profile * 0.1;
-    float size = baseScale * activation * (baseSize + activation * sizeBoost + uHigh * 0.04 + uOnset * 0.05);
+    float baseSize = baseScale * aParams.x;
+    float eased = mix(activation, smoothstep(0.0, 1.0, activation), 0.7);
+    float size = baseSize * (0.55 + eased * (0.7 + profile * 0.35)) + baseScale * 0.01f;
 
     gl_Position = vec4(pos, 0.0, 1.0);
     gl_PointSize = size;
 
     vSize = size;
-    vAngle = atan(pos.y, pos.x);
-    vActivation = activation;
+    vAngle = orbitPhase;
+    vActivation = eased;
     vProfile = profile;
 }
 )";
@@ -111,37 +101,39 @@ void main() {
     if (dist > 1.0) discard;
 
     float activation = clamp(vActivation, 0.0, 1.0);
-    float profileMask = smoothstep(0.0, 0.5, vProfile);
+    float profile = clamp(vProfile, 0.0, 1.0);
+    float eased = smoothstep(0.0, 1.0, activation);
 
-    float petal = abs(sin(vAngle * (5.0 + uMid * 3.0 + activation * 2.0) + uv.x * 4.0 + uPulse * 2.2));
-    float ring = smoothstep(0.9, 0.35, dist) - smoothstep(0.6, 0.12, dist);
-    float inner = smoothstep(0.45, 0.0, dist);
+    float coreRadius = 0.32 + profile * 0.08 + eased * 0.04;
+    float auraRadius = 0.78 + profile * 0.09;
+    float ringCenter = 0.55 + profile * 0.05;
 
-    vec3 baseColor = vec3(0.18 + uBass * 0.6,
-                          0.22 + uMid * 0.5,
-                          0.3 + uHigh * 0.8);
-    vec3 neon = vec3(0.55 + uHigh * 0.8,
-                     0.4 + uMid * 0.7,
-                     1.05 + uBass * 0.4);
-    vec3 rim = vec3(0.9, 0.85, 1.0);
+    float core = exp(-pow(dist / coreRadius, 2.2));
+    float aura = exp(-pow(dist / auraRadius, 4.0));
+    float ring = exp(-pow((dist - ringCenter) * (3.4 + eased * 1.8), 2.0));
 
-    vec2 grid = fract((uv + vec2(1.0)) * (2.0 + profileMask * 1.5 + activation * 2.0)) - 0.5;
-    float cluster = smoothstep(0.45, 0.0, length(grid)) * activation * profileMask;
+    float wave = sin(vAngle + uTime * (0.9 + uTempo * 0.35));
+    float shimmer = 0.5 + 0.5 * sin(uTime * (1.6 + uTempo * 0.4) + profile * 3.1);
+    float spectral = clamp(uBass * 0.32 + uMid * 0.44 + uHigh * 0.58, 0.0, 2.0);
 
-    float swirl = sin(uTime * (4.0 + uTempo * 1.2 + vProfile * 0.6) + vAngle * 3.4 + uv.y * 6.5);
-    float shard = smoothstep(0.7, 0.0, length(vec2(uv.x + sin(vAngle * 2.0), uv.y + cos(vAngle * 2.0)))) * activation;
+    vec3 baseColor = vec3(0.14 + uBass * 0.42,
+                          0.2 + uMid * 0.52,
+                          0.28 + uHigh * 0.68);
+    vec3 glowColor = vec3(0.68 + uHigh * 0.72,
+                          0.36 + uMid * 0.46,
+                          1.08 + uBass * 0.42);
+    vec3 ringColor = vec3(0.88 + 0.18 * spectral,
+                          0.48 + 0.2 * uMid,
+                          1.24 + 0.26 * uBass);
 
-    vec3 color = baseColor * (inner * (0.65 + activation * 0.45));
-    color += neon * petal * (0.35 + activation * 0.6);
-    color += neon.zyx * cluster * (0.5 + activation * 0.6);
-    color += rim * ring * (0.4 + activation * 0.6 + max(0.0, swirl) * (0.2 + profileMask * 0.3));
-    color += rim * shard * (0.20 + activation * 0.35 + profileMask * 0.25);
+    vec3 color = baseColor * core * (0.62 + eased * 0.48 + spectral * 0.12);
+    color += glowColor * aura * (0.3 + eased * (0.4 + 0.25 * shimmer));
+    color += ringColor * ring * (0.22 + eased * 0.4 + 0.12 * wave);
 
-    float alpha = inner * (0.35 + uEnergy * 0.35 + activation * 0.45);
-    alpha += ring * (0.4 + activation * 0.5);
-    alpha += petal * (0.25 + activation * 0.35);
-    alpha += cluster * 0.55;
-    alpha = clamp(alpha, 0.0, 1.0);
+    float alpha = core * (0.58 + eased * 0.34)
+                + aura * (0.26 + eased * 0.32)
+                + ring * (0.18 + eased * 0.24);
+    alpha = clamp(alpha, 0.0, 0.92);
 
     FragColor = vec4(color, alpha);
 }
@@ -1966,22 +1958,11 @@ void Visualizer::setupCornerQuad() {
         float profile;
     };
 
-    std::array<CornerVertex, 12> corners = {
-        CornerVertex{-0.9f,  0.9f, 0.08f, 0.015f,  0.0f, 0.05f},
-        CornerVertex{-0.9f,  0.9f, 0.05f, 0.035f,  1.2f, 0.35f},
-        CornerVertex{-0.9f,  0.9f, 0.035f, 0.055f, -1.4f, 0.65f},
-
-        CornerVertex{ 0.9f,  0.9f, 0.078f, 0.018f,  0.7f, 0.1f},
-        CornerVertex{ 0.9f,  0.9f, 0.052f, 0.032f, -0.9f, 0.42f},
-        CornerVertex{ 0.9f,  0.9f, 0.04f, 0.058f,  2.1f, 0.72f},
-
-        CornerVertex{-0.9f, -0.9f, 0.082f, 0.02f,  0.6f, 0.12f},
-        CornerVertex{-0.9f, -0.9f, 0.05f, 0.038f, -1.8f, 0.38f},
-        CornerVertex{-0.9f, -0.9f, 0.037f, 0.06f,   1.4f, 0.68f},
-
-        CornerVertex{ 0.9f, -0.9f, 0.076f, 0.018f, -0.4f, 0.08f},
-        CornerVertex{ 0.9f, -0.9f, 0.052f, 0.034f,  1.7f, 0.48f},
-        CornerVertex{ 0.9f, -0.9f, 0.038f, 0.056f, -2.3f, 0.74f}
+    std::array<CornerVertex, 4> corners = {
+        CornerVertex{-0.88f,  0.88f, 0.075f, 0.020f,  0.0f, 0.10f},
+        CornerVertex{ 0.88f,  0.88f, 0.072f, 0.022f,  1.3f, 0.35f},
+        CornerVertex{-0.88f, -0.88f, 0.078f, 0.024f, -1.6f, 0.55f},
+        CornerVertex{ 0.88f, -0.88f, 0.074f, 0.021f,  2.2f, 0.78f}
     };
 
     cornerVertexCount_ = static_cast<GLsizei>(corners.size());
