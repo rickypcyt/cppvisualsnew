@@ -291,7 +291,9 @@ void Visualizer::renderMainImGuiWindow() {
                 "Liquid Refraction",
                 "Starfield Warp",
                 "Plasma Classic",
-                "Domain Warped Fractal"
+                "Domain Warped Fractal",
+                "Fractal Tunnel",
+                "Volumetric Starfield"
             };
             int modeIndex = std::clamp(proceduralLayerMode_, 0, static_cast<int>(std::size(kProceduralModes)) - 1);
             if (ImGui::BeginCombo("Modo", kProceduralModes[modeIndex])) {

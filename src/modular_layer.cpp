@@ -81,6 +81,29 @@ vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(2.0 * PI * (c * t + d));
 }
 
+const int kVolIterations = 17;
+const int kVolSteps = 20;
+const float kVolStepSize = 0.1;
+const float kVolZoom = 0.8;
+const float kVolTile = 0.85;
+const float kVolSpeed = 0.01;
+const float kVolBrightness = 0.0015;
+const float kVolDarkMatter = 0.3;
+const float kVolDistFading = 0.73;
+const float kVolSaturation = 0.85;
+const float kVolFormuParam = 0.53;
+const int kSnowLayers = 8;
+const vec2 kSnowOffset = vec2(0.02, -0.2);
+
+float happyStar(vec2 uv, float anim) {
+    uv = abs(uv);
+    vec2 denom = max(abs(uv.yx), vec2(0.0005));
+    vec2 pos = min(uv.xy / denom, vec2(anim));
+    float p = 2.0 - pos.x - pos.y;
+    float denomSum = max(uv.x + uv.y, 0.0005);
+    return (2.0 + p * (p * p - 1.5)) / denomSum;
+}
+
 float voronoi(vec2 p, out float edge, out float cellSeed) {
     vec2 n = floor(p);
     vec2 f = fract(p);
@@ -473,6 +496,145 @@ vec4 renderDomainWarpedFractal(vec2 st, float time, float tempo, float energy, f
     return vec4(color, alpha);
 }
 
+vec4 renderVolumetricStarfield(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
+    float aspect = max(uResolution.x / uResolution.y, 0.0001);
+    vec2 uv = vec2(st.x / aspect, st.y / aspect);
+
+    float temporalSpeed = kVolSpeed + tempo * 0.004 + energy * 0.008;
+    float twist = sin(time * (12.0 + high * 6.0)) * 0.1 + 1.0;
+
+    vec3 dir = normalize(vec3(uv * (kVolZoom + energy * 0.25), 1.0));
+
+    vec3 color = vec3(0.0);
+    for (int layer = 0; layer < kSnowLayers; ++layer) {
+        float layerFrac = float(layer) / float(kSnowLayers);
+        float d = fract(layerFrac + time * temporalSpeed);
+        float s = mix(40.0, 0.5, d);
+        float layerFade = d * smoothstep(1.0, 0.8, d);
+
+        vec2 snowUV = kSnowOffset + uv - vec2(0.25 * sin(time * 0.2 + layerFrac * 3.14), 0.0);
+        vec2 id = floor(snowUV * s + layerFrac * 50.0);
+        vec2 p = fract(snowUV * s + layerFrac * 50.0) - 0.5;
+
+        float randSeed = hash(id + layerFrac);
+        float randPhase = randSeed * 6.28318;
+        p += vec2(sin(time + randPhase), cos(time + randPhase)) * 0.3;
+
+        float starValue = happyStar(p * 10.0, twist);
+        float flake = smoothstep(1.5, 0.0, starValue);
+
+        vec3 snowColor = mix(uPrimaryColor, uSecondaryColor, clamp(0.5 + randSeed * 0.5, 0.0, 1.0));
+        color += snowColor * 0.05 * layerFade * flake;
+        color += clamp(uv.y * -0.08 + uv.y * abs(uv.x * 2.5) * -0.07, 0.0, 1.0);
+    }
+    color *= max(1.0 - dot(uv, uv) * 20.6, 0.0);
+
+    vec3 baseMix = mix(uPrimaryColor, uSecondaryColor, clamp(0.35 + high * 0.4, 0.0, 1.0));
+    vec3 from = baseMix * color;
+
+    float s = 0.1;
+    float fade = 1.0;
+    vec3 accum = vec3(0.0);
+    vec3 v = vec3(0.0);
+    float rotationAngle = time * (0.01 + mid * 0.01);
+    mat2 rot = mat2(cos(rotationAngle), sin(rotationAngle), -sin(rotationAngle), cos(rotationAngle));
+
+    for (int r = 0; r < kVolSteps; ++r) {
+        vec3 pos = from + s * dir * 0.5;
+        pos = abs(vec3(kVolTile) - mod(pos, vec3(kVolTile * 2.0)));
+        vec3 pp = pos;
+        float pa = 0.0;
+        float a = 0.0;
+
+        for (int i = 0; i < kVolIterations; ++i) {
+            float denom = max(dot(pp, pp), 0.0001);
+            pp = abs(pp) / denom - vec3(kVolFormuParam);
+            pp.xy = rot * pp.xy;
+            float len = length(pp);
+            a += abs(len - pa);
+            pa = len;
+        }
+
+        float dm = max(0.0, kVolDarkMatter - a * a * 0.001);
+        a *= a * a;
+
+        if (r > 6) {
+            fade *= 1.5 - dm;
+        }
+
+        vec3 weight = vec3(s, s * s, s * s * s * s);
+        v += weight * a * (kVolBrightness + energy * 0.0008) * fade;
+        fade *= kVolDistFading + bass * 0.05;
+        s += kVolStepSize;
+    }
+
+    v = mix(vec3(length(v)), v, kVolSaturation + high * 0.05);
+    vec3 result = v * 0.00501 + color * 0.1;
+    result = clamp(result, 0.0, 1.0);
+    float alpha = clamp(length(result) * 0.9 + energy * 0.35, 0.0, 1.0);
+    return vec4(result, alpha);
+}
+
+vec4 renderFractalTunnel(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
+    vec2 uv = st * (1.1 + energy * 0.25);
+    float twist = sin(time * 0.3) * 0.4 + mid * 0.6;
+    uv = rotate(uv, twist);
+    vec3 dir = normalize(vec3(uv, 1.5));
+    float speed = 1.05 + tempo * 0.7 + energy * 0.45;
+    float travel = time * speed;
+    vec3 accum = vec3(0.0);
+    float alpha = 0.0;
+    float fade = 1.0;
+
+    for (int i = 0; i < 36; ++i) {
+        float t = float(i) * 0.18;
+        vec3 pos = dir * (t + travel);
+        pos.z = mod(pos.z, 4.0) - 2.0;
+
+        float radius = length(pos.xy);
+        float angle = atan(pos.y, pos.x);
+        float sectors = 6.0 + floor(mid * 8.0);
+        float sectorAngle = 2.0 * PI / max(sectors, 1.0);
+        float folded = abs(mod(angle, sectorAngle) - sectorAngle * 0.5);
+        float petals = exp(-folded * folded * (18.0 + high * 18.0));
+
+        vec2 coord1 = pos.xy * (2.8 + high * 1.3) + vec2(pos.z * 0.8, pos.z * 0.5);
+        vec2 coord2 = pos.yz * (2.2 + energy * 0.8) - vec2(time * 0.18, time * 0.22);
+        float warpA = fbm(coord1 + vec2(time * 0.25, -time * 0.21));
+        float warpB = fbm(coord2);
+        float shell = sin((pos.z + travel) * (4.0 + bass * 3.5) + warpA * 4.0);
+        float rings = smoothstep(0.25, 0.85, shell * 0.5 + 0.5);
+
+        float targetRadius = 0.85 + warpA * 0.35 + sin((pos.z + travel) * 1.6) * 0.12;
+        float radial = exp(-pow(radius - targetRadius, 2.0) * (10.0 + bass * 9.0));
+
+        float density = petals * rings * (0.55 + warpB * 0.45);
+        density *= radial;
+        density = clamp(density, 0.0, 1.0);
+
+        float distFade = exp(-t * (0.45 + energy * 0.18));
+        float beat = 0.5 + 0.5 * sin(travel * 1.5 + bass * 3.0);
+
+        vec3 layerColor = mix(uPrimaryColor, uSecondaryColor, clamp(warpA * 0.5 + 0.5, 0.0, 1.0));
+        layerColor += vec3(0.32, 0.14, 0.45) * petals * (0.35 + high * 0.6);
+        layerColor += vec3(0.08, 0.13, 0.18) * rings * (0.3 + bass * 0.45);
+        layerColor = clamp(layerColor, 0.0, 1.0);
+
+        accum += layerColor * density * distFade * fade;
+        alpha += density * distFade * 0.06 * fade;
+        fade *= (0.96 - high * 0.01);
+    }
+
+    float coreGlow = exp(-dot(uv, uv) * (3.0 + energy * 1.4));
+    vec3 coreColor = mix(uPrimaryColor, uSecondaryColor, clamp(0.5 + 0.5 * sin(travel + high * 2.5), 0.0, 1.0));
+    accum += coreColor * coreGlow * (0.4 + high * 0.4 + energy * 0.3);
+    alpha += coreGlow * (0.18 + energy * 0.15);
+
+    accum = clamp(accum, 0.0, 1.0);
+    alpha = clamp(alpha, 0.0, 1.0);
+    return vec4(accum, alpha);
+}
+
 void main() {
     vec2 st = (vUV - 0.5) * vec2(uResolution.x / uResolution.y, 1.0);
 
@@ -518,6 +680,10 @@ void main() {
         color = renderPlasmaClassic(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 19) {
         color = renderDomainWarpedFractal(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 20) {
+        color = renderFractalTunnel(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 21) {
+        color = renderVolumetricStarfield(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else {
         color = renderDomainWarpedFractal(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
