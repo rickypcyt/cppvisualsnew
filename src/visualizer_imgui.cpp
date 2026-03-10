@@ -162,6 +162,9 @@ void Visualizer::renderMainImGuiWindow() {
     ImGui::Text("🎚️ Sensibilidad Visual");
     ImGui::SliderFloat("##LegacySensitivitySlider", &legacySensitivity_, 0.2f, 3.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
+    ImGui::Text("🎛️ Input Gain");
+    ImGui::SliderFloat("##InputGainSlider", &audioInputGain_, 0.1f, 5.0f, "%.2fx", ImGuiSliderFlags_AlwaysClamp);
+
     // Audio levels visualization
     ImGui::Separator();
     ImGui::Text("📊 Audio Levels:");
@@ -221,6 +224,15 @@ void Visualizer::renderMainImGuiWindow() {
     ImVec4 onsetColor = audioFeatures_.onset > 0.5f ? ImVec4(1.0f, 1.0f, 0.0f, 1.0f) : ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
     ImGui::TextColored(onsetColor, "Onset: %s", audioFeatures_.onset > 0.5f ? "🔴 DETECTED" : "⚪ none");
 
+    ImVec4 kickColor = audioFeatures_.kick > 0.5f ? ImVec4(0.9f, 0.3f, 0.1f, 1.0f) : ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
+    ImGui::TextColored(kickColor, "Kick: %s", audioFeatures_.kick > 0.5f ? "🟥 accent" : "⬜ idle");
+
+    ImVec4 clapColor = audioFeatures_.clap > 0.5f ? ImVec4(0.95f, 0.6f, 0.2f, 1.0f) : ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
+    ImGui::TextColored(clapColor, "Clap: %s", audioFeatures_.clap > 0.5f ? "🟧 accent" : "⬜ idle");
+
+    ImVec4 hiHatColor = audioFeatures_.hiHat > 0.5f ? ImVec4(0.5f, 0.8f, 1.0f, 1.0f) : ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
+    ImGui::TextColored(hiHatColor, "Hi-Hat: %s", audioFeatures_.hiHat > 0.5f ? "🟦 accent" : "⬜ idle");
+
     float bpm = audioFeatures_.bpm;
     ImVec4 bpmColor = bpm > 0.1f ? ImVec4(0.2f, 0.8f, 1.0f, 1.0f) : ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
     ImGui::TextColored(bpmColor, "BPM Estimate: %s", bpm > 0.1f ? (std::to_string(static_cast<int>(std::round(bpm))) + " BPM").c_str() : "--");
@@ -257,19 +269,9 @@ void Visualizer::renderMainImGuiWindow() {
             ImGui::Checkbox("Base", &coreShowBase_);
             ImGui::SameLine();
             ImGui::Checkbox("Corona", &coreShowCorona_);
-            ImGui::SameLine();
-            ImGui::Checkbox("Spokes", &coreShowSpokes_);
-
-            ImGui::Checkbox("Runas", &coreShowRunes_);
-            ImGui::SameLine();
-            ImGui::Checkbox("Sparkles", &coreShowSparkles_);
-            ImGui::SameLine();
-            ImGui::Checkbox("Bloom", &coreShowBloom_);
             ImGui::TreePop();
         }
 
-        ImGui::Checkbox("Chispas shader", &showShaderSparks_);
-        ImGui::SameLine();
         ImGui::Checkbox("Orbes esquina", &showCornerOrbs_);
 
         if (ImGui::TreeNode("Capa procedural")) {
@@ -368,7 +370,6 @@ void Visualizer::renderMainImGuiWindow() {
         colorRow("Barras Medios", legacyColorAdjust_.midBars);
         colorRow("Barras Agudos", legacyColorAdjust_.highBars);
         colorRow("Explosion Beat", legacyColorAdjust_.beatExplosion);
-        colorRow("Anillos", legacyColorAdjust_.rings);
         colorRow("Waveform", legacyColorAdjust_.waveform);
 
         ImGui::EndTable();
@@ -380,11 +381,6 @@ void Visualizer::renderMainImGuiWindow() {
     ImGui::Checkbox("Núcleo", &showLegacyCore_);
     ImGui::SameLine();
     ImGui::Checkbox("Arcos", &showLegacyArcs_);
-    ImGui::SameLine();
-    ImGui::Checkbox("Anillos", &showLegacyRings_);
-
-    ImGui::Checkbox("Wormholes", &showLegacyWaveforms_);
-
     ImGui::Spacing();
     ImGui::Text("�� Controls:");
     ImGui::BulletText("Click buttons to toggle panels");

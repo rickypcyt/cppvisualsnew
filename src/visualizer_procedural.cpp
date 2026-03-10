@@ -45,11 +45,8 @@ void Visualizer::renderProceduralVisualization() {
     
     // 2. Frequency bars around the center
     renderFrequencyBars(smoothBass, smoothMid, smoothHigh);
-    
-    // 3. Rotating rings (mid frequency driven)
-    renderRotatingRings(smoothMid, time_);
-    
-    // 4. High frequency sparkles
+
+    // 3. High frequency sparkles
     renderHighFrequencySparkles(smoothHigh);
     
     // 5. Waveform visualization
@@ -169,31 +166,6 @@ void Visualizer::renderFrequencyBars(float bass, float mid, float high) {
         glBegin(GL_LINES);
         glVertex2f(x1, y1);
         glVertex2f(x2, y2);
-        glEnd();
-    }
-}
-
-void Visualizer::renderRotatingRings(float mid, float time) {
-    float centerX = windowWidth_ / 2.0f;
-    float centerY = windowHeight_ / 2.0f;
-    
-    int numRings = 3;
-    for (int ring = 0; ring < numRings; ++ring) {
-        float radius = 120.0f + ring * 40.0f;
-        float rotation = time * (1.0f + ring * 0.3f) + mid * 2.0f;
-        
-        glColor4f(0.8f, 0.8f, 0.2f, 0.3f);
-        glLineWidth(2.0f);
-        glBegin(GL_LINE_LOOP);
-        
-        int segments = 64;
-        for (int i = 0; i <= segments; ++i) {
-            float angle = 2.0f * M_PI * i / segments + rotation;
-            float x = centerX + cosf(angle) * radius;
-            float y = centerY + sinf(angle) * radius;
-            glVertex2f(x, y);
-        }
-        
         glEnd();
     }
 }

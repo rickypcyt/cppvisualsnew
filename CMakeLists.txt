@@ -78,7 +78,6 @@ add_executable(audio_visualizer
     src/visualizer.cpp
     src/visualizer_diagnostic.cpp
     src/visualizer_console.cpp
-    src/visualizer_triangle.cpp
     src/visualizer_imgui.cpp
     src/visualizer_procedural.cpp
     src/visualizer_legacy.cpp

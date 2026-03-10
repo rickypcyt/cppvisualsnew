@@ -585,30 +585,6 @@ src/visualizer_procedural.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.s
 .PHONY : src/visualizer_procedural.cpp.s
 
-src/visualizer_triangle.o: src/visualizer_triangle.cpp.o
-.PHONY : src/visualizer_triangle.o
-
-# target to build an object file
-src/visualizer_triangle.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o
-.PHONY : src/visualizer_triangle.cpp.o
-
-src/visualizer_triangle.i: src/visualizer_triangle.cpp.i
-.PHONY : src/visualizer_triangle.i
-
-# target to preprocess a source file
-src/visualizer_triangle.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.i
-.PHONY : src/visualizer_triangle.cpp.i
-
-src/visualizer_triangle.s: src/visualizer_triangle.cpp.s
-.PHONY : src/visualizer_triangle.s
-
-# target to generate assembly for a file
-src/visualizer_triangle.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.s
-.PHONY : src/visualizer_triangle.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -675,9 +651,6 @@ help:
 	@echo "... src/visualizer_procedural.o"
 	@echo "... src/visualizer_procedural.i"
 	@echo "... src/visualizer_procedural.s"
-	@echo "... src/visualizer_triangle.o"
-	@echo "... src/visualizer_triangle.i"
-	@echo "... src/visualizer_triangle.s"
 .PHONY : help
 
 

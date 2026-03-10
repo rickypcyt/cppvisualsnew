@@ -8,7 +8,6 @@ audio_visualizer: \
   CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o \
   CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o \
   CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o \
-  CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o \
   CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o \
   CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o \
   CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.o \
@@ -97,8 +96,6 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o:
 CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o:
 
 CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o:
-
-CMakeFiles/audio_visualizer.dir/src/visualizer_triangle.cpp.o:
 
 CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o:
 

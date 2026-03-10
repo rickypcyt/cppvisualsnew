@@ -33,10 +33,12 @@ public:
     bool showDeviceSelector();
     int getSelectedDevice() const { return selectedDevice_; }
     void setSelectedDevice(int device) { selectedDevice_ = device; }
+    float getAudioInputGain() const { return audioInputGain_; }
     void toggleDiagnosticMode() { showDiagnostic_ = !showDiagnostic_; }
     bool isDiagnosticMode() const { return showDiagnostic_; }
     void toggleConsoleMode() { consoleMode_ = !consoleMode_; }
     bool isConsoleMode() const { return consoleMode_; }
+    void handleFeatureToggleKeys();
     
     // No-ImGui methods
     void renderNoImGuiLoop();
@@ -66,7 +68,6 @@ private:
         ColorAdjust midBars;
         ColorAdjust highBars;
         ColorAdjust beatExplosion;
-        ColorAdjust rings;
         ColorAdjust waveform;
     };
 
@@ -157,9 +158,9 @@ private:
     float legacyMotionBlend_;
     float legacyMotionPhase_;
     float legacySensitivity_;
+    float audioInputGain_;
     bool showLegacyCore_;
     bool showLegacyArcs_;
-    bool showLegacyRings_;
     bool showLegacyWaveforms_;
     bool useModernPipeline_;
 
@@ -183,15 +184,18 @@ private:
     float tempoMultiplier_;
     bool mixColorSchemes_;
     bool overlayLegacyOnModern_;
+    bool showLegacyVisualization_;
+    bool showModernCore_;
     bool coreShowBase_;
     bool coreShowCorona_;
     bool coreShowSpokes_;
     bool coreShowRunes_;
     bool coreShowSparkles_;
     bool coreShowBloom_;
-    bool showShaderSparks_;
     bool showCornerOrbs_;
     bool showProceduralLayer_;
+    bool showWaveformOverlay_;
+    bool showPostProcess_;
     bool proceduralLayerDebug_;
     float proceduralLayerOpacity_;
     int proceduralLayerMode_;
@@ -246,7 +250,6 @@ private:
     void renderProceduralVisualization();
     void renderReactiveCircle(float bass, float mid, float high);
     void renderFrequencyBars(float bass, float mid, float high);
-    void renderRotatingRings(float mid, float time);
     void renderHighFrequencySparkles(float high);
     void renderWaveformVisualization();
     
@@ -254,7 +257,6 @@ private:
     void renderLegacyVisualization(bool overlay = false);
     void renderLegacyCircle(float bass, float mid, float high, float motionBlend, float animatedTime);
     void renderLegacyFrequencyBars(float bass, float mid, float high, float motionBlend, float animatedTime);
-    void renderLegacyRings(float mid, float animatedTime, float motionBlend);
     void renderLegacySparkles(float bass, float high, float animatedTime, float motionBlend);
     void renderLegacyWaveform(float animatedTime, float motionBlend);
 

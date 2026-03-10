@@ -73,6 +73,13 @@ void Shader::setUniform3f(const std::string& name, float x, float y, float z) {
     }
 }
 
+void Shader::setUniform4f(const std::string& name, float x, float y, float z, float w) {
+    GLint loc = getUniformLocation(name);
+    if (loc != -1) {
+        glUniform4f(loc, x, y, z, w);
+    }
+}
+
 void Shader::setUniform1i(const std::string& name, int value) {
     GLint loc = getUniformLocation(name);
     if (loc != -1) {

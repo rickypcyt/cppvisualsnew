@@ -15,6 +15,7 @@ public:
     void setUniform1f(const std::string& name, float value);
     void setUniform2f(const std::string& name, float x, float y);
     void setUniform3f(const std::string& name, float x, float y, float z);
+    void setUniform4f(const std::string& name, float x, float y, float z, float w);
     void setUniform1i(const std::string& name, int value);
 
 private:

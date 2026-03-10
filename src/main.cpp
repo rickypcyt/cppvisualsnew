@@ -76,6 +76,12 @@ public:
             // Process audio if new data is available
             if (audioCapture_.hasNewData()) {
                 auto audioBuffer = audioCapture_.getAudioBuffer();
+                float gain = visualizer_.getAudioInputGain();
+                if (gain != 1.0f) {
+                    for (float& sample : audioBuffer) {
+                        sample *= gain;
+                    }
+                }
                 audioAnalyzer_.processAudio(audioBuffer);
                 visualizer_.updateAudioBuffer(audioBuffer); // Update waveform
                 audioCapture_.clearNewDataFlag();
