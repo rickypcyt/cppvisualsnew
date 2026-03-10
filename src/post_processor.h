@@ -2,6 +2,7 @@
 
 #include <GL/glew.h>
 #include <memory>
+#include <array>
 
 #include "shader.h"
 
@@ -16,7 +17,7 @@ public:
 
     void beginCapture(int width, int height);
     void endCapture();
-    void apply(int mode, float strength, float time);
+    void apply(int mode, float strength, float time, const std::array<float, 3>& colorAdjust);
 
     bool isInitialized() const { return initialized_; }
 

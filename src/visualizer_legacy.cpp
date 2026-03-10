@@ -165,6 +165,8 @@ void Visualizer::renderLegacyCircle(float bass, float mid, float high, float mot
     static float harmonicSwell = 0.0f;
     harmonicSwell = harmonicSwell * 0.78f + harmonicEnvelope * 0.22f;
     float harmonicPulse = harmonicSwell * (0.85f + 0.15f * std::sin(animatedTime * 3.2f + harmonicSwell * 1.6f));
+    static float breath = 0.0f;
+    breath = breath * 0.97f + energyMix * 0.03f;
     float kickPulse = kickEnvelope * (1.08f + energyMix * 0.45f);
 
     auto fract = [](float x) {
@@ -214,58 +216,92 @@ void Visualizer::renderLegacyCircle(float bass, float mid, float high, float mot
                                  0.35f,
                                  1.35f);
 
-    glBegin(GL_TRIANGLE_STRIP);
-    for (int i = 0; i <= segments; ++i) {
-        float t = static_cast<float>(i) / segments;
-        float angleBase = t * 6.28318f;
-        float jitterSeed = hash(i * 7.31f + glitchPhase * 0.71f);
-        float jitterAngle = (jitterSeed - 0.5f) * (0.22f + glitchBurst * 0.55f);
-        float angle = angleBase + jitterAngle;
+    float breathing = sinf(animatedTime * (0.6f + breath * 1.2f)) * radius * (0.25f + breath * 0.4f);
+    float globalSpin = animatedTime * (0.2f + energyMix * 0.5f);
 
-        float ripple = sinf(angle * (3.5f + glitchBurst * 1.8f) + animatedTime * (3.0f + glitchBurst * 1.7f)) * radius * (0.14f + 0.05f * glitchBurst)
-                       + harmonicPulse * radius * 0.07f * std::sin(angle * (6.0f + glitchBurst * 2.5f) + animatedTime * 2.8f)
-                       + (jitterSeed - 0.5f) * minDimension * (0.012f + glitchBurst * 0.02f);
+    for (int layer = 0; layer < 3; ++layer) {
+        float layerScale = 1.0f + layer * 0.18f;
+        float layerAlpha = ringAlpha * (1.0f - layer * 0.3f);
+        float layerRadius = radius * layerScale;
+        float layerWobble = wobble * layerScale;
+        float layerBreathing = breathing * layerScale;
 
-        float glitchStep = std::fmod(glitchPhase * 4.0f + i * 0.6f, 1.0f);
-        float angularTear = std::sin(glitchStep * 6.28318f + jitterSeed * 12.0f) * minDimension * (0.01f + glitchBurst * 0.018f);
+        glBegin(GL_TRIANGLE_STRIP);
+        for (int i = 0; i <= segments; ++i) {
+            float t = static_cast<float>(i) / segments;
+            float angleBase = t * 6.28318f;
+            float jitterSeed = hash(i * 7.31f + glitchPhase * 0.71f);
+            float jitterAngle = (jitterSeed - 0.5f) * (0.22f + glitchBurst * 0.55f);
+            float angle = angleBase + jitterAngle;
+            angle += globalSpin;
 
-        float currentRadius = radius + wobble + ripple + angularTear;
-        float innerRadius = std::max(currentRadius - ringThickness * (0.45f + 0.25f * jitterSeed), minDimension * 0.008f);
-        float outerRadius = innerRadius + ringThickness * (0.9f + 0.35f * jitterSeed + 0.25f * glitchBurst);
+            float warp1 = sinf(angle * 4.0f + animatedTime * 2.1f) * 0.15f;
+            float warp2 = cosf(angle * 7.0f - animatedTime * 1.6f) * 0.10f;
+            float warp3 = sinf(angle * 11.0f + animatedTime * 3.4f) * 0.07f;
+            float angleWarp = angle + (warp1 + warp2 + warp3) * (0.4f + energyMix);
 
-        float cosA = cosf(angle);
-        float sinA = sinf(angle);
+            float ripple = sinf(angle * (3.5f + glitchBurst * 1.8f) + animatedTime * (3.0f + glitchBurst * 1.7f)) * layerRadius * (0.14f + 0.05f * glitchBurst)
+                           + harmonicPulse * layerRadius * 0.07f * std::sin(angle * (6.0f + glitchBurst * 2.5f) + animatedTime * 2.8f)
+                           + (jitterSeed - 0.5f) * minDimension * (0.012f + glitchBurst * 0.02f);
 
-        float fillPulse = std::clamp(energyMix * 0.55f + harmonicPulse * 0.35f + glitchBurst * 0.6f, 0.0f, 2.0f);
-        float fillHueShift = jitterSeed * 0.35f;
+            float glitchStep = std::fmod(glitchPhase * 4.0f + i * 0.6f, 1.0f);
+            float angularTear = std::sin(glitchStep * 6.28318f + jitterSeed * 12.0f) * minDimension * (0.01f + glitchBurst * 0.018f);
 
-        setColorWithAdjust(0.45f + 0.55f * energyMix + kickGlow * (0.28f + 0.3f * jitterSeed)
-                           + harmonicGlow * (0.32f + 0.2f * fillHueShift)
-                           + 0.25f * fillPulse,
-                           0.38f + 0.48f * mid + kickGlow * (0.18f + 0.12f * jitterSeed)
-                           + harmonicGlow * (0.38f + 0.22f * fillHueShift)
-                           + 0.18f * fillPulse,
-                           0.68f + 0.7f * high + kickGlow * (0.3f + 0.18f * fillHueShift)
-                           + harmonicGlow * (0.28f + 0.22f * jitterSeed)
-                           + 0.28f * fillPulse,
-                           ringAlpha * 0.6f,
-                           legacyColorAdjust_.circleFill);
-        glVertex2f(centerX + cosA * innerRadius,
-                   centerY + sinA * innerRadius);
+            float currentRadius = layerRadius + layerWobble + ripple + layerBreathing + angularTear;
+            float innerRadius = std::max(currentRadius - ringThickness * (0.45f + 0.25f * jitterSeed), minDimension * 0.008f);
+            float outerRadius = innerRadius + ringThickness * (0.9f + 0.35f * jitterSeed + 0.25f * glitchBurst);
 
-        setColorWithAdjust(0.58f + 0.65f * energyMix + kickGlow * (0.38f + 0.32f * jitterSeed)
-                           + harmonicGlow * (0.42f + 0.28f * fillHueShift)
-                           + 0.32f * fillPulse,
-                           0.48f + 0.55f * mid + kickGlow * (0.24f + 0.15f * jitterSeed)
-                           + harmonicGlow * (0.45f + 0.18f * fillHueShift)
-                           + 0.24f * fillPulse,
-                           0.82f + 0.82f * high + kickGlow * (0.34f + 0.22f * fillHueShift)
-                           + harmonicGlow * (0.35f + 0.25f * jitterSeed)
-                           + 0.34f * fillPulse,
-                           ringAlpha,
-                           legacyColorAdjust_.circleFill);
-        glVertex2f(centerX + cosA * outerRadius,
-                   centerY + sinA * outerRadius);
+            float cosA = cosf(angleWarp);
+            float sinA = sinf(angleWarp);
+
+            float fillPulse = std::clamp(energyMix * 0.55f + harmonicPulse * 0.35f + glitchBurst * 0.6f, 0.0f, 2.0f);
+            float fillHueShift = jitterSeed * 0.35f;
+
+            setColorWithAdjust(0.45f + 0.55f * energyMix + kickGlow * (0.28f + 0.3f * jitterSeed)
+                               + harmonicGlow * (0.32f + 0.2f * fillHueShift)
+                               + 0.25f * fillPulse,
+                               0.38f + 0.48f * mid + kickGlow * (0.18f + 0.12f * jitterSeed)
+                               + harmonicGlow * (0.38f + 0.22f * fillHueShift)
+                               + 0.18f * fillPulse,
+                               0.68f + 0.7f * high + kickGlow * (0.3f + 0.18f * fillHueShift)
+                               + harmonicGlow * (0.28f + 0.22f * jitterSeed)
+                               + 0.28f * fillPulse,
+                               layerAlpha * 0.6f,
+                               legacyColorAdjust_.circleFill);
+            glVertex2f(centerX + cosA * innerRadius,
+                       centerY + sinA * innerRadius);
+
+            setColorWithAdjust(0.58f + 0.65f * energyMix + kickGlow * (0.38f + 0.32f * jitterSeed)
+                               + harmonicGlow * (0.42f + 0.28f * fillHueShift)
+                               + 0.32f * fillPulse,
+                               0.48f + 0.55f * mid + kickGlow * (0.24f + 0.15f * jitterSeed)
+                               + harmonicGlow * (0.45f + 0.18f * fillHueShift)
+                               + 0.24f * fillPulse,
+                               0.82f + 0.82f * high + kickGlow * (0.34f + 0.22f * fillHueShift)
+                               + harmonicGlow * (0.35f + 0.25f * jitterSeed)
+                               + 0.34f * fillPulse,
+                               layerAlpha,
+                               legacyColorAdjust_.circleFill);
+            glVertex2f(centerX + cosA * outerRadius,
+                       centerY + sinA * outerRadius);
+        }
+        glEnd();
+    }
+
+    glBegin(GL_TRIANGLE_FAN);
+    setColorWithAdjust(0.4f, 0.5f, 1.0f, 0.15f, legacyColorAdjust_.bloomInner);
+    glVertex2f(centerX, centerY);
+
+    for (int i = 0; i <= 128; ++i) {
+        float a = i / 128.0f * 6.28318f;
+        float r = radius * (2.5f + sinf(animatedTime + a * 3.0f) * 0.3f);
+
+        glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
+
+        glVertex2f(
+            centerX + cosf(a) * r,
+            centerY + sinf(a) * r
+        );
     }
     glEnd();
 
@@ -411,8 +447,13 @@ void Visualizer::renderLegacyFrequencyBars(float bass, float mid, float high, fl
             for (int edgeIndex = 0; edgeIndex < 2; ++edgeIndex) {
                 float u = (edgeIndex == 0) ? moduleStart : moduleEnd;
                 float baseAngle = u * 6.28318f + floor(moduleSeed * 12.0f) * 0.12f;
-                float spiralOffset = spiralTightness * (layer.radius + u * 0.65f + moduleSeed * 0.35f);
+                float spiralOffset = spiralTightness *
+                                     (layer.radius + u * 0.8f) *
+                                     (1.0f + std::sin(animatedTime * 0.8f + u * 10.0f) * 0.4f);
                 float angle = baseAngle + swirlPhase + spiralOffset;
+
+                float glitch = sinf(animatedTime * 12.0f + module * 3.7f) * 0.15f * std::clamp(high, 0.0f, 1.0f);
+                angle += glitch;
 
                 float mechPulse = (moduleSeed - 0.5f) * 0.85f + std::sin(swirlPhase * 1.1f + module * 1.6f) * 0.35f;
                 float melt = std::sin(baseAngle * (layer.waveFrequency * 1.45f) + animatedTime * 2.7f + moduleSeed * 13.0f)
@@ -420,9 +461,17 @@ void Visualizer::renderLegacyFrequencyBars(float bass, float mid, float high, fl
                 float drip = std::sin(animatedTime * 4.4f + moduleSeed * 11.8f + angle * 3.1f)
                              * thickness * 0.32f * modulePresence * calmScale;
 
+                float flow = std::sin(baseAngle * 5.0f + animatedTime * 1.8f)
+                             + std::sin(baseAngle * 9.0f - animatedTime * 2.1f)
+                             + std::sin(baseAngle * 13.0f + animatedTime * 3.3f);
+                flow *= thickness * (0.25f + energyMix * 0.4f);
+
                 float innerRadius = radius + melt - thickness * (0.75f + mechPulse * 0.35f) + drip * 0.6f;
                 float outerRadius = radius + melt + thickness * (0.85f + mechPulse * 0.45f + std::clamp(high, 0.0f, 1.0f) * 0.35f)
                                     + drip + std::sin(baseAngle * 12.0f + moduleSeed * 20.0f) * thickness * 0.2f;
+
+                innerRadius += flow;
+                outerRadius += flow;
 
                 float cosA = std::cos(angle);
                 float sinA = std::sin(angle);

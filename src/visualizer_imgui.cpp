@@ -293,7 +293,9 @@ void Visualizer::renderMainImGuiWindow() {
                 "Plasma Classic",
                 "Domain Warped Fractal",
                 "Fractal Tunnel",
-                "Volumetric Starfield"
+                "Volumetric Starfield",
+                "Voxel Path Tracer",
+                "Hex Kaleidoscope"
             };
             int modeIndex = std::clamp(proceduralLayerMode_, 0, static_cast<int>(std::size(kProceduralModes)) - 1);
             if (ImGui::BeginCombo("Modo", kProceduralModes[modeIndex])) {
@@ -321,7 +323,15 @@ void Visualizer::renderMainImGuiWindow() {
                 "Filmic",
                 "Digital Wave",
                 "Pulse Shift",
-                "Band Threshold"
+                "Band Threshold",
+                "Radial Burst",
+                "Kaleidoscope",
+                "Digital Glitch",
+                "Pixelate",
+                "Lens Distortion",
+                "Plasma Overlay",
+                "RGB Split",
+                "Recursive Energy"
             };
 
             int currentMode = postProcessMode_;
@@ -343,6 +353,15 @@ void Visualizer::renderMainImGuiWindow() {
             }
 
             ImGui::SliderFloat("Intensidad", &postProcessStrength_, 0.0f, 1.0f, "%.2f");
+            if (postProcessMode_ == 12) {
+                ImGui::SetNextItemWidth(180.0f);
+                ImGui::SliderFloat("Canal R", &postProcessRgbAdjust_[0], 0.0f, 1.5f, "%.2f");
+                ImGui::SetNextItemWidth(180.0f);
+                ImGui::SliderFloat("Canal G", &postProcessRgbAdjust_[1], 0.0f, 1.5f, "%.2f");
+                ImGui::SetNextItemWidth(180.0f);
+                ImGui::SliderFloat("Canal B", &postProcessRgbAdjust_[2], 0.0f, 1.5f, "%.2f");
+                ImGui::TextDisabled("Ajusta cuánto se desplaza cada canal en el split.");
+            }
             ImGui::TreePop();
         }
     }

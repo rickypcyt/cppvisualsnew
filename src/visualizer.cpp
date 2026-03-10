@@ -9,7 +9,8 @@
 #include "imgui.h"
 
 namespace {
-constexpr int kProceduralModeCount = 22;
+constexpr int kProceduralModeCount = 24;
+constexpr int kPostProcessModeCount = 14;
 }
 
 const char* vertexShaderSource = R"(
@@ -27,8 +28,8 @@ void main() {
 
 const char* cornerVertexShaderSource = R"(
 #version 330 core
-layout (location = 0) in vec2 aSeed;         // slot, group
-layout (location = 1) in vec4 aParams;       // sizeFactor, patternId, profile, noise
+layout (location = 0) in vec2 aCornerPos;
+layout (location = 1) in vec4 aParams; // size, orbitRadius, orbitPhase, profile
 
 uniform vec2 uResolution;
 uniform float uTime;
@@ -42,96 +43,52 @@ uniform float uOnset;
 uniform float uBeat;
 uniform float uKick;
 
+out float vSize;
+out float vAngle;
 out float vActivation;
 out float vProfile;
-out float vTwist;
-out float vPatternMix;
-
-const float PI = 3.14159265359;
-
-mat2 rotate(float angle) {
-    float s = sin(angle);
-    float c = cos(angle);
-    return mat2(c, -s, s, c);
-}
 
 void main() {
-    float slot = fract(aSeed.x);
-    float group = floor(aSeed.y + 0.5);
-    float sizeFactor = aParams.x;
-    float patternId = aParams.y;
-    float profile = clamp(aParams.z, 0.0, 1.0);
-    float noise = aParams.w;
-
     float baseScale = min(uResolution.x, uResolution.y);
-    float spectralDrive = uEnergy * 0.32 + uBass * 0.28 + uMid * 0.23 + uHigh * 0.19;
-    float rhythmDrive = uOnset * 0.5 + uBeat * 0.45 + uPulse * 0.3 + uKick * 0.25;
-    float activation = clamp(mix(spectralDrive, rhythmDrive, 0.5 + profile * 0.25), 0.0, 1.6);
-    activation = mix(activation, pow(activation, 0.65), 0.55);
+    float profile = aParams.w;
 
-    float t = uTime * (0.35 + uTempo * 0.28) + noise * 7.31;
-    float aspect = uResolution.x / max(uResolution.y, 1.0);
+    float spectralDrive = uEnergy * 0.35 + uBass * 0.28 + uMid * 0.24 + uHigh * 0.2;
+    float rhythmDrive = uOnset * 0.45 + uBeat * 0.55 + uPulse * 0.3 + uKick * 0.25;
+    float blended = spectralDrive * (0.65 + profile * 0.15) + rhythmDrive * (0.45 + profile * 0.1);
+    float activation = smoothstep(0.08, 0.95 + profile * 0.1, clamp(blended, 0.0, 1.6));
+    activation = mix(activation, pow(activation, 0.7), 0.6);
 
-    vec2 pos = vec2(0.0);
-    float patternMix = 0.0;
+    vec2 basePos = aCornerPos;
+    vec2 drift = vec2(sin(uTime * 0.55 + basePos.x * 2.8),
+                      cos(uTime * 0.5 + basePos.y * 2.4)) * (0.012 + 0.01 * activation);
 
-    if (patternId < 0.5) {
-        float a = slot * 2.0 * PI;
-        float l1 = sin(t * (1.2 + group * 0.12) + a * 2.0);
-        float l2 = sin(t * (1.8 + group * 0.14) + a * 3.0 + noise * 2.0);
-        pos = vec2(l1, l2) * vec2(0.68 + activation * 0.25, 0.48 + activation * 0.2);
-        pos.x *= aspect;
-        patternMix = 0.35 + 0.65 * abs(l1 * l2);
-    } else if (patternId < 1.5) {
-        float sides = mix(3.0, 7.0, clamp(uMid + uHigh * 0.4, 0.0, 1.0));
-        float sideIdx = floor(slot * sides);
-        float angle = sideIdx / sides * 2.0 * PI;
-        float edgeOffset = fract(slot * sides) * 2.0 - 1.0;
-        vec2 vertex = vec2(cos(angle), sin(angle));
-        vec2 edge = vec2(-sin(angle), cos(angle));
-        pos = vertex + edge * edgeOffset * (0.35 + activation * 0.25);
-        float rotateAngle = uTime * (0.18 + uTempo * 0.22) + group * 1.37;
-        pos = rotate(rotateAngle) * pos;
-        pos *= 0.55 + activation * 0.35;
-        pos.x *= aspect;
-        patternMix = 0.6 + 0.4 * abs(edgeOffset);
-    } else {
-        float spiralAngle = slot * 6.0 + uTime * (0.45 + uTempo * 0.3) + group * 0.6;
-        float radius = 0.18 + slot * (0.6 + activation * 0.25);
-        vec2 spiral = vec2(cos(spiralAngle), sin(spiralAngle)) * radius;
-        vec2 sweep = vec2(sin(uTime * 0.22 + group * 1.8), cos(uTime * 0.18 + noise * 5.4)) * (0.2 + activation * 0.15);
-        pos = spiral + sweep;
-        pos.x *= aspect;
-        patternMix = 0.4 + 0.6 * smoothstep(0.0, 0.8, radius);
-    }
+    float orbitRadius = aParams.y * (0.25 + activation * 1.1);
+    float orbitSpeed = 0.35 + uTempo * 0.25 + profile * 0.2;
+    float orbitPhase = aParams.z + uTime * orbitSpeed + uBeat * (0.2 + profile * 0.15);
+    vec2 orbit = vec2(cos(orbitPhase), sin(orbitPhase)) * orbitRadius;
 
-    vec2 drift = vec2(
-        sin(uTime * 0.4 + group * 1.3 + noise * 2.7),
-        cos(uTime * 0.37 + slot * 5.2)
-    ) * (0.08 + activation * 0.04);
-    pos += drift;
+    vec2 pos = basePos + drift + orbit;
 
-    pos = clamp(pos, vec2(-1.4 * aspect, -1.15), vec2(1.4 * aspect, 1.15));
-
-    float size = baseScale * sizeFactor * (0.4 + activation * (0.45 + profile * 0.35));
-    size = clamp(size, baseScale * 0.015, baseScale * 0.22);
+    float baseSize = baseScale * aParams.x;
+    float eased = mix(activation, smoothstep(0.0, 1.0, activation), 0.7);
+    float size = baseSize * (0.55 + eased * (0.7 + profile * 0.35)) + baseScale * 0.01f;
 
     gl_Position = vec4(pos, 0.0, 1.0);
     gl_PointSize = size;
 
-    vActivation = activation;
+    vSize = size;
+    vAngle = orbitPhase;
+    vActivation = eased;
     vProfile = profile;
-    vTwist = slot * 6.28318 + uTime * (0.9 + uTempo * 0.4) + group * 0.7 + noise * 3.3;
-    vPatternMix = clamp(patternMix, 0.0, 1.4);
 }
 )";
 
 const char* cornerFragmentShaderSource = R"(
 #version 330 core
+in float vSize;
+in float vAngle;
 in float vActivation;
 in float vProfile;
-in float vTwist;
-in float vPatternMix;
 
 out vec4 FragColor;
 
@@ -149,39 +106,41 @@ void main() {
     float dist = length(uv);
     if (dist > 1.0) discard;
 
-    float activation = clamp(vActivation, 0.0, 1.4);
+    float activation = clamp(vActivation, 0.0, 1.0);
     float profile = clamp(vProfile, 0.0, 1.0);
-    float twist = vTwist;
-    float patternMix = clamp(vPatternMix, 0.0, 1.4);
+    float eased = smoothstep(0.0, 1.0, activation);
 
-    float inner = exp(-pow(dist / (0.32 + profile * 0.12 + activation * 0.05), 2.3));
-    float halo = exp(-pow(dist / (0.86 + profile * 0.15), 3.4));
-    float ring = exp(-pow((dist - 0.58) * (3.6 + activation * 2.4), 2.1));
-    float petals = pow(max(0.0, cos(atan(uv.y, uv.x) * (4.0 + patternMix * 6.0) + twist)), 4.5);
-    float spokes = smoothstep(0.4, 1.0, petals) * (0.3 + patternMix * 0.6);
+    float coreRadius = 0.32 + profile * 0.08 + eased * 0.04;
+    float auraRadius = 0.78 + profile * 0.09;
+    float ringCenter = 0.55 + profile * 0.05;
 
-    vec3 baseColor = vec3(0.18 + uBass * 0.48,
-                          0.12 + uMid * 0.36,
-                          0.28 + uHigh * 0.55);
-    vec3 glowColor = vec3(0.72 + uHigh * 0.60,
-                          0.42 + uMid * 0.52,
-                          1.05 + uBass * 0.45);
-    vec3 accentColor = vec3(0.26 + profile * 0.40,
-                            0.18 + profile * 0.25,
-                            0.52 + profile * 0.35);
+    float core = exp(-pow(dist / coreRadius, 2.2));
+    float aura = exp(-pow(dist / auraRadius, 4.0));
+    float ring = exp(-pow((dist - ringCenter) * (3.4 + eased * 1.8), 2.0));
 
-    vec3 color = baseColor * inner * (0.65 + activation * 0.5);
-    color += glowColor * halo * (0.42 + activation * 0.38);
-    color += accentColor * ring * (0.35 + patternMix * 0.5);
-    color += glowColor.bgr * spokes * (0.3 + activation * 0.25);
+    float wave = sin(vAngle + uTime * (0.9 + uTempo * 0.35));
+    float shimmer = 0.5 + 0.5 * sin(uTime * (1.6 + uTempo * 0.4) + profile * 3.1);
+    float spectral = clamp(uBass * 0.32 + uMid * 0.44 + uHigh * 0.58, 0.0, 2.0);
 
-    float aura = exp(-pow(dist * 0.95, 2.6)) * (0.25 + activation * 0.3 + uEnergy * 0.25);
-    vec3 beatColor = mix(baseColor, glowColor, clamp(uEnergy + uBeat * 0.6, 0.0, 1.0));
-    color += beatColor * aura;
+    vec3 baseColor = vec3(0.14 + uBass * 0.42,
+                          0.2 + uMid * 0.52,
+                          0.28 + uHigh * 0.68);
+    vec3 glowColor = vec3(0.68 + uHigh * 0.72,
+                          0.36 + uMid * 0.46,
+                          1.08 + uBass * 0.42);
+    vec3 ringColor = vec3(0.88 + 0.18 * spectral,
+                          0.48 + 0.2 * uMid,
+                          1.24 + 0.26 * uBass);
 
-    color = clamp(color, 0.0, 1.0);
-    float alpha = clamp(inner * 0.6 + halo * 0.5 + ring * 0.45 + aura * 0.4, 0.0, 1.0);
-    alpha *= smoothstep(1.0, 0.0, dist);
+    vec3 color = baseColor * core * (0.62 + eased * 0.48 + spectral * 0.12);
+    color += glowColor * aura * (0.3 + eased * (0.4 + 0.25 * shimmer));
+    color += ringColor * ring * (0.22 + eased * 0.4 + 0.12 * wave);
+
+    float alpha = core * (0.58 + eased * 0.34)
+                + aura * (0.26 + eased * 0.32)
+                + ring * (0.18 + eased * 0.24);
+    alpha = clamp(alpha, 0.0, 0.92);
+
     FragColor = vec4(color, alpha);
 }
 )";
@@ -1357,11 +1316,33 @@ void main() {
     ro.y += cos(uTime * 0.3) * uBass * 0.3;
     
     vec3 color = raymarch(ro, rd);
-    
+
+    // Reactive square overlay
+    vec2 squareUV = uv;
+    float squareSize = 0.55 + uBass * 0.25 + uEnergy * 0.2;
+    float squareRotation = uTime * 0.35 + uBeat * 2.4;
+    mat2 rot = mat2(cos(squareRotation), -sin(squareRotation), sin(squareRotation), cos(squareRotation));
+    vec2 rotated = rot * squareUV;
+    vec2 absRot = abs(rotated);
+    float edge = max(absRot.x, absRot.y);
+
+    float fillMask = smoothstep(squareSize, squareSize - 0.02, edge);
+    float borderMask = smoothstep(squareSize - 0.025, squareSize - 0.055, edge)
+                     - smoothstep(squareSize - 0.055, squareSize - 0.085, edge);
+    float glowMask = smoothstep(squareSize + 0.18, squareSize - 0.025, edge);
+
+    vec3 fillColor = mix(vec3(0.18, 0.12, 0.45), vec3(0.92, 0.65, 0.38), clamp(uHigh * 0.8 + uEnergy * 0.4, 0.0, 1.0));
+    vec3 borderColor = mix(vec3(0.95, 0.85, 0.35), vec3(0.25, 0.58, 1.0), clamp(uMid + uHigh * 0.6, 0.0, 1.0));
+    vec3 glowColor = mix(vec3(0.08, 0.04, 0.18), vec3(0.65, 0.22, 0.72), clamp(uEnergy * 0.6 + uOnset * 0.6, 0.0, 1.0));
+
+    color = mix(color, fillColor, fillMask * 0.6);
+    color += borderColor * borderMask * (0.6 + uBeat * 0.8 + uOnset * 0.4);
+    color += glowColor * glowMask * (0.45 + uEnergy * 0.6 + uHigh * 0.5);
+
     // Post-processing
     color = pow(color, vec3(0.8)); // Gamma correction
     color = smoothstep(0.0, 1.0, color); // Contrast
-    
+
     // Add scanlines for retro rave feel
     float scanline = sin(TexCoord.y * uResolution.y * 2.0) * 0.02;
     color -= scanline;
@@ -1400,6 +1381,7 @@ Visualizer::Visualizer()
       proceduralLayerMode_(3),
       postProcessMode_(2),
       postProcessStrength_(1.0f),
+      postProcessRgbAdjust_{1.0f, 1.0f, 1.0f},
       legacyMotionBlend_(0.0f), legacyMotionPhase_(0.0f), legacySensitivity_(1.0f),
       showLegacyCore_(true), showLegacyArcs_(true),
       showLegacyWaveforms_(false),
@@ -1741,6 +1723,7 @@ void Visualizer::beginFrame() {
         if (!io || !io->WantCaptureKeyboard) {
             static double lastModeToggle = 0.0;
             static double lastOpacityAdjust = 0.0;
+            static double lastPostProcessToggle = 0.0;
             if ((now - lastModeToggle) > 0.15) {
                 if (glfwGetKey(window_, GLFW_KEY_RIGHT) == GLFW_PRESS) {
                     proceduralLayerMode_ = (proceduralLayerMode_ + 1) % kProceduralModeCount;
@@ -1771,6 +1754,14 @@ void Visualizer::beginFrame() {
                         proceduralLayerOpacity_ = 1.0f;
                     }
                     lastOpacityAdjust = now;
+                }
+            }
+
+            if ((now - lastPostProcessToggle) > 0.25) {
+                if (glfwGetKey(window_, GLFW_KEY_P) == GLFW_PRESS) {
+                    postProcessMode_ = (postProcessMode_ + 1) % kPostProcessModeCount;
+                    showPostProcess_ = postProcessMode_ > 0;
+                    lastPostProcessToggle = now;
                 }
             }
         }
@@ -1846,7 +1837,7 @@ void Visualizer::updateAudioBuffer(const std::vector<float>& audioBuffer) {
 void Visualizer::render() {
     overlayLegacyOnModern_ = true;
 
-    bool usePost = showPostProcess_ && postProcessMode_ != 0 && postProcessStrength_ > 0.0f;
+    bool usePost = showPostProcess_ && postProcessMode_ > 0 && postProcessStrength_ > 0.0f;
 
     if (usePost) {
         postProcessor_.beginCapture(windowWidth_, windowHeight_);
@@ -1874,12 +1865,6 @@ void Visualizer::render() {
 
     renderIdleSpinner(time_);
 
-    if (imguiInitialized_ && showImGuiWindow_) {
-        renderImGui();
-    } else if (!imguiInitialized_) {
-        renderGUI();
-    }
-
     if (usePost) {
         postProcessor_.endCapture();
 
@@ -1889,7 +1874,13 @@ void Visualizer::render() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         float strength = std::clamp(postProcessStrength_, 0.0f, 1.0f);
-        postProcessor_.apply(postProcessMode_, strength, time_);
+        postProcessor_.apply(postProcessMode_, strength, time_, postProcessRgbAdjust_);
+    }
+
+    if (imguiInitialized_ && showImGuiWindow_) {
+        renderImGui();
+    } else if (!imguiInitialized_) {
+        renderGUI();
     }
 }
 
@@ -1998,57 +1989,34 @@ void Visualizer::setupCornerQuad() {
         cornerVBO_ = 0;
     }
 
-    struct CornerOrb {
-        float slot;
-        float group;
-        float sizeFactor;
-        float patternId;
+    struct CornerVertex {
+        float x;
+        float y;
+        float size;
+        float orbitRadius;
+        float orbitPhase;
         float profile;
-        float noise;
     };
 
-    std::vector<CornerOrb> orbs;
-    std::uniform_real_distribution<float> random01(0.0f, 1.0f);
-    std::uniform_real_distribution<float> randomSize(0.04f, 0.085f);
-    std::uniform_real_distribution<float> randomProfile(0.0f, 1.0f);
+    std::array<CornerVertex, 4> corners = {
+        CornerVertex{-0.88f,  0.88f, 0.075f, 0.020f,  0.0f, 0.10f},
+        CornerVertex{ 0.88f,  0.88f, 0.072f, 0.022f,  1.3f, 0.35f},
+        CornerVertex{-0.88f, -0.88f, 0.078f, 0.024f, -1.6f, 0.55f},
+        CornerVertex{ 0.88f, -0.88f, 0.074f, 0.021f,  2.2f, 0.78f}
+    };
 
-    const int lissajousOrbs = 48;
-    for (int i = 0; i < lissajousOrbs; ++i) {
-        float slot = (static_cast<float>(i) + random01(rng_) * 0.25f) / static_cast<float>(lissajousOrbs);
-        orbs.push_back({slot, 0.0f, randomSize(rng_), 0.0f, randomProfile(rng_) * 0.45f, random01(rng_)});
-    }
-
-    const int polygonSidesSamples = 56;
-    for (int i = 0; i < polygonSidesSamples; ++i) {
-        float slot = (static_cast<float>(i) + random01(rng_) * 0.2f) / static_cast<float>(polygonSidesSamples);
-        orbs.push_back({slot, 1.0f, randomSize(rng_), 1.0f, 0.35f + randomProfile(rng_) * 0.4f, random01(rng_)});
-    }
-
-    const int spiralCount = 64;
-    for (int i = 0; i < spiralCount; ++i) {
-        float slot = (static_cast<float>(i) + random01(rng_) * 0.35f) / static_cast<float>(spiralCount);
-        orbs.push_back({slot, 2.0f, randomSize(rng_) * 0.9f, 2.0f, 0.55f + randomProfile(rng_) * 0.35f, random01(rng_)});
-    }
-
-    const int ribbonCount = 48;
-    for (int i = 0; i < ribbonCount; ++i) {
-        float slot = (static_cast<float>(i) + random01(rng_) * 0.3f) / static_cast<float>(ribbonCount);
-        orbs.push_back({slot, 3.0f, randomSize(rng_) * 0.8f, 1.0f, 0.2f + randomProfile(rng_) * 0.3f, random01(rng_)});
-    }
-
-    cornerVertexCount_ = static_cast<GLsizei>(orbs.size());
+    cornerVertexCount_ = static_cast<GLsizei>(corners.size());
 
     glGenVertexArrays(1, &cornerVAO_);
     glGenBuffers(1, &cornerVBO_);
 
     glBindVertexArray(cornerVAO_);
     glBindBuffer(GL_ARRAY_BUFFER, cornerVBO_);
-    glBufferData(GL_ARRAY_BUFFER, orbs.size() * sizeof(CornerOrb), orbs.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(corners), corners.data(), GL_STATIC_DRAW);
 
-    GLsizei stride = sizeof(CornerOrb);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(0));
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(CornerVertex), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(2 * sizeof(float)));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(CornerVertex), reinterpret_cast<void*>(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);

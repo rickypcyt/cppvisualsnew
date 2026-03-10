@@ -39,6 +39,7 @@ private:
     void destroyResources();
     bool ensureShader();
     bool ensureCompositeShader();
+    bool ensureKaleidoscopeShader();
 
     GLuint fbo_{0};
     GLuint colorTexture_{0};
@@ -56,4 +57,5 @@ private:
 
     std::unique_ptr<Shader> proceduralShader_;
     std::unique_ptr<Shader> compositeShader_;
+    std::unique_ptr<Shader> kaleidoscopeShader_;
 };

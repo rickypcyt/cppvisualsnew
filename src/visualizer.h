@@ -203,6 +203,7 @@ private:
     int proceduralLayerMode_;
     int postProcessMode_;
     float postProcessStrength_;
+    std::array<float, 3> postProcessRgbAdjust_;
 
     CoreState core_;
     std::vector<GearNode> gears_;

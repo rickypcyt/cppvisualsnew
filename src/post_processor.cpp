@@ -27,8 +27,10 @@ uniform sampler2D uScene;
 uniform int uMode;
 uniform float uStrength;
 uniform float uTime;
+uniform vec3 uRgbAdjust;
 
 const float THRESH = 0.10;
+const float PI = 3.14159265359;
 
 vec3 toGrayscale(vec3 color) {
     float luminance = dot(color, vec3(0.299, 0.587, 0.114));
@@ -63,6 +65,91 @@ float vignette(vec2 uv, float intensity) {
 float filmGrain(vec2 uv, float time, float intensity) {
     float noise = fract(sin(dot(uv * 5.0 + time, vec2(12.9898, 78.233))) * 43758.5453);
     return mix(0.5, noise, intensity);
+}
+
+vec3 radialBlur(vec2 uv, float amount) {
+    vec2 center = vec2(0.5);
+    vec2 dir = uv - center;
+    float radius = mix(0.25, 1.2, amount);
+    float samples = 10.0;
+    vec3 acc = vec3(0.0);
+    for (int i = 0; i < 10; ++i) {
+        float t = float(i) / (samples - 1.0);
+        vec2 sampleUV = center + dir * t * radius;
+        acc += texture(uScene, clamp(sampleUV, 0.0, 1.0)).rgb;
+    }
+    return acc / samples;
+}
+
+vec2 kaleido(vec2 uv, float segments) {
+    vec2 c = uv - 0.5;
+    float r = length(c);
+    float a = atan(c.y, c.x);
+    float sector = (2.0 * PI) / max(segments, 1.0);
+    a = mod(a, sector);
+    a = abs(a - sector * 0.5);
+    return vec2(cos(a), sin(a)) * r + 0.5;
+}
+
+float rand(vec2 co) {
+    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+vec3 digitalGlitch(vec2 uv, float strength, float time) {
+    float lines = 160.0;
+    float line = floor(uv.y * lines);
+    float r = rand(vec2(line, floor(time * 12.0)));
+    vec2 displaced = uv;
+    if (r < 0.12 * strength) {
+        displaced.x += (r - 0.06) * 0.35 * strength;
+    }
+    displaced.x = clamp(displaced.x, 0.0, 1.0);
+    return texture(uScene, displaced).rgb;
+}
+
+vec3 pixelate(vec2 uv, float strength) {
+    float size = mix(800.0, 40.0, strength);
+    vec2 grid = floor(uv * size) / size;
+    return texture(uScene, grid).rgb;
+}
+
+vec2 lensDistort(vec2 uv, float power) {
+    vec2 c = uv - 0.5;
+    float r2 = dot(c, c);
+    c *= 1.0 + r2 * power;
+    return c + 0.5;
+}
+
+vec3 plasmaOverlay(vec2 uv, float time) {
+    float plasma = sin(uv.x * 12.0 + time)
+                 + sin(uv.y * 10.0 + time * 1.3)
+                 + sin((uv.x + uv.y) * 8.0 + time * 0.7);
+    plasma = plasma * 0.5 + 0.5;
+    vec3 color = vec3(
+        sin(plasma * PI),
+        sin(plasma * PI + 2.0),
+        sin(plasma * PI + 4.0)
+    );
+    return color * 0.5 + 0.5;
+}
+
+vec3 recursiveEnergy(vec2 uv, float strength) {
+    vec2 offset = uv - 0.5;
+    vec2 pos = offset;
+    vec3 base = texture(uScene, clamp(vec2(0.5) + pos, 0.0, 1.0)).rbb;
+    float depth = 0.0;
+    float intensity = mix(0.3, 1.4, strength);
+
+    for (int i = 0; i < 50; ++i) {
+        pos *= 0.98;
+        vec2 sampleUV = clamp(vec2(0.5) + pos, 0.0, 1.0);
+        vec4 sampleTex = texture(uScene, sampleUV);
+        float influence = pow(max(0.0, 0.5 - length(sampleTex.rg)), 2.0) * exp(-float(i) * 0.1);
+        depth += influence * intensity;
+    }
+
+    vec3 energy = base * base + depth;
+    return clamp(energy, 0.0, 1.0);
 }
 
 void main() {
@@ -102,6 +189,44 @@ void main() {
         float upper = clamp(bandCenter + window, 0.0, 1.0);
         float mask = step(lower, brightness) * step(brightness, upper);
         result = sceneColor.rgb * mask;
+    } else if (uMode == 6) {
+        vec3 blurred = radialBlur(vUV, strength);
+        result = mix(sceneColor.rgb, blurred, strength);
+    } else if (uMode == 7) {
+        float segments = 6.0 + strength * 10.0;
+        vec2 uv = kaleido(vUV, segments);
+        result = texture(uScene, uv).rgb;
+    } else if (uMode == 8) {
+        result = mix(sceneColor.rgb, digitalGlitch(vUV, strength, uTime), strength * 0.9);
+    } else if (uMode == 9) {
+        result = pixelate(vUV, strength);
+    } else if (uMode == 10) {
+        vec2 uv = lensDistort(vUV, strength * 1.5);
+        result = texture(uScene, clamp(uv, 0.0, 1.0)).rgb;
+    } else if (uMode == 11) {
+        vec3 plasma = plasmaOverlay(vUV, uTime * 1.2);
+        result = mix(sceneColor.rgb, plasma, strength * 0.35);
+    } else if (uMode == 12) {
+        vec3 adjust = max(uRgbAdjust, vec3(0.0));
+        float radius = strength * 0.01;
+        float phase = uTime * 0.8;
+        vec2 rOffset = vec2(cos(phase), sin(phase)) * radius * adjust.r;
+        vec2 gOffset = vec2(cos(phase + 2.0943951), sin(phase + 2.0943951)) * radius * adjust.g;
+        vec2 bOffset = vec2(cos(phase + 4.1887902), sin(phase + 4.1887902)) * radius * adjust.b;
+        vec2 uvR = clamp(vUV + rOffset, 0.0, 1.0);
+        vec2 uvG = clamp(vUV + gOffset, 0.0, 1.0);
+        vec2 uvB = clamp(vUV + bOffset, 0.0, 1.0);
+        vec3 shifted;
+        shifted.r = texture(uScene, uvR).r;
+        shifted.g = texture(uScene, uvG).g;
+        shifted.b = texture(uScene, uvB).b;
+        vec3 channelStrength = clamp(adjust, 0.0, 1.0) * strength;
+        result.r = mix(sceneColor.r, shifted.r, channelStrength.r);
+        result.g = mix(sceneColor.g, shifted.g, channelStrength.g);
+        result.b = mix(sceneColor.b, shifted.b, channelStrength.b);
+    } else if (uMode == 13) {
+        vec3 energy = recursiveEnergy(vUV, strength);
+        result = mix(sceneColor.rgb, energy, strength);
     }
 
     FragColor = vec4(result, sceneColor.a);
@@ -183,7 +308,7 @@ void PostProcessor::endCapture() {
     glViewport(previousViewport_[0], previousViewport_[1], previousViewport_[2], previousViewport_[3]);
 }
 
-void PostProcessor::apply(int mode, float strength, float time) {
+void PostProcessor::apply(int mode, float strength, float time, const std::array<float, 3>& colorAdjust) {
     if (!initialized_ || mode == 0 || strength <= 0.0f) {
         return;
     }
@@ -204,6 +329,7 @@ void PostProcessor::apply(int mode, float strength, float time) {
     shader_->setUniform1i("uMode", mode);
     shader_->setUniform1f("uStrength", strength);
     shader_->setUniform1f("uTime", time);
+    shader_->setUniform3f("uRgbAdjust", colorAdjust[0], colorAdjust[1], colorAdjust[2]);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, colorTexture_);

@@ -1,10 +1,14 @@
 #include "modular_layer.h"
 
 #include <array>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 namespace {
+
+constexpr int kKaleidoscopeModeIndex = 23;
 
 const char* kQuadVertexShader = R"(
 #version 330 core
@@ -81,7 +85,230 @@ vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(2.0 * PI * (c * t + d));
 }
 
-const int kVolIterations = 17;
+const float kTwoPI = 6.28318530718;
+const float kVoxelFallInterval = 100.0;
+const float kVoxelHeightRangeBase = 5.0;
+const float kVoxelBumpFactorBase = 2.0;
+const float kVoxelFovDegrees = 60.0;
+const float kVoxelBpm = 114.0;
+const int kVoxelSamples = 6;
+const int kVoxelMaxDepth = 5;
+
+float hash13(vec3 p) {
+    return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+}
+
+float hash11f(float x) {
+    return fract(sin(x) * 43758.5453);
+}
+
+float hash12f(vec2 p) {
+    return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+float voxelRandom(inout float seed) {
+    seed = fract(seed * 43758.5453123 + 0.12345);
+    return seed;
+}
+
+mat2 voxelRotate(float a) {
+    float s = sin(a);
+    float c = cos(a);
+    return mat2(c, -s, s, c);
+}
+
+vec3 voxelHSV(float h, float s, float v) {
+    vec3 res = fract(h + vec3(0.0, 2.0, 1.0) / 3.0);
+    res = clamp(abs(res * 6.0 - 3.0) - 1.0, 0.0, 1.0);
+    res = (res - 1.0) * s + 1.0;
+    res *= v;
+    return res;
+}
+
+float voxelMap(vec3 p, vec3 camPos, float time, float fallSpeed, float heightRange, out vec3 ID) {
+    float res = 1.0;
+    ID = floor(p);
+    float h = hash12f(ID.xz);
+    ID.y -= floor(max(ID.x * ID.x * 0.1, 5.0) - h * heightRange);
+    float T = time * fallSpeed / kVoxelFallInterval + hash11f(h);
+    if (ID.y > 0.0) {
+        float tmp = ID.y / kVoxelFallInterval + T;
+        if (fract(tmp) * kVoxelFallInterval > 1.0) {
+            res = 0.0;
+        }
+        ID.y = floor(tmp);
+    } else {
+        ID.y += floor(T);
+    }
+
+    vec3 offset = p + 0.5 - camPos;
+    if (dot(offset, offset) < 1.0) {
+        res = 0.0;
+    }
+    return res;
+}
+
+float voxelCastRay(vec3 ro, vec3 rd, int itr, vec3 camPos, float time, float fallSpeed, float heightRange,
+                   out vec3 ID, out vec3 normal, out vec3 pos, out float seed) {
+    pos = floor(ro);
+    vec3 ri = 1.0 / rd;
+    vec3 rs = sign(rd);
+    vec3 dis = (pos - ro + 0.5 + rs * 0.5) * ri;
+
+    float res = -1.0;
+    vec3 stepDir = vec3(0.0);
+
+    for (int i = 0; i < itr; ++i) {
+        if (voxelMap(pos, camPos, time, fallSpeed, heightRange, ID) > 0.5) {
+            res = 1.0;
+            break;
+        }
+        vec3 mm = step(dis.xyz, dis.yzx) * step(dis.xyz, dis.zxy);
+        stepDir = mm * rs;
+        dis += stepDir * ri;
+        pos += stepDir;
+    }
+
+    normal = -stepDir;
+    vec3 mini = (pos - ro + 0.5 - 0.5 * rs) * ri;
+    float t = max(mini.x, max(mini.y, mini.z));
+
+    seed = hash13(ID);
+
+    return t * res;
+}
+
+float voxelEmission(float seed) {
+    return step(hash11f(seed), 0.08) * 10.0;
+}
+
+vec3 voxelObjectColor(float seed) {
+    return voxelHSV(hash11f(seed), 0.6, 1.0);
+}
+
+float voxelBumpFunc(vec3 p, vec3 n, float seed) {
+    float nSeed = dot(abs(n), vec3(1.0, 2.0, 4.0));
+    vec2 uv = abs(n.x) > 0.5 ? p.yz : (abs(n.y) > 0.5 ? p.xz : p.xy);
+    uv = fract(uv) - 0.5;
+
+    if (hash11f(seed + nSeed) < 0.5) {
+        uv.y = -uv.y;
+    }
+    if (uv.y < -uv.x) {
+        uv = -uv.yx;
+    }
+    float d = abs(length(uv - 0.5) - 0.5);
+    const float w = 0.15;
+    float tmp = w * w - d * d;
+    return tmp > 0.0 ? -sqrt(tmp) : 0.0;
+}
+
+vec3 voxelBumpMap(vec3 p, vec3 n, float seed, float bumpFactor) {
+    const vec2 e = vec2(0.002, 0.0);
+    float ref = voxelBumpFunc(p, n, seed);
+    vec3 grad = (vec3(voxelBumpFunc(p - e.xyy, n, seed),
+                      voxelBumpFunc(p - e.yxy, n, seed),
+                      voxelBumpFunc(p - e.yyx, n, seed)) - ref) / e.x;
+    grad -= n * dot(n, grad);
+    return normalize(n + grad * bumpFactor);
+}
+
+vec3 voxelJitter(vec3 v, float phi, float sinTheta, float cosTheta) {
+    vec3 xAxis = normalize(cross(abs(v.yzx) + 0.001, v));
+    vec3 yAxis = cross(v, xAxis);
+    vec3 zAxis = v;
+    return (xAxis * cos(phi) + yAxis * sin(phi)) * sinTheta + zAxis * cosTheta;
+}
+
+vec3 voxelPathTrace(vec3 ro, vec3 rd, float time, float fallSpeed, float heightRange, float bumpFactor,
+                    float bass, float mid, float high, inout float pathSeed) {
+    vec3 acc = vec3(0.0);
+    vec3 mask = vec3(1.0);
+
+    vec3 ID;
+    vec3 normal;
+    vec3 pos;
+    float seed;
+
+    float t = voxelCastRay(ro, rd, 80, ro, time, fallSpeed, heightRange, ID, normal, pos, seed);
+    if (t < 0.0) {
+        return vec3(0.0);
+    }
+    ro += t * rd;
+
+    vec3 f = ro - pos - 0.5;
+    vec3 n = normalize(f * pow(abs(f), vec3(8.0)) + 0.0001);
+    n = normalize(n + voxelBumpMap(ro, normal, seed, bumpFactor));
+
+    acc += mask * voxelEmission(seed) * float(kVoxelSamples);
+    mask *= voxelObjectColor(seed);
+
+    vec3 ro0 = ro + n * 0.0008;
+    vec3 n0 = n;
+    vec3 mask0 = mask;
+    for (int i = 0; i < kVoxelSamples; ++i) {
+        ro = ro0;
+        n = n0;
+        mask = mask0;
+        for (int depth = 1; depth < kVoxelMaxDepth; ++depth) {
+            float ur = voxelRandom(pathSeed);
+            rd = voxelJitter(n, voxelRandom(pathSeed) * kTwoPI, sqrt(1.0 - ur), sqrt(ur));
+
+            t = voxelCastRay(ro, rd, 20, ro, time, fallSpeed, heightRange, ID, normal, pos, seed);
+            if (t < 0.0) {
+                break;
+            }
+            ro += t * rd;
+
+            f = ro - pos - 0.5;
+            n = normalize(f * pow(abs(f), vec3(8.0)) + 0.0001);
+            n = normalize(n + voxelBumpMap(ro, normal, seed, bumpFactor));
+
+            float emissionBoost = 1.0 + bass * 1.2 + high * 0.8;
+            acc += mask * voxelEmission(seed) * emissionBoost;
+            mask *= voxelObjectColor(seed);
+            ro += n * 0.0008;
+        }
+    }
+
+    acc /= float(kVoxelSamples);
+    return clamp(acc, 0.0, 1.0);
+}
+
+vec4 renderVoxelPathTracer(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
+    vec2 uv = st;
+
+    float tempoFactor = max(0.4, tempo * 0.8 + 0.4);
+    float fallSpeed = (kVoxelBpm / 60.0) * (0.6 + tempoFactor * 0.6 + energy * 0.4);
+    float heightRange = kVoxelHeightRangeBase * (1.0 + energy * 0.6 + high * 0.5);
+    float bumpFactor = kVoxelBumpFactorBase * (1.0 + high * 0.7);
+
+    vec3 camPos = vec3(0.5 + sin(time * 0.25) * tempoFactor * 0.35,
+                       6.0 + energy * 3.0,
+                       -time * fallSpeed * 1.2);
+    camPos.x += cos(time * 0.3) * bass * 1.4;
+    camPos.z += sin(time * 0.21) * mid * 0.9;
+
+    vec3 dir = normalize(vec3(0.3, -0.4, -1.0));
+    dir.xy = voxelRotate(time * 0.18 + tempoFactor * 0.3) * dir.xy;
+    vec3 side = normalize(cross(dir, vec3(0.0, 1.0, 0.0)));
+    vec3 up = cross(side, dir);
+    float fovScale = 1.0 / tan(radians(kVoxelFovDegrees) * 0.5);
+    vec3 rd = normalize(uv.x * side + uv.y * up + dir * fovScale);
+
+    float pathSeed = hash12f(uv * uResolution.xy + vec2(time * 21.37, time * 17.53)) * 500.0;
+
+    vec3 col = voxelPathTrace(camPos, rd, time, fallSpeed, heightRange, bumpFactor, bass, mid, high, pathSeed);
+    col = pow(col, vec3(0.4545));
+
+    vec3 base = mix(uPrimaryColor, uSecondaryColor, clamp(uColorBlend, 0.0, 1.0));
+    col = mix(base, col, 0.7);
+    float luminance = clamp((col.r + col.g + col.b) / 3.0, 0.0, 1.0);
+    float alpha = clamp(0.35 + luminance * 0.4 + energy * 0.2, 0.0, 1.0);
+    return vec4(col, alpha);
+}
+
+const float kVolIterations = 17;
 const int kVolSteps = 20;
 const float kVolStepSize = 0.1;
 const float kVolZoom = 0.8;
@@ -684,6 +911,8 @@ void main() {
         color = renderFractalTunnel(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 21) {
         color = renderVolumetricStarfield(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 22) {
+        color = renderVoxelPathTracer(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else {
         color = renderDomainWarpedFractal(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
@@ -760,6 +989,7 @@ void ModularLayer::shutdown() {
     destroyResources();
     proceduralShader_.reset();
     compositeShader_.reset();
+    kaleidoscopeShader_.reset();
     initialized_ = false;
 }
 
@@ -854,6 +1084,8 @@ void ModularLayer::destroyResources() {
         glDeleteFramebuffers(1, &fbo_);
         fbo_ = 0;
     }
+
+    kaleidoscopeShader_.reset();
 }
 
 bool ModularLayer::ensureShader() {
@@ -884,13 +1116,61 @@ bool ModularLayer::ensureCompositeShader() {
     return true;
 }
 
+bool ModularLayer::ensureKaleidoscopeShader() {
+    if (kaleidoscopeShader_) {
+        return true;
+    }
+
+    const std::array<const char*, 3> searchPaths = {
+        "shaders/procedural_kaleidoscope.glsl",
+        "../shaders/procedural_kaleidoscope.glsl",
+        "../../shaders/procedural_kaleidoscope.glsl"
+    };
+
+    std::string fragmentSource;
+    bool loaded = false;
+    for (const char* path : searchPaths) {
+        std::ifstream file(path, std::ios::in);
+        if (!file.is_open()) {
+            continue;
+        }
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        fragmentSource = buffer.str();
+        loaded = true;
+        break;
+    }
+
+    if (!loaded) {
+        std::cerr << "ModularLayer: unable to locate procedural_kaleidoscope.glsl" << std::endl;
+        return false;
+    }
+
+    kaleidoscopeShader_ = std::make_unique<Shader>();
+    if (!kaleidoscopeShader_->loadFromSource(kQuadVertexShader, fragmentSource)) {
+        std::cerr << "ModularLayer: failed to compile kaleidoscope shader" << std::endl;
+        kaleidoscopeShader_.reset();
+        return false;
+    }
+    return true;
+}
+
 void ModularLayer::render(const LayerContext& context) {
     if (!initialized_ || (!enabled_ && !debugPreview_)) {
         return;
     }
 
-    if (!ensureShader()) {
-        return;
+    Shader* activeShader = nullptr;
+    if (mode_ == kKaleidoscopeModeIndex) {
+        if (!ensureKaleidoscopeShader()) {
+            return;
+        }
+        activeShader = kaleidoscopeShader_.get();
+    } else {
+        if (!ensureShader()) {
+            return;
+        }
+        activeShader = proceduralShader_.get();
     }
 
     GLint previousFbo = 0;
@@ -908,10 +1188,10 @@ void ModularLayer::render(const LayerContext& context) {
         glDisable(GL_DEPTH_TEST);
     }
 
-    proceduralShader_->use();
-    proceduralShader_->setUniform2f("uResolution", static_cast<float>(width_), static_cast<float>(height_));
-    proceduralShader_->setUniform1f("uTime", context.time);
-    proceduralShader_->setUniform1f("uTempo", context.tempo);
+    activeShader->use();
+    activeShader->setUniform2f("uResolution", static_cast<float>(width_), static_cast<float>(height_));
+    activeShader->setUniform1f("uTime", context.time);
+    activeShader->setUniform1f("uTempo", context.tempo);
 
     const auto* audio = context.audio;
     float energy = audio ? audio->energy : 0.0f;
@@ -919,14 +1199,17 @@ void ModularLayer::render(const LayerContext& context) {
     float mid = audio ? audio->midEnergy : 0.0f;
     float high = audio ? audio->highEnergy : 0.0f;
 
-    proceduralShader_->setUniform1f("uEnergy", energy);
-    proceduralShader_->setUniform1f("uBass", bass);
-    proceduralShader_->setUniform1f("uMid", mid);
-    proceduralShader_->setUniform1f("uHigh", high);
-    proceduralShader_->setUniform1i("uMode", mode_);
-    proceduralShader_->setUniform3f("uPrimaryColor", colorPrimary_[0], colorPrimary_[1], colorPrimary_[2]);
-    proceduralShader_->setUniform3f("uSecondaryColor", colorSecondary_[0], colorSecondary_[1], colorSecondary_[2]);
-    proceduralShader_->setUniform1f("uColorBlend", colorBlend_);
+    activeShader->setUniform1f("uEnergy", energy);
+    activeShader->setUniform1f("uBass", bass);
+    activeShader->setUniform1f("uMid", mid);
+    activeShader->setUniform1f("uHigh", high);
+    activeShader->setUniform3f("uPrimaryColor", colorPrimary_[0], colorPrimary_[1], colorPrimary_[2]);
+    activeShader->setUniform3f("uSecondaryColor", colorSecondary_[0], colorSecondary_[1], colorSecondary_[2]);
+    activeShader->setUniform1f("uColorBlend", colorBlend_);
+
+    if (activeShader == proceduralShader_.get()) {
+        activeShader->setUniform1i("uMode", mode_);
+    }
 
     glBindVertexArray(quadVAO_);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
