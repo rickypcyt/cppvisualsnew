@@ -28,6 +28,8 @@ uniform int uMode;
 uniform float uStrength;
 uniform float uTime;
 
+const float THRESH = 0.10;
+
 vec3 toGrayscale(vec3 color) {
     float luminance = dot(color, vec3(0.299, 0.587, 0.114));
     return vec3(luminance);
@@ -92,6 +94,14 @@ void main() {
         vec3 pulseColor = mix(vec3(0.2, 0.4, 0.9), vec3(0.9, 0.4, 0.2), wave);
         result = mix(sceneColor.rgb, aberration, strength * 0.5);
         result += pulseColor * strength * 0.25;
+    } else if (uMode == 5) {
+        float brightness = dot(sceneColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+        float bandCenter = (sin(uTime * 0.8) + 1.5) * 0.3;
+        float window = THRESH + strength * 0.35;
+        float lower = clamp(bandCenter - window, 0.0, 1.0);
+        float upper = clamp(bandCenter + window, 0.0, 1.0);
+        float mask = step(lower, brightness) * step(brightness, upper);
+        result = sceneColor.rgb * mask;
     }
 
     FragColor = vec4(result, sceneColor.a);

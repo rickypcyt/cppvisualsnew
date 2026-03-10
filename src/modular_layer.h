@@ -32,6 +32,7 @@ public:
     bool debugPreview() const { return debugPreview_; }
     void setMode(int mode) { mode_ = mode; }
     int mode() const { return mode_; }
+    void setColorPalette(const float primary[3], const float secondary[3], float blend);
 
 private:
     bool createResources(int width, int height);
@@ -49,6 +50,9 @@ private:
     bool enabled_{true};
     bool debugPreview_{false};
     int mode_{0};
+    float colorPrimary_[3]{1.0f, 1.0f, 1.0f};
+    float colorSecondary_[3]{1.0f, 1.0f, 1.0f};
+    float colorBlend_{0.0f};
 
     std::unique_ptr<Shader> proceduralShader_;
     std::unique_ptr<Shader> compositeShader_;

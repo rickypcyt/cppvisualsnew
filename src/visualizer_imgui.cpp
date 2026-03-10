@@ -92,11 +92,8 @@ void Visualizer::renderImGui() {
 }
 
 void Visualizer::renderMainImGuiWindow() {
-    ImGui::Begin("Audio Visualizer Control Panel", &showImGuiWindow_, 
-                 ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("Info", &showImGuiWindow_, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
-    // Device information
-    ImGui::Separator();
     ImGui::Text("🎤 Current Device:");
     std::string deviceName = "System Default";
     bool currentInternal = false;
@@ -143,8 +140,9 @@ void Visualizer::renderMainImGuiWindow() {
     ImGui::Spacing();
     ImGui::Text("🖥️ GPU Renderer:");
     ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%s", rendererName_.c_str());
+    ImGui::Text("OpenGL version:");
+    ImGui::TextColored(ImVec4(0.7f, 0.9f, 0.6f, 1.0f), "%s", openglVersion_.c_str());
 
-    // Control buttons
     ImGui::Spacing();
     if (ImGui::Button("🔧 Select Device")) {
         showDeviceSelector_ = !showDeviceSelector_;
@@ -165,11 +163,9 @@ void Visualizer::renderMainImGuiWindow() {
     ImGui::Text("🎛️ Input Gain");
     ImGui::SliderFloat("##InputGainSlider", &audioInputGain_, 0.1f, 5.0f, "%.2fx", ImGuiSliderFlags_AlwaysClamp);
 
-    // Audio levels visualization
     ImGui::Separator();
     ImGui::Text("📊 Audio Levels:");
-    
-    // Calculate RMS
+
     float rms = 0.0f;
     for (float sample : waveformBuffer_) {
         rms += sample * sample;
@@ -177,24 +173,19 @@ void Visualizer::renderMainImGuiWindow() {
     rms = sqrtf(rms / waveformBuffer_.size());
     float db = rms > 0.0f ? 20.0f * log10f(rms) : -60.0f;
     db = std::max(-60.0f, db);
-    
-    // RMS meter
+
     ImGui::Text("RMS Level:");
     ImGui::SameLine();
-    ImGui::ProgressBar(std::max(0.0f, (db + 60.0f) / 60.0f), ImVec2(200, 15), 
-                       (std::to_string((int)db) + " dB").c_str());
-    
-    // Peak meter
+    ImGui::ProgressBar(std::max(0.0f, (db + 60.0f) / 60.0f), ImVec2(200, 15), (std::to_string((int)db) + " dB").c_str());
+
     float peak = 0.0f;
     for (float sample : waveformBuffer_) {
         peak = std::max(peak, std::abs(sample));
     }
     ImGui::Text("Peak Level:");
     ImGui::SameLine();
-    ImGui::ProgressBar(peak, ImVec2(200, 15), 
-                       (std::to_string((int)(peak * 100)) + "%").c_str());
+    ImGui::ProgressBar(peak, ImVec2(200, 15), (std::to_string((int)(peak * 100)) + "%").c_str());
 
-    // Frequency bars
     ImGui::Separator();
     ImGui::Text("🎵 Frequency Analysis:");
 
@@ -214,13 +205,12 @@ void Visualizer::renderMainImGuiWindow() {
     renderBandRow("Mid (120-2kHz):", audioFeatures_.midShare, audioFeatures_.midEnergy);
     renderBandRow("High (2k-12kHz):", audioFeatures_.highShare, audioFeatures_.highEnergy);
 
-    // Beat detection indicators
     ImGui::Separator();
     ImGui::Text("🥁 Beat Detection:");
-    
+
     ImVec4 beatColor = audioFeatures_.beat > 0.5f ? ImVec4(1.0f, 0.0f, 0.0f, 1.0f) : ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
     ImGui::TextColored(beatColor, "Beat: %s", audioFeatures_.beat > 0.5f ? "🔴 DETECTED" : "⚪ none");
-    
+
     ImVec4 onsetColor = audioFeatures_.onset > 0.5f ? ImVec4(1.0f, 1.0f, 0.0f, 1.0f) : ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
     ImGui::TextColored(onsetColor, "Onset: %s", audioFeatures_.onset > 0.5f ? "🔴 DETECTED" : "⚪ none");
 
@@ -237,13 +227,14 @@ void Visualizer::renderMainImGuiWindow() {
     ImVec4 bpmColor = bpm > 0.1f ? ImVec4(0.2f, 0.8f, 1.0f, 1.0f) : ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
     ImGui::TextColored(bpmColor, "BPM Estimate: %s", bpm > 0.1f ? (std::to_string(static_cast<int>(std::round(bpm))) + " BPM").c_str() : "--");
 
-    // Status
     ImGui::Separator();
     ImVec4 statusColor = rms > 0.01f ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f) : ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
     ImGui::TextColored(statusColor, "Status: %s", rms > 0.01f ? "🟢 RECEIVING AUDIO" : "🔴 NO AUDIO INPUT");
 
-    // Legacy color customization
-    ImGui::Separator();
+    ImGui::End();
+
+    ImGui::Begin("Visual", &showImGuiVisualWindow_, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+
     ImGui::Text("🎨 Legacy Color Scheme:");
     ImGui::TextWrapped("Ajusta los multiplicadores de color para los elementos del render legacy.");
 
@@ -281,16 +272,26 @@ void Visualizer::renderMainImGuiWindow() {
             ImGui::SliderFloat("Opacidad", &proceduralLayerOpacity_, 0.0f, 1.0f, "%.2f");
 
             static const char* kProceduralModes[] = {
-                "Nebula",
+                "None",
                 "ASCII Ocean",
                 "Sacred Geometry",
                 "Glitch Grid",
                 "Chemical Flow",
                 "Crystal Lattice",
+                "Phantom Fractals",
                 "Fractal Object",
                 "Pulsar Tunnel",
                 "Aurora Bloom",
-                "Ribbon Scanlines"
+                "Ribbon Scanlines",
+                "Nebula",
+                "Kaleidoscope Fractal",
+                "Voronoi Cells",
+                "Raymarched Object",
+                "Reaction Diffusion",
+                "Liquid Refraction",
+                "Starfield Warp",
+                "Plasma Classic",
+                "Domain Warped Fractal"
             };
             int modeIndex = std::clamp(proceduralLayerMode_, 0, static_cast<int>(std::size(kProceduralModes)) - 1);
             if (ImGui::BeginCombo("Modo", kProceduralModes[modeIndex])) {
@@ -310,12 +311,15 @@ void Visualizer::renderMainImGuiWindow() {
         }
 
         if (ImGui::TreeNode("Post proceso")) {
+            ImGui::Checkbox("Activar", &showPostProcess_);
+
             static const char* kModes[] = {
                 "Off",
                 "Grayscale",
                 "Filmic",
                 "Digital Wave",
-                "Pulse Shift"
+                "Pulse Shift",
+                "Band Threshold"
             };
 
             int currentMode = postProcessMode_;
@@ -375,17 +379,17 @@ void Visualizer::renderMainImGuiWindow() {
         ImGui::EndTable();
     }
 
-    // Instructions
     ImGui::Separator();
-    ImGui::Text("�️ Visual Layers:");
+    ImGui::Text("🎞️ Visual Layers:");
     ImGui::Checkbox("Núcleo", &showLegacyCore_);
     ImGui::SameLine();
     ImGui::Checkbox("Arcos", &showLegacyArcs_);
+
     ImGui::Spacing();
-    ImGui::Text("�� Controls:");
-    ImGui::BulletText("Click buttons to toggle panels");
-    ImGui::BulletText("ESC to exit application");
-    ImGui::BulletText("Close windows to hide panels");
+    ImGui::Text("🎮 Controls:");
+    ImGui::BulletText("Flechas ←/→: cambiar modo procedural");
+    ImGui::BulletText("ESC: salir de la aplicación");
+    ImGui::BulletText("TAB: mostrar/ocultar paneles");
 
     ImGui::End();
 }

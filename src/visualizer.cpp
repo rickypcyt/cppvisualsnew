@@ -7,6 +7,10 @@
 #include "audio_capture.h"
 #include "imgui.h"
 
+namespace {
+constexpr int kProceduralModeCount = 20;
+}
+
 const char* vertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec2 aPos;
@@ -453,31 +457,37 @@ void main() {
     float ribbonStrand = ribbonFuse * smoothstep(0.2, 0.95, sin(vAngle * (5.0 + uTempo * 0.6) + uTime * (3.6 + uPulse * 0.9)) * 0.5 + 0.5);
     float ribbonSpark = ribbonFuse * pow(clamp(vRibbonMask, 0.0, 1.0), 2.2) * (0.55 + uPulse * 0.45 + uBeat * 0.6);
 
-    vec3 coreColor = vec3(0.22 + uBass * 0.65,
-                          0.30 + uMid * 0.55,
-                          0.44 + uHigh * 0.8);
-    vec3 petalColor = vec3(0.6 + uHigh * 0.85,
-                           0.42 + uMid * 0.7,
-                           0.95 + uBass * 0.55);
-    vec3 runeColor = vec3(0.75 + uHigh * 0.6,
-                          0.48 + uMid * 0.4,
-                          1.1 + uBass * 0.4);
-    vec3 sparkColor = vec3(1.0, 0.92, 0.65 + uHigh * 0.3);
-    vec3 chemColor = vec3(0.32 + uBass * 0.58,
-                          0.82 + uMid * 0.6,
-                          1.25 + uHigh * 0.75);
-    vec3 bondColor = vec3(1.18 + uHigh * 0.45,
-                          0.78 + uMid * 0.32,
-                          0.48 + uBass * 0.26);
-    vec3 ribbonColor = vec3(1.28 + uHigh * 0.5,
-                            0.34 + uMid * 0.42,
-                            0.88 + uBass * 0.4);
-    vec3 facetColor = vec3(0.28 + uBass * 0.5,
-                           0.9 + uMid * 0.55,
-                           1.3 + uHigh * 0.6);
-    vec3 shardColor = vec3(0.95 + uHigh * 0.45,
-                           0.52 + uMid * 0.4,
-                           1.08 + uBass * 0.35);
+    float timeShift = uTime * (0.15 + uTempo * 0.1) + uOnset * 1.2;
+    float hueBase = fract(sin(timeShift * 0.37) * 43758.5453);
+    float hueAccent = fract(sin((timeShift + 2.17) * 0.53) * 32768.2143);
+    float hueSpark = fract(sin((timeShift - 1.91) * 0.43) * 54731.1243);
+
+    vec3 basePalette[4];
+    basePalette[0] = vec3(0.28, 0.45, 0.85);
+    basePalette[1] = vec3(0.85, 0.45, 0.62);
+    basePalette[2] = vec3(0.30, 0.80, 0.55);
+    basePalette[3] = vec3(0.92, 0.70, 0.28);
+
+    float paletteBlend = clamp(hueBase * 3.0, 0.0, 3.0);
+    int paletteIndex = int(paletteBlend);
+    int nextIndex = (paletteIndex + 1) % 4;
+    float paletteMix = fract(paletteBlend);
+    vec3 baseHue = mix(basePalette[paletteIndex], basePalette[nextIndex], paletteMix);
+
+    vec3 accentHue = mix(baseHue.yzx, baseHue.zxy, 0.35 + hueAccent * 0.4);
+    vec3 sparkHue = mix(vec3(1.0, 0.9, 0.6), baseHue, 0.2 + hueSpark * 0.5);
+
+    vec3 coreColor = mix(baseHue, vec3(0.15, 0.22, 0.30), 0.3 - uBass * 0.2);
+    coreColor += vec3(uBass * 0.55, uMid * 0.42, uHigh * 0.62);
+
+    vec3 petalColor = mix(accentHue, vec3(0.6, 0.3, 0.9), 0.35 + uHigh * 0.4);
+    vec3 runeColor = mix(accentHue.yzx, vec3(0.9, 0.6, 0.2), 0.25 + uMid * 0.3);
+    vec3 sparkColor = mix(sparkHue, vec3(1.0, 0.95, 0.75), 0.6 + uHigh * 0.3);
+    vec3 chemColor = mix(baseHue.xzy, vec3(0.25, 0.9, 1.1), 0.5 + uEnergy * 0.3);
+    vec3 bondColor = mix(accentHue.zxy, vec3(1.0, 0.7, 0.4), 0.4 + uMid * 0.35);
+    vec3 ribbonColor = mix(baseHue, vec3(1.0, 0.3, 0.5), 0.5 + uHigh * 0.35);
+    vec3 facetColor = mix(baseHue.zxy, vec3(0.2, 0.8, 1.0), 0.45 + uEnergy * 0.3);
+    vec3 shardColor = mix(accentHue, vec3(1.0, 0.85, 0.6), 0.5 + uPulse * 0.3);
 
     vec3 legacyCircleFill = vec3(uLegacyCircleFill.rgb);
     vec3 legacyCircleOutline = vec3(uLegacyCircleOutline.rgb);
@@ -1326,6 +1336,7 @@ Visualizer::Visualizer()
       audioFeatures_{},
       selectedDevice_(-1), showDeviceMenu_(false), showDiagnostic_(false), consoleMode_(false),
       showImGuiWindow_(true), showDeviceSelector_(false), showDiagnosticInfo_(false), showConsoleMode_(false),
+      showImGuiVisualWindow_(true),
       imguiInitialized_(false), autoRandomizeColors_(true), colorRandomInterval_(12.0f),
       colorRandomTimer_(0.0f), deltaTime_(0.0f), rng_(std::random_device{}()), currentPresetIndex_(0),
       onsetColorCyclingEnabled_(true), onsetTriggerCount_(0), lastOnsetActive_(false),
@@ -1340,7 +1351,7 @@ Visualizer::Visualizer()
       coreShowBloom_(true),
       audioInputGain_(1.0f),
       showCornerOrbs_(true),
-      showProceduralLayer_(false),
+      showProceduralLayer_(true),
       proceduralLayerDebug_(false),
       proceduralLayerOpacity_(0.85f),
       proceduralLayerMode_(3),
@@ -1388,6 +1399,7 @@ bool Visualizer::initialize(int width, int height) {
         showProceduralLayer_ = false;
         proceduralLayerDebug_ = false;
     } else {
+        proceduralLayerMode_ = std::clamp(proceduralLayerMode_, 0, kProceduralModeCount - 1);
         proceduralLayer_.setMode(proceduralLayerMode_);
     }
 
@@ -1427,6 +1439,9 @@ bool Visualizer::initialize(int width, int height) {
 
     const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     rendererName_ = renderer ? renderer : "Unknown";
+
+    const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    openglVersion_ = version ? version : "Unknown";
 
     initializeDynamicSystems();
 
@@ -1679,6 +1694,43 @@ void Visualizer::beginFrame() {
             }
             lastTabToggle = now;
         }
+
+        if (!io || !io->WantCaptureKeyboard) {
+            static double lastModeToggle = 0.0;
+            static double lastOpacityAdjust = 0.0;
+            if ((now - lastModeToggle) > 0.15) {
+                if (glfwGetKey(window_, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+                    proceduralLayerMode_ = (proceduralLayerMode_ + 1) % kProceduralModeCount;
+                    proceduralLayer_.setMode(proceduralLayerMode_);
+                    lastModeToggle = now;
+                } else if (glfwGetKey(window_, GLFW_KEY_LEFT) == GLFW_PRESS) {
+                    proceduralLayerMode_ = (proceduralLayerMode_ + kProceduralModeCount - 1) % kProceduralModeCount;
+                    proceduralLayer_.setMode(proceduralLayerMode_);
+                    lastModeToggle = now;
+                }
+            }
+
+            if ((now - lastOpacityAdjust) > 0.12) {
+                constexpr float kOpacityStep = 0.05f;
+                bool adjusted = false;
+                if (glfwGetKey(window_, GLFW_KEY_UP) == GLFW_PRESS) {
+                    proceduralLayerOpacity_ += kOpacityStep;
+                    adjusted = true;
+                } else if (glfwGetKey(window_, GLFW_KEY_DOWN) == GLFW_PRESS) {
+                    proceduralLayerOpacity_ -= kOpacityStep;
+                    adjusted = true;
+                }
+
+                if (adjusted) {
+                    if (proceduralLayerOpacity_ < 0.0f) {
+                        proceduralLayerOpacity_ = 0.0f;
+                    } else if (proceduralLayerOpacity_ > 1.0f) {
+                        proceduralLayerOpacity_ = 1.0f;
+                    }
+                    lastOpacityAdjust = now;
+                }
+            }
+        }
     }
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1767,6 +1819,10 @@ void Visualizer::render() {
     renderProceduralLayer();
 
     renderIdleSpinner(time_);
+
+    if (showCornerOrbs_) {
+        renderCornerOrbs();
+    }
 
     if (imguiInitialized_ && showImGuiWindow_) {
         renderImGui();

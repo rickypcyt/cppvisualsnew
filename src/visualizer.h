@@ -155,6 +155,7 @@ private:
     std::vector<std::string> deviceNames_;
     std::vector<bool> deviceIsInternal_;
     std::string rendererName_;
+    std::string openglVersion_;
     float legacyMotionBlend_;
     float legacyMotionPhase_;
     float legacySensitivity_;
@@ -166,6 +167,7 @@ private:
 
     // ImGui state
     bool showImGuiWindow_;
+    bool showImGuiVisualWindow_;
     bool showDeviceSelector_;
     bool showDiagnosticInfo_;
     bool showConsoleMode_;

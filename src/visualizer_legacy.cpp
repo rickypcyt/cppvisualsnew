@@ -365,33 +365,42 @@ void Visualizer::renderLegacyFrequencyBars(float bass, float mid, float high, fl
             : 0.0f;
 
         float radius = minDimension * (layer.radius
-                                       + energyMix * 0.10f
-                                       + motionBlend * 0.06f
-                                       + beatPulse * 0.04f);
-        float thickness = minDimension * (layer.thickness + 0.11f * energyMix) * (0.7f + 0.55f * motionBlend);
+                                       + energyMix * 0.15f
+                                       + motionBlend * 0.08f
+                                       + beatPulse * 0.06f);
+        float thickness = minDimension * (layer.thickness + 0.14f * energyMix) * (0.55f + 0.75f * motionBlend);
         float highActivation = std::clamp(high * 1.6f + onsetPulse * 0.4f, 0.0f, 1.5f);
-        float swirlBase = 0.28f + motionBlend * 0.45f + highActivation * 0.4f;
+        float swirlBase = 0.18f + motionBlend * 0.65f + highActivation * 0.55f;
         float swirlPhase = animatedTime * swirlBase * calmScale;
-        float spiralTightness = (0.45f + motionBlend * 0.9f + highActivation * 0.28f + layer.radius * 0.35f)
-                                * (0.6f + 0.4f * calmScale);
+        float spiralTightness = (0.25f + motionBlend * 1.4f + highActivation * 0.35f + layer.radius * 0.5f)
+                                * (0.5f + 0.5f * calmScale);
 
-        float moduleDensity = 0.35f + dynamicsScale * 0.5f;
-        int modules = std::max(5, static_cast<int>((10 + energyMix * 10.0f + motionBlend * 6.0f) * moduleDensity));
+        float moduleDensity = 0.5f + dynamicsScale * 0.6f;
+        int modules = std::max(6, static_cast<int>((14 + energyMix * 18.0f + motionBlend * 10.0f) * moduleDensity));
         float moduleSpan = 1.0f / std::max(modules, 1);
-        float fillRatio = 0.62f + 0.25f * std::clamp(energyMix, 0.0f, 1.0f);
+        float fillRatio = 0.48f + 0.35f * std::clamp(energyMix, 0.0f, 1.0f);
 
         for (int module = 0; module < modules; ++module) {
             float moduleStart = module * moduleSpan;
             float moduleEnd = moduleStart + moduleSpan * fillRatio;
             float moduleMid = (moduleStart + moduleEnd) * 0.5f;
-            float moduleSeed = hash(module * 3.91f + layer.radius * 11.0f + animatedTime * 0.17f);
-            float swingRate = 0.6f + tempoFactor * 0.9f;
-            float rhythmicSwing = std::sin(animatedTime * swingRate + module * 1.17f + moduleSeed * 6.28318f);
-            float modulePresence = highActivation * 0.42f
-                                   + energyMix * 0.35f
-                                   + beatPulse * 0.3f
-                                   + rhythmicSwing * 0.3f * calmScale;
-            modulePresence *= (0.35f + 0.65f * dynamicsScale);
+            float moduleSeed = hash(module * 7.91f + layer.radius * 17.0f + animatedTime * 0.27f);
+            float swingRate = 0.8f + tempoFactor * 1.2f;
+            float rhythmicSwing = std::sin(animatedTime * swingRate + module * 1.87f + moduleSeed * 12.0f);
+            auto fractFunc = [](float x) {
+                return x - std::floor(x);
+            };
+            auto stepFunc = [](float edge, float x) {
+                return x >= edge ? 1.0f : 0.0f;
+            };
+            float chunkMask = stepFunc(0.18f, fractFunc(moduleSeed * 13.7f + beatPulse * 2.3f + highActivation * 0.6f));
+            float jitter = std::sin(module * 2.4f + animatedTime * 3.2f + moduleSeed * 9.1f) * 0.6f;
+            float modulePresence = highActivation * 0.6f
+                                   + energyMix * 0.4f
+                                   + beatPulse * 0.5f
+                                   + rhythmicSwing * 0.45f * calmScale
+                                   + jitter * 0.25f;
+            modulePresence *= (0.4f + 0.8f * dynamicsScale) * chunkMask;
             modulePresence = std::clamp(modulePresence, 0.0f, 1.0f);
             if (modulePresence < 0.08f) {
                 continue;
@@ -401,19 +410,19 @@ void Visualizer::renderLegacyFrequencyBars(float bass, float mid, float high, fl
 
             for (int edgeIndex = 0; edgeIndex < 2; ++edgeIndex) {
                 float u = (edgeIndex == 0) ? moduleStart : moduleEnd;
-                float baseAngle = u * 6.28318f;
-                float spiralOffset = spiralTightness * (layer.radius + u * 0.45f + moduleSeed * 0.2f);
+                float baseAngle = u * 6.28318f + floor(moduleSeed * 12.0f) * 0.12f;
+                float spiralOffset = spiralTightness * (layer.radius + u * 0.65f + moduleSeed * 0.35f);
                 float angle = baseAngle + swirlPhase + spiralOffset;
 
-                float mechPulse = (moduleSeed - 0.5f) * 0.55f + std::sin(swirlPhase * 0.7f + module * 0.8f) * 0.28f;
-                float melt = std::sin(baseAngle * (layer.waveFrequency * 0.85f) + animatedTime * 1.9f + moduleSeed * 8.0f)
-                             * thickness * (0.20f + 0.35f * modulePresence * dynamicsScale);
-                float drip = std::sin(animatedTime * 2.4f + moduleSeed * 7.8f + angle * 1.4f)
-                             * thickness * 0.22f * modulePresence * calmScale;
+                float mechPulse = (moduleSeed - 0.5f) * 0.85f + std::sin(swirlPhase * 1.1f + module * 1.6f) * 0.35f;
+                float melt = std::sin(baseAngle * (layer.waveFrequency * 1.45f) + animatedTime * 2.7f + moduleSeed * 13.0f)
+                             * thickness * (0.45f + 0.55f * modulePresence * dynamicsScale);
+                float drip = std::sin(animatedTime * 4.4f + moduleSeed * 11.8f + angle * 3.1f)
+                             * thickness * 0.32f * modulePresence * calmScale;
 
-                float innerRadius = radius + melt - thickness * (0.55f + mechPulse * 0.25f) + drip * 0.4f;
-                float outerRadius = radius + melt + thickness * (0.60f + mechPulse * 0.35f + std::clamp(high, 0.0f, 1.0f) * 0.25f)
-                                    + drip;
+                float innerRadius = radius + melt - thickness * (0.75f + mechPulse * 0.35f) + drip * 0.6f;
+                float outerRadius = radius + melt + thickness * (0.85f + mechPulse * 0.45f + std::clamp(high, 0.0f, 1.0f) * 0.35f)
+                                    + drip + std::sin(baseAngle * 12.0f + moduleSeed * 20.0f) * thickness * 0.2f;
 
                 float cosA = std::cos(angle);
                 float sinA = std::sin(angle);
@@ -424,56 +433,58 @@ void Visualizer::renderLegacyFrequencyBars(float bass, float mid, float high, fl
                 edges[edgeIndex].outerY = centerY + sinA * outerRadius * aspectY;
             }
 
-            float hue = std::fmod(layer.hueShift + moduleMid * 0.6f + moduleSeed * 0.08f + beatPulse * 0.1f, 1.0f);
-            float saturation = std::clamp(0.45f + 0.28f * dynamicsScale + 0.22f * std::clamp(highActivation, 0.0f, 1.0f), 0.0f, 1.0f);
-            float value = std::clamp(0.52f + 0.24f * motionBlend + 0.20f * globalEnergy + modulePresence * 0.20f, 0.0f, 1.0f);
+            float hue = std::fmod(layer.hueShift + moduleMid * 0.9f + moduleSeed * 0.28f + beatPulse * 0.25f, 1.0f);
+            float saturation = std::clamp(0.55f + 0.42f * dynamicsScale + 0.35f * std::clamp(highActivation, 0.0f, 1.0f), 0.0f, 1.0f);
+            float value = std::clamp(0.42f + 0.34f * motionBlend + 0.28f * globalEnergy + modulePresence * 0.32f, 0.0f, 1.0f);
             float baseR, baseG, baseB;
             hsvToRgb(hue, saturation, value, baseR, baseG, baseB);
+
+            float glitchAccentR = 0.85f + modulePresence * 0.5f;
+            float glitchAccentG = 0.25f + modulePresence * 0.45f;
+            float glitchAccentB = 0.35f + modulePresence * 0.65f;
 
             glBegin(GL_TRIANGLE_STRIP);
             for (int edgeIndex = 0; edgeIndex < 2; ++edgeIndex) {
                 const EdgeCoord& e = edges[edgeIndex];
-                setColorWithAdjust(baseR * 0.85f,
-                                   baseG * 0.85f,
-                                   baseB * 0.95f,
-                                   (0.24f + 0.38f * energyMix) * modulePresence * (0.7f + 0.3f * calmScale),
+                setColorWithAdjust(baseR * (0.65f + modulePresence * 0.6f) + glitchAccentR * 0.2f,
+                                   baseG * (0.55f + modulePresence * 0.5f) + glitchAccentG * 0.25f,
+                                   baseB * (0.75f + modulePresence * 0.7f) + glitchAccentB * 0.3f,
+                                   (0.18f + 0.42f * energyMix) * modulePresence * (0.5f + 0.5f * calmScale),
                                    *layer.adjust);
                 glVertex2f(e.innerX, e.innerY);
 
-                setColorWithAdjust(baseR * 1.12f,
-                                   baseG * 1.05f,
-                                   baseB * 1.25f,
-                                   (0.18f + 0.42f * (energyMix + beatPulse * 0.5f)) * modulePresence * (0.75f + 0.25f * calmScale),
+                float highBoost = std::clamp(high * 0.6f, 0.0f, 1.0f);
+                float midBoost = std::clamp(mid * 0.6f, 0.0f, 1.0f);
+                float bassBoost = std::clamp(bass * 0.6f, 0.0f, 1.0f);
+
+                setColorWithAdjust(baseR * (1.25f + highBoost * 0.4f) + glitchAccentR * 0.4f,
+                                   baseG * (1.10f + midBoost * 0.3f) + glitchAccentG * 0.35f,
+                                   baseB * (1.35f + bassBoost * 0.25f) + glitchAccentB * 0.45f,
+                                   (0.22f + 0.55f * (energyMix + beatPulse * 0.5f)) * modulePresence * (0.65f + 0.35f * calmScale),
                                    *layer.adjust);
                 glVertex2f(e.outerX, e.outerY);
             }
             glEnd();
 
-            glBegin(GL_LINE_STRIP);
-            setColorWithAdjust(baseR * 0.9f,
-                               baseG * 0.9f,
-                               baseB * 1.15f,
-                               (0.16f + 0.28f * energyMix) * modulePresence * (0.7f + 0.3f * calmScale),
-                               *layer.adjust);
-            glVertex2f(edges[0].innerX, edges[0].innerY);
-            glVertex2f(edges[0].outerX, edges[0].outerY);
-            glVertex2f(edges[1].outerX, edges[1].outerY);
-            glVertex2f(edges[1].innerX, edges[1].innerY);
-            glVertex2f(edges[0].innerX, edges[0].innerY);
-            glEnd();
-
             glBegin(GL_LINES);
-            float braceMidX = (edges[0].innerX + edges[0].outerX) * 0.5f;
-            float braceMidY = (edges[0].innerY + edges[0].outerY) * 0.5f;
-            float braceMidX2 = (edges[1].innerX + edges[1].outerX) * 0.5f;
-            float braceMidY2 = (edges[1].innerY + edges[1].outerY) * 0.5f;
-            setColorWithAdjust(baseR * 1.1f,
-                               baseG * 1.1f,
-                               baseB * 1.2f,
-                               (0.14f + 0.26f * energyMix) * modulePresence * (0.65f + 0.35f * calmScale),
-                               *layer.adjust);
-            glVertex2f(braceMidX, braceMidY);
-            glVertex2f(braceMidX2, braceMidY2);
+            for (int i = 0; i < 4; ++i) {
+                float lerp = static_cast<float>(i) / 3.0f;
+                float mixSeed = hash(moduleSeed * 97.0f + i * 1.9f + animatedTime * 0.7f);
+                float baseAngleForCuts = moduleMid * 6.28318f + floor(moduleSeed * 12.0f) * 0.12f;
+                float cutAngle = lerp * (moduleEnd - moduleStart) * 6.28318f + baseAngleForCuts + mixSeed * 0.4f;
+                float cutRadius = radius + thickness * (mixSeed - 0.5f) * 0.6f;
+                float glitchAlpha = (0.10f + 0.32f * energyMix) * (0.4f + mixSeed * 0.6f);
+                setColorWithAdjust(glitchAccentR * (0.6f + mixSeed * 0.8f),
+                                   glitchAccentG * (0.5f + mixSeed * 0.9f),
+                                   glitchAccentB * (0.65f + mixSeed * 0.7f),
+                                   glitchAlpha,
+                                   *layer.adjust);
+                float gx = centerX + std::cos(cutAngle) * cutRadius * aspectX;
+                float gy = centerY + std::sin(cutAngle) * cutRadius * aspectY;
+                glVertex2f(centerX + std::cos(cutAngle) * (cutRadius - thickness * 0.4f) * aspectX,
+                           centerY + std::sin(cutAngle) * (cutRadius - thickness * 0.4f) * aspectY);
+                glVertex2f(gx, gy);
+            }
             glEnd();
         }
 
