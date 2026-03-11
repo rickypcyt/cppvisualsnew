@@ -537,30 +537,6 @@ src/visualizer_imgui.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.s
 .PHONY : src/visualizer_imgui.cpp.s
 
-src/visualizer_legacy.o: src/visualizer_legacy.cpp.o
-.PHONY : src/visualizer_legacy.o
-
-# target to build an object file
-src/visualizer_legacy.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.o
-.PHONY : src/visualizer_legacy.cpp.o
-
-src/visualizer_legacy.i: src/visualizer_legacy.cpp.i
-.PHONY : src/visualizer_legacy.i
-
-# target to preprocess a source file
-src/visualizer_legacy.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.i
-.PHONY : src/visualizer_legacy.cpp.i
-
-src/visualizer_legacy.s: src/visualizer_legacy.cpp.s
-.PHONY : src/visualizer_legacy.s
-
-# target to generate assembly for a file
-src/visualizer_legacy.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.s
-.PHONY : src/visualizer_legacy.cpp.s
-
 src/visualizer_procedural.o: src/visualizer_procedural.cpp.o
 .PHONY : src/visualizer_procedural.o
 
@@ -645,9 +621,6 @@ help:
 	@echo "... src/visualizer_imgui.o"
 	@echo "... src/visualizer_imgui.i"
 	@echo "... src/visualizer_imgui.s"
-	@echo "... src/visualizer_legacy.o"
-	@echo "... src/visualizer_legacy.i"
-	@echo "... src/visualizer_legacy.s"
 	@echo "... src/visualizer_procedural.o"
 	@echo "... src/visualizer_procedural.i"
 	@echo "... src/visualizer_procedural.s"

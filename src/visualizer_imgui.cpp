@@ -158,7 +158,7 @@ void Visualizer::renderMainImGuiWindow() {
 
     ImGui::Spacing();
     ImGui::Text("🎚️ Sensibilidad Visual");
-    ImGui::SliderFloat("##LegacySensitivitySlider", &legacySensitivity_, 0.2f, 3.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderFloat("##VisualSensitivitySlider", &visualSensitivity_, 0.2f, 3.0f, "%.2fx", ImGuiSliderFlags_AlwaysClamp);
 
     ImGui::Text("🎛️ Input Gain");
     ImGui::SliderFloat("##InputGainSlider", &audioInputGain_, 0.1f, 5.0f, "%.2fx", ImGuiSliderFlags_AlwaysClamp);
@@ -235,36 +235,34 @@ void Visualizer::renderMainImGuiWindow() {
 
     ImGui::Begin("Visual", &showImGuiVisualWindow_, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
-    ImGui::Text("🎨 Legacy Color Scheme:");
-    ImGui::TextWrapped("Ajusta los multiplicadores de color para los elementos del render legacy.");
-
-    if (ImGui::Button("Restablecer Colores")) {
-        resetLegacyColorAdjustments();
-    }
+    ImGui::TextUnformatted("Motor visual:");
     ImGui::SameLine();
-    if (ImGui::Button("Randomizar Ahora")) {
-        randomizeLegacyColors();
+    ImGui::Checkbox("Shaders modernos", &useModernPipeline_);
+    ImGui::SameLine();
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Superpone el render legacy encima del moderno");
     }
 
-    int presetCount = static_cast<int>(colorPresets_.size());
-    const char* currentPresetName = (currentPresetIndex_ >= 0 && currentPresetIndex_ < presetCount)
-                                        ? colorPresets_[currentPresetIndex_].name.c_str()
-                                        : "Sin límites";
+    int paletteCount = static_cast<int>(scenePalettes_.size());
+    const char* currentName = (currentScenePaletteIndex_ >= 0 && currentScenePaletteIndex_ < paletteCount)
+                                ? scenePalettes_[currentScenePaletteIndex_].name.c_str()
+                                : "Sin límites";
+
+    ImGui::Text("🎨 Paleta moderna:");
     ImGui::SetNextItemWidth(200.0f);
-    if (ImGui::BeginCombo("Preset Legacy", currentPresetName)) {
-        bool noneSelected = currentPresetIndex_ < 0;
+    if (ImGui::BeginCombo("Preset", currentName)) {
+        bool noneSelected = currentScenePaletteIndex_ < 0;
         if (ImGui::Selectable("Sin límites", noneSelected)) {
-            currentPresetIndex_ = -1;
-            resetLegacyColorAdjustments();
-            colorRandomTimer_ = 0.0f;
+            currentScenePaletteIndex_ = -1;
+            setDefaultScenePalette();
         }
         if (noneSelected) {
             ImGui::SetItemDefaultFocus();
         }
-        for (int i = 0; i < presetCount; ++i) {
-            bool selected = (currentPresetIndex_ == i);
-            if (ImGui::Selectable(colorPresets_[i].name.c_str(), selected)) {
-                applyLegacyPreset(i);
+        for (int i = 0; i < paletteCount; ++i) {
+            bool selected = (currentScenePaletteIndex_ == i);
+            if (ImGui::Selectable(scenePalettes_[i].name.c_str(), selected)) {
+                applyScenePalette(i);
             }
             if (selected) {
                 ImGui::SetItemDefaultFocus();
@@ -273,73 +271,26 @@ void Visualizer::renderMainImGuiWindow() {
         ImGui::EndCombo();
     }
 
-    ImGui::TextUnformatted("Motor visual:");
-    ImGui::SameLine();
-    ImGui::Checkbox("Shaders modernos", &useModernPipeline_);
-    ImGui::SameLine();
-    ImGui::Checkbox("Overlay legacy", &overlayLegacyOnModern_);
-    if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Superpone el render legacy encima del moderno");
+    ImGui::SetNextItemWidth(180.0f);
+    if (ImGui::SliderFloat("Mezcla", &scenePaletteBlend_, 0.0f, 1.0f, "%.2f")) {
+        scenePaletteBlend_ = std::clamp(scenePaletteBlend_, 0.0f, 1.0f);
+        proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+    }
+
+    ImGui::SetNextItemWidth(200.0f);
+    if (ImGui::ColorEdit3("Primario", scenePrimaryColor_.data(), ImGuiColorEditFlags_Float)) {
+        proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+    }
+    ImGui::SetNextItemWidth(200.0f);
+    if (ImGui::ColorEdit3("Secundario", sceneSecondaryColor_.data(), ImGuiColorEditFlags_Float)) {
+        proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+    }
+
+    if (ImGui::Button("Restaurar preset")) {
+        applyScenePalette(currentScenePaletteIndex_);
     }
 
     if (useModernPipeline_) {
-        if (ImGui::TreeNode("Paleta moderna")) {
-            int paletteCount = static_cast<int>(scenePalettes_.size());
-            const char* currentName = (currentScenePaletteIndex_ >= 0 && currentScenePaletteIndex_ < paletteCount)
-                                        ? scenePalettes_[currentScenePaletteIndex_].name.c_str()
-                                        : "Sin límites";
-
-            if (ImGui::BeginCombo("Preset", currentName)) {
-                bool noneSelected = currentScenePaletteIndex_ < 0;
-                if (ImGui::Selectable("Sin límites", noneSelected)) {
-                    currentScenePaletteIndex_ = -1;
-                    setDefaultScenePalette();
-                }
-                if (noneSelected) {
-                    ImGui::SetItemDefaultFocus();
-                }
-                for (int i = 0; i < paletteCount; ++i) {
-                    bool selected = (currentScenePaletteIndex_ == i);
-                    if (ImGui::Selectable(scenePalettes_[i].name.c_str(), selected)) {
-                        applyScenePalette(i);
-                    }
-                    if (selected) {
-                        ImGui::SetItemDefaultFocus();
-                    }
-                }
-                ImGui::EndCombo();
-            }
-
-            ImGui::SetNextItemWidth(180.0f);
-            if (ImGui::SliderFloat("Mezcla", &scenePaletteBlend_, 0.0f, 1.0f, "%.2f")) {
-                scenePaletteBlend_ = std::clamp(scenePaletteBlend_, 0.0f, 1.0f);
-                proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
-            }
-
-            ImGui::SetNextItemWidth(200.0f);
-            if (ImGui::ColorEdit3("Primario", scenePrimaryColor_.data(), ImGuiColorEditFlags_Float)) {
-                proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
-            }
-            ImGui::SetNextItemWidth(200.0f);
-            if (ImGui::ColorEdit3("Secundario", sceneSecondaryColor_.data(), ImGuiColorEditFlags_Float)) {
-                proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
-            }
-
-            if (ImGui::Button("Restaurar preset")) {
-                applyScenePalette(currentScenePaletteIndex_);
-            }
-
-            ImGui::TreePop();
-        }
-
-        if (ImGui::TreeNode("Capas núcleo shader")) {
-            coreShowBase_ = true;
-            coreShowCorona_ = true;
-            ImGui::BulletText("Base (siempre activa)");
-            ImGui::BulletText("Corona (siempre activa)");
-            ImGui::TreePop();
-        }
-
         ImGui::Checkbox("Orbes esquina", &showCornerOrbs_);
 
         if (ImGui::TreeNode("Capa procedural")) {
@@ -485,41 +436,17 @@ void Visualizer::renderMainImGuiWindow() {
     ImGui::SameLine();
     ImGui::Checkbox("Cambiar colores cada 2 onsets", &onsetColorCyclingEnabled_);
     ImGui::SameLine();
-    ImGui::Checkbox("Mezclar presets", &mixColorSchemes_);
-    ImGui::SameLine();
     ImGui::SetNextItemWidth(160.0f);
     if (ImGui::SliderFloat("Intervalo (s)", &colorRandomInterval_, 1.0f, 60.0f)) {
         colorRandomInterval_ = std::max(1.0f, colorRandomInterval_);
     }
 
     ImGuiColorEditFlags colorFlags = ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float;
-    if (ImGui::BeginTable("LegacyColorAdjustTable", 2, ImGuiTableFlags_SizingStretchProp)) {
-        auto colorRow = [&](const char* label, std::array<float, 4>& adjust) {
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::TextUnformatted(label);
-            ImGui::TableSetColumnIndex(1);
-            ImGui::ColorEdit4(label, adjust.data(), colorFlags | ImGuiColorEditFlags_NoInputs);
-        };
 
-        colorRow("Circle Fill", legacyColorAdjust_.circleFill);
-        colorRow("Circle Outline", legacyColorAdjust_.circleOutline);
-        colorRow("Bloom Centro", legacyColorAdjust_.bloomInner);
-        colorRow("Bloom Halo", legacyColorAdjust_.bloomOuter);
-        colorRow("Barras Graves", legacyColorAdjust_.bassBars);
-        colorRow("Barras Medios", legacyColorAdjust_.midBars);
-        colorRow("Barras Agudos", legacyColorAdjust_.highBars);
-        colorRow("Explosion Beat", legacyColorAdjust_.beatExplosion);
-        colorRow("Waveform", legacyColorAdjust_.waveform);
-
-        ImGui::EndTable();
-    }
-
-    ImGui::Separator();
     ImGui::Text("🎞️ Visual Layers:");
-    ImGui::Checkbox("Núcleo", &showLegacyCore_);
+    ImGui::Checkbox("Corner Orbs", &showCornerOrbs_);
     ImGui::SameLine();
-    ImGui::Checkbox("Arcos", &showLegacyArcs_);
+    ImGui::Checkbox("Procedural Layer", &showProceduralLayer_);
 
     ImGui::Spacing();
     ImGui::Text("🎮 Controls:");

@@ -34,6 +34,9 @@ public:
     int getSelectedDevice() const { return selectedDevice_; }
     void setSelectedDevice(int device) { selectedDevice_ = device; }
     float getAudioInputGain() const { return audioInputGain_; }
+    void setAudioInputGain(float gain) { audioInputGain_ = gain; }
+    float getVisualSensitivity() const { return visualSensitivity_; }
+    void setVisualSensitivity(float sensitivity) { visualSensitivity_ = sensitivity; }
     void toggleDiagnosticMode() { showDiagnostic_ = !showDiagnostic_; }
     bool isDiagnosticMode() const { return showDiagnostic_; }
     void toggleConsoleMode() { consoleMode_ = !consoleMode_; }
@@ -49,17 +52,6 @@ public:
     void renderImGui();
 
 private:
-    enum class LegacyTone {
-        BloomInner,
-        BloomOuter,
-        CircleFill,
-        CircleOutline,
-        BassBars,
-        MidBars,
-        HighBars,
-        BeatExplosion,
-        Waveform
-    };
 
     struct ScenePalette {
         std::string name;
@@ -138,6 +130,8 @@ private:
     std::unique_ptr<Shader> cornerShader_;
     ModularLayer proceduralLayer_;
     PostProcessor postProcessor_;
+    float postProcessStrength_;
+    std::array<float, 3> postProcessRgbAdjust_;
     AudioAnalyzer::AudioFeatures audioFeatures_;
     std::vector<float> waveformBuffer_;
     int selectedDevice_;
@@ -148,13 +142,7 @@ private:
     std::vector<bool> deviceIsInternal_;
     std::string rendererName_;
     std::string openglVersion_;
-    float legacyMotionBlend_;
-    float legacyMotionPhase_;
-    float legacySensitivity_;
     float audioInputGain_;
-    bool showLegacyCore_;
-    bool showLegacyArcs_;
-    bool showLegacyWaveforms_;
     bool useModernPipeline_;
 
     // ImGui state
@@ -181,11 +169,7 @@ private:
     float scenePaletteBlend_;
     std::array<bool, 3> rgbChannelEnabled_{};
     float globalIntensityEnvelope_;
-    bool overlayLegacyOnModern_;
-    bool showLegacyVisualization_;
-    bool showModernCore_;
-    bool coreShowBase_;
-    bool coreShowCorona_;
+    float visualSensitivity_;
     bool coreShowSpokes_;
     bool coreShowRunes_;
     bool coreShowSparkles_;
@@ -198,8 +182,6 @@ private:
     float proceduralLayerOpacity_;
     int proceduralLayerMode_;
     int postProcessMode_;
-    float postProcessStrength_;
-    std::array<float, 3> postProcessRgbAdjust_;
 
     CoreState core_;
     std::vector<GearNode> gears_;
@@ -233,6 +215,7 @@ private:
     void renderCornerOrbs();
     void renderProceduralLayer();
     void renderCore();
+    void handleVisualizationShortcuts();
 
     // ImGui rendering methods
     void renderMainImGuiWindow();
@@ -240,36 +223,16 @@ private:
     void renderDiagnosticImGui();
     void renderConsoleImGui();
 
-    void setLegacyColor(float r, float g, float b, float a, LegacyTone tone) const;
     void buildScenePalettes();
     void applyScenePalette(int index);
     void setDefaultScenePalette();
     void randomizeScenePalette();
     void cycleScenePaletteSequential();
     void updateDynamicScenePalette();
-    
-    // Legacy color methods
-    void randomizeLegacyColors();
-    void applyLegacyPreset(int index);
-    void resetLegacyColorAdjustments();
-    void setColorWithAdjust(float r, float g, float b, float a, const std::array<float, 4>& adjust);
-    
-    // Legacy color state
-    struct {
-        std::array<float, 4> circleFill{1.0f, 1.0f, 1.0f, 1.0f};
-        std::array<float, 4> circleOutline{1.0f, 1.0f, 1.0f, 1.0f};
-        std::array<float, 4> bassBars{1.0f, 1.0f, 1.0f, 1.0f};
-        std::array<float, 4> midBars{1.0f, 1.0f, 1.0f, 1.0f};
-        std::array<float, 4> highBars{1.0f, 1.0f, 1.0f, 1.0f};
-        std::array<float, 4> beatExplosion{1.0f, 1.0f, 1.0f, 1.0f};
-        std::array<float, 4> waveform{1.0f, 1.0f, 1.0f, 1.0f};
-        std::array<float, 4> bloomInner{1.0f, 1.0f, 1.0f, 1.0f};
-        std::array<float, 4> bloomOuter{1.0f, 1.0f, 1.0f, 1.0f};
-    } legacyColorAdjust_;
-    
-    std::vector<ScenePalette> colorPresets_;
-    int currentPresetIndex_;
-    bool mixColorSchemes_;
+    void setUnifiedPalette(const std::array<float, 3>& primary,
+                           const std::array<float, 3>& secondary,
+                           float blend);
+
 
     // Procedural visualization methods
     void renderProceduralVisualization();
@@ -278,12 +241,6 @@ private:
     void renderHighFrequencySparkles(float high);
     void renderWaveformVisualization();
     
-    // Legacy OpenGL methods for software rendering
-    void renderLegacyVisualization(bool overlay = false);
-    void renderLegacyCircle(float bass, float mid, float high, float motionBlend, float animatedTime);
-    void renderLegacyFrequencyBars(float bass, float mid, float high, float motionBlend, float animatedTime);
-    void renderLegacySparkles(float bass, float high, float animatedTime, float motionBlend);
-    void renderLegacyWaveform(float animatedTime, float motionBlend);
 
     void initializeDynamicSystems();
     void updateCore(float dt, const AudioAnalyzer::AudioFeatures& features);

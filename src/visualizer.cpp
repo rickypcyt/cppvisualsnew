@@ -12,6 +12,8 @@
 namespace {
 constexpr int kProceduralModeCount = 24;
 constexpr int kPostProcessModeCount = 17;
+constexpr int kKaleidoscopeModeIndex = 23;
+constexpr int kPostProcessKaleidoscopeModeIndex = 7;
 
 std::array<float, 3> hsvToRgb(float h, float s, float v) {
     h = std::fmod(h, 1.0f);
@@ -395,8 +397,6 @@ uniform float uTime;
 uniform float uTempo;
 uniform float uOnset;
 uniform float uBeat;
-uniform float uShowBase;
-uniform float uShowCorona;
 uniform float uShowSpokes;
 uniform float uShowRunes;
 uniform float uShowSparkles;
@@ -496,16 +496,10 @@ void main() {
     float maturityHalo = smoothstep(0.45, 1.15, vRadiusNorm + sin(vAngle * 3.2 + uTime * 0.6) * 0.08);
     vec3 maturityColor = vec3(1.05 + uHigh * 0.4, 0.84 + uMid * 0.35, 0.65 + uBass * 0.28);
 
-    color += coreColor * baseIntensity * uShowBase;
-    color += filamentColor * filamentMask * (0.7 + uPulse * 0.5) * uShowBase;
-    color += growthColor * growthShell * growthPulse * (0.48 + uGrowth * 0.32) * uShowCorona;
-    color += petalColor * petals * (0.38 + uPulse * 0.24 + spiral * 0.18) * uShowCorona;
     color += runeColor * runeMask * (0.18 + uHarmonic * 0.35) * uShowRunes;
     color += sparkColor * spark * uShowSparkles;
     color += petalColor * bloom * uShowBloom;
     color += maturityColor * maturityVeins * (0.18 + uMaturity * 0.25) * uShowRunes;
-    color += ribbonColor * (ribbonStrand * (0.45 + uEnergy * 0.22) + ribbonSpark * 0.7) * uShowCorona;
-    color += facetColor * facetPrism * (0.32 + uEnergy * 0.28 + uShowBase * 0.25) * uShowBase;
     color += shardColor * facetShard * (0.26 + uHigh * 0.35 + uPulse * 0.25) * uShowSparkles;
 
     float chemAura = smoothstep(0.2, 1.4, chemStir + nodePulse * 0.5);
@@ -514,9 +508,8 @@ void main() {
     vec3 phaseColor = mix(chemColor, chemColor.zyx, clamp(uHigh * 0.4 + uOnset * 0.3, 0.0, 1.0));
     vec3 bondGlow = mix(bondColor, bondColor.yzx, clamp(uMid * 0.5, 0.0, 1.0));
 
-    color += phaseColor * chemAura * (0.3 + uShowCorona * 0.42 + uEnergy * 0.22);
+    color += phaseColor * chemAura * (0.3 + 0.42 + uEnergy * 0.22);
     color += bondGlow * bondVeins * (0.35 + nodePulse * 0.3) * uShowRunes;
-    color += chemColor * arterial * outerLayer * (0.22 + uPulse * 0.3) * uShowBase;
     color += ribbonColor * ribbonFuse * 0.22 * uShowBloom;
     color += facetColor * facetPrism * 0.22 * uShowRunes;
 
@@ -527,19 +520,15 @@ void main() {
     color = max(color, vec3(0.0));
 
     float alpha = 0.1
-                + baseIntensity * uShowBase
-                + filamentMask * (0.35 + uPulse * 0.3) * uShowBase
-                + growthShell * growthPulse * 0.25 * uShowCorona
-                + petals * (0.18 + uPulse * 0.22) * uShowCorona
                 + spokeMask * 0.25 * uShowSpokes
                 + maturityVeins * 0.22 * uShowRunes
                 + spark * 0.42 * uShowSparkles
                 + bloom * 0.32 * uShowBloom
-                + chemAura * 0.18 * uShowCorona
+                + chemAura * 0.18
                 + bondVeins * 0.26 * uShowRunes
-                + ribbonStrand * 0.18 * uShowCorona
+                + ribbonStrand * 0.18
                 + ribbonSpark * 0.18 * uShowSparkles
-                + facetPrism * 0.22 * uShowBase;
+                + facetPrism * 0.22;
     alpha = clamp(alpha, 0.08, 0.9);
 
     FragColor = vec4(max(color, vec3(0.0)), alpha);
@@ -658,8 +647,6 @@ void Visualizer::renderCore() {
                               sceneSecondaryColor_[1],
                               sceneSecondaryColor_[2]);
     coreShader_->setUniform1f("uSceneBlend", scenePaletteBlend_);
-    coreShader_->setUniform1f("uShowBase", coreShowBase_);
-    coreShader_->setUniform1f("uShowCorona", coreShowCorona_);
     coreShader_->setUniform1f("uShowSpokes", coreShowSpokes_);
     coreShader_->setUniform1f("uShowRunes", coreShowRunes_);
     coreShader_->setUniform1f("uShowSparkles", coreShowSparkles_);
@@ -701,14 +688,10 @@ Visualizer::Visualizer()
       scenePaletteBlend_(0.6f),
       rgbChannelEnabled_{true, true, true},
       globalIntensityEnvelope_(0.0f),
-      overlayLegacyOnModern_(false),
-      coreShowBase_(true),
-      coreShowCorona_(true),
       coreShowSpokes_(true),
       coreShowRunes_(true),
       coreShowSparkles_(true),
       coreShowBloom_(true),
-      audioInputGain_(1.0f),
       showCornerOrbs_(true),
       showProceduralLayer_(true),
       proceduralLayerDebug_(false),
@@ -717,13 +700,9 @@ Visualizer::Visualizer()
       postProcessMode_(2),
       postProcessStrength_(1.0f),
       postProcessRgbAdjust_{1.0f, 1.0f, 1.0f},
-      legacyMotionBlend_(0.0f), legacyMotionPhase_(0.0f), legacySensitivity_(1.0f),
-      showLegacyCore_(true), showLegacyArcs_(true),
-      showLegacyWaveforms_(false),
-      useModernPipeline_(false),
-      currentPresetIndex_(-1),
-      mixColorSchemes_(false) {
-    waveformBuffer_.resize(512); // Same as audio buffer size
+      audioInputGain_(1.0f),
+      visualSensitivity_(1.0f) {
+    waveformBuffer_.resize(512);
     colorRandomTimer_ = 0.0f;
     buildScenePalettes();
 
@@ -735,8 +714,8 @@ Visualizer::Visualizer()
     idleState_ = 0.0f;
     idlePhase_ = 0.0f;
     
-    // Copy scene palettes to color presets for legacy compatibility
-    colorPresets_ = scenePalettes_;
+    // Remove self-reference
+    // scenePalettes_ = scenePalettes_;
 }
 
 Visualizer::~Visualizer() {
@@ -777,10 +756,8 @@ bool Visualizer::initialize(int width, int height) {
     if (!loadShaders()) {
         std::cout << "Failed to load shaders, using fallback rendering" << std::endl;
         shader_.reset(); // Will trigger fallback triangle
-        useModernPipeline_ = false;
-    } else {
-        useModernPipeline_ = shader_ != nullptr;
     }
+    useModernPipeline_ = shader_ != nullptr;
 
     if (!loadCoreShader()) {
         coreShader_.reset();
@@ -813,82 +790,6 @@ bool Visualizer::initialize(int width, int height) {
     return true;
 }
 
-void Visualizer::setLegacyColor(float r, float g, float b, float a, LegacyTone tone) const {
-    struct ToneProfile {
-        float bias;
-        float accent;
-        float brightness;
-        float alphaBoost;
-    };
-
-    auto clamp01 = [](float value) {
-        return std::clamp(value, 0.0f, 1.0f);
-    };
-
-    ToneProfile profile{};
-    switch (tone) {
-        case LegacyTone::BloomInner:
-            profile = {-0.18f, -0.05f, 0.18f, 0.10f};
-            break;
-        case LegacyTone::BloomOuter:
-            profile = {0.05f, 0.10f, 0.12f, 0.05f};
-            break;
-        case LegacyTone::CircleFill:
-            profile = {-0.08f, 0.04f, 0.10f, 0.0f};
-            break;
-        case LegacyTone::CircleOutline:
-            profile = {0.14f, 0.16f, 0.05f, 0.08f};
-            break;
-        case LegacyTone::BassBars:
-            profile = {-0.12f, 0.02f, 0.08f, 0.0f};
-            break;
-        case LegacyTone::MidBars:
-            profile = {0.02f, 0.08f, 0.08f, 0.0f};
-            break;
-        case LegacyTone::HighBars:
-            profile = {0.16f, 0.18f, 0.10f, 0.02f};
-            break;
-        case LegacyTone::BeatExplosion:
-            profile = {0.22f, 0.28f, 0.18f, 0.12f};
-            break;
-        case LegacyTone::Waveform:
-        default:
-            profile = {-0.10f, 0.12f, 0.06f, 0.0f};
-            break;
-    }
-
-    auto mixChannel = [&](float t, int channel) {
-        float blend = std::clamp(t, 0.0f, 1.0f);
-        return scenePrimaryColor_[channel] * (1.0f - blend) + sceneSecondaryColor_[channel] * blend;
-    };
-
-    float baseBlend = std::clamp(scenePaletteBlend_ + profile.bias, 0.0f, 1.0f);
-    float accentBlend = std::clamp(scenePaletteBlend_ + profile.accent, 0.0f, 1.0f);
-
-    std::array<float, 3> palette{};
-    std::array<float, 3> accent{};
-    for (int i = 0; i < 3; ++i) {
-        palette[i] = mixChannel(baseBlend, i);
-        accent[i] = mixChannel(accentBlend, i);
-    }
-
-    std::array<float, 3> baseColor{
-        clamp01(r),
-        clamp01(g),
-        clamp01(b)
-    };
-
-    std::array<float, 3> result{};
-    for (int i = 0; i < 3; ++i) {
-        float combined = baseColor[i] * (0.42f + profile.brightness)
-                       + palette[i] * (0.52f + profile.brightness * 0.6f)
-                       + accent[i] * 0.18f;
-        result[i] = std::clamp(combined, 0.0f, 1.0f);
-    }
-
-    float alphaOut = std::clamp(clamp01(a) * (0.85f + profile.alphaBoost), 0.0f, 1.0f);
-    glColor4f(result[0], result[1], result[2], alphaOut);
-}
 
 void Visualizer::buildScenePalettes() {
     scenePalettes_.clear();
@@ -929,6 +830,17 @@ void Visualizer::buildScenePalettes() {
     }
 }
 
+void Visualizer::setUnifiedPalette(const std::array<float, 3>& primary,
+                                   const std::array<float, 3>& secondary,
+                                   float blend) {
+    scenePrimaryColor_ = primary;
+    sceneSecondaryColor_ = secondary;
+    scenePaletteBlend_ = std::clamp(blend, 0.0f, 1.0f);
+
+    (void)secondary;
+    proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+}
+
 void Visualizer::applyScenePalette(int index) {
     if (index < 0 || scenePalettes_.empty()) {
         currentScenePaletteIndex_ = -1;
@@ -940,11 +852,7 @@ void Visualizer::applyScenePalette(int index) {
     currentScenePaletteIndex_ = clamped;
 
     const ScenePalette& palette = scenePalettes_[clamped];
-    scenePrimaryColor_ = palette.primary;
-    sceneSecondaryColor_ = palette.secondary;
-    scenePaletteBlend_ = std::clamp(palette.blend, 0.0f, 1.0f);
-
-    proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+    setUnifiedPalette(palette.primary, palette.secondary, palette.blend);
 }
 
 void Visualizer::setDefaultScenePalette() {
@@ -954,11 +862,8 @@ void Visualizer::setDefaultScenePalette() {
     auto primaryRgb = hsvToRgb(baseHue, 0.78f, 0.95f);
     auto secondaryRgb = hsvToRgb(accentHue, 0.65f, 0.88f);
 
-    scenePrimaryColor_ = primaryRgb;
-    sceneSecondaryColor_ = secondaryRgb;
     currentScenePaletteIndex_ = -1;
-
-    proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+    setUnifiedPalette(primaryRgb, secondaryRgb, scenePaletteBlend_);
 }
 
 void Visualizer::randomizeScenePalette() {
@@ -1183,7 +1088,6 @@ void Visualizer::endFrame() {
         }
         colorRandomTimer_ += deltaTime;
         if (colorRandomTimer_ >= colorRandomInterval_) {
-            randomizeLegacyColors();
             randomizeScenePalette();
             colorRandomTimer_ = 0.0f;
         }
@@ -1195,12 +1099,6 @@ void Visualizer::endFrame() {
             ++onsetTriggerCount_;
             if (onsetTriggerCount_ >= 2) {
                 onsetTriggerCount_ = 0;
-                if (!colorPresets_.empty()) {
-                    int nextIndex = (currentPresetIndex_ + 1) % static_cast<int>(colorPresets_.size());
-                    applyLegacyPreset(nextIndex);
-                } else {
-                    randomizeLegacyColors();
-                }
                 cycleScenePaletteSequential();
             }
         }
@@ -1214,6 +1112,8 @@ void Visualizer::endFrame() {
 void Visualizer::updateAudioData(const AudioAnalyzer::AudioFeatures& features) {
     audioFeatures_ = features;
 
+    float sensitivity = std::clamp(visualSensitivity_, 0.25f, 3.0f);
+
     float targetTempo = 1.0f;
     float bpm = features.bpm;
     if (bpm > 30.0f) {
@@ -1224,6 +1124,14 @@ void Visualizer::updateAudioData(const AudioAnalyzer::AudioFeatures& features) {
     }
 
     tempoMultiplier_ = std::clamp(tempoMultiplier_ * 0.9f + targetTempo * 0.1f, 0.3f, 2.0f);
+
+    audioFeatures_.energy = std::clamp(audioFeatures_.energy * sensitivity, 0.0f, 3.0f);
+    audioFeatures_.bassEnergy = std::clamp(audioFeatures_.bassEnergy * sensitivity, 0.0f, 3.0f);
+    audioFeatures_.midEnergy = std::clamp(audioFeatures_.midEnergy * sensitivity, 0.0f, 3.0f);
+    audioFeatures_.highEnergy = std::clamp(audioFeatures_.highEnergy * sensitivity, 0.0f, 3.0f);
+    audioFeatures_.onset = std::clamp(audioFeatures_.onset * sensitivity, 0.0f, 2.0f);
+    audioFeatures_.beat = std::clamp(audioFeatures_.beat * sensitivity, 0.0f, 2.0f);
+    audioFeatures_.kick = std::clamp(audioFeatures_.kick * sensitivity, 0.0f, 2.0f);
 }
 
 void Visualizer::updateAudioBuffer(const std::vector<float>& audioBuffer) {
@@ -1233,7 +1141,7 @@ void Visualizer::updateAudioBuffer(const std::vector<float>& audioBuffer) {
 }
 
 void Visualizer::render() {
-    overlayLegacyOnModern_ = true;
+    bool usePost = showPostProcess_ && postProcessor_.isInitialized() && postProcessMode_ > 0 && postProcessStrength_ > 0.0f;
 
     float rawEnergy = std::clamp(audioFeatures_.energy, 0.0f, 2.5f);
     float bass = std::clamp(audioFeatures_.bassEnergy, 0.0f, 2.0f);
@@ -1252,8 +1160,6 @@ void Visualizer::render() {
         globalIntensityEnvelope_ = globalIntensityEnvelope_ * decayBase + targetIntensity * (1.0f - decayBase);
     }
     globalIntensityEnvelope_ = std::clamp(globalIntensityEnvelope_, 0.0f, 2.5f);
-
-    bool usePost = showPostProcess_ && postProcessMode_ > 0 && postProcessStrength_ > 0.0f;
 
     if (usePost) {
         postProcessor_.beginCapture(windowWidth_, windowHeight_);
@@ -1285,11 +1191,6 @@ void Visualizer::render() {
         renderCornerOrbs();
     }
 
-    if (overlayLegacyOnModern_) {
-        renderLegacyVisualization(true);
-    } else {
-        renderLegacyVisualization(false);
-    }
 
     renderIdleSpinner(time_);
 
@@ -1308,11 +1209,52 @@ void Visualizer::render() {
 
     glColorMask(previousMask[0], previousMask[1], previousMask[2], previousMask[3]);
 
+    handleVisualizationShortcuts();
+
     if (imguiInitialized_ && showImGuiWindow_) {
         renderImGui();
     } else if (!imguiInitialized_) {
         renderGUI();
     }
+}
+
+void Visualizer::handleVisualizationShortcuts() {
+    if (!window_) {
+        return;
+    }
+
+    constexpr double kToggleCooldown = 0.35;
+    double now = glfwGetTime();
+
+    static double lastOrbsToggle = 0.0;
+    static double lastKaleidoToggle = 0.0;
+    static bool orbsWasDown = false;
+    static bool kaleidoWasDown = false;
+
+    bool orbsKeyDown = (glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS ||
+                        glfwGetKey(window_, GLFW_KEY_KP_1) == GLFW_PRESS);
+    bool kaleidoKeyDown = glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS;
+
+    auto processToggle = [&](bool keyDown, bool& wasDown, double& lastToggle, auto&& action) {
+        if (keyDown) {
+            if (!wasDown && (now - lastToggle) > kToggleCooldown) {
+                action();
+                lastToggle = now;
+            }
+            wasDown = true;
+        } else {
+            wasDown = false;
+        }
+    };
+
+    processToggle(orbsKeyDown, orbsWasDown, lastOrbsToggle, [this]() {
+        showCornerOrbs_ = !showCornerOrbs_;
+    });
+
+    processToggle(kaleidoKeyDown, kaleidoWasDown, lastKaleidoToggle, [this]() {
+        showPostProcess_ = true;
+        postProcessMode_ = kPostProcessKaleidoscopeModeIndex;
+    });
 }
 
 bool Visualizer::setupOpenGL() {
@@ -1429,11 +1371,18 @@ void Visualizer::setupCornerQuad() {
         float profile;
     };
 
-    std::array<CornerVertex, 4> corners = {
-        CornerVertex{-0.88f,  0.88f, 0.075f, 0.020f,  0.0f, 0.10f},
-        CornerVertex{ 0.88f,  0.88f, 0.072f, 0.022f,  1.3f, 0.35f},
-        CornerVertex{-0.88f, -0.88f, 0.078f, 0.024f, -1.6f, 0.55f},
-        CornerVertex{ 0.88f, -0.88f, 0.074f, 0.021f,  2.2f, 0.78f}
+    std::array<CornerVertex, 8> corners = {
+        // Esquinas originales
+        CornerVertex{-0.88f,  0.88f, 0.075f, 0.020f,  0.0f, 0.10f},  // Superior izquierda
+        CornerVertex{ 0.88f,  0.88f, 0.072f, 0.022f,  1.3f, 0.35f},  // Superior derecha
+        CornerVertex{-0.88f, -0.88f, 0.078f, 0.024f, -1.6f, 0.55f},  // Inferior izquierda
+        CornerVertex{ 0.88f, -0.88f, 0.074f, 0.021f,  2.2f, 0.78f},  // Inferior derecha
+        
+        // Nuevos orbes en el medio
+        CornerVertex{ 0.00f,  0.88f, 0.068f, 0.018f,  0.8f, 0.25f},  // Centro superior
+        CornerVertex{ 0.00f, -0.88f, 0.070f, 0.019f, -0.8f, 0.65f},  // Centro inferior
+        CornerVertex{-0.88f,  0.00f, 0.069f, 0.017f,  2.8f, 0.45f},  // Centro izquierda
+        CornerVertex{ 0.88f,  0.00f, 0.071f, 0.020f, -2.8f, 0.85f}   // Centro derecha
     };
 
     cornerVertexCount_ = static_cast<GLsizei>(corners.size());
@@ -1754,12 +1703,10 @@ void Visualizer::renderModernCore() {
     coreShader_->setUniform1f("uIdlePulse", core_.idlePulse);
     coreShader_->setUniform1f("uIdleWarp", core_.idleWarp);
     coreShader_->setUniform1f("uIdleSpin", core_.idleSpin);
-    coreShader_->setUniform1f("uShowBase", 1.0f);
-    coreShader_->setUniform1f("uShowCorona", 1.0f);
-    coreShader_->setUniform1f("uShowSpokes", 0.0f);
-    coreShader_->setUniform1f("uShowRunes", 0.0f);
-    coreShader_->setUniform1f("uShowSparkles", 0.0f);
-    coreShader_->setUniform1f("uShowBloom", 0.0f);
+    coreShader_->setUniform1f("uShowSpokes", coreShowSpokes_ ? 1.0f : 0.0f);
+    coreShader_->setUniform1f("uShowRunes", coreShowRunes_ ? 1.0f : 0.0f);
+    coreShader_->setUniform1f("uShowSparkles", coreShowSparkles_ ? 1.0f : 0.0f);
+    coreShader_->setUniform1f("uShowBloom", coreShowBloom_ ? 1.0f : 0.0f);
     coreShader_->setUniform3f("uScenePrimary",
                               scenePrimaryColor_[0],
                               scenePrimaryColor_[1],
@@ -1769,26 +1716,6 @@ void Visualizer::renderModernCore() {
                               sceneSecondaryColor_[1],
                               sceneSecondaryColor_[2]);
     coreShader_->setUniform1f("uSceneBlend", std::clamp(scenePaletteBlend_, 0.0f, 1.0f));
-    coreShader_->setUniform4f("uLegacyCircleFill",
-                              legacyColorAdjust_.circleFill[0],
-                              legacyColorAdjust_.circleFill[1],
-                              legacyColorAdjust_.circleFill[2],
-                              legacyColorAdjust_.circleFill[3]);
-    coreShader_->setUniform4f("uLegacyCircleOutline",
-                              legacyColorAdjust_.circleOutline[0],
-                              legacyColorAdjust_.circleOutline[1],
-                              legacyColorAdjust_.circleOutline[2],
-                              legacyColorAdjust_.circleOutline[3]);
-    coreShader_->setUniform4f("uLegacyBloomInner",
-                              legacyColorAdjust_.bloomInner[0],
-                              legacyColorAdjust_.bloomInner[1],
-                              legacyColorAdjust_.bloomInner[2],
-                              legacyColorAdjust_.bloomInner[3]);
-    coreShader_->setUniform4f("uLegacyBloomOuter",
-                              legacyColorAdjust_.bloomOuter[0],
-                              legacyColorAdjust_.bloomOuter[1],
-                              legacyColorAdjust_.bloomOuter[2],
-                              legacyColorAdjust_.bloomOuter[3]);
 
     glBindVertexArray(coreVAO_);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, coreVertexCount_);
@@ -1881,6 +1808,29 @@ void Visualizer::renderGUI() {
         }
     }
     
+    // Check for '1' key toggle for corner orbs (main row or keypad) when device menu is closed
+    if (!showDeviceMenu_ &&
+        (glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS || glfwGetKey(window_, GLFW_KEY_KP_1) == GLFW_PRESS)) {
+        static double lastPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastPress > 0.5) { // 500ms debounce
+            showCornerOrbs_ = !showCornerOrbs_;
+            lastPress = currentTime;
+        }
+    }
+    
+    // Check for 'K' key to activate kaleidoscope mode
+    if (glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS) {
+        static double lastPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastPress > 0.5) { // 500ms debounce
+            proceduralLayerMode_ = kKaleidoscopeModeIndex;
+            proceduralLayer_.setMode(proceduralLayerMode_);
+            showProceduralLayer_ = true; // Ensure procedural layer is visible
+            lastPress = currentTime;
+        }
+    }
+    
     if (showDeviceMenu_) {
         showDeviceSelector();
     }
@@ -1927,30 +1877,6 @@ bool Visualizer::showDeviceSelector() {
             }
             renderText(deviceText, menuX, menuY + lineHeight * (4 + displayCount));
             displayCount++;
-        }
-    }
-    
-    // Handle number key presses
-    for (int i = 0; i < 9; ++i) {
-        if (glfwGetKey(window_, GLFW_KEY_1 + i) == GLFW_PRESS) {
-            // Find the actual device index
-            int actualIndex = -1;
-            int count = 0;
-            for (int j = 0; j < deviceNames_.size(); ++j) {
-                if (!deviceNames_[j].empty()) {
-                    if (count == i) {
-                        actualIndex = j;
-                        break;
-                    }
-                    count++;
-                }
-            }
-            
-            if (actualIndex >= 0) {
-                selectedDevice_ = actualIndex;
-                showDeviceMenu_ = false;
-                return true; // Device changed
-            }
         }
     }
     
@@ -2004,53 +1930,6 @@ void Visualizer::renderText(const std::string& text, float x, float y) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-void Visualizer::randomizeLegacyColors() {
-    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-    legacyColorAdjust_.circleFill = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
-    legacyColorAdjust_.circleOutline = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
-    legacyColorAdjust_.bassBars = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
-    legacyColorAdjust_.midBars = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
-    legacyColorAdjust_.highBars = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
-    legacyColorAdjust_.beatExplosion = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
-    legacyColorAdjust_.waveform = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
-    legacyColorAdjust_.bloomInner = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
-    legacyColorAdjust_.bloomOuter = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
-}
-
-void Visualizer::applyLegacyPreset(int index) {
-    if (index < 0 || index >= static_cast<int>(colorPresets_.size())) {
-        return;
-    }
-    
-    const auto& preset = colorPresets_[index];
-    legacyColorAdjust_.circleFill = {preset.primary[0], preset.primary[1], preset.primary[2], 1.0f};
-    legacyColorAdjust_.circleOutline = {preset.secondary[0], preset.secondary[1], preset.secondary[2], 1.0f};
-    legacyColorAdjust_.bassBars = {preset.primary[0], preset.primary[1], preset.primary[2], 1.0f};
-    legacyColorAdjust_.midBars = {preset.secondary[0], preset.secondary[1], preset.secondary[2], 1.0f};
-    legacyColorAdjust_.highBars = {preset.primary[0], preset.primary[1], preset.primary[2], 1.0f};
-    legacyColorAdjust_.beatExplosion = {preset.secondary[0], preset.secondary[1], preset.secondary[2], 1.0f};
-    legacyColorAdjust_.waveform = {preset.primary[0], preset.primary[1], preset.primary[2], 1.0f};
-    legacyColorAdjust_.bloomInner = {preset.primary[0], preset.primary[1], preset.primary[2], 0.8f};
-    legacyColorAdjust_.bloomOuter = {preset.secondary[0], preset.secondary[1], preset.secondary[2], 0.6f};
-    
-    currentPresetIndex_ = index;
-}
-
-void Visualizer::resetLegacyColorAdjustments() {
-    legacyColorAdjust_.circleFill = {1.0f, 1.0f, 1.0f, 1.0f};
-    legacyColorAdjust_.circleOutline = {1.0f, 1.0f, 1.0f, 1.0f};
-    legacyColorAdjust_.bassBars = {1.0f, 1.0f, 1.0f, 1.0f};
-    legacyColorAdjust_.midBars = {1.0f, 1.0f, 1.0f, 1.0f};
-    legacyColorAdjust_.highBars = {1.0f, 1.0f, 1.0f, 1.0f};
-    legacyColorAdjust_.beatExplosion = {1.0f, 1.0f, 1.0f, 1.0f};
-    legacyColorAdjust_.waveform = {1.0f, 1.0f, 1.0f, 1.0f};
-    legacyColorAdjust_.bloomInner = {1.0f, 1.0f, 1.0f, 1.0f};
-    legacyColorAdjust_.bloomOuter = {1.0f, 1.0f, 1.0f, 1.0f};
-}
-
-void Visualizer::setColorWithAdjust(float r, float g, float b, float a, const std::array<float, 4>& adjust) {
-    glColor4f(r * adjust[0], g * adjust[1], b * adjust[2], a * adjust[3]);
-}
 
 void Visualizer::setupCoreMesh() {
     // Placeholder implementation

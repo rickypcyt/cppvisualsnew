@@ -34,8 +34,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o.d"
   "CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o"
   "CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o.d"
-  "CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.o"
-  "CMakeFiles/audio_visualizer.dir/src/visualizer_legacy.cpp.o.d"
   "CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o"
   "CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o.d"
   "audio_visualizer"
