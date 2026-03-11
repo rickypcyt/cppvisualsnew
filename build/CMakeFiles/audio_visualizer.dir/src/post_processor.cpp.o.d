@@ -115,6 +115,11 @@ CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o: \
  /usr/include/c++/15.2.1/array /usr/include/c++/15.2.1/compare \
  /usr/include/c++/15.2.1/initializer_list \
  /usr/include/c++/15.2.1/bits/range_access.h \
+ /usr/include/c++/15.2.1/vector /usr/include/c++/15.2.1/bits/stl_vector.h \
+ /usr/include/c++/15.2.1/bits/stl_bvector.h \
+ /usr/include/c++/15.2.1/bits/vector.tcc \
+ /usr/include/c++/15.2.1/bits/memory_resource.h \
+ /usr/include/c++/15.2.1/bits/uses_allocator_args.h \
  /home/ricky/coding/proyects/visuals/src/shader.h \
  /usr/include/c++/15.2.1/string \
  /usr/include/c++/15.2.1/bits/char_traits.h \
@@ -146,8 +151,6 @@ CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o: \
  /usr/include/bits/types/error_t.h \
  /usr/include/c++/15.2.1/bits/charconv.h \
  /usr/include/c++/15.2.1/bits/basic_string.tcc \
- /usr/include/c++/15.2.1/bits/memory_resource.h \
- /usr/include/c++/15.2.1/bits/uses_allocator_args.h \
  /usr/include/c++/15.2.1/iostream /usr/include/c++/15.2.1/ostream \
  /usr/include/c++/15.2.1/bits/ostream.h /usr/include/c++/15.2.1/ios \
  /usr/include/c++/15.2.1/bits/ios_base.h \

@@ -5,7 +5,7 @@
 
 namespace {
 
-const char* kPostVertexShader = R"(
+const char *kPostVertexShader = R"(
 #version 330 core
 layout (location = 0) in vec2 aPos;
 layout (location = 1) in vec2 aUV;
@@ -18,7 +18,7 @@ void main() {
 }
 )";
 
-const char* kPostFragmentShader = R"(
+const char *kPostFragmentShader = R"(
 #version 330 core
 in vec2 vUV;
 out vec4 FragColor;
@@ -269,9 +269,7 @@ void main() {
 
 PostProcessor::PostProcessor() = default;
 
-PostProcessor::~PostProcessor() {
-    shutdown();
-}
+PostProcessor::~PostProcessor() { shutdown(); }
 
 bool PostProcessor::initialize(int width, int height) {
     if (initialized_) {
@@ -337,11 +335,32 @@ void PostProcessor::beginCapture(int width, int height) {
 
 void PostProcessor::endCapture() {
     glBindFramebuffer(GL_FRAMEBUFFER, previousFbo_);
-    glViewport(previousViewport_[0], previousViewport_[1], previousViewport_[2], previousViewport_[3]);
+    glViewport(previousViewport_[0], previousViewport_[1], previousViewport_[2],
+               previousViewport_[3]);
 }
 
-void PostProcessor::apply(int mode, float strength, float time, const std::array<float, 3>& colorAdjust, float bassLevel) {
-    if (!initialized_ || mode == 0 || strength <= 0.0f) {
+void PostProcessor::apply(int mode, float strength, float time,
+                          const std::array<float, 3> &colorAdjust, float bassLevel) {
+    if (!initialized_) {
+        return;
+    }
+
+    PostEffectPass pass;
+    pass.mode = mode;
+    pass.strength = strength;
+    pass.rgbAdjust = colorAdjust;
+
+    std::vector<PostEffectPass> passes;
+    if (mode != 0 && strength > 0.0f) {
+        passes.push_back(pass);
+    }
+
+    applyChain(passes, time, bassLevel);
+}
+
+void PostProcessor::applyChain(const std::vector<PostEffectPass> &passes, float time,
+                               float bassLevel) {
+    if (!initialized_) {
         return;
     }
 
@@ -358,16 +377,51 @@ void PostProcessor::apply(int mode, float strength, float time, const std::array
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     shader_->use();
-    shader_->setUniform1i("uMode", mode);
-    shader_->setUniform1f("uStrength", strength);
     shader_->setUniform1f("uTime", time);
     shader_->setUniform2f("uResolution", static_cast<float>(width_), static_cast<float>(height_));
-    shader_->setUniform3f("uRgbAdjust", colorAdjust[0], colorAdjust[1], colorAdjust[2]);
     shader_->setUniform1f("uBassLevel", bassLevel);
 
+    GLuint currentTexture = colorTexture_;
+    int pingIndex = 0;
+    bool drewPass = false;
+
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, colorTexture_);
     shader_->setUniform1i("uScene", 0);
+
+    for (const auto &pass : passes) {
+        if (pass.mode == 0 || pass.strength <= 0.0f) {
+            continue;
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, pingFbos_[pingIndex]);
+        glViewport(0, 0, width_, height_);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        shader_->setUniform1i("uMode", pass.mode);
+        shader_->setUniform1f("uStrength", pass.strength);
+        shader_->setUniform3f("uRgbAdjust", pass.rgbAdjust[0], pass.rgbAdjust[1],
+                              pass.rgbAdjust[2]);
+
+        glBindTexture(GL_TEXTURE_2D, currentTexture);
+
+        glBindVertexArray(quadVAO_);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
+
+        currentTexture = pingTextures_[pingIndex];
+        pingIndex = 1 - pingIndex;
+        drewPass = true;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, width_, height_);
+
+    shader_->setUniform1i("uMode", 0);
+    shader_->setUniform1f("uStrength", 0.0f);
+    shader_->setUniform3f("uRgbAdjust", 1.0f, 1.0f, 1.0f);
+
+    glBindTexture(GL_TEXTURE_2D, currentTexture);
 
     glBindVertexArray(quadVAO_);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -399,32 +453,54 @@ bool PostProcessor::createResources(int width, int height) {
 
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "PostProcessor: framebuffer incomplete (status=" << std::hex << status << std::dec << ")" << std::endl;
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        std::cerr << "PostProcessor: framebuffer incomplete" << std::endl;
         destroyResources();
         return false;
     }
 
+    for (int i = 0; i < 2; ++i) {
+        glGenFramebuffers(1, &pingFbos_[i]);
+        glBindFramebuffer(GL_FRAMEBUFFER, pingFbos_[i]);
+
+        glGenTextures(1, &pingTextures_[i]);
+        glBindTexture(GL_TEXTURE_2D, pingTextures_[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                     nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                               pingTextures_[i], 0);
+
+        status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (status != GL_FRAMEBUFFER_COMPLETE) {
+            std::cerr << "PostProcessor: ping-pong framebuffer incomplete" << std::endl;
+            destroyResources();
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            return false;
+        }
+    }
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    std::array<float, 16> quadData = {
-        -1.0f, -1.0f, 0.0f, 0.0f,
-         1.0f, -1.0f, 1.0f, 0.0f,
-        -1.0f,  1.0f, 0.0f, 1.0f,
-         1.0f,  1.0f, 1.0f, 1.0f
-    };
-
     glGenVertexArrays(1, &quadVAO_);
-    glGenBuffers(1, &quadVBO_);
-
     glBindVertexArray(quadVAO_);
+
+    glGenBuffers(1, &quadVBO_);
     glBindBuffer(GL_ARRAY_BUFFER, quadVBO_);
+    glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), nullptr, GL_STATIC_DRAW);
+
+    std::array<float, 16> quadData = {-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, 0.0f,
+                                      -1.0f, 1.0f,  0.0f, 1.0f, 1.0f, 1.0f,  1.0f, 1.0f};
+
     glBufferData(GL_ARRAY_BUFFER, quadData.size() * sizeof(float), quadData.data(), GL_STATIC_DRAW);
 
     constexpr GLsizei stride = 4 * sizeof(float);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(0));
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void *>(0));
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(2 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride,
+                          reinterpret_cast<void *>(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
@@ -437,6 +513,22 @@ bool PostProcessor::createResources(int width, int height) {
 }
 
 void PostProcessor::destroyResources() {
+    for (GLuint &tex : pingTextures_) {
+        if (tex) {
+            glDeleteTextures(1, &tex);
+            tex = 0;
+        }
+    }
+    for (GLuint &fbo : pingFbos_) {
+        if (fbo) {
+            glDeleteFramebuffers(1, &fbo);
+            fbo = 0;
+        }
+    }
+    if (colorTexture_) {
+        glDeleteTextures(1, &colorTexture_);
+        colorTexture_ = 0;
+    }
     if (quadVBO_) {
         glDeleteBuffers(1, &quadVBO_);
         quadVBO_ = 0;
@@ -444,10 +536,6 @@ void PostProcessor::destroyResources() {
     if (quadVAO_) {
         glDeleteVertexArrays(1, &quadVAO_);
         quadVAO_ = 0;
-    }
-    if (colorTexture_) {
-        glDeleteTextures(1, &colorTexture_);
-        colorTexture_ = 0;
     }
     if (fbo_) {
         glDeleteFramebuffers(1, &fbo_);

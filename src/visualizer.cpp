@@ -1,19 +1,23 @@
 #include "visualizer.h"
-#include <iostream>
-#include <chrono>
-#include <algorithm>
-#include <cmath>
-#include <random>
-#include <vector>
-#include <array>
 #include "audio_capture.h"
 #include "imgui.h"
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <iostream>
+#include <random>
+#include <vector>
 
 namespace {
 constexpr int kProceduralModeCount = 24;
 constexpr int kPostProcessModeCount = 17;
 constexpr int kKaleidoscopeModeIndex = 23;
 constexpr int kPostProcessKaleidoscopeModeIndex = 7;
+constexpr int kDefaultPostProcessMode = 2;
+constexpr float kDefaultPostProcessStrength = 0.65f;
+constexpr int kKaleidoscopeSlotIndex = 1;
+constexpr float kDefaultKaleidoscopeStrength = 0.75f;
 
 std::array<float, 3> hsvToRgb(float h, float s, float v) {
     h = std::fmod(h, 1.0f);
@@ -54,9 +58,9 @@ std::array<float, 3> hsvToRgb(float h, float s, float v) {
     float m = v - c;
     return {r + m, g + m, b + m};
 }
-}
+} // namespace
 
-const char* vertexShaderSource = R"(
+const char *vertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec2 aPos;
 layout (location = 1) in vec2 aTexCoord;
@@ -69,7 +73,7 @@ void main() {
 }
 )";
 
-const char* cornerVertexShaderSource = R"(
+const char *cornerVertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec2 aCornerPos;
 layout (location = 1) in vec4 aParams; // size, orbitRadius, orbitPhase, profile
@@ -135,7 +139,7 @@ void main() {
 }
 )";
 
-const char* cornerFragmentShaderSource = R"(
+const char *cornerFragmentShaderSource = R"(
 #version 330 core
 in float vSize;
 in float vAngle;
@@ -194,7 +198,7 @@ void main() {
 }
 )";
 
-const char* fragmentShaderSource = R"(
+const char *fragmentShaderSource = R"(
 #version 330 core
 out vec4 FragColor;
 
@@ -218,7 +222,7 @@ void main() {
 }
 )";
 
-const char* sparkVertexShaderSource = R"(
+const char *sparkVertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec2 aPos;
 layout (location = 1) in float aSize;
@@ -237,7 +241,7 @@ void main() {
 }
 )";
 
-const char* sparkFragmentShaderSource = R"(
+const char *sparkFragmentShaderSource = R"(
 #version 330 core
 out vec4 FragColor;
 
@@ -256,7 +260,7 @@ void main() {
 }
 )";
 
-const char* coreVertexShaderSource = R"(
+const char *coreVertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec2 aDir;
 layout (location = 1) in float aRadial;
@@ -362,7 +366,7 @@ void main() {
 }
 )";
 
-const char* coreFragmentShaderSource = R"(
+const char *coreFragmentShaderSource = R"(
 #version 330 core
 out vec4 FragColor;
 
@@ -562,7 +566,8 @@ void Visualizer::renderCornerOrbs() {
     }
 
     cornerShader_->use();
-    cornerShader_->setUniform2f("uResolution", static_cast<float>(windowWidth_), static_cast<float>(windowHeight_));
+    cornerShader_->setUniform2f("uResolution", static_cast<float>(windowWidth_),
+                                static_cast<float>(windowHeight_));
     cornerShader_->setUniform1f("uTime", time_);
     cornerShader_->setUniform1f("uTempo", tempoMultiplier_);
     cornerShader_->setUniform1f("uPulse", core_.pulse);
@@ -573,13 +578,9 @@ void Visualizer::renderCornerOrbs() {
     cornerShader_->setUniform1f("uKick", core_.kickEnvelope);
     cornerShader_->setUniform1f("uOnset", audioFeatures_.onset);
     cornerShader_->setUniform1f("uBeat", audioFeatures_.beat);
-    cornerShader_->setUniform3f("uScenePrimary",
-                                scenePrimaryColor_[0],
-                                scenePrimaryColor_[1],
+    cornerShader_->setUniform3f("uScenePrimary", scenePrimaryColor_[0], scenePrimaryColor_[1],
                                 scenePrimaryColor_[2]);
-    cornerShader_->setUniform3f("uSceneSecondary",
-                                sceneSecondaryColor_[0],
-                                sceneSecondaryColor_[1],
+    cornerShader_->setUniform3f("uSceneSecondary", sceneSecondaryColor_[0], sceneSecondaryColor_[1],
                                 sceneSecondaryColor_[2]);
     cornerShader_->setUniform1f("uSceneBlend", scenePaletteBlend_);
 
@@ -620,7 +621,8 @@ void Visualizer::renderCore() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
     coreShader_->use();
-    coreShader_->setUniform2f("uResolution", static_cast<float>(windowWidth_), static_cast<float>(windowHeight_));
+    coreShader_->setUniform2f("uResolution", static_cast<float>(windowWidth_),
+                              static_cast<float>(windowHeight_));
     coreShader_->setUniform1f("uBaseRadius", core_.baseRadius);
     coreShader_->setUniform1f("uPulse", core_.pulse);
     coreShader_->setUniform1f("uKick", core_.kickEnvelope);
@@ -638,13 +640,9 @@ void Visualizer::renderCore() {
     coreShader_->setUniform1f("uIdlePulse", core_.idlePulse);
     coreShader_->setUniform1f("uIdleWarp", core_.idleWarp);
     coreShader_->setUniform1f("uIdleSpin", core_.idleSpin);
-    coreShader_->setUniform3f("uScenePrimary",
-                              scenePrimaryColor_[0],
-                              scenePrimaryColor_[1],
+    coreShader_->setUniform3f("uScenePrimary", scenePrimaryColor_[0], scenePrimaryColor_[1],
                               scenePrimaryColor_[2]);
-    coreShader_->setUniform3f("uSceneSecondary",
-                              sceneSecondaryColor_[0],
-                              sceneSecondaryColor_[1],
+    coreShader_->setUniform3f("uSceneSecondary", sceneSecondaryColor_[0], sceneSecondaryColor_[1],
                               sceneSecondaryColor_[2]);
     coreShader_->setUniform1f("uSceneBlend", scenePaletteBlend_);
     coreShader_->setUniform1f("uShowSpokes", coreShowSpokes_);
@@ -666,42 +664,24 @@ void Visualizer::renderCore() {
     }
 }
 
-Visualizer::Visualizer() 
-    : window_(nullptr), windowWidth_(800), windowHeight_(600), time_(0.0f),
-      quadVAO_(0), quadVBO_(0), waveformVAO_(0), waveformVBO_(0),
-      coreVAO_(0), coreVBO_(0), coreVertexCount_(0),
-      sparkVAO_(0), sparkVBO_(0), sparkVertexCount_(0),
-      cornerVAO_(0), cornerVBO_(0), cornerVertexCount_(0),
-      audioFeatures_{},
-      selectedDevice_(-1), showDeviceMenu_(false), showDiagnostic_(false), consoleMode_(false),
-      showImGuiWindow_(true), showDeviceSelector_(false), showDiagnosticInfo_(false), showConsoleMode_(false),
-      showImGuiVisualWindow_(true),
-      imguiInitialized_(false), autoRandomizeColors_(true), colorRandomInterval_(12.0f),
-      colorRandomTimer_(0.0f), deltaTime_(0.0f), rng_(std::random_device{}()),
-      onsetColorCyclingEnabled_(true), onsetTriggerCount_(0), lastOnsetActive_(false),
-      tempoMultiplier_(1.0f),
-      scenePalettes_(),
-      currentScenePaletteIndex_(-1),
-      scenePaletteHueSeed_(0.0f),
-      scenePrimaryColor_{0.25f, 0.32f, 0.58f},
-      sceneSecondaryColor_{0.35f, 0.65f, 0.92f},
-      scenePaletteBlend_(0.6f),
-      rgbChannelEnabled_{true, true, true},
-      globalIntensityEnvelope_(0.0f),
-      coreShowSpokes_(true),
-      coreShowRunes_(true),
-      coreShowSparkles_(true),
-      coreShowBloom_(true),
-      showCornerOrbs_(true),
-      showProceduralLayer_(true),
-      proceduralLayerDebug_(false),
-      proceduralLayerOpacity_(0.85f),
-      proceduralLayerMode_(3),
-      postProcessMode_(2),
-      postProcessStrength_(1.0f),
-      postProcessRgbAdjust_{1.0f, 1.0f, 1.0f},
-      audioInputGain_(1.0f),
-      visualSensitivity_(1.0f) {
+Visualizer::Visualizer()
+    : window_(nullptr), windowWidth_(800), windowHeight_(600), time_(0.0f), quadVAO_(0),
+      quadVBO_(0), waveformVAO_(0), waveformVBO_(0), coreVAO_(0), coreVBO_(0), coreVertexCount_(0),
+      sparkVAO_(0), sparkVBO_(0), sparkVertexCount_(0), cornerVAO_(0), cornerVBO_(0),
+      cornerVertexCount_(0), audioFeatures_{}, selectedDevice_(-1), showDeviceMenu_(false),
+      showDiagnostic_(false), consoleMode_(false), showImGuiWindow_(true),
+      showDeviceSelector_(false), showDiagnosticInfo_(false), showConsoleMode_(false),
+      showImGuiVisualWindow_(true), imguiInitialized_(false), autoRandomizeColors_(true),
+      colorRandomInterval_(12.0f), colorRandomTimer_(0.0f), deltaTime_(0.0f),
+      rng_(std::random_device{}()), onsetColorCyclingEnabled_(true), onsetTriggerCount_(0),
+      lastOnsetActive_(false), tempoMultiplier_(1.0f), scenePalettes_(),
+      currentScenePaletteIndex_(-1), scenePaletteHueSeed_(0.0f),
+      scenePrimaryColor_{0.25f, 0.32f, 0.58f}, sceneSecondaryColor_{0.35f, 0.65f, 0.92f},
+      scenePaletteBlend_(0.6f), rgbChannelEnabled_{true, true, true},
+      globalIntensityEnvelope_(0.0f), coreShowSpokes_(true), coreShowRunes_(true),
+      coreShowSparkles_(true), coreShowBloom_(true), showCornerOrbs_(true),
+      showProceduralLayer_(true), proceduralLayerDebug_(false), proceduralLayerOpacity_(0.85f),
+      proceduralLayerMode_(3), audioInputGain_(1.0f), visualSensitivity_(1.0f) {
     waveformBuffer_.resize(512);
     colorRandomTimer_ = 0.0f;
     buildScenePalettes();
@@ -713,14 +693,12 @@ Visualizer::Visualizer()
     core_ = {};
     idleState_ = 0.0f;
     idlePhase_ = 0.0f;
-    
+
     // Remove self-reference
     // scenePalettes_ = scenePalettes_;
 }
 
-Visualizer::~Visualizer() {
-    shutdown();
-}
+Visualizer::~Visualizer() { shutdown(); }
 
 bool Visualizer::initialize(int width, int height) {
     windowWidth_ = width;
@@ -739,7 +717,8 @@ bool Visualizer::initialize(int width, int height) {
     setupCornerQuad();
 
     if (!proceduralLayer_.initialize(windowWidth_, windowHeight_)) {
-        std::cout << "Procedural layer initialization failed, disabling procedural overlay" << std::endl;
+        std::cout << "Procedural layer initialization failed, disabling procedural overlay"
+                  << std::endl;
         showProceduralLayer_ = false;
         proceduralLayerDebug_ = false;
     } else {
@@ -749,8 +728,10 @@ bool Visualizer::initialize(int width, int height) {
 
     if (!postProcessor_.initialize(windowWidth_, windowHeight_)) {
         std::cout << "Post processor initialization failed, disabling post effects" << std::endl;
-        postProcessMode_ = 0;
-        postProcessStrength_ = 0.0f;
+        // Disable all post-process slots
+        for (auto &slot : postProcessSlots_) {
+            slot.enabled = false;
+        }
     }
 
     if (!loadShaders()) {
@@ -779,10 +760,10 @@ bool Visualizer::initialize(int width, int height) {
         imguiInitialized_ = false;
     }
 
-    const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    const char *renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
     rendererName_ = renderer ? renderer : "Unknown";
 
-    const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    const char *version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
     openglVersion_ = version ? version : "Unknown";
 
     initializeDynamicSystems();
@@ -790,30 +771,14 @@ bool Visualizer::initialize(int width, int height) {
     return true;
 }
 
-
 void Visualizer::buildScenePalettes() {
     scenePalettes_.clear();
 
-    scenePalettes_.push_back({
-        "Sesión Azul",
-        {0.10f, 0.24f, 0.58f},
-        {0.28f, 0.70f, 0.98f},
-        0.62f
-    });
+    scenePalettes_.push_back({"Sesión Azul", {0.10f, 0.24f, 0.58f}, {0.28f, 0.70f, 0.98f}, 0.62f});
 
-    scenePalettes_.push_back({
-        "Sesión Roja",
-        {0.58f, 0.12f, 0.16f},
-        {0.94f, 0.36f, 0.30f},
-        0.48f
-    });
+    scenePalettes_.push_back({"Sesión Roja", {0.58f, 0.12f, 0.16f}, {0.94f, 0.36f, 0.30f}, 0.48f});
 
-    scenePalettes_.push_back({
-        "Sesión Verde",
-        {0.10f, 0.32f, 0.18f},
-        {0.30f, 0.82f, 0.52f},
-        0.56f
-    });
+    scenePalettes_.push_back({"Sesión Verde", {0.10f, 0.32f, 0.18f}, {0.30f, 0.82f, 0.52f}, 0.56f});
 
     if (scenePalettes_.empty()) {
         currentScenePaletteIndex_ = -1;
@@ -830,15 +795,15 @@ void Visualizer::buildScenePalettes() {
     }
 }
 
-void Visualizer::setUnifiedPalette(const std::array<float, 3>& primary,
-                                   const std::array<float, 3>& secondary,
-                                   float blend) {
+void Visualizer::setUnifiedPalette(const std::array<float, 3> &primary,
+                                   const std::array<float, 3> &secondary, float blend) {
     scenePrimaryColor_ = primary;
     sceneSecondaryColor_ = secondary;
     scenePaletteBlend_ = std::clamp(blend, 0.0f, 1.0f);
 
     (void)secondary;
-    proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+    proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(),
+                                     scenePaletteBlend_);
 }
 
 void Visualizer::applyScenePalette(int index) {
@@ -851,7 +816,7 @@ void Visualizer::applyScenePalette(int index) {
     int clamped = std::clamp(index, 0, static_cast<int>(scenePalettes_.size()) - 1);
     currentScenePaletteIndex_ = clamped;
 
-    const ScenePalette& palette = scenePalettes_[clamped];
+    const ScenePalette &palette = scenePalettes_[clamped];
     setUnifiedPalette(palette.primary, palette.secondary, palette.blend);
 }
 
@@ -970,7 +935,7 @@ void Visualizer::shutdown() {
         glDeleteBuffers(1, &waveformVBO_);
         waveformVBO_ = 0;
     }
-    
+
     shader_.reset();
     coreShader_.reset();
     sparkShader_.reset();
@@ -982,9 +947,7 @@ void Visualizer::shutdown() {
     glfwTerminate();
 }
 
-bool Visualizer::shouldClose() {
-    return window_ ? glfwWindowShouldClose(window_) : true;
-}
+bool Visualizer::shouldClose() { return window_ ? glfwWindowShouldClose(window_) : true; }
 
 void Visualizer::beginFrame() {
     glfwPollEvents();
@@ -1006,9 +969,9 @@ void Visualizer::beginFrame() {
         static double lastTabToggle = 0.0;
         double now = glfwGetTime();
         bool tabDown = glfwGetKey(window_, GLFW_KEY_TAB) == GLFW_PRESS;
-        ImGuiIO* io = ImGui::GetCurrentContext() ? &ImGui::GetIO() : nullptr;
-        bool allowToggle = !tabDown ? false
-                          : (!io || !io->WantCaptureKeyboard || !showImGuiWindow_);
+        ImGuiIO *io = ImGui::GetCurrentContext() ? &ImGui::GetIO() : nullptr;
+        bool allowToggle =
+            !tabDown ? false : (!io || !io->WantCaptureKeyboard || !showImGuiWindow_);
 
         if (allowToggle && (now - lastTabToggle) > 0.25) {
             showImGuiWindow_ = !showImGuiWindow_;
@@ -1030,7 +993,8 @@ void Visualizer::beginFrame() {
                     proceduralLayer_.setMode(proceduralLayerMode_);
                     lastModeToggle = now;
                 } else if (glfwGetKey(window_, GLFW_KEY_LEFT) == GLFW_PRESS) {
-                    proceduralLayerMode_ = (proceduralLayerMode_ + kProceduralModeCount - 1) % kProceduralModeCount;
+                    proceduralLayerMode_ =
+                        (proceduralLayerMode_ + kProceduralModeCount - 1) % kProceduralModeCount;
                     proceduralLayer_.setMode(proceduralLayerMode_);
                     lastModeToggle = now;
                 }
@@ -1059,8 +1023,24 @@ void Visualizer::beginFrame() {
 
             if ((now - lastPostProcessToggle) > 0.25) {
                 if (glfwGetKey(window_, GLFW_KEY_P) == GLFW_PRESS) {
-                    postProcessMode_ = (postProcessMode_ + 1) % kPostProcessModeCount;
-                    showPostProcess_ = postProcessMode_ > 0;
+                    // Find first enabled slot and cycle its mode
+                    for (auto &slot : postProcessSlots_) {
+                        if (slot.enabled) {
+                            slot.mode = (slot.mode + 1) % kPostProcessModeCount;
+                            if (slot.mode == 0) {
+                                slot.enabled = false; // Disable if mode 0 (no effect)
+                            }
+                            break;
+                        }
+                        // If no slots enabled, enable first one with mode 1
+                        else if (&slot == &postProcessSlots_[0]) {
+                            slot.enabled = true;
+                            slot.mode = 1;
+                            slot.strength = 1.0f;
+                            slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
+                            break;
+                        }
+                    }
                     lastPostProcessToggle = now;
                 }
             }
@@ -1073,7 +1053,7 @@ void Visualizer::beginFrame() {
 
 void Visualizer::endFrame() {
     glfwSwapBuffers(window_);
-    
+
     // Update time
     static auto lastTime = std::chrono::high_resolution_clock::now();
     auto currentTime = std::chrono::high_resolution_clock::now();
@@ -1109,7 +1089,7 @@ void Visualizer::endFrame() {
     }
 }
 
-void Visualizer::updateAudioData(const AudioAnalyzer::AudioFeatures& features) {
+void Visualizer::updateAudioData(const AudioAnalyzer::AudioFeatures &features) {
     audioFeatures_ = features;
 
     float sensitivity = std::clamp(visualSensitivity_, 0.25f, 3.0f);
@@ -1134,21 +1114,32 @@ void Visualizer::updateAudioData(const AudioAnalyzer::AudioFeatures& features) {
     audioFeatures_.kick = std::clamp(audioFeatures_.kick * sensitivity, 0.0f, 2.0f);
 }
 
-void Visualizer::updateAudioBuffer(const std::vector<float>& audioBuffer) {
+void Visualizer::updateAudioBuffer(const std::vector<float> &audioBuffer) {
     if (audioBuffer.size() >= waveformBuffer_.size()) {
-        std::copy(audioBuffer.begin(), audioBuffer.begin() + waveformBuffer_.size(), waveformBuffer_.begin());
+        std::copy(audioBuffer.begin(), audioBuffer.begin() + waveformBuffer_.size(),
+                  waveformBuffer_.begin());
     }
 }
 
 void Visualizer::render() {
-    bool usePost = showPostProcess_ && postProcessor_.isInitialized() && postProcessMode_ > 0 && postProcessStrength_ > 0.0f;
+    // Check if any post-process slots are active
+    bool hasActivePostProcess = false;
+    for (const auto &slot : postProcessSlots_) {
+        if (slot.enabled && slot.mode > 0 && slot.strength > 0.0f) {
+            hasActivePostProcess = true;
+            break;
+        }
+    }
+
+    bool usePost = showPostProcess_ && postProcessor_.isInitialized() && hasActivePostProcess;
 
     float rawEnergy = std::clamp(audioFeatures_.energy, 0.0f, 2.5f);
     float bass = std::clamp(audioFeatures_.bassEnergy, 0.0f, 2.0f);
-    float excitement = std::clamp(audioFeatures_.onset * 0.6f + audioFeatures_.beat * 0.8f
-                                  + audioFeatures_.kick * 0.5f, 0.0f, 1.6f);
-    float targetIntensity = std::clamp(rawEnergy * 0.55f + bass * 0.45f + excitement * 0.65f,
-                                       0.0f, 2.5f);
+    float excitement = std::clamp(audioFeatures_.onset * 0.6f + audioFeatures_.beat * 0.8f +
+                                      audioFeatures_.kick * 0.5f,
+                                  0.0f, 1.6f);
+    float targetIntensity =
+        std::clamp(rawEnergy * 0.55f + bass * 0.45f + excitement * 0.65f, 0.0f, 2.5f);
 
     float dt = std::max(deltaTime_, 1.0f / 120.0f);
     float rise = 1.0f - std::pow(0.04f, dt * tempoMultiplier_);
@@ -1157,7 +1148,8 @@ void Visualizer::render() {
     if (targetIntensity > globalIntensityEnvelope_) {
         globalIntensityEnvelope_ += (targetIntensity - globalIntensityEnvelope_) * rise;
     } else {
-        globalIntensityEnvelope_ = globalIntensityEnvelope_ * decayBase + targetIntensity * (1.0f - decayBase);
+        globalIntensityEnvelope_ =
+            globalIntensityEnvelope_ * decayBase + targetIntensity * (1.0f - decayBase);
     }
     globalIntensityEnvelope_ = std::clamp(globalIntensityEnvelope_, 0.0f, 2.5f);
 
@@ -1174,8 +1166,7 @@ void Visualizer::render() {
     glGetBooleanv(GL_COLOR_WRITEMASK, previousMask);
     glColorMask(rgbChannelEnabled_[0] ? GL_TRUE : GL_FALSE,
                 rgbChannelEnabled_[1] ? GL_TRUE : GL_FALSE,
-                rgbChannelEnabled_[2] ? GL_TRUE : GL_FALSE,
-                GL_TRUE);
+                rgbChannelEnabled_[2] ? GL_TRUE : GL_FALSE, GL_TRUE);
 
     if (currentScenePaletteIndex_ < 0) {
         updateDynamicScenePalette();
@@ -1191,7 +1182,6 @@ void Visualizer::render() {
         renderCornerOrbs();
     }
 
-
     renderIdleSpinner(time_);
 
     if (usePost) {
@@ -1202,9 +1192,15 @@ void Visualizer::render() {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        float strength = std::clamp(postProcessStrength_, 0.0f, 1.0f);
-        strength *= std::clamp(0.35f + intensityScale * 0.65f, 0.3f, 1.0f);
-        postProcessor_.apply(postProcessMode_, strength, time_, postProcessRgbAdjust_, audioFeatures_.bassEnergy);
+        // Apply all active post-process slots
+        for (const auto &slot : postProcessSlots_) {
+            if (slot.enabled && slot.mode > 0 && slot.strength > 0.0f) {
+                float strength = std::clamp(slot.strength, 0.0f, 1.0f);
+                strength *= std::clamp(0.35f + intensityScale * 0.65f, 0.3f, 1.0f);
+                postProcessor_.apply(slot.mode, strength, time_, slot.rgbAdjust,
+                                     audioFeatures_.bassEnergy);
+            }
+        }
     }
 
     glColorMask(previousMask[0], previousMask[1], previousMask[2], previousMask[3]);
@@ -1228,14 +1224,23 @@ void Visualizer::handleVisualizationShortcuts() {
 
     static double lastOrbsToggle = 0.0;
     static double lastKaleidoToggle = 0.0;
+    static double lastRToggle = 0.0;
+    static double lastGToggle = 0.0;
+    static double lastBToggle = 0.0;
     static bool orbsWasDown = false;
     static bool kaleidoWasDown = false;
+    static bool rWasDown = false;
+    static bool gWasDown = false;
+    static bool bWasDown = false;
 
     bool orbsKeyDown = (glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS ||
                         glfwGetKey(window_, GLFW_KEY_KP_1) == GLFW_PRESS);
     bool kaleidoKeyDown = glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS;
+    bool rKeyDown = glfwGetKey(window_, GLFW_KEY_R) == GLFW_PRESS;
+    bool gKeyDown = glfwGetKey(window_, GLFW_KEY_G) == GLFW_PRESS;
+    bool bKeyDown = glfwGetKey(window_, GLFW_KEY_B) == GLFW_PRESS;
 
-    auto processToggle = [&](bool keyDown, bool& wasDown, double& lastToggle, auto&& action) {
+    auto processToggle = [&](bool keyDown, bool &wasDown, double &lastToggle, auto &&action) {
         if (keyDown) {
             if (!wasDown && (now - lastToggle) > kToggleCooldown) {
                 action();
@@ -1247,14 +1252,31 @@ void Visualizer::handleVisualizationShortcuts() {
         }
     };
 
-    processToggle(orbsKeyDown, orbsWasDown, lastOrbsToggle, [this]() {
-        showCornerOrbs_ = !showCornerOrbs_;
-    });
+    processToggle(orbsKeyDown, orbsWasDown, lastOrbsToggle,
+                  [this]() { showCornerOrbs_ = !showCornerOrbs_; });
 
     processToggle(kaleidoKeyDown, kaleidoWasDown, lastKaleidoToggle, [this]() {
-        showPostProcess_ = true;
-        postProcessMode_ = kPostProcessKaleidoscopeModeIndex;
+        auto &slot = postProcessSlots_[0];
+        if (slot.enabled && slot.mode == kPostProcessKaleidoscopeModeIndex) {
+            slot.enabled = false;
+        } else {
+            slot.enabled = true;
+            slot.mode = kPostProcessKaleidoscopeModeIndex;
+            slot.strength = 1.0f;
+            slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
+            showPostProcess_ = true;
+        }
     });
+
+    // RGB channel toggles
+    processToggle(rKeyDown, rWasDown, lastRToggle,
+                  [this]() { rgbChannelEnabled_[0] = !rgbChannelEnabled_[0]; });
+
+    processToggle(gKeyDown, gWasDown, lastGToggle,
+                  [this]() { rgbChannelEnabled_[1] = !rgbChannelEnabled_[1]; });
+
+    processToggle(bKeyDown, bWasDown, lastBToggle,
+                  [this]() { rgbChannelEnabled_[2] = !rgbChannelEnabled_[2]; });
 }
 
 bool Visualizer::setupOpenGL() {
@@ -1263,10 +1285,10 @@ bool Visualizer::setupOpenGL() {
         return false;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);  // Use OpenGL 2.1 for compatibility
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2); // Use OpenGL 2.1 for compatibility
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);  // Don't force core profile
-    
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE); // Don't force core profile
+
     // Try with OpenGL ES if desktop OpenGL fails
     bool useGLES = false;
 
@@ -1282,7 +1304,7 @@ bool Visualizer::setupOpenGL() {
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
         std::cerr << "Failed to initialize GLEW: " << glewGetErrorString(glewInit()) << std::endl;
-        
+
         // Try without GLEW for basic functionality
         std::cout << "Attempting to continue without GLEW..." << std::endl;
     }
@@ -1291,7 +1313,7 @@ bool Visualizer::setupOpenGL() {
     glGetError();
 
     glViewport(0, 0, windowWidth_, windowHeight_);
-    
+
     std::cout << "OpenGL setup successful!" << std::endl;
     return true;
 }
@@ -1343,9 +1365,10 @@ void Visualizer::setupSparkField() {
     glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
 
     GLsizei stride = 3 * sizeof(float);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(0));
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void *>(0));
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(2 * sizeof(float)));
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, stride,
+                          reinterpret_cast<void *>(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
@@ -1373,16 +1396,16 @@ void Visualizer::setupCornerQuad() {
 
     std::array<CornerVertex, 8> corners = {
         // Esquinas originales
-        CornerVertex{-0.88f,  0.88f, 0.075f, 0.020f,  0.0f, 0.10f},  // Superior izquierda
-        CornerVertex{ 0.88f,  0.88f, 0.072f, 0.022f,  1.3f, 0.35f},  // Superior derecha
-        CornerVertex{-0.88f, -0.88f, 0.078f, 0.024f, -1.6f, 0.55f},  // Inferior izquierda
-        CornerVertex{ 0.88f, -0.88f, 0.074f, 0.021f,  2.2f, 0.78f},  // Inferior derecha
-        
+        CornerVertex{-0.88f, 0.88f, 0.075f, 0.020f, 0.0f, 0.10f},   // Superior izquierda
+        CornerVertex{0.88f, 0.88f, 0.072f, 0.022f, 1.3f, 0.35f},    // Superior derecha
+        CornerVertex{-0.88f, -0.88f, 0.078f, 0.024f, -1.6f, 0.55f}, // Inferior izquierda
+        CornerVertex{0.88f, -0.88f, 0.074f, 0.021f, 2.2f, 0.78f},   // Inferior derecha
+
         // Nuevos orbes en el medio
-        CornerVertex{ 0.00f,  0.88f, 0.068f, 0.018f,  0.8f, 0.25f},  // Centro superior
-        CornerVertex{ 0.00f, -0.88f, 0.070f, 0.019f, -0.8f, 0.65f},  // Centro inferior
-        CornerVertex{-0.88f,  0.00f, 0.069f, 0.017f,  2.8f, 0.45f},  // Centro izquierda
-        CornerVertex{ 0.88f,  0.00f, 0.071f, 0.020f, -2.8f, 0.85f}   // Centro derecha
+        CornerVertex{0.00f, 0.88f, 0.068f, 0.018f, 0.8f, 0.25f},   // Centro superior
+        CornerVertex{0.00f, -0.88f, 0.070f, 0.019f, -0.8f, 0.65f}, // Centro inferior
+        CornerVertex{-0.88f, 0.00f, 0.069f, 0.017f, 2.8f, 0.45f},  // Centro izquierda
+        CornerVertex{0.88f, 0.00f, 0.071f, 0.020f, -2.8f, 0.85f}   // Centro derecha
     };
 
     cornerVertexCount_ = static_cast<GLsizei>(corners.size());
@@ -1394,9 +1417,11 @@ void Visualizer::setupCornerQuad() {
     glBindBuffer(GL_ARRAY_BUFFER, cornerVBO_);
     glBufferData(GL_ARRAY_BUFFER, sizeof(corners), corners.data(), GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(CornerVertex), reinterpret_cast<void*>(0));
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(CornerVertex),
+                          reinterpret_cast<void *>(0));
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(CornerVertex), reinterpret_cast<void*>(2 * sizeof(float)));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(CornerVertex),
+                          reinterpret_cast<void *>(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
@@ -1424,92 +1449,90 @@ bool Visualizer::loadCornerShader() {
 }
 
 void Visualizer::setupQuad() {
-    float vertices[] = {
-        // positions    // texCoords
-        -1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f,  1.0f,  1.0f, 1.0f,
-         1.0f, -1.0f,  1.0f, 0.0f
-    };
+    float vertices[] = {// positions    // texCoords
+                        -1.0f, 1.0f, 0.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f,
+                        1.0f,  1.0f, 1.0f, 1.0f, 1.0f,  -1.0f, 1.0f, 0.0f};
 
     glGenVertexArrays(1, &quadVAO_);
     glGenBuffers(1, &quadVBO_);
-    
+
     glBindVertexArray(quadVAO_);
     glBindBuffer(GL_ARRAY_BUFFER, quadVBO_);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    
+
     // position attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    
+
     // tex coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
-    
+
     glBindVertexArray(0);
 }
 
 void Visualizer::setupWaveform() {
     glGenVertexArrays(1, &waveformVAO_);
     glGenBuffers(1, &waveformVBO_);
-    
+
     glBindVertexArray(waveformVAO_);
     glBindBuffer(GL_ARRAY_BUFFER, waveformVBO_);
-    
+
     // Allocate buffer memory (will be updated dynamically)
-    glBufferData(GL_ARRAY_BUFFER, waveformBuffer_.size() * sizeof(float) * 2, nullptr, GL_DYNAMIC_DRAW);
-    
+    glBufferData(GL_ARRAY_BUFFER, waveformBuffer_.size() * sizeof(float) * 2, nullptr,
+                 GL_DYNAMIC_DRAW);
+
     // position attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    
+
     glBindVertexArray(0);
 }
 
-void Visualizer::renderWaveform(const std::vector<float>& audioBuffer) {
-    if (audioBuffer.empty()) return;
-    
+void Visualizer::renderWaveform(const std::vector<float> &audioBuffer) {
+    if (audioBuffer.empty())
+        return;
+
     // Create vertices for waveform
     std::vector<float> vertices;
     vertices.reserve(audioBuffer.size() * 2);
-    
-    float waveHeight = 100.0f; // Height of waveform display
+
+    float waveHeight = 100.0f;                        // Height of waveform display
     float waveY = windowHeight_ - waveHeight - 20.0f; // Position at bottom
-    
+
     for (size_t i = 0; i < audioBuffer.size(); ++i) {
         float x = (float)i / (audioBuffer.size() - 1) * windowWidth_;
         float y = waveY + audioBuffer[i] * waveHeight * 0.5f;
         vertices.push_back(x);
         vertices.push_back(y);
     }
-    
+
     // Update VBO with new waveform data
     glBindBuffer(GL_ARRAY_BUFFER, waveformVBO_);
     glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
-    
+
     // Simple shader for waveform (colored line)
     glUseProgram(0); // Use fixed function pipeline for simplicity
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
     glOrtho(0, windowWidth_, windowHeight_, 0, -1, 1);
-    
+
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    
+
     // Disable depth test for overlay
     glDisable(GL_DEPTH_TEST);
-    
+
     // Draw waveform as line strip
     glColor3f(0.0f, 1.0f, 0.5f); // Cyan color
     glLineWidth(2.0f);
-    
+
     glBindVertexArray(waveformVAO_);
     glDrawArrays(GL_LINE_STRIP, 0, audioBuffer.size());
     glBindVertexArray(0);
-    
+
     // Restore state
     glEnable(GL_DEPTH_TEST);
     glPopMatrix();
@@ -1543,14 +1566,14 @@ void Visualizer::renderFallbackTriangle() {
     glLoadIdentity();
 
     glBegin(GL_TRIANGLES);
-        glColor4f(0.8f, 0.2f, 0.4f, 0.9f);
-        glVertex2f(0.0f, 0.8f);
+    glColor4f(0.8f, 0.2f, 0.4f, 0.9f);
+    glVertex2f(0.0f, 0.8f);
 
-        glColor4f(0.2f, 0.6f, 0.9f, 0.9f);
-        glVertex2f(-0.8f, -0.6f);
+    glColor4f(0.2f, 0.6f, 0.9f, 0.9f);
+    glVertex2f(-0.8f, -0.6f);
 
-        glColor4f(0.2f, 0.9f, 0.4f, 0.9f);
-        glVertex2f(0.8f, -0.6f);
+    glColor4f(0.2f, 0.9f, 0.4f, 0.9f);
+    glVertex2f(0.8f, -0.6f);
     glEnd();
 
     glPopMatrix();
@@ -1580,16 +1603,11 @@ void Visualizer::renderModernVisualization() {
     shader_->setUniform1f("uEnergy", audioFeatures_.energy);
     shader_->setUniform1f("uOnset", audioFeatures_.onset);
     shader_->setUniform1f("uBeat", audioFeatures_.beat);
-    shader_->setUniform2f("uResolution",
-                          static_cast<float>(windowWidth_),
+    shader_->setUniform2f("uResolution", static_cast<float>(windowWidth_),
                           static_cast<float>(windowHeight_));
-    shader_->setUniform3f("uScenePrimary",
-                          scenePrimaryColor_[0],
-                          scenePrimaryColor_[1],
+    shader_->setUniform3f("uScenePrimary", scenePrimaryColor_[0], scenePrimaryColor_[1],
                           scenePrimaryColor_[2]);
-    shader_->setUniform3f("uSceneSecondary",
-                          sceneSecondaryColor_[0],
-                          sceneSecondaryColor_[1],
+    shader_->setUniform3f("uSceneSecondary", sceneSecondaryColor_[0], sceneSecondaryColor_[1],
                           sceneSecondaryColor_[2]);
     shader_->setUniform1f("uSceneBlend", std::clamp(scenePaletteBlend_, 0.0f, 1.0f));
 
@@ -1640,7 +1658,8 @@ void Visualizer::renderShaderSparkles() {
     }
 
     sparkShader_->use();
-    sparkShader_->setUniform2f("uResolution", static_cast<float>(windowWidth_), static_cast<float>(windowHeight_));
+    sparkShader_->setUniform2f("uResolution", static_cast<float>(windowWidth_),
+                               static_cast<float>(windowHeight_));
     sparkShader_->setUniform1f("uBaseRadius", core_.baseRadius);
     sparkShader_->setUniform1f("uTime", time_);
     sparkShader_->setUniform1f("uTempo", tempoMultiplier_);
@@ -1685,7 +1704,8 @@ void Visualizer::renderModernCore() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
     coreShader_->use();
-    coreShader_->setUniform2f("uResolution", static_cast<float>(windowWidth_), static_cast<float>(windowHeight_));
+    coreShader_->setUniform2f("uResolution", static_cast<float>(windowWidth_),
+                              static_cast<float>(windowHeight_));
     coreShader_->setUniform1f("uBaseRadius", core_.baseRadius);
     coreShader_->setUniform1f("uPulse", core_.pulse);
     coreShader_->setUniform1f("uKick", core_.kickEnvelope);
@@ -1707,13 +1727,9 @@ void Visualizer::renderModernCore() {
     coreShader_->setUniform1f("uShowRunes", coreShowRunes_ ? 1.0f : 0.0f);
     coreShader_->setUniform1f("uShowSparkles", coreShowSparkles_ ? 1.0f : 0.0f);
     coreShader_->setUniform1f("uShowBloom", coreShowBloom_ ? 1.0f : 0.0f);
-    coreShader_->setUniform3f("uScenePrimary",
-                              scenePrimaryColor_[0],
-                              scenePrimaryColor_[1],
+    coreShader_->setUniform3f("uScenePrimary", scenePrimaryColor_[0], scenePrimaryColor_[1],
                               scenePrimaryColor_[2]);
-    coreShader_->setUniform3f("uSceneSecondary",
-                              sceneSecondaryColor_[0],
-                              sceneSecondaryColor_[1],
+    coreShader_->setUniform3f("uSceneSecondary", sceneSecondaryColor_[0], sceneSecondaryColor_[1],
                               sceneSecondaryColor_[2]);
     coreShader_->setUniform1f("uSceneBlend", std::clamp(scenePaletteBlend_, 0.0f, 1.0f));
 
@@ -1734,18 +1750,19 @@ void Visualizer::renderModernCore() {
 void Visualizer::setupDeviceList() {
     // Get device names
     PaError err = Pa_Initialize();
-    if (err != paNoError) return;
-    
+    if (err != paNoError)
+        return;
+
     int numDevices = Pa_GetDeviceCount();
     deviceNames_.clear();
     deviceIsInternal_.clear();
-    
+
     for (int i = 0; i < numDevices; ++i) {
-        const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
+        const PaDeviceInfo *deviceInfo = Pa_GetDeviceInfo(i);
         if (deviceInfo && deviceInfo->maxInputChannels > 0) {
             deviceNames_.push_back(deviceInfo->name);
             bool isInternalLoopback = false;
-            if (const PaHostApiInfo* hostInfo = Pa_GetHostApiInfo(deviceInfo->hostApi)) {
+            if (const PaHostApiInfo *hostInfo = Pa_GetHostApiInfo(deviceInfo->hostApi)) {
                 const std::string hostName(hostInfo->name ? hostInfo->name : "");
                 const std::string deviceName(deviceInfo->name ? deviceInfo->name : "");
                 if (hostName.find("WASAPI") != std::string::npos) {
@@ -1773,7 +1790,7 @@ void Visualizer::setupDeviceList() {
             deviceIsInternal_.push_back(false);
         }
     }
-    
+
     Pa_Terminate();
 }
 
@@ -1787,7 +1804,7 @@ void Visualizer::renderGUI() {
             lastPress = currentTime;
         }
     }
-    
+
     // Check for 'I' key toggle for diagnostic mode
     if (glfwGetKey(window_, GLFW_KEY_I) == GLFW_PRESS) {
         static double lastPress = 0.0;
@@ -1797,7 +1814,7 @@ void Visualizer::renderGUI() {
             lastPress = currentTime;
         }
     }
-    
+
     // Check for 'C' key toggle for console mode
     if (glfwGetKey(window_, GLFW_KEY_C) == GLFW_PRESS) {
         static double lastPress = 0.0;
@@ -1807,10 +1824,10 @@ void Visualizer::renderGUI() {
             lastPress = currentTime;
         }
     }
-    
+
     // Check for '1' key toggle for corner orbs (main row or keypad) when device menu is closed
-    if (!showDeviceMenu_ &&
-        (glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS || glfwGetKey(window_, GLFW_KEY_KP_1) == GLFW_PRESS)) {
+    if (!showDeviceMenu_ && (glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS ||
+                             glfwGetKey(window_, GLFW_KEY_KP_1) == GLFW_PRESS)) {
         static double lastPress = 0.0;
         double currentTime = glfwGetTime();
         if (currentTime - lastPress > 0.5) { // 500ms debounce
@@ -1818,7 +1835,7 @@ void Visualizer::renderGUI() {
             lastPress = currentTime;
         }
     }
-    
+
     // Check for 'K' key to activate kaleidoscope mode
     if (glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS) {
         static double lastPress = 0.0;
@@ -1830,11 +1847,11 @@ void Visualizer::renderGUI() {
             lastPress = currentTime;
         }
     }
-    
+
     if (showDeviceMenu_) {
         showDeviceSelector();
     }
-    
+
     // Show current device info
     std::string deviceInfo = "Device: ";
     if (selectedDevice_ >= 0 && selectedDevice_ < deviceNames_.size()) {
@@ -1844,12 +1861,12 @@ void Visualizer::renderGUI() {
     }
     deviceInfo += " (D:devices I:diagnostics C:console)";
     renderText(deviceInfo, 10, 30);
-    
+
     // Show diagnostic info if enabled
     if (showDiagnostic_) {
         renderDiagnosticInfo();
     }
-    
+
     // Show console visualization if enabled
     if (consoleMode_) {
         renderConsoleVisualization();
@@ -1861,12 +1878,12 @@ bool Visualizer::showDeviceSelector() {
     float menuX = 50.0f;
     float menuY = 100.0f;
     float lineHeight = 25.0f;
-    
+
     renderText("=== Select Audio Device ===", menuX, menuY);
     renderText("Use number keys 1-9 to select", menuX, menuY + lineHeight);
     renderText("Press ESC to cancel", menuX, menuY + lineHeight * 2);
     renderText("", menuX, menuY + lineHeight * 3);
-    
+
     // Show available devices
     int displayCount = 0;
     for (int i = 0; i < deviceNames_.size() && displayCount < 9; ++i) {
@@ -1879,41 +1896,41 @@ bool Visualizer::showDeviceSelector() {
             displayCount++;
         }
     }
-    
+
     // Handle ESC
     if (glfwGetKey(window_, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         showDeviceMenu_ = false;
     }
-    
+
     return false;
 }
 
-void Visualizer::renderText(const std::string& text, float x, float y) {
+void Visualizer::renderText(const std::string &text, float x, float y) {
     // Simple text rendering using bitmap characters (basic implementation)
     // For now, we'll use a very simple approach with line segments
-    
+
     glUseProgram(0); // Use fixed function pipeline
-    
+
     // Setup 2D projection
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
     glOrtho(0, windowWidth_, windowHeight_, 0, -1, 1);
-    
+
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    
+
     // Disable depth test for overlay
     glDisable(GL_DEPTH_TEST);
-    
+
     // Set text color
     glColor3f(1.0f, 1.0f, 1.0f);
-    
+
     // Very basic text rendering (just show the text as a placeholder)
     // In a real implementation, you'd use a proper font rendering system
     glRasterPos2f(x, y);
-    
+
     // For now, just print to console as a fallback
     // This is a placeholder - proper text rendering would require a font library
     static std::string lastText;
@@ -1921,7 +1938,7 @@ void Visualizer::renderText(const std::string& text, float x, float y) {
         std::cout << "GUI: " << text << std::endl;
         lastText = text;
     }
-    
+
     // Restore state
     glEnable(GL_DEPTH_TEST);
     glPopMatrix();
@@ -1930,29 +1947,23 @@ void Visualizer::renderText(const std::string& text, float x, float y) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-
 void Visualizer::setupCoreMesh() {
     // Placeholder implementation
     if (coreVAO_ == 0) {
         glGenVertexArrays(1, &coreVAO_);
         glGenBuffers(1, &coreVBO_);
     }
-    
+
     // Simple quad for now
-    float vertices[] = {
-        -1.0f, -1.0f, 0.0f,
-         1.0f, -1.0f, 0.0f,
-        -1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f, 0.0f
-    };
-    
+    float vertices[] = {-1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f, -1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f};
+
     glBindVertexArray(coreVAO_);
     glBindBuffer(GL_ARRAY_BUFFER, coreVBO_);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glBindVertexArray(0);
-    
+
     coreVertexCount_ = 4;
 }
 
@@ -1981,18 +1992,18 @@ void Visualizer::initializeDynamicSystems() {
         gear.baseCenterY = 0.0f;
         gears_.push_back(gear);
     }
-    
+
     // Initialize life grid
     lifeGrid_.cells.fill(0);
     lifeGrid_.next.fill(0);
-    
+
     // Seed some initial life
     for (int i = 0; i < 100; ++i) {
         int x = std::uniform_int_distribution<int>(0, LifeCellGrid::WIDTH - 1)(rng_);
         int y = std::uniform_int_distribution<int>(0, LifeCellGrid::HEIGHT - 1)(rng_);
         lifeGrid_.cells[y * LifeCellGrid::WIDTH + x] = 1;
     }
-    
+
     lifeTimeAccumulator_ = 0.0f;
     lastLifeSeedTime_ = 0.0f;
     gearSpawnRadius_ = 0.0f;
@@ -2012,7 +2023,8 @@ void Visualizer::renderProceduralLayer() {
     proceduralLayer_.setEnabled(showProceduralLayer_);
     proceduralLayer_.setDebugPreview(proceduralLayerDebug_);
     proceduralLayer_.setMode(proceduralLayerMode_);
-    proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+    proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(),
+                                     scenePaletteBlend_);
 
     proceduralLayer_.render(context);
     proceduralLayer_.composite(context, proceduralLayerOpacity_);
@@ -2024,17 +2036,17 @@ void Visualizer::renderIdleSpinner(float animatedTime) const {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    
+
     glTranslatef(windowWidth_ / 2.0f, windowHeight_ / 2.0f, 0.0f);
     glRotatef(animatedTime * 45.0f, 0.0f, 0.0f, 1.0f);
-    
+
     glBegin(GL_TRIANGLES);
     glColor3f(1.0f, 1.0f, 1.0f);
     glVertex2f(0.0f, -50.0f);
     glVertex2f(-43.3f, 25.0f);
     glVertex2f(43.3f, 25.0f);
     glEnd();
-    
+
     glPopMatrix();
 }
 
@@ -2042,12 +2054,12 @@ void Visualizer::renderGears(float animatedTime) const {
     // Placeholder gear rendering
     glUseProgram(0);
     glMatrixMode(GL_MODELVIEW);
-    
-    for (const auto& gear : gears_) {
+
+    for (const auto &gear : gears_) {
         glPushMatrix();
         glTranslatef(windowWidth_ / 2.0f + gear.x, windowHeight_ / 2.0f + gear.y, 0.0f);
         glRotatef(gear.angle + animatedTime * gear.angularVelocity * 45.0f, 0.0f, 0.0f, 1.0f);
-        
+
         glBegin(GL_LINE_LOOP);
         glColor3f(0.8f, 0.8f, 0.8f);
         for (int i = 0; i < gear.teeth; ++i) {
@@ -2056,12 +2068,12 @@ void Visualizer::renderGears(float animatedTime) const {
             glVertex2f(cosf(angle) * r * 50.0f, sinf(angle) * r * 50.0f);
         }
         glEnd();
-        
+
         glPopMatrix();
     }
 }
 
-void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures& features) {
+void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures &features) {
     core_.radius = 0.3f + features.bassEnergy * 0.4f;
     core_.baseRadius = core_.radius;
     core_.pulse = features.onset ? 1.0f : 0.0f;
@@ -2076,39 +2088,41 @@ void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures& featur
     core_.idleSpin = time_ * 0.5f;
 }
 
-void Visualizer::updateGears(float dt, const AudioAnalyzer::AudioFeatures& features) {
-    for (auto& gear : gears_) {
+void Visualizer::updateGears(float dt, const AudioAnalyzer::AudioFeatures &features) {
+    for (auto &gear : gears_) {
         gear.angle += gear.angularVelocity * dt * (1.0f + features.energy * 2.0f);
-        gear.orbitAngle += gear.orbitSpeed * gear.orbitDirection * dt * (1.0f + features.bassEnergy * 1.5f);
+        gear.orbitAngle +=
+            gear.orbitSpeed * gear.orbitDirection * dt * (1.0f + features.bassEnergy * 1.5f);
         gear.jitterPhase += dt * 3.0f;
-        
+
         float jitter = std::sin(gear.jitterPhase) * 0.02f * features.energy;
         gear.x = std::cos(gear.orbitAngle) * gearSpawnRadius_ + jitter;
         gear.y = std::sin(gear.orbitAngle) * gearSpawnRadius_ + jitter;
     }
-    
+
     gearSpawnRadius_ = 50.0f + features.bassEnergy * 100.0f;
 }
 
-void Visualizer::updateLife(float dt, const AudioAnalyzer::AudioFeatures& features) {
+void Visualizer::updateLife(float dt, const AudioAnalyzer::AudioFeatures &features) {
     lifeTimeAccumulator_ += dt;
-    
+
     if (lifeTimeAccumulator_ > 0.1f) {
         lifeTimeAccumulator_ = 0.0f;
-        
+
         // Simple Conway's Game of Life rules
         for (int y = 0; y < LifeCellGrid::HEIGHT; ++y) {
             for (int x = 0; x < LifeCellGrid::WIDTH; ++x) {
                 int neighbors = 0;
                 for (int dy = -1; dy <= 1; ++dy) {
                     for (int dx = -1; dx <= 1; ++dx) {
-                        if (dx == 0 && dy == 0) continue;
+                        if (dx == 0 && dy == 0)
+                            continue;
                         int nx = (x + dx + LifeCellGrid::WIDTH) % LifeCellGrid::WIDTH;
                         int ny = (y + dy + LifeCellGrid::HEIGHT) % LifeCellGrid::HEIGHT;
                         neighbors += lifeGrid_.cells[ny * LifeCellGrid::WIDTH + nx];
                     }
                 }
-                
+
                 int idx = y * LifeCellGrid::WIDTH + x;
                 if (lifeGrid_.cells[idx] == 1) {
                     lifeGrid_.next[idx] = (neighbors == 2 || neighbors == 3) ? 1 : 0;
@@ -2117,10 +2131,10 @@ void Visualizer::updateLife(float dt, const AudioAnalyzer::AudioFeatures& featur
                 }
             }
         }
-        
+
         lifeGrid_.cells.swap(lifeGrid_.next);
     }
-    
+
     // Seed new life based on audio
     if (features.onset && time_ - lastLifeSeedTime_ > 0.5f) {
         lastLifeSeedTime_ = time_;
@@ -2150,11 +2164,11 @@ void Visualizer::renderLife(float animatedTime) const {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    
+
     float cellSize = 5.0f;
     float offsetX = (windowWidth_ - LifeCellGrid::WIDTH * cellSize) / 2.0f;
     float offsetY = (windowHeight_ - LifeCellGrid::HEIGHT * cellSize) / 2.0f;
-    
+
     glBegin(GL_QUADS);
     for (int y = 0; y < LifeCellGrid::HEIGHT; ++y) {
         for (int x = 0; x < LifeCellGrid::WIDTH; ++x) {
@@ -2170,6 +2184,6 @@ void Visualizer::renderLife(float animatedTime) const {
         }
     }
     glEnd();
-    
+
     glPopMatrix();
 }

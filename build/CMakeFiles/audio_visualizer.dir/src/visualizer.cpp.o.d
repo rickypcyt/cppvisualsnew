@@ -204,21 +204,21 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: \
  /home/ricky/coding/proyects/visuals/src/shader.h \
  /home/ricky/coding/proyects/visuals/src/modular_layer.h \
  /home/ricky/coding/proyects/visuals/src/post_processor.h \
- /usr/include/c++/15.2.1/iostream /usr/include/c++/15.2.1/chrono \
+ /home/ricky/coding/proyects/visuals/src/audio_capture.h \
+ /usr/local/include/portaudio.h /usr/include/c++/15.2.1/mutex \
  /usr/include/c++/15.2.1/bits/chrono.h /usr/include/c++/15.2.1/ratio \
  /usr/include/c++/15.2.1/ctime \
  /usr/include/c++/15.2.1/bits/parse_numbers.h \
- /usr/include/c++/15.2.1/algorithm \
- /usr/include/c++/15.2.1/bits/stl_algo.h \
- /usr/include/c++/15.2.1/bits/algorithmfwd.h \
- /usr/include/c++/15.2.1/bits/stl_heap.h \
- /usr/include/c++/15.2.1/pstl/glue_algorithm_defs.h \
- /home/ricky/coding/proyects/visuals/src/audio_capture.h \
- /usr/local/include/portaudio.h /usr/include/c++/15.2.1/mutex \
  /usr/include/c++/15.2.1/bits/std_mutex.h \
  /usr/include/c++/15.2.1/bits/unique_lock.h \
  /usr/include/c++/15.2.1/atomic \
  /home/ricky/coding/proyects/visuals/imgui/imgui.h \
  /home/ricky/coding/proyects/visuals/imgui/imconfig.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/float.h \
- /usr/include/string.h /usr/include/strings.h /usr/include/assert.h
+ /usr/include/string.h /usr/include/strings.h /usr/include/assert.h \
+ /usr/include/c++/15.2.1/algorithm \
+ /usr/include/c++/15.2.1/bits/stl_algo.h \
+ /usr/include/c++/15.2.1/bits/algorithmfwd.h \
+ /usr/include/c++/15.2.1/bits/stl_heap.h \
+ /usr/include/c++/15.2.1/pstl/glue_algorithm_defs.h \
+ /usr/include/c++/15.2.1/chrono /usr/include/c++/15.2.1/iostream

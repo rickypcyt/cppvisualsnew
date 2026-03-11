@@ -18,9 +18,7 @@ const float SQRT3 = 1.73205080757;
 const float PI = 3.14159265359;
 const float PI2 = 6.28318530718;
 
-float hash12(vec2 v) {
-    return fract(sin(dot(v, vec2(12.9898, 78.233))) * 43758.5453);
-}
+float hash12(vec2 v) { return fract(sin(dot(v, vec2(12.9898, 78.233))) * 43758.5453); }
 
 mat2 rotate2D(float a) {
     float s = sin(a);
@@ -28,7 +26,8 @@ mat2 rotate2D(float a) {
     return mat2(c, s, -s, c);
 }
 
-vec3 renderPattern(vec2 p, float time, float tempo, float energy, float bass, float mid, float high, vec3 colorA, vec3 colorB, float blend) {
+vec3 renderPattern(vec2 p, float time, float tempo, float energy, float bass, float mid, float high,
+                   vec3 colorA, vec3 colorB, float blend) {
     vec3 col = vec3(0.0);
 
     float scale = 3.0;
@@ -80,10 +79,14 @@ vec3 renderPattern(vec2 p, float time, float tempo, float energy, float bass, fl
     return clamp(col, 0.0, 1.2);
 }
 
-vec3 compositeLayers(vec2 uv, float time, float tempo, float energy, float bass, float mid, float high, vec3 colorA, vec3 colorB, float blend) {
+vec3 compositeLayers(vec2 uv, float time, float tempo, float energy, float bass, float mid,
+                     float high, vec3 colorA, vec3 colorB, float blend) {
     vec3 layer1 = renderPattern(uv, time, tempo, energy, bass, mid, high, colorA, colorB, blend);
-    vec3 layer2 = renderPattern(uv * rotate2D(PI / 3.0) * 0.92, time + 1.3, tempo * 1.1, energy, bass, mid, high, colorB, colorA, 1.0 - blend);
-    vec3 layer3 = renderPattern(uv * rotate2D(-PI / 6.0) * 1.08, time - 0.8, tempo * 0.85, energy, mid, bass, high, mix(colorA, vec3(1.0), 0.3), mix(colorB, vec3(0.2), 0.4), blend * 0.6 + 0.2);
+    vec3 layer2 = renderPattern(uv * rotate2D(PI / 3.0) * 0.92, time + 1.3, tempo * 1.1, energy,
+                                bass, mid, high, colorB, colorA, 1.0 - blend);
+    vec3 layer3 = renderPattern(uv * rotate2D(-PI / 6.0) * 1.08, time - 0.8, tempo * 0.85, energy,
+                                mid, bass, high, mix(colorA, vec3(1.0), 0.3),
+                                mix(colorB, vec3(0.2), 0.4), blend * 0.6 + 0.2);
 
     vec3 combined = layer1 * 0.55 + layer2 * 0.3 + layer3 * 0.25;
     combined += layer1 * layer2 * 0.2;
@@ -101,7 +104,8 @@ void main() {
         for (int n = 0; n < AA; ++n) {
             vec2 of = vec2(float(m), float(n)) / float(AA) - 0.5;
             vec2 sampleCoord = ((fragCoord + of) * 2.0 - uResolution.xy) / minDim;
-            accum += compositeLayers(sampleCoord, uTime, uTempo, uEnergy, uBass, uMid, uHigh, uPrimaryColor, uSecondaryColor, uColorBlend);
+            accum += compositeLayers(sampleCoord, uTime, uTempo, uEnergy, uBass, uMid, uHigh,
+                                     uPrimaryColor, uSecondaryColor, uColorBlend);
         }
     }
 

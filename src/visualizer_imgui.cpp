@@ -339,97 +339,120 @@ void Visualizer::renderMainImGuiWindow() {
                 }
                 ImGui::EndCombo();
             }
+
             ImGui::TreePop();
         }
+    }
 
-        if (ImGui::TreeNode("Post proceso")) {
-            ImGui::Checkbox("Activar", &showPostProcess_);
+    if (ImGui::TreeNode("Post proceso")) {
+        static const char* kModes[] = {
+            "Ninguno",
+            "Color Grading",
+            "Film + Vignette",
+            "Plasma Aberration",
+            "Pulse Aberration",
+            "Energy Bands",
+            "Radial Blur",
+            "Kaleidoscope",
+            "Digital Glitch",
+            "Pixelate 8-bit",
+            "Pixelate 16-bit",
+            "Pixelate 32-bit",
+            "Pixelate 64-bit",
+            "Lens Distortion",
+            "Plasma Overlay",
+            "RGB Split",
+            "Recursive Energy"
+        };
 
-            static const char* kModes[] = {
-                "Off",
-                "Grayscale",
-                "Filmic",
-                "Digital Wave",
-                "Pulse Shift",
-                "Band Threshold",
-                "Radial Burst",
-                "Kaleidoscope",
-                "Digital Glitch",
-                "Pixelate 8-bit",
-                "Pixelate 16-bit",
-                "Pixelate 32-bit",
-                "Pixelate 64-bit",
-                "Lens Distortion",
-                "Plasma Overlay",
-                "RGB Split",
-                "Recursive Energy"
-            };
+        bool anySlotEnabled = false;
+        for (int slotIndex = 0; slotIndex < kMaxPostProcessSlots; ++slotIndex) {
+            auto& slot = postProcessSlots_[slotIndex];
 
-            int currentMode = postProcessMode_;
-            if (currentMode < 0 || currentMode >= static_cast<int>(std::size(kModes))) {
-                currentMode = 0;
-            }
+            ImGui::PushID(slotIndex);
+            if (ImGui::TreeNode(slotIndex == 0 ? "Slot 1 (Principal)" :
+                               slotIndex == 1 ? "Slot 2" :
+                               slotIndex == 2 ? "Slot 3" :
+                               slotIndex == 3 ? "Slot 4" : "Slot 5")) {
 
-            if (ImGui::BeginCombo("Modo", kModes[currentMode])) {
-                for (int i = 0; i < static_cast<int>(std::size(kModes)); ++i) {
-                    bool selected = (postProcessMode_ == i);
-                    if (ImGui::Selectable(kModes[i], selected)) {
-                        postProcessMode_ = i;
+                ImGui::Checkbox("Activar", &slot.enabled);
+                anySlotEnabled = anySlotEnabled || slot.enabled;
+
+                if (slot.enabled) {
+                    int currentMode = slot.mode;
+                    if (currentMode < 0 || currentMode >= static_cast<int>(std::size(kModes))) {
+                        currentMode = 0;
                     }
-                    if (selected) {
-                        ImGui::SetItemDefaultFocus();
+
+                    if (ImGui::BeginCombo("Modo", kModes[currentMode])) {
+                        for (int i = 0; i < static_cast<int>(std::size(kModes)); ++i) {
+                            bool selected = (slot.mode == i);
+                            if (ImGui::Selectable(kModes[i], selected)) {
+                                slot.mode = i;
+                            }
+                            if (selected) {
+                                ImGui::SetItemDefaultFocus();
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+
+                    ImGui::SliderFloat("Intensidad", &slot.strength, 0.0f, 1.0f, "%.2f");
+
+                    if (slot.mode == 15) {
+                        ImGui::SetNextItemWidth(180.0f);
+                        ImGui::SliderFloat("Canal R", &slot.rgbAdjust[0], 0.0f, 1.5f, "%.2f");
+                        ImGui::SetNextItemWidth(180.0f);
+                        ImGui::SliderFloat("Canal G", &slot.rgbAdjust[1], 0.0f, 1.5f, "%.2f");
+                        ImGui::SetNextItemWidth(180.0f);
+                        ImGui::SliderFloat("Canal B", &slot.rgbAdjust[2], 0.0f, 1.5f, "%.2f");
+                        ImGui::TextDisabled("Ajusta cuánto se desplaza cada canal en el split.");
                     }
                 }
-                ImGui::EndCombo();
-            }
 
-            ImGui::SliderFloat("Intensidad", &postProcessStrength_, 0.0f, 1.0f, "%.2f");
-            if (postProcessMode_ == 15) {
-                ImGui::SetNextItemWidth(180.0f);
-                ImGui::SliderFloat("Canal R", &postProcessRgbAdjust_[0], 0.0f, 1.5f, "%.2f");
-                ImGui::SetNextItemWidth(180.0f);
-                ImGui::SliderFloat("Canal G", &postProcessRgbAdjust_[1], 0.0f, 1.5f, "%.2f");
-                ImGui::SetNextItemWidth(180.0f);
-                ImGui::SliderFloat("Canal B", &postProcessRgbAdjust_[2], 0.0f, 1.5f, "%.2f");
-                ImGui::TextDisabled("Ajusta cuánto se desplaza cada canal en el split.");
+                ImGui::TreePop();
             }
-            ImGui::TreePop();
+            ImGui::PopID();
         }
 
-        if (ImGui::TreeNode("Canales RGB externos")) {
-            static const char* kLabels[3] = {"Rojo", "Verde", "Azul"};
-            for (int i = 0; i < 3; ++i) {
-                ImGui::Checkbox(kLabels[i], &rgbChannelEnabled_[i]);
-                if (i < 2) {
-                    ImGui::SameLine();
-                }
-            }
+        showPostProcess_ = anySlotEnabled;
 
-            ImGui::Spacing();
-            if (ImGui::Button("Activar todos")) {
-                rgbChannelEnabled_[0] = rgbChannelEnabled_[1] = rgbChannelEnabled_[2] = true;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Solo R")) {
-                rgbChannelEnabled_[0] = true;
-                rgbChannelEnabled_[1] = false;
-                rgbChannelEnabled_[2] = false;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Solo G")) {
-                rgbChannelEnabled_[0] = false;
-                rgbChannelEnabled_[1] = true;
-                rgbChannelEnabled_[2] = false;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Solo B")) {
-                rgbChannelEnabled_[0] = false;
-                rgbChannelEnabled_[1] = false;
-                rgbChannelEnabled_[2] = true;
-            }
+        ImGui::TreePop();
+    }
 
-            ImGui::TreePop();
+    if (ImGui::TreeNode("Canales RGB externos")) {
+        static const char* kLabels[3] = {"Rojo", "Verde", "Azul"};
+        for (int i = 0; i < 3; ++i) {
+            ImGui::Checkbox(kLabels[i], &rgbChannelEnabled_[i]);
+            if (i < 2) {
+                ImGui::SameLine();
+            }
         }
+
+        ImGui::Spacing();
+        if (ImGui::Button("Activar todos")) {
+            rgbChannelEnabled_[0] = rgbChannelEnabled_[1] = rgbChannelEnabled_[2] = true;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Solo R")) {
+            rgbChannelEnabled_[0] = true;
+            rgbChannelEnabled_[1] = false;
+            rgbChannelEnabled_[2] = false;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Solo G")) {
+            rgbChannelEnabled_[0] = false;
+            rgbChannelEnabled_[1] = true;
+            rgbChannelEnabled_[2] = false;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Solo B")) {
+            rgbChannelEnabled_[0] = false;
+            rgbChannelEnabled_[1] = false;
+            rgbChannelEnabled_[2] = true;
+        }
+
+        ImGui::TreePop();
     }
 
     ImGui::Checkbox("Random auto", &autoRandomizeColors_);

@@ -97,6 +97,19 @@ private:
         float baseCenterY;
     };
 
+    struct PostProcessSlot {
+        bool enabled = false;
+        int mode = 0;
+        float strength = 0.0f;
+        std::array<float, 3> rgbAdjust{1.0f, 1.0f, 1.0f};
+    };
+
+    static constexpr int kMaxPostProcessSlots = 5;
+    
+    // Post-process constants
+    static constexpr int kPostProcessModeCount = 17;
+    static constexpr int kPostProcessKaleidoscopeModeIndex = 7;
+
     struct LifeCellGrid {
         static constexpr int WIDTH = 96;
         static constexpr int HEIGHT = 96;
@@ -130,8 +143,13 @@ private:
     std::unique_ptr<Shader> cornerShader_;
     ModularLayer proceduralLayer_;
     PostProcessor postProcessor_;
+    std::array<PostProcessSlot, kMaxPostProcessSlots> postProcessSlots_;
+    
+    // Post-process controls
+    int postProcessMode_;
     float postProcessStrength_;
     std::array<float, 3> postProcessRgbAdjust_;
+    
     AudioAnalyzer::AudioFeatures audioFeatures_;
     std::vector<float> waveformBuffer_;
     int selectedDevice_;
@@ -181,7 +199,6 @@ private:
     bool proceduralLayerDebug_;
     float proceduralLayerOpacity_;
     int proceduralLayerMode_;
-    int postProcessMode_;
 
     CoreState core_;
     std::vector<GearNode> gears_;
