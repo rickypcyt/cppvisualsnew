@@ -246,6 +246,33 @@ void Visualizer::renderMainImGuiWindow() {
         randomizeLegacyColors();
     }
 
+    int presetCount = static_cast<int>(colorPresets_.size());
+    const char* currentPresetName = (currentPresetIndex_ >= 0 && currentPresetIndex_ < presetCount)
+                                        ? colorPresets_[currentPresetIndex_].name.c_str()
+                                        : "Sin límites";
+    ImGui::SetNextItemWidth(200.0f);
+    if (ImGui::BeginCombo("Preset Legacy", currentPresetName)) {
+        bool noneSelected = currentPresetIndex_ < 0;
+        if (ImGui::Selectable("Sin límites", noneSelected)) {
+            currentPresetIndex_ = -1;
+            resetLegacyColorAdjustments();
+            colorRandomTimer_ = 0.0f;
+        }
+        if (noneSelected) {
+            ImGui::SetItemDefaultFocus();
+        }
+        for (int i = 0; i < presetCount; ++i) {
+            bool selected = (currentPresetIndex_ == i);
+            if (ImGui::Selectable(colorPresets_[i].name.c_str(), selected)) {
+                applyLegacyPreset(i);
+            }
+            if (selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+
     ImGui::TextUnformatted("Motor visual:");
     ImGui::SameLine();
     ImGui::Checkbox("Shaders modernos", &useModernPipeline_);
@@ -260,9 +287,17 @@ void Visualizer::renderMainImGuiWindow() {
             int paletteCount = static_cast<int>(scenePalettes_.size());
             const char* currentName = (currentScenePaletteIndex_ >= 0 && currentScenePaletteIndex_ < paletteCount)
                                         ? scenePalettes_[currentScenePaletteIndex_].name.c_str()
-                                        : "--";
+                                        : "Sin límites";
 
             if (ImGui::BeginCombo("Preset", currentName)) {
+                bool noneSelected = currentScenePaletteIndex_ < 0;
+                if (ImGui::Selectable("Sin límites", noneSelected)) {
+                    currentScenePaletteIndex_ = -1;
+                    setDefaultScenePalette();
+                }
+                if (noneSelected) {
+                    ImGui::SetItemDefaultFocus();
+                }
                 for (int i = 0; i < paletteCount; ++i) {
                     bool selected = (currentScenePaletteIndex_ == i);
                     if (ImGui::Selectable(scenePalettes_[i].name.c_str(), selected)) {
@@ -298,9 +333,10 @@ void Visualizer::renderMainImGuiWindow() {
         }
 
         if (ImGui::TreeNode("Capas núcleo shader")) {
-            ImGui::Checkbox("Base", &coreShowBase_);
-            ImGui::SameLine();
-            ImGui::Checkbox("Corona", &coreShowCorona_);
+            coreShowBase_ = true;
+            coreShowCorona_ = true;
+            ImGui::BulletText("Base (siempre activa)");
+            ImGui::BulletText("Corona (siempre activa)");
             ImGui::TreePop();
         }
 
@@ -458,7 +494,7 @@ void Visualizer::renderMainImGuiWindow() {
 
     ImGuiColorEditFlags colorFlags = ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float;
     if (ImGui::BeginTable("LegacyColorAdjustTable", 2, ImGuiTableFlags_SizingStretchProp)) {
-        auto colorRow = [&](const char* label, Visualizer::ColorAdjust& adjust) {
+        auto colorRow = [&](const char* label, std::array<float, 4>& adjust) {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
             ImGui::TextUnformatted(label);

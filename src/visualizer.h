@@ -49,31 +49,16 @@ public:
     void renderImGui();
 
 private:
-    struct ColorAdjust {
-        float r = 1.0f;
-        float g = 1.0f;
-        float b = 1.0f;
-        float a = 1.0f;
-
-        float* data() { return &r; }
-        const float* data() const { return &r; }
-    };
-
-    struct LegacyColorAdjust {
-        ColorAdjust circleFill;
-        ColorAdjust circleOutline;
-        ColorAdjust bloomInner;
-        ColorAdjust bloomOuter;
-        ColorAdjust bassBars;
-        ColorAdjust midBars;
-        ColorAdjust highBars;
-        ColorAdjust beatExplosion;
-        ColorAdjust waveform;
-    };
-
-    struct ColorPreset {
-        std::string name;
-        LegacyColorAdjust adjust;
+    enum class LegacyTone {
+        BloomInner,
+        BloomOuter,
+        CircleFill,
+        CircleOutline,
+        BassBars,
+        MidBars,
+        HighBars,
+        BeatExplosion,
+        Waveform
     };
 
     struct ScenePalette {
@@ -179,21 +164,18 @@ private:
     bool showDiagnosticInfo_;
     bool showConsoleMode_;
     bool imguiInitialized_;
-    LegacyColorAdjust legacyColorAdjust_;
     bool autoRandomizeColors_;
     float colorRandomInterval_;
     float colorRandomTimer_;
     float deltaTime_;
     std::mt19937 rng_;
-    std::vector<ColorPreset> colorPresets_;
-    int currentPresetIndex_;
     bool onsetColorCyclingEnabled_;
     int onsetTriggerCount_;
     bool lastOnsetActive_;
     float tempoMultiplier_;
-    bool mixColorSchemes_;
     std::vector<ScenePalette> scenePalettes_;
     int currentScenePaletteIndex_;
+    float scenePaletteHueSeed_;
     std::array<float, 3> scenePrimaryColor_{};
     std::array<float, 3> sceneSecondaryColor_{};
     float scenePaletteBlend_;
@@ -250,6 +232,7 @@ private:
     void renderShaderSparkles();
     void renderCornerOrbs();
     void renderProceduralLayer();
+    void renderCore();
 
     // ImGui rendering methods
     void renderMainImGuiWindow();
@@ -257,13 +240,36 @@ private:
     void renderDiagnosticImGui();
     void renderConsoleImGui();
 
-    void buildColorPresets();
-    void resetLegacyColorAdjustments();
-    void setColorWithAdjust(float r, float g, float b, float a, const ColorAdjust& adjust) const;
-    void applyLegacyPreset(int index);
-    void randomizeLegacyColors();
+    void setLegacyColor(float r, float g, float b, float a, LegacyTone tone) const;
     void buildScenePalettes();
     void applyScenePalette(int index);
+    void setDefaultScenePalette();
+    void randomizeScenePalette();
+    void cycleScenePaletteSequential();
+    void updateDynamicScenePalette();
+    
+    // Legacy color methods
+    void randomizeLegacyColors();
+    void applyLegacyPreset(int index);
+    void resetLegacyColorAdjustments();
+    void setColorWithAdjust(float r, float g, float b, float a, const std::array<float, 4>& adjust);
+    
+    // Legacy color state
+    struct {
+        std::array<float, 4> circleFill{1.0f, 1.0f, 1.0f, 1.0f};
+        std::array<float, 4> circleOutline{1.0f, 1.0f, 1.0f, 1.0f};
+        std::array<float, 4> bassBars{1.0f, 1.0f, 1.0f, 1.0f};
+        std::array<float, 4> midBars{1.0f, 1.0f, 1.0f, 1.0f};
+        std::array<float, 4> highBars{1.0f, 1.0f, 1.0f, 1.0f};
+        std::array<float, 4> beatExplosion{1.0f, 1.0f, 1.0f, 1.0f};
+        std::array<float, 4> waveform{1.0f, 1.0f, 1.0f, 1.0f};
+        std::array<float, 4> bloomInner{1.0f, 1.0f, 1.0f, 1.0f};
+        std::array<float, 4> bloomOuter{1.0f, 1.0f, 1.0f, 1.0f};
+    } legacyColorAdjust_;
+    
+    std::vector<ScenePalette> colorPresets_;
+    int currentPresetIndex_;
+    bool mixColorSchemes_;
 
     // Procedural visualization methods
     void renderProceduralVisualization();

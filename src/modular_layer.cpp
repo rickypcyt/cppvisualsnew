@@ -733,6 +733,8 @@ vec4 renderVolumetricStarfield(vec2 st, float time, float tempo, float energy, f
 
     vec3 dir = normalize(vec3(uv * (kVolZoom + energy * 0.25), 1.0));
 
+    float paletteBias = clamp(uColorBlend, 0.0, 1.0);
+    vec3 paletteBase = mix(uPrimaryColor, uSecondaryColor, paletteBias);
     vec3 color = vec3(0.0);
     for (int layer = 0; layer < kSnowLayers; ++layer) {
         float layerFrac = float(layer) / float(kSnowLayers);
@@ -751,13 +753,16 @@ vec4 renderVolumetricStarfield(vec2 st, float time, float tempo, float energy, f
         float starValue = happyStar(p * 10.0, twist);
         float flake = smoothstep(1.5, 0.0, starValue);
 
-        vec3 snowColor = mix(uPrimaryColor, uSecondaryColor, clamp(0.5 + randSeed * 0.5, 0.0, 1.0));
+        float snowMix = clamp(mix(paletteBias, 0.5 + randSeed * 0.5, 0.6), 0.0, 1.0);
+        vec3 snowAccent = mix(uPrimaryColor, uSecondaryColor, snowMix);
+        vec3 snowColor = mix(paletteBase, snowAccent, 0.65);
         color += snowColor * 0.05 * layerFade * flake;
         color += clamp(uv.y * -0.08 + uv.y * abs(uv.x * 2.5) * -0.07, 0.0, 1.0);
     }
     color *= max(1.0 - dot(uv, uv) * 20.6, 0.0);
 
-    vec3 baseMix = mix(uPrimaryColor, uSecondaryColor, clamp(0.35 + high * 0.4, 0.0, 1.0));
+    float nebulaMix = clamp(mix(paletteBias, 0.35 + high * 0.4, 0.7), 0.0, 1.0);
+    vec3 baseMix = mix(uPrimaryColor, uSecondaryColor, nebulaMix);
     vec3 from = baseMix * color;
 
     float s = 0.1;

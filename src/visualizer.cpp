@@ -5,12 +5,53 @@
 #include <cmath>
 #include <random>
 #include <vector>
+#include <array>
 #include "audio_capture.h"
 #include "imgui.h"
 
 namespace {
 constexpr int kProceduralModeCount = 24;
 constexpr int kPostProcessModeCount = 17;
+
+std::array<float, 3> hsvToRgb(float h, float s, float v) {
+    h = std::fmod(h, 1.0f);
+    if (h < 0.0f) {
+        h += 1.0f;
+    }
+    s = std::clamp(s, 0.0f, 1.0f);
+    v = std::clamp(v, 0.0f, 1.0f);
+
+    float c = v * s;
+    float hh = h * 6.0f;
+    float x = c * (1.0f - std::fabs(std::fmod(hh, 2.0f) - 1.0f));
+
+    float r = 0.0f;
+    float g = 0.0f;
+    float b = 0.0f;
+
+    if (hh < 1.0f) {
+        r = c;
+        g = x;
+    } else if (hh < 2.0f) {
+        r = x;
+        g = c;
+    } else if (hh < 3.0f) {
+        g = c;
+        b = x;
+    } else if (hh < 4.0f) {
+        g = x;
+        b = c;
+    } else if (hh < 5.0f) {
+        r = x;
+        b = c;
+    } else {
+        r = c;
+        b = x;
+    }
+
+    float m = v - c;
+    return {r + m, g + m, b + m};
+}
 }
 
 const char* vertexShaderSource = R"(
@@ -42,11 +83,17 @@ uniform float uHigh;
 uniform float uOnset;
 uniform float uBeat;
 uniform float uKick;
+uniform vec3 uScenePrimary;
+uniform vec3 uSceneSecondary;
+uniform float uSceneBlend;
 
 out float vSize;
 out float vAngle;
 out float vActivation;
 out float vProfile;
+out vec3 vPalettePrimary;
+out vec3 vPaletteSecondary;
+out float vPaletteBlend;
 
 void main() {
     float baseScale = min(uResolution.x, uResolution.y);
@@ -80,6 +127,9 @@ void main() {
     vAngle = orbitPhase;
     vActivation = eased;
     vProfile = profile;
+    vPalettePrimary = uScenePrimary;
+    vPaletteSecondary = uSceneSecondary;
+    vPaletteBlend = uSceneBlend;
 }
 )";
 
@@ -89,6 +139,9 @@ in float vSize;
 in float vAngle;
 in float vActivation;
 in float vProfile;
+in vec3 vPalettePrimary;
+in vec3 vPaletteSecondary;
+in float vPaletteBlend;
 
 out vec4 FragColor;
 
@@ -122,15 +175,9 @@ void main() {
     float shimmer = 0.5 + 0.5 * sin(uTime * (1.6 + uTempo * 0.4) + profile * 3.1);
     float spectral = clamp(uBass * 0.32 + uMid * 0.44 + uHigh * 0.58, 0.0, 2.0);
 
-    vec3 baseColor = vec3(0.14 + uBass * 0.42,
-                          0.2 + uMid * 0.52,
-                          0.28 + uHigh * 0.68);
-    vec3 glowColor = vec3(0.68 + uHigh * 0.72,
-                          0.36 + uMid * 0.46,
-                          1.08 + uBass * 0.42);
-    vec3 ringColor = vec3(0.88 + 0.18 * spectral,
-                          0.48 + 0.2 * uMid,
-                          1.24 + 0.26 * uBass);
+    vec3 baseColor = mix(vPalettePrimary, vPaletteSecondary, clamp(vPaletteBlend, 0.0, 1.0));
+    vec3 glowColor = mix(vPalettePrimary, vPaletteSecondary, clamp(vPaletteBlend + 0.2, 0.0, 1.0));
+    vec3 ringColor = mix(vPalettePrimary, vPaletteSecondary, clamp(vPaletteBlend + 0.4, 0.0, 1.0));
 
     vec3 color = baseColor * core * (0.62 + eased * 0.48 + spectral * 0.12);
     color += glowColor * aura * (0.3 + eased * (0.4 + 0.25 * shimmer));
@@ -145,95 +192,357 @@ void main() {
 }
 )";
 
-const char* sparkVertexShaderSource = R"(
+const char* fragmentShaderSource = R"(
 #version 330 core
-layout (location = 0) in vec2 aPolar;   // angle (rad), radial jitter
-layout (location = 1) in float aSeed;   // random seed [0,1)
+out vec4 FragColor;
 
-out float vGlow;
-out float vHueShift;
-out float vSeed;
+in vec2 TexCoord;
 
-uniform vec2 uResolution;
-uniform float uBaseRadius;
+uniform sampler2D uTexture;
 uniform float uTime;
-uniform float uTempo;
-uniform float uPulse;
-uniform float uEnergy;
 uniform float uBass;
 uniform float uMid;
 uniform float uHigh;
-
-const float TAU = 6.28318530718;
+uniform float uEnergy;
 
 void main() {
-    float angle = aPolar.x;
-    float radialLayer = aPolar.y;
+    vec4 texColor = texture(uTexture, TexCoord);
+    
+    // Simple audio-reactive effect
+    float pulse = uBass * 0.3 + uMid * 0.2 + uHigh * 0.1;
+    vec3 color = texColor.rgb + vec3(pulse * 0.2, pulse * 0.1, pulse * 0.3);
+    
+    FragColor = vec4(color, texColor.a);
+}
+)";
 
-    float baseRadius = uBaseRadius * (1.35 + radialLayer * 0.8);
-    float audioStretch = (0.4 + uPulse * 0.55 + uEnergy * 0.35 + uBass * 0.45);
-    float sparkRadius = baseRadius + audioStretch * (45.0 + radialLayer * 120.0);
+const char* sparkVertexShaderSource = R"(
+#version 330 core
+layout (location = 0) in vec2 aPos;
+layout (location = 1) in float aSize;
+layout (location = 2) in float aBrightness;
 
-    float swirl = sin(angle * (3.0 + uTempo * 0.4) + uTime * (0.6 + radialLayer * 0.8));
-    float harmonicWarp = sin(angle * (12.0 + uHigh * 4.0) + uTime * (3.2 + uTempo)) * (18.0 + uHigh * 25.0);
-    float kickBurst = sin(angle * 5.0 + uTime * (5.0 + uTempo)) * uPulse * 20.0;
+out float vBrightness;
 
-    sparkRadius += swirl * 18.0 + harmonicWarp + kickBurst;
+uniform vec2 uResolution;
+uniform float uTime;
 
-    vec2 dir = vec2(cos(angle), sin(angle));
-    vec2 pos = dir * sparkRadius;
-
-    float flicker = sin(uTime * (6.0 + uTempo * 0.5) + aSeed * TAU) * 0.5 + 0.5;
-    float burst = sin(angle * (9.0 + uHigh * 5.0) + uTime * (7.0 + uTempo * 1.4));
-    vGlow = clamp(flicker * (0.4 + uEnergy * 0.6) + max(0.0, burst) * (0.3 + uHigh * 0.5), 0.0, 1.6);
-    vHueShift = aSeed;
-    vSeed = aSeed;
-
-    vec2 scale = vec2(2.0 / uResolution.x, 2.0 / uResolution.y);
-    gl_Position = vec4(pos * scale, 0.0, 1.0);
-    gl_PointSize = 6.0 + vGlow * 18.0 + uPulse * 10.0;
+void main() {
+    vBrightness = aBrightness;
+    vec2 pos = aPos + vec2(sin(uTime + aPos.x) * 0.01, cos(uTime + aPos.y) * 0.01);
+    gl_Position = vec4(pos * vec2(2.0 / uResolution.x, 2.0 / uResolution.y), 0.0, 1.0);
+    gl_PointSize = aSize;
 }
 )";
 
 const char* sparkFragmentShaderSource = R"(
 #version 330 core
-in float vGlow;
-in float vHueShift;
-in float vSeed;
 out vec4 FragColor;
+
+in float vBrightness;
+
+uniform float uTime;
+uniform vec3 uColor;
+
+void main() {
+    vec2 coord = gl_PointCoord - vec2(0.5);
+    float dist = length(coord);
+    if (dist > 0.5) discard;
+    
+    float alpha = (1.0 - dist * 2.0) * vBrightness;
+    FragColor = vec4(uColor, alpha);
+}
+)";
+
+const char* coreVertexShaderSource = R"(
+#version 330 core
+layout (location = 0) in vec2 aDir;
+layout (location = 1) in float aRadial;
+layout (location = 2) in float aAngle;
+
+out float vAngle;
+out float vRadial;
+out float vWarp;
+out float vFacetFlow;
+out float vRadiusNorm;
+out float vVoidMask;
+out float vPetalMask;
+out float vSpiral;
+out float vInnerMask;
+out float vOuterMask;
+out float vNodePulse;
+out float vBondMask;
+out float vRibbonMask;
+out vec2 vChemFlow;
+out vec3 vPalettePrimary;
+out vec3 vPaletteSecondary;
+out float vPaletteBlend;
+
+uniform vec2  uResolution;
+uniform float uBaseRadius, uPulse, uKick, uHarmonic, uGrowth, uMaturity;
+uniform float uEnergy, uBass, uMid, uHigh;
+uniform float uTime, uTempo, uBeat;
+uniform float uIdlePulse, uIdleWarp, uIdleSpin, uOnset;
+uniform vec3 uScenePrimary;
+uniform vec3 uSceneSecondary;
+uniform float uSceneBlend;
+
+void main() {
+    float angle = aAngle + uIdleSpin;
+    vec2  dir     = vec2(cos(angle), sin(angle));
+    vec2  tangent = vec2(-dir.y, dir.x);
+
+    // --- Warp radial ---
+    float warp = sin(angle * (4.5 + uHarmonic * 1.9) + uTime * (1.7 + uTempo * 0.5))
+                 * (0.16 + uHarmonic * 0.22);
+    warp += uIdleWarp * (0.45 + 0.35 * aRadial);
+
+    // --- Radio base ---
+    float radius = uBaseRadius * (0.85 + aRadial * 0.7 + uPulse * 0.35 + uIdlePulse * 0.5)
+                   * (1.0 + warp);
+    radius += (uBass * 65.0 + uMid * 42.0 + uHigh * 30.0 + uIdlePulse * 24.0) * aRadial;
+
+    // --- Pétalo ---
+    float petalWave = cos(angle * (6.0 + uHarmonic * 4.0) + uTime * (1.2 + uTempo * 0.35));
+    float petalMask = smoothstep(-0.25, 0.65, petalWave + uPulse * 0.25 + uIdlePulse * 0.3);
+    radius += petalMask * (24.0 + uPulse * 40.0 + uIdlePulse * 28.0);
+
+    // --- Facetas (tri + hex combinados) ---
+    float facet = cos(angle * 3.0) * 0.68 + cos(angle * 6.0 + uTime * 0.6) * 0.32;
+    radius *= (1.0 + facet * (0.26 + uHarmonic * 0.2) * (0.45 + aRadial * 0.55));
+
+    // --- Flujo orbital ---
+    float spiral = sin(angle * 2.0 + uTime * 0.9);
+    vec2 pos = dir * radius
+             + tangent * spiral * (18.0 + uHigh * 20.0)
+             + dir     * (uGrowth * 12.0 + uIdlePulse * 18.0);
+
+    // --- Void mask ---
+    float voidWave = sin(angle * 3.0 + uTime * 2.2) + sin(angle * 1.35 + uTime * 0.9);
+    float voidMask = smoothstep(0.25, 1.1, abs(voidWave) - (0.2 + uPulse * 0.2));
+
+    float radiusNorm = clamp(length(pos) / (uBaseRadius * (3.4 + uPulse * 0.9 + uGrowth * 0.45)), 0.0, 1.9);
+    float innerMask = smoothstep(0.08, 0.75, radiusNorm);
+    float outerMask = smoothstep(0.25, 1.25, radiusNorm + warp * 0.15 + uGrowth * 0.1);
+
+    float nodePulse = sin(angle * (5.0 + uHarmonic * 2.1) + uTime * (2.0 + uTempo * 0.6));
+    nodePulse = pow(clamp(nodePulse * 0.5 + 0.5, 0.0, 1.0), 1.4);
+
+    float bondMask = smoothstep(0.1, 0.9, abs(sin(angle * 3.0 + uTime * 1.7)) * (0.7 + uMid * 0.5));
+    float ribbonWave = sin(angle * (3.5 + uTempo * 0.6) + uTime * (1.8 + uPulse * 0.5));
+    float ribbonMask = (ribbonWave * 0.5 + 0.5) * smoothstep(0.2, 1.1, radiusNorm);
+
+    vec2 chemFlow = vec2(cos(angle * 1.1 + uTime * 0.6), sin(angle * 0.9 - uTime * 0.4));
+    chemFlow *= 0.3 + radiusNorm * 0.7;
+    chemFlow += tangent * (0.18 + uHigh * 0.25);
+    chemFlow += dir * (0.12 + uBass * 0.2);
+
+    // --- Outputs ---
+    vAngle      = angle;
+    vRadial     = aRadial;
+    vWarp       = warp;
+    vFacetFlow  = clamp(facet * (0.7 + uPulse * 0.4), -1.6, 1.6);
+    vRadiusNorm = radiusNorm;
+    vVoidMask   = clamp(voidMask, 0.0, 1.0);
+    vPetalMask  = petalMask;
+    vSpiral     = spiral;
+    vInnerMask  = clamp(innerMask, 0.0, 1.0);
+    vOuterMask  = clamp(outerMask, 0.0, 1.0);
+    vNodePulse  = clamp(nodePulse, 0.0, 1.0);
+    vBondMask   = clamp(bondMask, 0.0, 1.5);
+    vRibbonMask = clamp(ribbonMask, 0.0, 1.5);
+    vChemFlow   = chemFlow;
+    vPalettePrimary = uScenePrimary;
+    vPaletteSecondary = uSceneSecondary;
+    vPaletteBlend = uSceneBlend;
+
+    gl_Position = vec4(pos * vec2(2.0 / uResolution.x, 2.0 / uResolution.y), 0.0, 1.0);
+}
+)";
+
+const char* coreFragmentShaderSource = R"(
+#version 330 core
+out vec4 FragColor;
+
+in float vAngle;
+in float vRadial;
+in float vWarp;
+in float vPetalMask;
+in float vSpiral;
+in float vInnerMask;
+in float vOuterMask;
+in float vVoidMask;
+in float vRadiusNorm;
+in float vNodePulse;
+in float vBondMask;
+in float vFacetFlow;
+in float vRibbonMask;
+in vec2 vChemFlow;
+in vec3 vPalettePrimary;
+in vec3 vPaletteSecondary;
+in float vPaletteBlend;
 
 uniform float uBass;
 uniform float uMid;
 uniform float uHigh;
 uniform float uEnergy;
+uniform float uPulse;
+uniform float uKick;
+uniform float uHarmonic;
+uniform float uGrowth;
+uniform float uMaturity;
+uniform float uTime;
+uniform float uTempo;
+uniform float uOnset;
+uniform float uBeat;
+uniform float uShowBase;
+uniform float uShowCorona;
+uniform float uShowSpokes;
+uniform float uShowRunes;
+uniform float uShowSparkles;
+uniform float uShowBloom;
 
-vec3 hsv2rgb(vec3 c) {
-    vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
-    return c.z * mix(vec3(1.0), rgb, c.y);
+float hash(float n) {
+    return fract(sin(n) * 43758.5453);
 }
 
 void main() {
-    vec2 uv = gl_PointCoord * 2.0 - 1.0;
-    float dist = length(uv);
-    if (dist > 1.0) {
-        discard;
-    }
+    float innerLayer = vInnerMask;
+    float outerLayer = vOuterMask;
+    float petals = smoothstep(0.0, 1.0, vPetalMask);
+    float spiral = vSpiral * (0.6 + uHarmonic * 0.4);
 
-    float falloff = pow(1.0 - dist, 2.0);
-    float core = smoothstep(0.6, 0.0, dist);
-    float ring = smoothstep(1.0, 0.2, dist) * (1.0 - core);
+    float runeWave = sin(vAngle * (8.0 + uHarmonic * 3.1) + uTime * (3.6 + uTempo * 0.7));
+    float runeMask = smoothstep(-0.3, 0.6, runeWave + outerLayer * 0.4);
 
-    float hue = fract(vHueShift + uHigh * 0.35 + uMid * 0.18);
-    float sat = clamp(0.6 + uEnergy * 0.35, 0.0, 1.0);
-    float val = clamp(0.45 + uEnergy * 0.55 + vGlow * 0.5, 0.0, 1.5);
+    float sparkSeed = hash(floor((vAngle + uTime) * 7.5));
+    float sparkPulse = sin(vAngle * (16.0 + uHigh * 5.5) + uTime * (5.4 + uTempo * 1.3));
+    float spark = pow(max(0.0, sparkPulse), 2.2) * (0.22 + uHigh * 0.6) * outerLayer * sparkSeed;
 
-    vec3 innerColor = hsv2rgb(vec3(hue, sat, val));
-    vec3 outerColor = hsv2rgb(vec3(fract(hue + 0.1), clamp(sat * 0.6, 0.0, 1.0), clamp(val * 0.9, 0.0, 1.0)));
+    float voidMask = vVoidMask;
+    float bloom = (0.35 + uPulse * 0.45) * outerLayer * (0.6 + petals * 0.4) * (1.0 - voidMask);
+    float chemStir = clamp(length(vChemFlow) * 1.2, 0.0, 3.5);
+    float nodePulse = clamp(vNodePulse * (0.45 + uOnset * 0.6 + uBeat * 0.5), 0.0, 2.8);
+    float bondCore = clamp(vBondMask * (0.5 + uPulse * 0.3 + uBeat * 0.4), 0.0, 2.0);
+    float facetMagnitude = clamp(abs(vFacetFlow) * (1.35 + uPulse * 0.45 + uBeat * 0.35), 0.0, 2.4);
+    float facetPrism = smoothstep(0.25, 1.15, facetMagnitude);
+    float facetShard = smoothstep(0.55, 1.35, facetMagnitude * (0.9 + uHigh * 0.45));
+    float ribbonFuse = smoothstep(0.25, 0.92, clamp(vRibbonMask, 0.0, 1.0));
+    float ribbonStrand = ribbonFuse * smoothstep(0.2, 0.95, sin(vAngle * (5.0 + uTempo * 0.6) + uTime * (3.6 + uPulse * 0.9)) * 0.5 + 0.5);
+    float ribbonSpark = ribbonFuse * pow(clamp(vRibbonMask, 0.0, 1.0), 2.2) * (0.55 + uPulse * 0.45 + uBeat * 0.6);
 
-    vec3 color = innerColor * core + outerColor * ring;
+    float timeShift = uTime * (0.15 + uTempo * 0.1) + uOnset * 1.2;
+    float hueBase = fract(sin(timeShift * 0.37) * 43758.5453);
+    float hueAccent = fract(sin((timeShift + 2.17) * 0.53) * 32768.2143);
+    float hueSpark = fract(sin((timeShift - 1.91) * 0.43) * 54731.1243);
 
-    float alpha = (core * 0.75 + ring * 0.55) * clamp(0.4 + vGlow, 0.0, 1.5);
-    FragColor = vec4(color, alpha);
+    vec3 basePalette[4];
+    basePalette[0] = vPalettePrimary;
+    basePalette[1] = vPaletteSecondary;
+    basePalette[2] = mix(vPalettePrimary, vPaletteSecondary, 0.5);
+    basePalette[3] = mix(vPalettePrimary, vPaletteSecondary, 0.8);
+
+    float paletteBlend = clamp(hueBase * 3.0, 0.0, 3.0);
+    int paletteIndex = int(paletteBlend);
+    int nextIndex = (paletteIndex + 1) % 4;
+    float paletteMix = fract(paletteBlend);
+    vec3 baseHue = mix(basePalette[paletteIndex], basePalette[nextIndex], paletteMix);
+
+    vec3 accentHue = mix(baseHue.yzx, baseHue.zxy, 0.35 + hueAccent * 0.4);
+    vec3 sparkHue = mix(vec3(1.0, 0.9, 0.6), baseHue, 0.2 + hueSpark * 0.5);
+
+    vec3 coreColor = mix(baseHue, basePalette[nextIndex], 0.4 + uEnergy * 0.2);
+    coreColor += mix(vec3(0.0), vPaletteSecondary, clamp(uBass * 0.6, 0.0, 1.0));
+    coreColor += mix(vec3(0.0), vPalettePrimary.zyx, clamp(uHigh * 0.5, 0.0, 1.0));
+
+    vec3 petalColor = mix(accentHue, vPaletteSecondary, 0.25 + uHigh * 0.35);
+    vec3 runeColor = mix(accentHue.yzx, vPalettePrimary, 0.35 + uMid * 0.3);
+    vec3 sparkColor = mix(sparkHue, vPaletteSecondary, 0.4 + uHigh * 0.3);
+    vec3 chemColor = mix(baseHue.xzy, vPaletteSecondary.zyx, 0.45 + uEnergy * 0.35);
+    vec3 bondColor = mix(accentHue.zxy, vPalettePrimary, 0.4 + uMid * 0.35);
+    vec3 ribbonColor = mix(baseHue, vPaletteSecondary, 0.55 + uHigh * 0.25);
+    vec3 facetColor = mix(baseHue.zxy, vPalettePrimary.zyx, 0.45 + uEnergy * 0.3);
+    vec3 shardColor = mix(accentHue, vPaletteSecondary.yzx, 0.5 + uPulse * 0.3);
+
+    vec3 color = vec3(0.0);
+
+    float baseIntensity = innerLayer * (0.35 + uEnergy * 0.25);
+    float filamentCount = 18.0 + uHarmonic * 6.0 + uTempo * 2.0 + uGrowth * 1.5;
+    float filamentPhase = uTime * (0.7 + uTempo * 0.5) + vRadiusNorm * 1.6;
+    float filamentWave = sin(vAngle * filamentCount + filamentPhase);
+    float filamentCore = 1.0 - smoothstep(0.0, 0.35, abs(filamentWave));
+    float filamentCross = sin((vAngle + vRadiusNorm * 2.2) * (filamentCount * 0.45) - uTime * (1.4 + uHigh * 0.7));
+    float filamentNoise = smoothstep(0.1, 0.8, filamentCross * 0.5 + 0.5);
+    float filamentMask = pow(clamp(filamentCore * filamentNoise, 0.0, 1.0), 2.2);
+    filamentMask *= innerLayer;
+    filamentMask *= smoothstep(0.0, 0.65, vRadiusNorm) * (1.0 - smoothstep(0.9, 1.6, vRadiusNorm));
+    filamentMask *= 1.0 + uGrowth * 0.25;
+
+    vec3 filamentColor = mix(coreColor * 1.25,
+                             vec3(0.9 + uHigh * 0.7,
+                                  0.5 + uMid * 0.6,
+                                  1.2 + uBass * 0.5),
+                             clamp(vRadiusNorm, 0.0, 1.0));
+
+    float growthSpiral = sin(vAngle * (4.0 + uGrowth * 2.2) + uTime * (1.6 + uGrowth * 0.35));
+    float growthShell = smoothstep(0.18, 0.88, vRadiusNorm + growthSpiral * 0.1);
+    float growthPulse = smoothstep(0.25, 0.9, sin(vAngle * (2.2 + uGrowth) + uTime * (0.85 + uTempo * 0.35)) * 0.5 + 0.5);
+    vec3 growthColor = mix(vec3(0.22 + uBass * 0.55, 0.42 + uMid * 0.55, 0.85 + uHigh * 0.35),
+                           vec3(0.78, 0.46 + uMid * 0.35, 0.38 + uBass * 0.3),
+                           clamp(uGrowth * 0.3, 0.0, 1.0));
+    growthColor = mix(growthColor, vec3(0.0), 0.1);
+
+    float maturityVeins = smoothstep(0.3, 0.92, sin(vAngle * (7.0 + uMaturity * 1.4) - uTime * (1.5 + uTempo * 0.4)) * 0.5 + 0.5);
+    float maturityHalo = smoothstep(0.45, 1.15, vRadiusNorm + sin(vAngle * 3.2 + uTime * 0.6) * 0.08);
+    vec3 maturityColor = vec3(1.05 + uHigh * 0.4, 0.84 + uMid * 0.35, 0.65 + uBass * 0.28);
+
+    color += coreColor * baseIntensity * uShowBase;
+    color += filamentColor * filamentMask * (0.7 + uPulse * 0.5) * uShowBase;
+    color += growthColor * growthShell * growthPulse * (0.48 + uGrowth * 0.32) * uShowCorona;
+    color += petalColor * petals * (0.38 + uPulse * 0.24 + spiral * 0.18) * uShowCorona;
+    color += runeColor * runeMask * (0.18 + uHarmonic * 0.35) * uShowRunes;
+    color += sparkColor * spark * uShowSparkles;
+    color += petalColor * bloom * uShowBloom;
+    color += maturityColor * maturityVeins * (0.18 + uMaturity * 0.25) * uShowRunes;
+    color += ribbonColor * (ribbonStrand * (0.45 + uEnergy * 0.22) + ribbonSpark * 0.7) * uShowCorona;
+    color += facetColor * facetPrism * (0.32 + uEnergy * 0.28 + uShowBase * 0.25) * uShowBase;
+    color += shardColor * facetShard * (0.26 + uHigh * 0.35 + uPulse * 0.25) * uShowSparkles;
+
+    float chemAura = smoothstep(0.2, 1.4, chemStir + nodePulse * 0.5);
+    float arterial = smoothstep(0.3, 0.95, vRadiusNorm + sin(vAngle * 5.0 + uTime * 0.8) * 0.1);
+    float bondVeins = smoothstep(0.15, 0.85, bondCore * outerLayer);
+    vec3 phaseColor = mix(chemColor, chemColor.zyx, clamp(uHigh * 0.4 + uOnset * 0.3, 0.0, 1.0));
+    vec3 bondGlow = mix(bondColor, bondColor.yzx, clamp(uMid * 0.5, 0.0, 1.0));
+
+    color += phaseColor * chemAura * (0.3 + uShowCorona * 0.42 + uEnergy * 0.22);
+    color += bondGlow * bondVeins * (0.35 + nodePulse * 0.3) * uShowRunes;
+    color += chemColor * arterial * outerLayer * (0.22 + uPulse * 0.3) * uShowBase;
+    color += ribbonColor * ribbonFuse * 0.22 * uShowBloom;
+    color += facetColor * facetPrism * 0.22 * uShowRunes;
+
+    float spokeMask = smoothstep(0.6, 1.05, vRadiusNorm + sin(vAngle * 12.0) * 0.08);
+    color += runeColor * spokeMask * (0.25 + uHigh * 0.35) * uShowSpokes;
+    color += maturityColor * maturityHalo * (0.15 + uMaturity * 0.18) * uShowSpokes;
+
+    color = max(color, vec3(0.0));
+
+    float alpha = 0.1
+                + baseIntensity * uShowBase
+                + filamentMask * (0.35 + uPulse * 0.3) * uShowBase
+                + growthShell * growthPulse * 0.25 * uShowCorona
+                + petals * (0.18 + uPulse * 0.22) * uShowCorona
+                + spokeMask * 0.25 * uShowSpokes
+                + maturityVeins * 0.22 * uShowRunes
+                + spark * 0.42 * uShowSparkles
+                + bloom * 0.32 * uShowBloom
+                + chemAura * 0.18 * uShowCorona
+                + bondVeins * 0.26 * uShowRunes
+                + ribbonStrand * 0.18 * uShowCorona
+                + ribbonSpark * 0.18 * uShowSparkles
+                + facetPrism * 0.22 * uShowBase;
+    alpha = clamp(alpha, 0.08, 0.9);
+
+    FragColor = vec4(max(color, vec3(0.0)), alpha);
 }
 )";
 
@@ -275,6 +584,15 @@ void Visualizer::renderCornerOrbs() {
     cornerShader_->setUniform1f("uKick", core_.kickEnvelope);
     cornerShader_->setUniform1f("uOnset", audioFeatures_.onset);
     cornerShader_->setUniform1f("uBeat", audioFeatures_.beat);
+    cornerShader_->setUniform3f("uScenePrimary",
+                                scenePrimaryColor_[0],
+                                scenePrimaryColor_[1],
+                                scenePrimaryColor_[2]);
+    cornerShader_->setUniform3f("uSceneSecondary",
+                                sceneSecondaryColor_[0],
+                                sceneSecondaryColor_[1],
+                                sceneSecondaryColor_[2]);
+    cornerShader_->setUniform1f("uSceneBlend", scenePaletteBlend_);
 
     glBindVertexArray(cornerVAO_);
     glDrawArrays(GL_POINTS, 0, cornerVertexCount_);
@@ -296,1065 +614,70 @@ void Visualizer::renderCornerOrbs() {
     }
 }
 
-void Visualizer::renderProceduralLayer() {
-    if (!showProceduralLayer_ && !proceduralLayerDebug_) {
+void Visualizer::renderCore() {
+    if (!coreShader_ || coreVAO_ == 0) {
         return;
     }
 
-    LayerContext context{
-        windowWidth_,
-        windowHeight_,
-        time_,
-        tempoMultiplier_,
-        &audioFeatures_
-    };
-
-    float blend = std::clamp(scenePaletteBlend_, 0.0f, 1.0f);
-    if (blend != scenePaletteBlend_) {
-        scenePaletteBlend_ = blend;
-    }
-    proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
-    proceduralLayer_.setEnabled(showProceduralLayer_);
-    proceduralLayer_.setDebugPreview(proceduralLayerDebug_);
-    proceduralLayer_.render(context);
-
-    float opacity = std::clamp(proceduralLayerOpacity_, 0.0f, 1.0f);
-    proceduralLayer_.composite(context, opacity);
-}
-
-const char* coreVertexShaderSource = R"(
-#version 330 core
-layout (location = 0) in vec2 aDir;
-layout (location = 1) in float aRadial;
-layout (location = 2) in float aAngle;
-
-out float vAngle;
-out float vRadial;
-out float vWarp;
-out float vFacetFlow;
-out float vRadiusNorm;
-out float vVoidMask;
-
-uniform vec2  uResolution;
-uniform float uBaseRadius, uPulse, uKick, uHarmonic, uGrowth, uMaturity;
-uniform float uEnergy, uBass, uMid, uHigh;
-uniform float uTime, uTempo, uBeat;
-uniform float uIdlePulse, uIdleWarp, uIdleSpin, uOnset;
-uniform vec4  uLegacyCircleFill;
-uniform vec4  uLegacyCircleOutline;
-uniform vec4  uLegacyBloomInner;
-uniform vec4  uLegacyBloomOuter;
-
-void main() {
-    float angle = aAngle + uIdleSpin;
-    vec2  dir     = vec2(cos(angle), sin(angle));
-    vec2  tangent = vec2(-dir.y, dir.x);
-
-    // --- Warp radial ---
-    float warp = sin(angle * (4.5 + uHarmonic * 1.9) + uTime * (1.7 + uTempo * 0.5))
-                 * (0.16 + uHarmonic * 0.22);
-    warp += uIdleWarp * (0.45 + 0.35 * aRadial);
-
-    // --- Radio base ---
-    float radius = uBaseRadius * (0.85 + aRadial * 0.7 + uPulse * 0.35 + uIdlePulse * 0.5)
-                   * (1.0 + warp);
-    radius += (uBass * 65.0 + uMid * 42.0 + uHigh * 30.0 + uIdlePulse * 24.0) * aRadial;
-
-    // --- Pétalo ---
-    float petalWave = cos(angle * (6.0 + uHarmonic * 4.0) + uTime * (1.2 + uTempo * 0.35));
-    float petalMask = smoothstep(-0.25, 0.65, petalWave + uPulse * 0.25 + uIdlePulse * 0.3);
-    radius += petalMask * (24.0 + uPulse * 40.0 + uIdlePulse * 28.0);
-
-    // --- Facetas (tri + hex combinados) ---
-    float facet = cos(angle * 3.0) * 0.68 + cos(angle * 6.0 + uTime * 0.6) * 0.32;
-    radius *= (1.0 + facet * (0.26 + uHarmonic * 0.2) * (0.45 + aRadial * 0.55));
-
-    // --- Flujo orbital ---
-    float spiral = sin(angle * 2.0 + uTime * 0.9);
-    vec2 pos = dir * radius
-             + tangent * spiral * (18.0 + uHigh * 20.0)
-             + dir     * (uGrowth * 12.0 + uIdlePulse * 18.0);
-
-    // --- Void mask ---
-    float voidWave = sin(angle * 3.0 + uTime * 2.2) + sin(angle * 1.35 + uTime * 0.9);
-    float voidMask = smoothstep(0.25, 1.1, abs(voidWave) - (0.2 + uPulse * 0.2));
-
-    // --- Outputs ---
-    vAngle      = angle;
-    vRadial     = aRadial;
-    vWarp       = warp;
-    vPetalMask  = petalMask;
-    vVoidMask   = clamp(voidMask, 0.0, 1.0);
-    vFacetFlow  = clamp(facet * (0.7 + uPulse * 0.4), -1.6, 1.6);
-    vRadiusNorm = clamp(length(pos) / (uBaseRadius * (3.4 + uPulse * 0.9 + uGrowth * 0.45)), 0.0, 1.9);
-
-    gl_Position = vec4(pos * vec2(2.0 / uResolution.x, 2.0 / uResolution.y), 0.0, 1.0);
-}
-)";
-
-const char* coreFragmentShaderSource = R"(
-#version 330 core
-out vec4 FragColor;
-
-in float vAngle;
-in float vRadial;
-in float vWarp;
-in float vPetalMask;
-in float vSpiral;
-in float vInnerMask;
-in float vOuterMask;
-in float vVoidMask;
-in float vRadiusNorm;
-in float vNodePulse;
-in float vBondMask;
-in float vFacetFlow;
-in float vRibbonMask;
-in vec2 vChemFlow;
-
-uniform float uBass;
-uniform float uMid;
-uniform float uHigh;
-uniform float uEnergy;
-uniform float uPulse;
-uniform float uKick;
-uniform float uHarmonic;
-uniform float uGrowth;
-uniform float uMaturity;
-uniform float uTime;
-uniform float uTempo;
-uniform float uOnset;
-uniform float uBeat;
-uniform float uShowBase;
-uniform float uShowCorona;
-uniform float uShowSpokes;
-uniform float uShowRunes;
-uniform float uShowSparkles;
-uniform float uShowBloom;
-uniform vec4  uLegacyCircleFill;
-uniform vec4  uLegacyCircleOutline;
-uniform vec4  uLegacyBloomInner;
-uniform vec4  uLegacyBloomOuter;
-
-float hash(float n) {
-    return fract(sin(n) * 43758.5453);
-}
-
-void main() {
-    float innerLayer = vInnerMask;
-    float outerLayer = vOuterMask;
-    float petals = smoothstep(0.0, 1.0, vPetalMask);
-    float spiral = vSpiral * (0.6 + uHarmonic * 0.4);
-
-    float runeWave = sin(vAngle * (8.0 + uHarmonic * 3.1) + uTime * (3.6 + uTempo * 0.7));
-    float runeMask = smoothstep(-0.3, 0.6, runeWave + outerLayer * 0.4);
-
-    float sparkSeed = hash(floor((vAngle + uTime) * 7.5));
-    float sparkPulse = sin(vAngle * (16.0 + uHigh * 5.5) + uTime * (5.4 + uTempo * 1.3));
-    float spark = pow(max(0.0, sparkPulse), 2.2) * (0.22 + uHigh * 0.6) * outerLayer * sparkSeed;
-
-    float voidMask = vVoidMask;
-    float bloom = (0.35 + uPulse * 0.45) * outerLayer * (0.6 + petals * 0.4) * (1.0 - voidMask);
-    float chemStir = clamp(length(vChemFlow) * 1.2, 0.0, 3.5);
-    float nodePulse = clamp(vNodePulse * (0.45 + uOnset * 0.6 + uBeat * 0.5), 0.0, 2.8);
-    float bondCore = clamp(vBondMask * (0.5 + uPulse * 0.3 + uBeat * 0.4), 0.0, 2.0);
-    float facetMagnitude = clamp(abs(vFacetFlow) * (1.35 + uPulse * 0.45 + uBeat * 0.35), 0.0, 2.4);
-    float facetPrism = smoothstep(0.25, 1.15, facetMagnitude);
-    float facetShard = smoothstep(0.55, 1.35, facetMagnitude * (0.9 + uHigh * 0.45));
-    float ribbonFuse = smoothstep(0.25, 0.92, clamp(vRibbonMask, 0.0, 1.0));
-    float ribbonStrand = ribbonFuse * smoothstep(0.2, 0.95, sin(vAngle * (5.0 + uTempo * 0.6) + uTime * (3.6 + uPulse * 0.9)) * 0.5 + 0.5);
-    float ribbonSpark = ribbonFuse * pow(clamp(vRibbonMask, 0.0, 1.0), 2.2) * (0.55 + uPulse * 0.45 + uBeat * 0.6);
-
-    float timeShift = uTime * (0.15 + uTempo * 0.1) + uOnset * 1.2;
-    float hueBase = fract(sin(timeShift * 0.37) * 43758.5453);
-    float hueAccent = fract(sin((timeShift + 2.17) * 0.53) * 32768.2143);
-    float hueSpark = fract(sin((timeShift - 1.91) * 0.43) * 54731.1243);
-
-    vec3 basePalette[4];
-    basePalette[0] = vec3(0.28, 0.45, 0.85);
-    basePalette[1] = vec3(0.85, 0.45, 0.62);
-    basePalette[2] = vec3(0.30, 0.80, 0.55);
-    basePalette[3] = vec3(0.92, 0.70, 0.28);
-
-    float paletteBlend = clamp(hueBase * 3.0, 0.0, 3.0);
-    int paletteIndex = int(paletteBlend);
-    int nextIndex = (paletteIndex + 1) % 4;
-    float paletteMix = fract(paletteBlend);
-    vec3 baseHue = mix(basePalette[paletteIndex], basePalette[nextIndex], paletteMix);
-
-    vec3 accentHue = mix(baseHue.yzx, baseHue.zxy, 0.35 + hueAccent * 0.4);
-    vec3 sparkHue = mix(vec3(1.0, 0.9, 0.6), baseHue, 0.2 + hueSpark * 0.5);
-
-    vec3 coreColor = mix(baseHue, vec3(0.15, 0.22, 0.30), 0.3 - uBass * 0.2);
-    coreColor += vec3(uBass * 0.55, uMid * 0.42, uHigh * 0.62);
-
-    vec3 petalColor = mix(accentHue, vec3(0.6, 0.3, 0.9), 0.35 + uHigh * 0.4);
-    vec3 runeColor = mix(accentHue.yzx, vec3(0.9, 0.6, 0.2), 0.25 + uMid * 0.3);
-    vec3 sparkColor = mix(sparkHue, vec3(1.0, 0.95, 0.75), 0.6 + uHigh * 0.3);
-    vec3 chemColor = mix(baseHue.xzy, vec3(0.25, 0.9, 1.1), 0.5 + uEnergy * 0.3);
-    vec3 bondColor = mix(accentHue.zxy, vec3(1.0, 0.7, 0.4), 0.4 + uMid * 0.35);
-    vec3 ribbonColor = mix(baseHue, vec3(1.0, 0.3, 0.5), 0.5 + uHigh * 0.35);
-    vec3 facetColor = mix(baseHue.zxy, vec3(0.2, 0.8, 1.0), 0.45 + uEnergy * 0.3);
-    vec3 shardColor = mix(accentHue, vec3(1.0, 0.85, 0.6), 0.5 + uPulse * 0.3);
-
-    vec3 legacyCircleFill = vec3(uLegacyCircleFill.rgb);
-    vec3 legacyCircleOutline = vec3(uLegacyCircleOutline.rgb);
-    vec3 legacyBloomInner = vec3(uLegacyBloomInner.rgb);
-    vec3 legacyBloomOuter = vec3(uLegacyBloomOuter.rgb);
-
-    coreColor = mix(coreColor, legacyCircleFill, 0.65);
-    petalColor = mix(petalColor, legacyBloomOuter, 0.55);
-    runeColor = mix(runeColor, legacyCircleOutline, 0.6);
-    facetColor = mix(facetColor, legacyCircleOutline, 0.4);
-    shardColor = mix(shardColor, legacyBloomInner, 0.5);
-
-    vec3 color = vec3(0.0);
-
-    float baseIntensity = innerLayer * (0.35 + uEnergy * 0.25);
-    float filamentCount = 18.0 + uHarmonic * 6.0 + uTempo * 2.0 + uGrowth * 1.5;
-    float filamentPhase = uTime * (0.7 + uTempo * 0.5) + vRadiusNorm * 1.6;
-    float filamentWave = sin(vAngle * filamentCount + filamentPhase);
-    float filamentCore = 1.0 - smoothstep(0.0, 0.35, abs(filamentWave));
-    float filamentCross = sin((vAngle + vRadiusNorm * 2.2) * (filamentCount * 0.45) - uTime * (1.4 + uHigh * 0.7));
-    float filamentNoise = smoothstep(0.1, 0.8, filamentCross * 0.5 + 0.5);
-    float filamentMask = pow(clamp(filamentCore * filamentNoise, 0.0, 1.0), 2.2);
-    filamentMask *= innerLayer;
-    filamentMask *= smoothstep(0.0, 0.65, vRadiusNorm) * (1.0 - smoothstep(0.9, 1.6, vRadiusNorm));
-    filamentMask *= 1.0 + uGrowth * 0.25;
-
-    vec3 filamentColor = mix(coreColor * 1.25,
-                             vec3(0.9 + uHigh * 0.7,
-                                  0.5 + uMid * 0.6,
-                                  1.2 + uBass * 0.5),
-                             clamp(vRadiusNorm, 0.0, 1.0));
-
-    float growthSpiral = sin(vAngle * (4.0 + uGrowth * 2.2) + uTime * (1.6 + uGrowth * 0.35));
-    float growthShell = smoothstep(0.15, 0.85, vRadiusNorm + growthSpiral * 0.12);
-    float growthPulse = smoothstep(0.2, 0.95, sin(vAngle * (2.4 + uGrowth) + uTime * (0.9 + uTempo * 0.4)) * 0.5 + 0.5);
-    vec3 growthColor = mix(vec3(0.25 + uBass * 0.7, 0.45 + uMid * 0.6, 0.9 + uHigh * 0.4),
-                           vec3(0.95, 0.5 + uMid * 0.4, 0.35 + uBass * 0.4),
-                           clamp(uGrowth * 0.35, 0.0, 1.0));
-
-    float maturityVeins = smoothstep(0.3, 0.92, sin(vAngle * (7.0 + uMaturity * 1.4) - uTime * (1.5 + uTempo * 0.4)) * 0.5 + 0.5);
-    float maturityHalo = smoothstep(0.45, 1.15, vRadiusNorm + sin(vAngle * 3.2 + uTime * 0.6) * 0.08);
-    vec3 maturityColor = vec3(1.05 + uHigh * 0.4, 0.84 + uMid * 0.35, 0.65 + uBass * 0.28);
-
-    color += coreColor * baseIntensity * uShowBase;
-    color += filamentColor * filamentMask * (0.7 + uPulse * 0.5) * uShowBase;
-    color += growthColor * growthShell * growthPulse * (0.6 + uGrowth * 0.4) * uShowCorona;
-    color += petalColor * petals * (0.45 + uPulse * 0.28 + spiral * 0.2) * uShowCorona;
-    color += runeColor * runeMask * (0.18 + uHarmonic * 0.35) * uShowRunes;
-    color += sparkColor * spark * uShowSparkles;
-    color += petalColor * bloom * uShowBloom;
-    color += maturityColor * maturityVeins * (0.18 + uMaturity * 0.25) * uShowRunes;
-    color += ribbonColor * (ribbonStrand * (0.55 + uEnergy * 0.25) + ribbonSpark * 0.85) * uShowCorona;
-    color += facetColor * facetPrism * (0.32 + uEnergy * 0.28 + uShowBase * 0.25) * uShowBase;
-    color += shardColor * facetShard * (0.26 + uHigh * 0.35 + uPulse * 0.25) * uShowSparkles;
-
-    float chemAura = smoothstep(0.2, 1.4, chemStir + nodePulse * 0.5);
-    float arterial = smoothstep(0.3, 0.95, vRadiusNorm + sin(vAngle * 5.0 + uTime * 0.8) * 0.1);
-    float bondVeins = smoothstep(0.15, 0.85, bondCore * outerLayer);
-    vec3 phaseColor = mix(chemColor, chemColor.zyx, clamp(uHigh * 0.4 + uOnset * 0.3, 0.0, 1.0));
-    vec3 bondGlow = mix(bondColor, bondColor.yzx, clamp(uMid * 0.5, 0.0, 1.0));
-
-    color += phaseColor * chemAura * (0.3 + uShowCorona * 0.5 + uEnergy * 0.25);
-    color += bondGlow * bondVeins * (0.35 + nodePulse * 0.3) * uShowRunes;
-    color += chemColor * arterial * outerLayer * (0.22 + uPulse * 0.3) * uShowBase;
-    color += ribbonColor * ribbonFuse * 0.28 * uShowBloom;
-    color += facetColor * facetPrism * 0.22 * uShowRunes;
-
-    float spokeMask = smoothstep(0.6, 1.05, vRadiusNorm + sin(vAngle * 12.0) * 0.08);
-    color += runeColor * spokeMask * (0.25 + uHigh * 0.35) * uShowSpokes;
-    color += maturityColor * maturityHalo * (0.15 + uMaturity * 0.18) * uShowSpokes;
-
-    color = max(color, vec3(0.0));
-
-    float alpha = 0.1
-                + baseIntensity * uShowBase
-                + filamentMask * (0.35 + uPulse * 0.3) * uShowBase
-                + growthShell * growthPulse * 0.35 * uShowCorona
-                + petals * (0.25 + uPulse * 0.28) * uShowCorona
-                + spokeMask * 0.25 * uShowSpokes
-                + maturityVeins * 0.22 * uShowRunes
-                + spark * 0.42 * uShowSparkles
-                + bloom * 0.32 * uShowBloom
-                + chemAura * 0.28 * uShowCorona
-                + bondVeins * 0.26 * uShowRunes
-                + ribbonStrand * 0.32 * uShowCorona
-                + ribbonSpark * 0.28 * uShowSparkles
-                + facetPrism * 0.22 * uShowBase;
-    alpha = clamp(alpha, 0.08, 0.9);
-
-    FragColor = vec4(max(color, vec3(0.0)), alpha);
-}
-)";
-
-void Visualizer::setupCoreMesh() {
-    if (coreVAO_) {
-        glDeleteVertexArrays(1, &coreVAO_);
-        coreVAO_ = 0;
-    }
-    if (coreVBO_) {
-        glDeleteBuffers(1, &coreVBO_);
-        coreVBO_ = 0;
+    GLboolean depthWasEnabled = glIsEnabled(GL_DEPTH_TEST);
+    if (depthWasEnabled) {
+        glDisable(GL_DEPTH_TEST);
     }
 
-    const int segments = 360;
-    std::vector<float> data;
-    data.reserve((segments + 1) * 2 * 4);
-
-    for (int i = 0; i <= segments; ++i) {
-        float t = static_cast<float>(i) / static_cast<float>(segments);
-        float angle = t * 6.28318530718f;
-        float c = std::cos(angle);
-        float s = std::sin(angle);
-
-        // inner vertex
-        data.push_back(c);
-        data.push_back(s);
-        data.push_back(0.0f);
-        data.push_back(angle);
-
-        // outer vertex
-        data.push_back(c);
-        data.push_back(s);
-        data.push_back(1.0f);
-        data.push_back(angle);
+    GLboolean blendWasEnabled = glIsEnabled(GL_BLEND);
+    if (!blendWasEnabled) {
+        glEnable(GL_BLEND);
     }
-
-    coreVertexCount_ = static_cast<GLsizei>((segments + 1) * 2);
-
-    glGenVertexArrays(1, &coreVAO_);
-    glGenBuffers(1, &coreVBO_);
-
-    glBindVertexArray(coreVAO_);
-    glBindBuffer(GL_ARRAY_BUFFER, coreVBO_);
-    glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
-
-    GLsizei stride = 4 * sizeof(float);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(0));
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(3 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-void Visualizer::initializeDynamicSystems() {
-    core_ = {};
-    core_.baseRadius = std::max(16.0f, std::min(windowWidth_, windowHeight_) * 0.02f);
-    core_.radius = core_.baseRadius;
-    core_.energy = 0.0f;
-    core_.kickEnvelope = 0.0f;
-
-    gears_.clear();
-    std::uniform_real_distribution<float> distPhase(0.0f, 6.28318f);
-    std::uniform_real_distribution<float> distOffset(0.85f, 1.15f);
-    std::uniform_int_distribution<int> distTeeth(9, 16);
-
-    const float minDim = static_cast<float>(std::min(windowWidth_, windowHeight_));
-    const int ringCount = 3;
-    const float ringBase = minDim * 0.16f;
-    const float ringSpacing = minDim * 0.11f;
-
-    auto starAngles = [](int starPoints) {
-        std::vector<float> result;
-        float base = 6.28318f / std::max(1, starPoints);
-        for (int i = 0; i < starPoints; ++i) {
-            result.push_back(base * i);
-        }
-        return result;
-    };
-
-    auto anchorAngles = starAngles(5);
-
-    for (int ring = 0; ring < ringCount; ++ring) {
-        int gearsOnRing = 6 + ring * 4;
-        float orbitRadius = ringBase + ringSpacing * ring;
-        float anchorRadius = orbitRadius * (0.6f + 0.25f * ring);
-        for (int i = 0; i < gearsOnRing; ++i) {
-            float phase = static_cast<float>(i) / gearsOnRing * 6.28318f;
-            GearNode gear{};
-            gear.orbitAngle = phase;
-            gear.orbitSpeed = 0.18f + 0.12f * ring;
-            gear.ringRadius = orbitRadius * distOffset(rng_);
-            gear.baseRadius = minDim * (0.018f + 0.014f * ring) * distOffset(rng_);
-            gear.radius = gear.baseRadius;
-            gear.angle = distPhase(rng_);
-            gear.angularVelocity = 0.0f;
-            gear.teeth = distTeeth(rng_);
-            gear.jitterPhase = distPhase(rng_);
-            gear.x = 0.0f;
-            gear.y = 0.0f;
-            gear.orbitDirection = (i % 2 == 0) ? 1.0f : -1.0f;
-            gear.anchorAngle = phase;
-            gear.anchorRadius = gear.ringRadius;
-            gear.ringIndex = ring;
-            gear.baseOffsetRadius = anchorRadius;
-            gear.baseOffsetAngle = anchorAngles[(i + ring) % anchorAngles.size()] + distPhase(rng_) * 0.12f;
-            gear.baseCenterX = windowWidth_ * 0.5f + std::cos(gear.baseOffsetAngle) * gear.baseOffsetRadius;
-            gear.baseCenterY = windowHeight_ * 0.5f + std::sin(gear.baseOffsetAngle) * gear.baseOffsetRadius;
-            gears_.push_back(gear);
-        }
-    }
-
-    gearSpawnRadius_ = ringBase + ringSpacing * (ringCount - 1);
-    lifeGrid_.cells.fill(0);
-    lifeGrid_.next.fill(0);
-    lifeTimeAccumulator_ = 0.0f;
-    lastLifeSeedTime_ = 0.0f;
-}
-
-void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures& features) {
-    if (!std::isfinite(dt) || dt <= 0.0f) dt = 1.0f / 60.0f;
-
-    const float tdt = dt * tempoMultiplier_;
-    const float minDim = static_cast<float>(std::min(windowWidth_, windowHeight_));
-
-    // --- Audio inputs normalizados ---
-    const float bass   = std::clamp(features.bassEnergy, 0.0f, 2.0f);
-    const float mid    = std::clamp(features.midEnergy,  0.0f, 2.0f);
-    const float high   = std::clamp(features.highEnergy, 0.0f, 2.0f);
-    const float energy = std::clamp(features.energy,     0.0f, 3.0f);
-
-    // --- Idle state ---
-    float activity = std::clamp(std::max({features.kick, features.clap,
-                                          features.hiHat, features.beat,
-                                          features.onset}) * 1.2f, 0.0f, 1.5f);
-    idleState_ = std::clamp(idleState_ * std::pow(0.2f, tdt)
-                           + (1.0f - activity) * tdt * 0.8f, 0.0f, 1.0f);
-    idlePhase_ += dt * tempoMultiplier_ * (0.3f + 0.4f * idleState_);
-    const float idle = idleState_;
-
-    // --- Envelopes ---
-    auto expDecay = [](float val, float base, float tdtv) {
-        return val * std::pow(base, tdtv);
-    };
-
-    core_.kickEnvelope = std::clamp(
-        expDecay(core_.kickEnvelope, 0.08f, tdt) + features.kick * 0.9f, 0.0f, 2.5f);
-
-    float harmonicIn = std::clamp(mid * 0.6f + high * 0.85f
-                                 + features.clap * 0.7f + features.hiHat * 0.75f
-                                 + features.onset * 0.4f, 0.0f, 2.5f);
-    float hRise = 1.0f - std::pow(0.04f, tdt);
-    core_.harmonicEnvelope = std::clamp(
-        harmonicIn > core_.harmonicEnvelope
-            ? core_.harmonicEnvelope + (harmonicIn - core_.harmonicEnvelope) * hRise
-            : expDecay(core_.harmonicEnvelope, 0.35f, tdt) + harmonicIn * (1.0f - std::pow(0.35f, tdt)),
-        0.0f, 2.2f);
-
-    float magnitude = (bass * 0.6f + mid * 0.35f + high * 0.25f + energy * 0.4f
-                      + features.kick * 0.9f + features.beat * 0.7f + features.onset * 0.45f)
-                     * std::clamp(1.0f - idle * 0.6f, 0.25f, 1.0f);
-
-    core_.growthTrend = std::clamp(
-        core_.growthTrend + (magnitude - core_.growthTrend) * (1.0f - std::pow(0.18f, tdt)),
-        0.0f, 6.0f);
-    core_.growthEnvelope = std::max(expDecay(core_.growthEnvelope, 0.12f, tdt),
-                                    core_.growthTrend * 0.85f);
-
-    // --- Radio y pulse ---
-    core_.pulse      = energy;
-    core_.baseRadius = std::max(12.0f,
-        minDim * (0.015f + 0.018f * std::clamp(energy, 0.0f, 1.5f)
-                         + 0.010f * std::clamp(mid,    0.0f, 1.0f)
-                         + 0.0045f* std::clamp(core_.harmonicEnvelope, 0.0f, 1.5f)));
-
-    float growthFactor = 0.12f + 0.32f * std::tanh(core_.growthEnvelope * 0.35f);
-    float growthWave   = 0.35f + 0.25f * std::sin(time_ * (0.6f + tempoMultiplier_ * 0.3f));
-    core_.radius = core_.baseRadius
-                 * (1.0f + 0.38f * core_.kickEnvelope
-                         + 0.20f * features.beat
-                         + 0.22f * std::clamp(core_.harmonicEnvelope, 0.0f, 1.6f)
-                         + growthWave * growthFactor);
-
-    // --- Energy / maturity ---
-    float injection = (energy * 0.55f + bass * 0.75f + mid * 0.45f + high * 0.4f
-                      + core_.kickEnvelope * 1.1f
-                      + core_.harmonicEnvelope * 1.05f + harmonicIn * 0.4f)
-                     * std::clamp(1.0f - idle * 0.75f, 0.2f, 1.0f);
-
-    core_.energy   = std::clamp((core_.energy + injection * tdt) * std::pow(0.45f, tdt), 0.0f, 8.0f);
-    core_.maturity = std::clamp(expDecay(core_.maturity, 0.35f, tdt)
-                               + std::min(1.0f, injection * 0.12f), 0.0f, 10.0f);
-
-    // --- Idle visuals ---
-    core_.idlePulse = std::clamp(
-        0.06f + idle * 0.24f + std::sin(idlePhase_ * (0.85f + idle * 0.35f)) * (0.18f + 0.12f * idle),
-        0.05f, 0.6f);
-
-    core_.idleWarp = (std::sin(idlePhase_ * (0.80f + idle * 0.50f)) * 0.22f
-                    + std::sin(idlePhase_ * (1.65f + idle * 0.75f) + 1.2f) * 0.18f) * idle;
-
-    core_.idleSpin = std::fmod(idlePhase_ * (0.35f + idle * 0.65f), 6.2831853f);
-    if (core_.idleSpin < 0.0f) core_.idleSpin += 6.2831853f;
-}
-
-float Visualizer::sampleCoreEnergyField(float x, float y) const {
-    float centerX = windowWidth_ * 0.5f;
-    float centerY = windowHeight_ * 0.5f;
-    float dx = x - centerX;
-    float dy = y - centerY;
-    float dist = std::sqrt(dx * dx + dy * dy);
-    float radius = std::max(core_.radius, 1.0f);
-
-    float falloff = std::exp(-dist / (radius * 1.6f));
-    float oscillation = 0.7f + 0.3f * std::sin(dist / std::max(radius * 0.6f, 1.0f) + core_.pulse * 0.4f);
-    float kickBoost = 1.0f + 0.8f * core_.kickEnvelope * std::exp(-dist / (radius * 0.8f));
-
-    return core_.energy * falloff * oscillation * kickBoost;
-}
-
-void Visualizer::updateGears(float dt, const AudioAnalyzer::AudioFeatures& features) {
-    if (gears_.empty()) {
-        return;
-    }
-
-    if (!std::isfinite(dt) || dt <= 0.0f) {
-        dt = 1.0f / 60.0f;
-    }
-
-    float tempoDt = dt * tempoMultiplier_;
-
-    float bass = std::clamp(features.bassEnergy, 0.0f, 2.0f);
-    float mid = std::clamp(features.midEnergy, 0.0f, 2.0f);
-    float high = std::clamp(features.highEnergy, 0.0f, 2.0f);
-    float minDimension = static_cast<float>(std::min(windowWidth_, windowHeight_));
-
-    for (auto& gear : gears_) {
-        float syncPhase = idlePhase_ * 0.6f + core_.pulse * 0.4f + gear.ringIndex * 0.25f;
-        float orientationBase = gear.baseOffsetAngle
-                                 + gear.orbitDirection * (0.18f * core_.pulse + 0.22f * high)
-                                 + 0.12f * std::sin(syncPhase + gear.jitterPhase * 0.6f);
-        float radialBase = gear.anchorRadius + core_.baseRadius * (0.65f + 0.18f * gear.ringIndex);
-        float radialMod = minDimension * (0.012f + 0.025f * mid + 0.03f * core_.harmonicEnvelope + 0.02f * bass);
-        float radial = radialBase + radialMod;
-
-        gear.x = gear.baseCenterX + std::cos(orientationBase) * radial;
-        gear.y = gear.baseCenterY + std::sin(orientationBase) * radial;
-        gear.orbitAngle = orientationBase;
-
-        float targetRadius = gear.baseRadius * (1.0f + 0.25f * mid + 0.32f * core_.harmonicEnvelope + 0.2f * core_.kickEnvelope);
-        gear.radius = gear.radius + (targetRadius - gear.radius) * std::min(1.0f, tempoDt * 4.5f);
-
-        gear.angularVelocity = gear.angularVelocity * std::pow(0.55f, tempoDt);
-        gear.jitterPhase += (0.6f + high * 1.1f) * tempoDt;
-        gear.angle = orientationBase;
-    }
-}
-
-void Visualizer::renderGears(float animatedTime) const {
-    float centerX = windowWidth_ * 0.5f;
-    float centerY = windowHeight_ * 0.5f;
-    float minDim = static_cast<float>(std::min(windowWidth_, windowHeight_));
-    float safeMinDim = std::max(minDim, 1.0f);
-
-    float bass = std::clamp(audioFeatures_.bassEnergy, 0.0f, 2.0f);
-    float mid = std::clamp(audioFeatures_.midEnergy, 0.0f, 2.0f);
-    float high = std::clamp(audioFeatures_.highEnergy, 0.0f, 2.0f);
-    float energy = std::clamp(audioFeatures_.energy, 0.0f, 3.0f);
-    float idleAttenuation = std::clamp(1.0f - idleState_ * 0.55f, 0.35f, 1.0f);
-    bass *= idleAttenuation;
-    mid *= idleAttenuation;
-    high *= idleAttenuation;
-    energy *= idleAttenuation;
-
-    float harmonic = std::clamp(core_.harmonicEnvelope, 0.0f, 2.2f);
-    float kick = std::clamp(core_.kickEnvelope, 0.0f, 2.5f);
-    float pulse = std::clamp(core_.pulse, 0.0f, 3.0f);
-    float glitchPhase = animatedTime * (2.6f + harmonic * 0.8f) + kick * 1.5f;
-    float scanPhase = animatedTime * (3.2f + high * 0.5f) + energy * 0.8f;
-    float runeRotation = animatedTime * (0.35f + pulse * 0.12f);
-    float prismShift = 0.5f + 0.5f * std::sin(animatedTime * 1.8f + pulse * 0.6f);
-
-    float radius = std::max(core_.radius, safeMinDim * 0.05f);
-    struct FractalPoint {
-        float x;
-        float y;
-        float angle;
-    };
-
-    std::vector<FractalPoint> contour;
-    std::vector<FractalPoint> scratch;
-
-    auto generateContour = [&](int detailLevel, float radiusScale, float warpStrength, std::vector<FractalPoint>& out) {
-        int segments = std::max(96, detailLevel * 64);
-        out.clear();
-        out.reserve(segments + 1);
-
-        float baseRadius = radius * radiusScale;
-        float warpBase = warpStrength * (0.35f + 0.45f * harmonic);
-        float timePhase = animatedTime * (0.8f + 0.45f * energy);
-
-        for (int i = 0; i <= segments; ++i) {
-            float t = static_cast<float>(i) / segments;
-            float angle = t * 6.28318f;
-            float offset = 0.0f;
-            float amplitude = warpBase;
-            float freq = 2.0f;
-
-            for (int octave = 0; octave < detailLevel; ++octave) {
-                float phase = timePhase * (1.0f + 0.23f * octave)
-                              + pulse * 0.35f
-                              + harmonic * (0.16f + 0.08f * octave);
-                offset += std::sin(angle * freq + phase + octave * 1.3f) * amplitude;
-                freq *= 2.2f;
-                amplitude *= 0.55f;
-            }
-
-            float glitchStep = 0.5f + 0.5f * std::sin(angle * (6.0f + harmonic * 1.7f) + glitchPhase);
-            offset += std::sin(angle * (13.0f + high * 2.5f) + glitchPhase * 1.3f) * warpStrength * 0.12f * glitchStep;
-            offset += std::sin(angle * (3.0f + harmonic * 1.5f) + timePhase * 1.6f) * warpStrength * 0.25f * kick;
-            float radial = baseRadius * (1.0f + offset);
-            float x = centerX + std::cos(angle) * radial;
-            float y = centerY + std::sin(angle) * radial;
-            out.push_back({x, y, angle});
-        }
-    };
-
-    auto drawLayer = [&](int detailLevel,
-                         float radiusScale,
-                         float warpStrength,
-                         float innerScale,
-                         float fillIntensity,
-                         const ColorAdjust& fillAdjust,
-                         const ColorAdjust& outlineAdjust) {
-        generateContour(detailLevel, radiusScale, warpStrength, contour);
-
-        glBegin(GL_TRIANGLE_STRIP);
-        for (const auto& point : contour) {
-            float dx = point.x - centerX;
-            float dy = point.y - centerY;
-            float innerX = centerX + dx * innerScale;
-            float innerY = centerY + dy * innerScale;
-            float baseOsc = std::sin(point.angle * (3.2f + harmonic) + animatedTime * 2.1f);
-            float glitchOsc = std::sin(point.angle * 16.0f + glitchPhase);
-            float sparkle = 0.55f + 0.45f * baseOsc * (0.6f + 0.4f * std::fabs(glitchOsc));
-            float glitchPulse = 0.5f + 0.5f * glitchOsc;
-
-            float innerAlpha = std::clamp(0.14f + fillIntensity * 0.22f, 0.12f, 0.58f);
-            float outerAlpha = std::clamp(0.26f + fillIntensity * 0.55f + sparkle * 0.18f + glitchPulse * 0.22f, 0.2f, 0.95f);
-
-            setColorWithAdjust(0.28f + bass * 0.2f + prismShift * 0.08f,
-                               0.4f + mid * 0.24f + prismShift * 0.06f,
-                               0.6f + high * 0.18f + prismShift * 0.12f,
-                               innerAlpha,
-                               fillAdjust);
-            glVertex2f(innerX, innerY);
-
-            setColorWithAdjust(0.48f + bass * 0.32f + sparkle * 0.18f + prismShift * 0.12f,
-                               0.55f + mid * 0.38f + sparkle * 0.16f + prismShift * 0.10f,
-                               0.88f + high * 0.48f + sparkle * 0.22f + prismShift * 0.18f,
-                               outerAlpha,
-                               fillAdjust);
-            glVertex2f(point.x, point.y);
-        }
-        glEnd();
-
-        glLineWidth(1.4f + fillIntensity * 2.0f + high * 0.6f);
-        glBegin(GL_LINE_LOOP);
-        for (const auto& point : contour) {
-            float edgeGlow = 0.3f + 0.7f * std::sin(point.angle * 4.0f + animatedTime * 3.0f + pulse);
-            setColorWithAdjust(0.75f + edgeGlow * 0.2f + bass * 0.1f,
-                               0.82f + edgeGlow * 0.15f + mid * 0.1f,
-                               1.2f + edgeGlow * 0.3f + high * 0.2f,
-                               0.28f + fillIntensity * 0.4f,
-                               outlineAdjust);
-            glVertex2f(point.x, point.y);
-        }
-        glEnd();
-    };
-
-    float layerEnergy = std::clamp(energy * 0.4f + pulse * 0.35f, 0.0f, 2.0f);
-    drawLayer(3,
-              0.95f + layerEnergy * 0.18f,
-              0.28f + harmonic * 0.12f,
-              0.38f,
-              0.65f + layerEnergy * 0.35f,
-              legacyColorAdjust_.circleFill,
-              legacyColorAdjust_.circleOutline);
-
-    drawLayer(2,
-              0.62f + bass * 0.22f,
-              0.35f + harmonic * 0.14f,
-              0.42f,
-              0.45f + mid * 0.3f,
-              legacyColorAdjust_.bloomInner,
-              legacyColorAdjust_.circleOutline);
-
-    drawLayer(1,
-              0.38f + std::clamp(idleState_, 0.0f, 1.0f) * 0.25f,
-              0.42f + high * 0.1f,
-              0.52f,
-              0.32f + bass * 0.25f,
-              legacyColorAdjust_.bloomOuter,
-              legacyColorAdjust_.circleOutline);
-
-    generateContour(5,
-                    1.12f + layerEnergy * 0.2f,
-                    0.46f + harmonic * 0.18f,
-                    scratch);
-    size_t shardCount = scratch.size();
-    if (shardCount >= 3) {
-        glBegin(GL_TRIANGLES);
-        for (size_t i = 0; i < shardCount; ++i) {
-            size_t j = (i + 1) % shardCount;
-            const auto& a = scratch[i];
-            const auto& b = scratch[j];
-            float midAngle = 0.5f * (a.angle + b.angle);
-            float gate = 0.5f + 0.5f * std::sin(midAngle * (8.0f + harmonic * 1.5f) + glitchPhase * 1.6f);
-            float burst = 0.5f + 0.5f * std::sin(midAngle * 14.0f + scanPhase);
-            if (gate < 0.72f && j != 0) {
-                continue;
-            }
-
-            float extrude = radius * (0.08f + 0.15f * gate + 0.12f * burst + 0.08f * high);
-            float cx = centerX + std::cos(midAngle) * (radius * 0.42f + extrude);
-            float cy = centerY + std::sin(midAngle) * (radius * 0.42f + extrude);
-            float alpha = std::clamp(0.18f + gate * 0.35f + burst * 0.25f, 0.16f, 0.88f);
-
-            setColorWithAdjust(0.65f + bass * 0.28f + prismShift * 0.2f,
-                               0.82f + mid * 0.35f + prismShift * 0.18f,
-                               1.25f + high * 0.5f + gate * 0.25f,
-                               alpha,
-                               legacyColorAdjust_.bloomOuter);
-            glVertex2f(cx, cy);
-            glVertex2f(a.x, a.y);
-            glVertex2f(b.x, b.y);
-        }
-        glEnd();
-    }
-
-    int runeBranches = 6;
-    glLineWidth(2.2f + prismShift * 1.4f + harmonic * 0.4f);
-    glBegin(GL_LINES);
-    for (int i = 0; i < runeBranches; ++i) {
-        float baseAngle = runeRotation + (static_cast<float>(i) / runeBranches) * 6.28318f;
-        float jitter = 0.12f * std::sin(glitchPhase + i * 1.37f + pulse * 0.5f);
-        float inner = radius * (0.16f + 0.08f * bass + 0.04f * prismShift);
-        float outer = radius * (0.62f + 0.28f * harmonic + 0.12f * energy);
-
-        setColorWithAdjust(0.78f + prismShift * 0.22f + bass * 0.1f,
-                           0.85f + prismShift * 0.18f + mid * 0.12f,
-                           1.3f + prismShift * 0.26f + high * 0.22f,
-                           0.32f + energy * 0.35f,
-                           legacyColorAdjust_.circleOutline);
-        glVertex2f(centerX + std::cos(baseAngle - jitter) * inner,
-                   centerY + std::sin(baseAngle - jitter) * inner);
-        glVertex2f(centerX + std::cos(baseAngle + jitter) * outer,
-                   centerY + std::sin(baseAngle + jitter) * outer);
-    }
-    glEnd();
-
-    glLineWidth(1.1f + high * 0.5f + pulse * 0.3f);
-    glBegin(GL_LINE_LOOP);
-    for (int i = 0; i < 8; ++i) {
-        float t = static_cast<float>(i) / 8.0f;
-        float angle = runeRotation * 1.5f + t * 6.28318f + 0.12f * std::sin(glitchPhase + i * 0.9f);
-        float radial = radius * (0.28f + 0.1f * ((i % 2 == 0) ? prismShift : harmonic * 0.35f));
-        setColorWithAdjust(0.6f + bass * 0.25f + prismShift * 0.15f,
-                           0.78f + mid * 0.3f + prismShift * 0.12f,
-                           1.15f + high * 0.42f + prismShift * 0.2f,
-                           0.26f + energy * 0.28f,
-                           legacyColorAdjust_.circleOutline);
-        glVertex2f(centerX + std::cos(angle) * radial,
-                   centerY + std::sin(angle) * radial);
-    }
-    glEnd();
-
-    glLineWidth(1.0f + high * 0.5f);
-    glBegin(GL_LINES);
-    for (int i = -2; i <= 2; ++i) {
-        float stripeT = static_cast<float>(i) / 2.0f;
-        float offset = std::sin(scanPhase + stripeT * 3.6f) * radius * 0.45f;
-        float y = centerY + offset;
-        float alpha = std::clamp(0.18f + energy * 0.2f + std::cos(scanPhase * 1.7f + i) * 0.12f, 0.08f, 0.45f);
-
-        setColorWithAdjust(0.45f + bass * 0.2f + prismShift * 0.15f,
-                           0.65f + mid * 0.3f + prismShift * 0.1f,
-                           0.95f + high * 0.4f + prismShift * 0.2f,
-                           alpha,
-                           legacyColorAdjust_.bloomInner);
-        glVertex2f(centerX - radius * (1.15f + stripeT * 0.2f), y);
-        glVertex2f(centerX + radius * (1.15f + stripeT * 0.2f), y);
-    }
-    glEnd();
-
-    int spokeCount = 10 + static_cast<int>(high * 7.0f) + static_cast<int>(pulse * 1.5f) + static_cast<int>(prismShift * 6.0f);
-    glLineWidth(1.5f + harmonic * 0.5f + energy * 0.4f + prismShift * 0.6f);
-    glBegin(GL_LINES);
-    for (int i = 0; i < spokeCount; ++i) {
-        float t = static_cast<float>(i) / spokeCount;
-        float angle = t * 6.28318f + animatedTime * (0.6f + 0.3f * energy);
-        float innerRadius = radius * (0.24f + 0.12f * std::sin(angle * 2.3f + pulse));
-        float outerRadius = radius * (0.92f + 0.55f * std::sin(angle * 3.6f + harmonic * 1.3f));
-
-        float innerX = centerX + std::cos(angle) * innerRadius;
-        float innerY = centerY + std::sin(angle) * innerRadius;
-        float outerX = centerX + std::cos(angle) * outerRadius;
-        float outerY = centerY + std::sin(angle) * outerRadius;
-
-        float spokeAlpha = std::clamp(0.22f + energy * 0.35f + high * 0.2f + prismShift * 0.25f, 0.18f, 0.95f);
-        setColorWithAdjust(0.55f + bass * 0.25f + prismShift * 0.15f,
-                           0.78f + mid * 0.3f + prismShift * 0.12f,
-                           1.15f + high * 0.45f + prismShift * 0.2f,
-                           spokeAlpha,
-                           legacyColorAdjust_.circleOutline);
-        glVertex2f(innerX, innerY);
-        glVertex2f(outerX, outerY);
-    }
-    glEnd();
-
-    generateContour(4,
-                    1.08f + layerEnergy * 0.16f,
-                    0.34f + harmonic * 0.14f,
-                    scratch);
-    glPointSize(3.0f + std::clamp(energy, 0.0f, 1.2f) * 6.0f + high * 3.0f + prismShift * 2.5f);
-    glBegin(GL_POINTS);
-    size_t step = std::max<size_t>(1, scratch.size() / (18 + static_cast<int>(high * 12.0f)));
-    for (size_t i = 0; i < scratch.size(); i += step) {
-        const auto& point = scratch[i];
-        float sparkle = 0.6f + 0.4f * std::sin(point.angle * 5.0f + animatedTime * 4.0f + kick);
-        setColorWithAdjust(0.65f + bass * 0.25f + sparkle * 0.2f + prismShift * 0.15f,
-                           0.82f + mid * 0.35f + sparkle * 0.2f + prismShift * 0.12f,
-                           1.25f + high * 0.5f + sparkle * 0.25f + prismShift * 0.22f,
-                           0.4f + 0.45f * sparkle,
-                           legacyColorAdjust_.bloomInner);
-        glVertex2f(point.x, point.y);
-    }
-    glEnd();
-}
-
-void Visualizer::seedLifeFromCore(float amount) {
-    (void)amount;
-}
-
-void Visualizer::updateLife(float dt, const AudioAnalyzer::AudioFeatures& features) {
-    (void)dt;
-    (void)features;
-}
-
-void Visualizer::renderLife(float animatedTime) const {
-    (void)animatedTime;
-}
-
-void Visualizer::renderIdleSpinner(float animatedTime) const {
-    float idleEnergy = std::clamp(audioFeatures_.energy, 0.0f, 1.0f);
-    if (idleEnergy > 0.08f) {
-        return;
-    }
-
-    float centerX = windowWidth_ * 0.5f;
-    float centerY = windowHeight_ * 0.5f;
-    float minDim = static_cast<float>(std::min(windowWidth_, windowHeight_));
-    float spinnerRadius = std::clamp(minDim * 0.08f, 18.0f, 64.0f);
-
-    float visibility = std::clamp(1.0f - idleEnergy * 6.0f, 0.0f, 1.0f);
-    float phase = animatedTime * (1.2f + 0.8f * visibility);
-    int segments = 12;
-
-    glPushMatrix();
-    glTranslatef(centerX, centerY, 0.0f);
-    glDisable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-    glLineWidth(2.0f);
-    glBegin(GL_LINES);
-    for (int i = 0; i < segments; ++i) {
-        float t = static_cast<float>(i) / segments;
-        float angle = phase + t * 6.28318f;
-        float intensity = std::pow(t, 1.8f) * visibility;
+    coreShader_->use();
+    coreShader_->setUniform2f("uResolution", static_cast<float>(windowWidth_), static_cast<float>(windowHeight_));
+    coreShader_->setUniform1f("uBaseRadius", core_.baseRadius);
+    coreShader_->setUniform1f("uPulse", core_.pulse);
+    coreShader_->setUniform1f("uKick", core_.kickEnvelope);
+    coreShader_->setUniform1f("uHarmonic", core_.harmonicEnvelope);
+    coreShader_->setUniform1f("uGrowth", core_.growthEnvelope);
+    coreShader_->setUniform1f("uMaturity", core_.maturity);
+    coreShader_->setUniform1f("uEnergy", core_.energy);
+    coreShader_->setUniform1f("uBass", audioFeatures_.bassEnergy);
+    coreShader_->setUniform1f("uMid", audioFeatures_.midEnergy);
+    coreShader_->setUniform1f("uHigh", audioFeatures_.highEnergy);
+    coreShader_->setUniform1f("uTime", time_);
+    coreShader_->setUniform1f("uTempo", tempoMultiplier_);
+    coreShader_->setUniform1f("uOnset", audioFeatures_.onset);
+    coreShader_->setUniform1f("uBeat", audioFeatures_.beat);
+    coreShader_->setUniform1f("uIdlePulse", core_.idlePulse);
+    coreShader_->setUniform1f("uIdleWarp", core_.idleWarp);
+    coreShader_->setUniform1f("uIdleSpin", core_.idleSpin);
+    coreShader_->setUniform3f("uScenePrimary",
+                              scenePrimaryColor_[0],
+                              scenePrimaryColor_[1],
+                              scenePrimaryColor_[2]);
+    coreShader_->setUniform3f("uSceneSecondary",
+                              sceneSecondaryColor_[0],
+                              sceneSecondaryColor_[1],
+                              sceneSecondaryColor_[2]);
+    coreShader_->setUniform1f("uSceneBlend", scenePaletteBlend_);
+    coreShader_->setUniform1f("uShowBase", coreShowBase_);
+    coreShader_->setUniform1f("uShowCorona", coreShowCorona_);
+    coreShader_->setUniform1f("uShowSpokes", coreShowSpokes_);
+    coreShader_->setUniform1f("uShowRunes", coreShowRunes_);
+    coreShader_->setUniform1f("uShowSparkles", coreShowSparkles_);
+    coreShader_->setUniform1f("uShowBloom", coreShowBloom_);
 
-        float innerRadius = spinnerRadius * (0.45f + 0.25f * intensity);
-        float outerRadius = spinnerRadius * (0.8f + 0.35f * intensity);
+    glBindVertexArray(coreVAO_);
+    glDrawArrays(GL_TRIANGLES, 0, coreVertexCount_);
+    glBindVertexArray(0);
 
-        float cosA = std::cos(angle);
-        float sinA = std::sin(angle);
+    glUseProgram(0);
 
-        float r = 0.2f + 0.6f * intensity;
-        float g = 0.4f + 0.4f * intensity;
-        float b = 0.9f;
-        float a = 0.18f + 0.55f * intensity;
-        glColor4f(r, g, b, a);
-
-        glVertex2f(cosA * innerRadius, sinA * innerRadius);
-        glVertex2f(cosA * outerRadius, sinA * outerRadius);
+    if (!blendWasEnabled) {
+        glDisable(GL_BLEND);
     }
-    glEnd();
-
-    glDisable(GL_BLEND);
-    glPopMatrix();
-}
-
-const char* fragmentShaderSource = R"(
-#version 330 core
-out vec4 FragColor;
-
-in vec2 TexCoord;
-
-uniform float uTime;
-uniform float uBass;
-uniform float uMid;
-uniform float uHigh;
-uniform float uEnergy;
-uniform float uOnset;
-uniform float uBeat;
-uniform vec2 uResolution;
-
-// Raymarching SDF functions
-float sdSphere(vec3 p, float r) {
-    return length(p) - r;
-}
-
-float sdBox(vec3 p, vec3 b) {
-    vec3 q = abs(p) - b;
-    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
-}
-
-float sdTorus(vec3 p, vec2 t) {
-    vec2 q = vec2(length(p.xz) - t.x, p.y);
-    return length(q) - t.y;
-}
-
-float sceneSDF(vec3 p) {
-    float bassPulse = 1.0 + uBass * 3.0;
-    float midWobble = sin(uTime * 2.0 + uMid * 10.0) * 0.2;
-    float highNoise = uHigh * 0.1;
-    
-    // Reactive geometry
-    vec3 p1 = p;
-    p1.y += sin(uTime + p1.x * 2.0) * uMid * 0.5;
-    
-    float sphere = sdSphere(p1, 0.5 + bassPulse * 0.3);
-    float box = sdBox(p + vec3(0.0, sin(uTime) * uMid, 0.0), vec3(0.3 + uBass));
-    float torus = sdTorus(p.xzy, vec2(0.8 + uBass * 0.5, 0.1 + uHigh * 0.2));
-    
-    // Combine shapes
-    float result = min(sphere, box);
-    result = min(result, torus);
-    
-    // Add some fractal-like detail when there's high energy
-    if (uEnergy > 0.3) {
-        float detail = sdSphere(p * 3.0 + vec3(sin(uTime * 5.0), cos(uTime * 3.0), sin(uTime * 7.0)), 0.1);
-        result = mix(result, detail, uHigh * 0.3);
+    if (depthWasEnabled) {
+        glEnable(GL_DEPTH_TEST);
     }
-    
-    return result;
 }
-
-vec3 getNormal(vec3 p) {
-    vec2 e = vec2(0.001, 0.0);
-    return normalize(vec3(
-        sceneSDF(p + e.xyy) - sceneSDF(p - e.xyy),
-        sceneSDF(p + e.yxy) - sceneSDF(p - e.yxy),
-        sceneSDF(p + e.yyx) - sceneSDF(p - e.yyx)
-    ));
-}
-
-vec3 raymarch(vec3 ro, vec3 rd) {
-    float t = 0.0;
-    int maxSteps = 100;
-    float maxDist = 10.0;
-    
-    for (int i = 0; i < maxSteps; i++) {
-        vec3 p = ro + rd * t;
-        float d = sceneSDF(p);
-        
-        if (d < 0.001) {
-            // Hit!
-            vec3 normal = getNormal(p);
-            
-            // Psychedelic lighting based on audio
-            vec3 lightDir = normalize(vec3(
-                sin(uTime * 0.5) * uMid,
-                cos(uTime * 0.3) * uBass,
-                sin(uTime * 0.7) * uHigh
-            ));
-            
-            float diff = max(dot(normal, lightDir), 0.0);
-            
-            // Color based on frequency bands
-            vec3 baseColor = vec3(uBass, uMid, uHigh);
-            vec3 color = baseColor * diff;
-
-            float distToCenter = length(p);
-            float coreEnvelope = exp(-distToCenter * (2.2 - uBass * 0.6)) * (0.6 + uEnergy * 0.8);
-            float massGlow = smoothstep(0.0, 0.8 + uEnergy * 0.4, coreEnvelope);
-            vec3 coreColor = mix(baseColor, vec3(1.0), 0.25 + uHigh * 0.35);
-            color = mix(color, coreColor * (0.8 + uBass * 0.9), massGlow);
-            color += coreColor * coreEnvelope * 0.35;
-
-            // Add glow on beats
-            if (uBeat > 0.5) {
-                color *= 2.0;
-            }
-            
-            // Add onset flash
-            if (uOnset > 0.5) {
-                color = mix(color, vec3(1.0), 0.5);
-            }
-            
-            return color;
-        }
-        
-        t += d;
-        if (t > maxDist) break;
-    }
-    
-    // Background - dark with subtle audio-reactive gradient
-    return vec3(0.02 + uEnergy * 0.05, 0.01 + uMid * 0.03, 0.03 + uHigh * 0.04);
-}
-
-void main() {
-    vec2 uv = (TexCoord - 0.5) * 2.0;
-    uv.x *= uResolution.x / uResolution.y;
-    
-    vec3 ro = vec3(0.0, 0.0, 3.0);
-    vec3 rd = normalize(vec3(uv, -1.0));
-    
-    // Camera movement based on audio
-    ro.x += sin(uTime * 0.5) * uMid * 0.5;
-    ro.y += cos(uTime * 0.3) * uBass * 0.3;
-    
-    vec3 color = raymarch(ro, rd);
-
-    // Reactive square overlay
-    vec2 squareUV = uv;
-    float squareSize = 0.55 + uBass * 0.25 + uEnergy * 0.2;
-    float squareRotation = uTime * 0.35 + uBeat * 2.4;
-    mat2 rot = mat2(cos(squareRotation), -sin(squareRotation), sin(squareRotation), cos(squareRotation));
-    vec2 rotated = rot * squareUV;
-    vec2 absRot = abs(rotated);
-    float edge = max(absRot.x, absRot.y);
-
-    float fillMask = smoothstep(squareSize, squareSize - 0.02, edge);
-    float borderMask = smoothstep(squareSize - 0.025, squareSize - 0.055, edge)
-                     - smoothstep(squareSize - 0.055, squareSize - 0.085, edge);
-    float glowMask = smoothstep(squareSize + 0.18, squareSize - 0.025, edge);
-
-    vec3 fillColor = mix(vec3(0.18, 0.12, 0.45), vec3(0.92, 0.65, 0.38), clamp(uHigh * 0.8 + uEnergy * 0.4, 0.0, 1.0));
-    vec3 borderColor = mix(vec3(0.95, 0.85, 0.35), vec3(0.25, 0.58, 1.0), clamp(uMid + uHigh * 0.6, 0.0, 1.0));
-    vec3 glowColor = mix(vec3(0.08, 0.04, 0.18), vec3(0.65, 0.22, 0.72), clamp(uEnergy * 0.6 + uOnset * 0.6, 0.0, 1.0));
-
-    color = mix(color, fillColor, fillMask * 0.6);
-    color += borderColor * borderMask * (0.6 + uBeat * 0.8 + uOnset * 0.4);
-    color += glowColor * glowMask * (0.45 + uEnergy * 0.6 + uHigh * 0.5);
-
-    // Post-processing
-    color = pow(color, vec3(0.8)); // Gamma correction
-    color = smoothstep(0.0, 1.0, color); // Contrast
-
-    // Add scanlines for retro rave feel
-    float scanline = sin(TexCoord.y * uResolution.y * 2.0) * 0.02;
-    color -= scanline;
-    
-    FragColor = vec4(color, 1.0);
-}
-)";
 
 Visualizer::Visualizer() 
     : window_(nullptr), windowWidth_(800), windowHeight_(600), time_(0.0f),
@@ -1367,20 +690,20 @@ Visualizer::Visualizer()
       showImGuiWindow_(true), showDeviceSelector_(false), showDiagnosticInfo_(false), showConsoleMode_(false),
       showImGuiVisualWindow_(true),
       imguiInitialized_(false), autoRandomizeColors_(true), colorRandomInterval_(12.0f),
-      colorRandomTimer_(0.0f), deltaTime_(0.0f), rng_(std::random_device{}()), currentPresetIndex_(0),
+      colorRandomTimer_(0.0f), deltaTime_(0.0f), rng_(std::random_device{}()),
       onsetColorCyclingEnabled_(true), onsetTriggerCount_(0), lastOnsetActive_(false),
       tempoMultiplier_(1.0f),
-      mixColorSchemes_(true),
       scenePalettes_(),
-      currentScenePaletteIndex_(0),
+      currentScenePaletteIndex_(-1),
+      scenePaletteHueSeed_(0.0f),
       scenePrimaryColor_{0.25f, 0.32f, 0.58f},
       sceneSecondaryColor_{0.35f, 0.65f, 0.92f},
       scenePaletteBlend_(0.6f),
       rgbChannelEnabled_{true, true, true},
       globalIntensityEnvelope_(0.0f),
       overlayLegacyOnModern_(false),
-      coreShowBase_(false),
-      coreShowCorona_(false),
+      coreShowBase_(true),
+      coreShowCorona_(true),
       coreShowSpokes_(true),
       coreShowRunes_(true),
       coreShowSparkles_(true),
@@ -1397,20 +720,23 @@ Visualizer::Visualizer()
       legacyMotionBlend_(0.0f), legacyMotionPhase_(0.0f), legacySensitivity_(1.0f),
       showLegacyCore_(true), showLegacyArcs_(true),
       showLegacyWaveforms_(false),
-      useModernPipeline_(false) {
+      useModernPipeline_(false),
+      currentPresetIndex_(-1),
+      mixColorSchemes_(false) {
     waveformBuffer_.resize(512); // Same as audio buffer size
-    buildColorPresets();
-    if (!colorPresets_.empty()) {
-        applyLegacyPreset(0);
-    } else {
-        legacyColorAdjust_ = LegacyColorAdjust{};
-    }
+    colorRandomTimer_ = 0.0f;
     buildScenePalettes();
-    applyScenePalette(0);
+
+    std::uniform_real_distribution<float> hueDist(0.0f, 1.0f);
+    scenePaletteHueSeed_ = hueDist(rng_);
+    setDefaultScenePalette();
     setupDeviceList();
     core_ = {};
     idleState_ = 0.0f;
     idlePhase_ = 0.0f;
+    
+    // Copy scene palettes to color presets for legacy compatibility
+    colorPresets_ = scenePalettes_;
 }
 
 Visualizer::~Visualizer() {
@@ -1487,151 +813,81 @@ bool Visualizer::initialize(int width, int height) {
     return true;
 }
 
-void Visualizer::setColorWithAdjust(float r, float g, float b, float a, const ColorAdjust& adjust) const {
-    auto clampComponent = [](float value) {
-        if (value < 0.0f) return 0.0f;
-        if (value > 1.0f) return 1.0f;
-        return value;
+void Visualizer::setLegacyColor(float r, float g, float b, float a, LegacyTone tone) const {
+    struct ToneProfile {
+        float bias;
+        float accent;
+        float brightness;
+        float alphaBoost;
     };
 
-    glColor4f(
-        clampComponent(r * adjust.r),
-        clampComponent(g * adjust.g),
-        clampComponent(b * adjust.b),
-        clampComponent(a * adjust.a)
-    );
-}
-
-void Visualizer::buildColorPresets() {
-    colorPresets_.clear();
-
-    auto makeAdjust = [](float r, float g, float b, float a) {
-        ColorAdjust adjust;
-        adjust.r = r;
-        adjust.g = g;
-        adjust.b = b;
-        adjust.a = a;
-        return adjust;
+    auto clamp01 = [](float value) {
+        return std::clamp(value, 0.0f, 1.0f);
     };
 
-    {
-        LegacyColorAdjust preset;
-        preset.circleFill = makeAdjust(1.55f, 0.45f, 1.65f, 1.0f);
-        preset.circleOutline = makeAdjust(1.70f, 0.50f, 1.85f, 1.0f);
-        preset.bloomInner = makeAdjust(1.25f, 0.55f, 1.70f, 0.92f);
-        preset.bloomOuter = makeAdjust(0.55f, 0.60f, 1.50f, 0.50f);
-        preset.bassBars = makeAdjust(1.45f, 0.50f, 1.65f, 1.0f);
-        preset.midBars = makeAdjust(1.35f, 0.60f, 1.70f, 1.0f);
-        preset.highBars = makeAdjust(1.20f, 0.70f, 1.80f, 1.0f);
-        preset.beatExplosion = makeAdjust(1.60f, 0.50f, 1.80f, 1.0f);
-        preset.waveform = makeAdjust(1.20f, 0.60f, 1.60f, 1.0f);
-        colorPresets_.push_back({"Neon Mirage", preset});
+    ToneProfile profile{};
+    switch (tone) {
+        case LegacyTone::BloomInner:
+            profile = {-0.18f, -0.05f, 0.18f, 0.10f};
+            break;
+        case LegacyTone::BloomOuter:
+            profile = {0.05f, 0.10f, 0.12f, 0.05f};
+            break;
+        case LegacyTone::CircleFill:
+            profile = {-0.08f, 0.04f, 0.10f, 0.0f};
+            break;
+        case LegacyTone::CircleOutline:
+            profile = {0.14f, 0.16f, 0.05f, 0.08f};
+            break;
+        case LegacyTone::BassBars:
+            profile = {-0.12f, 0.02f, 0.08f, 0.0f};
+            break;
+        case LegacyTone::MidBars:
+            profile = {0.02f, 0.08f, 0.08f, 0.0f};
+            break;
+        case LegacyTone::HighBars:
+            profile = {0.16f, 0.18f, 0.10f, 0.02f};
+            break;
+        case LegacyTone::BeatExplosion:
+            profile = {0.22f, 0.28f, 0.18f, 0.12f};
+            break;
+        case LegacyTone::Waveform:
+        default:
+            profile = {-0.10f, 0.12f, 0.06f, 0.0f};
+            break;
     }
 
-    {
-        LegacyColorAdjust preset;
-        preset.circleFill = makeAdjust(0.55f, 1.25f, 1.85f, 1.0f);
-        preset.circleOutline = makeAdjust(0.60f, 1.30f, 1.90f, 1.0f);
-        preset.bloomInner = makeAdjust(0.40f, 1.20f, 1.70f, 0.90f);
-        preset.bloomOuter = makeAdjust(0.30f, 0.90f, 1.40f, 0.48f);
-        preset.bassBars = makeAdjust(0.50f, 1.40f, 1.80f, 1.0f);
-        preset.midBars = makeAdjust(0.45f, 1.50f, 1.90f, 1.0f);
-        preset.highBars = makeAdjust(0.40f, 1.60f, 1.95f, 1.0f);
-        preset.beatExplosion = makeAdjust(1.30f, 0.60f, 1.70f, 1.0f);
-        preset.waveform = makeAdjust(0.45f, 1.35f, 1.85f, 1.0f);
-        colorPresets_.push_back({"Synthwave Cyan", preset});
-    }
-
-    {
-        LegacyColorAdjust preset;
-        preset.circleFill = makeAdjust(1.60f, 0.55f, 0.95f, 1.0f);
-        preset.circleOutline = makeAdjust(1.70f, 0.60f, 0.80f, 1.0f);
-        preset.bloomInner = makeAdjust(1.50f, 0.70f, 0.60f, 0.88f);
-        preset.bloomOuter = makeAdjust(1.20f, 0.55f, 0.40f, 0.48f);
-        preset.bassBars = makeAdjust(1.50f, 0.65f, 0.60f, 1.0f);
-        preset.midBars = makeAdjust(1.45f, 0.80f, 0.55f, 1.0f);
-        preset.highBars = makeAdjust(1.60f, 0.70f, 0.50f, 1.0f);
-        preset.beatExplosion = makeAdjust(1.80f, 0.90f, 0.45f, 1.0f);
-        preset.waveform = makeAdjust(1.35f, 0.70f, 0.55f, 1.0f);
-        colorPresets_.push_back({"Magenta Ember", preset});
-    }
-
-    {
-        LegacyColorAdjust preset;
-        preset.circleFill = makeAdjust(0.65f, 0.90f, 1.50f, 1.0f);
-        preset.circleOutline = makeAdjust(0.60f, 1.00f, 1.60f, 1.0f);
-        preset.bloomInner = makeAdjust(0.50f, 0.80f, 1.40f, 0.88f);
-        preset.bloomOuter = makeAdjust(0.35f, 0.60f, 1.20f, 0.48f);
-        preset.bassBars = makeAdjust(0.60f, 1.20f, 1.60f, 1.0f);
-        preset.midBars = makeAdjust(0.55f, 1.30f, 1.70f, 1.0f);
-        preset.highBars = makeAdjust(0.50f, 1.40f, 1.85f, 1.0f);
-        preset.beatExplosion = makeAdjust(1.40f, 0.60f, 1.70f, 1.0f);
-        preset.waveform = makeAdjust(0.55f, 1.20f, 1.70f, 1.0f);
-        colorPresets_.push_back({"Night Circuit", preset});
-    }
-}
-
-void Visualizer::resetLegacyColorAdjustments() {
-    if (currentPresetIndex_ >= 0 && currentPresetIndex_ < static_cast<int>(colorPresets_.size())) {
-        legacyColorAdjust_ = colorPresets_[currentPresetIndex_].adjust;
-    } else {
-        legacyColorAdjust_ = LegacyColorAdjust{};
-    }
-    colorRandomTimer_ = 0.0f;
-}
-
-void Visualizer::applyLegacyPreset(int index) {
-    if (index < 0 || index >= static_cast<int>(colorPresets_.size())) {
-        return;
-    }
-
-    legacyColorAdjust_ = colorPresets_[index].adjust;
-    currentPresetIndex_ = index;
-    colorRandomTimer_ = 0.0f;
-}
-
-void Visualizer::randomizeLegacyColors() {
-    if (colorPresets_.empty()) {
-        return;
-    }
-
-    std::uniform_int_distribution<int> dist(0, static_cast<int>(colorPresets_.size()) - 1);
-
-    if (!mixColorSchemes_ || colorPresets_.size() == 1) {
-        int nextIndex = dist(rng_);
-        if (colorPresets_.size() > 1) {
-            int guard = 0;
-            while (nextIndex == currentPresetIndex_ && guard < 8) {
-                nextIndex = dist(rng_);
-                ++guard;
-            }
-        }
-        applyLegacyPreset(nextIndex);
-        return;
-    }
-
-    // Mix different presets across visual layers
-    LegacyColorAdjust mixed = legacyColorAdjust_;
-
-    auto pickAdjust = [&](ColorAdjust LegacyColorAdjust::*member) {
-        int idx = dist(rng_);
-        const auto& preset = colorPresets_[idx].adjust;
-        ColorAdjust value = preset.*member;
-        mixed.*member = value;
+    auto mixChannel = [&](float t, int channel) {
+        float blend = std::clamp(t, 0.0f, 1.0f);
+        return scenePrimaryColor_[channel] * (1.0f - blend) + sceneSecondaryColor_[channel] * blend;
     };
 
-    pickAdjust(&LegacyColorAdjust::circleFill);
-    pickAdjust(&LegacyColorAdjust::circleOutline);
-    pickAdjust(&LegacyColorAdjust::bloomInner);
-    pickAdjust(&LegacyColorAdjust::bloomOuter);
-    pickAdjust(&LegacyColorAdjust::bassBars);
-    pickAdjust(&LegacyColorAdjust::midBars);
-    pickAdjust(&LegacyColorAdjust::highBars);
-    pickAdjust(&LegacyColorAdjust::beatExplosion);
-    pickAdjust(&LegacyColorAdjust::waveform);
+    float baseBlend = std::clamp(scenePaletteBlend_ + profile.bias, 0.0f, 1.0f);
+    float accentBlend = std::clamp(scenePaletteBlend_ + profile.accent, 0.0f, 1.0f);
 
-    legacyColorAdjust_ = mixed;
-    colorRandomTimer_ = 0.0f;
+    std::array<float, 3> palette{};
+    std::array<float, 3> accent{};
+    for (int i = 0; i < 3; ++i) {
+        palette[i] = mixChannel(baseBlend, i);
+        accent[i] = mixChannel(accentBlend, i);
+    }
+
+    std::array<float, 3> baseColor{
+        clamp01(r),
+        clamp01(g),
+        clamp01(b)
+    };
+
+    std::array<float, 3> result{};
+    for (int i = 0; i < 3; ++i) {
+        float combined = baseColor[i] * (0.42f + profile.brightness)
+                       + palette[i] * (0.52f + profile.brightness * 0.6f)
+                       + accent[i] * 0.18f;
+        result[i] = std::clamp(combined, 0.0f, 1.0f);
+    }
+
+    float alphaOut = std::clamp(clamp01(a) * (0.85f + profile.alphaBoost), 0.0f, 1.0f);
+    glColor4f(result[0], result[1], result[2], alphaOut);
 }
 
 void Visualizer::buildScenePalettes() {
@@ -1659,20 +915,24 @@ void Visualizer::buildScenePalettes() {
     });
 
     if (scenePalettes_.empty()) {
-        currentScenePaletteIndex_ = 0;
+        currentScenePaletteIndex_ = -1;
+        setDefaultScenePalette();
         return;
     }
 
-    currentScenePaletteIndex_ = std::clamp(
-        currentScenePaletteIndex_,
-        0,
-        static_cast<int>(scenePalettes_.size()) - 1
-    );
+    if (currentScenePaletteIndex_ >= static_cast<int>(scenePalettes_.size())) {
+        currentScenePaletteIndex_ = static_cast<int>(scenePalettes_.size()) - 1;
+    }
+
+    if (currentScenePaletteIndex_ < 0) {
+        setDefaultScenePalette();
+    }
 }
 
 void Visualizer::applyScenePalette(int index) {
-    if (scenePalettes_.empty()) {
-        currentScenePaletteIndex_ = 0;
+    if (index < 0 || scenePalettes_.empty()) {
+        currentScenePaletteIndex_ = -1;
+        setDefaultScenePalette();
         return;
     }
 
@@ -1685,6 +945,74 @@ void Visualizer::applyScenePalette(int index) {
     scenePaletteBlend_ = std::clamp(palette.blend, 0.0f, 1.0f);
 
     proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+}
+
+void Visualizer::setDefaultScenePalette() {
+    float baseHue = std::fmod(scenePaletteHueSeed_, 1.0f);
+    float accentHue = std::fmod(baseHue + 0.27f, 1.0f);
+
+    auto primaryRgb = hsvToRgb(baseHue, 0.78f, 0.95f);
+    auto secondaryRgb = hsvToRgb(accentHue, 0.65f, 0.88f);
+
+    scenePrimaryColor_ = primaryRgb;
+    sceneSecondaryColor_ = secondaryRgb;
+    currentScenePaletteIndex_ = -1;
+
+    proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+}
+
+void Visualizer::randomizeScenePalette() {
+    if (scenePalettes_.empty() || currentScenePaletteIndex_ < 0) {
+        std::uniform_real_distribution<float> hueDist(0.0f, 1.0f);
+        scenePaletteHueSeed_ = hueDist(rng_);
+        setDefaultScenePalette();
+        return;
+    }
+
+    std::uniform_int_distribution<int> dist(0, static_cast<int>(scenePalettes_.size()) - 1);
+    int nextIndex = dist(rng_);
+    if (scenePalettes_.size() > 1) {
+        int guard = 0;
+        while (nextIndex == currentScenePaletteIndex_ && guard < 6) {
+            nextIndex = dist(rng_);
+            ++guard;
+        }
+    }
+    applyScenePalette(nextIndex);
+}
+
+void Visualizer::cycleScenePaletteSequential() {
+    if (scenePalettes_.empty()) {
+        randomizeScenePalette();
+        return;
+    }
+
+    if (currentScenePaletteIndex_ < 0) {
+        applyScenePalette(0);
+        return;
+    }
+
+    int lastIndex = static_cast<int>(scenePalettes_.size()) - 1;
+    if (currentScenePaletteIndex_ >= lastIndex) {
+        randomizeScenePalette();
+        return;
+    }
+
+    applyScenePalette(currentScenePaletteIndex_ + 1);
+}
+
+void Visualizer::updateDynamicScenePalette() {
+    if (currentScenePaletteIndex_ >= 0) {
+        return;
+    }
+
+    float hueDrift = deltaTime_ * std::clamp(0.08f + audioFeatures_.energy * 0.12f, 0.05f, 0.4f);
+    if (hueDrift <= 0.0f) {
+        return;
+    }
+
+    scenePaletteHueSeed_ = std::fmod(scenePaletteHueSeed_ + hueDrift, 1.0f);
+    setDefaultScenePalette();
 }
 
 void Visualizer::shutdown() {
@@ -1856,6 +1184,8 @@ void Visualizer::endFrame() {
         colorRandomTimer_ += deltaTime;
         if (colorRandomTimer_ >= colorRandomInterval_) {
             randomizeLegacyColors();
+            randomizeScenePalette();
+            colorRandomTimer_ = 0.0f;
         }
     }
 
@@ -1871,6 +1201,7 @@ void Visualizer::endFrame() {
                 } else {
                     randomizeLegacyColors();
                 }
+                cycleScenePaletteSequential();
             }
         }
         lastOnsetActive_ = onsetActive;
@@ -1939,6 +1270,10 @@ void Visualizer::render() {
                 rgbChannelEnabled_[1] ? GL_TRUE : GL_FALSE,
                 rgbChannelEnabled_[2] ? GL_TRUE : GL_FALSE,
                 GL_TRUE);
+
+    if (currentScenePaletteIndex_ < 0) {
+        updateDynamicScenePalette();
+    }
 
     if (showProceduralLayer_) {
         renderProceduralLayer();
@@ -2419,8 +1754,8 @@ void Visualizer::renderModernCore() {
     coreShader_->setUniform1f("uIdlePulse", core_.idlePulse);
     coreShader_->setUniform1f("uIdleWarp", core_.idleWarp);
     coreShader_->setUniform1f("uIdleSpin", core_.idleSpin);
-    coreShader_->setUniform1f("uShowBase", coreShowBase_ ? 1.0f : 0.0f);
-    coreShader_->setUniform1f("uShowCorona", coreShowCorona_ ? 1.0f : 0.0f);
+    coreShader_->setUniform1f("uShowBase", 1.0f);
+    coreShader_->setUniform1f("uShowCorona", 1.0f);
     coreShader_->setUniform1f("uShowSpokes", 0.0f);
     coreShader_->setUniform1f("uShowRunes", 0.0f);
     coreShader_->setUniform1f("uShowSparkles", 0.0f);
@@ -2435,25 +1770,25 @@ void Visualizer::renderModernCore() {
                               sceneSecondaryColor_[2]);
     coreShader_->setUniform1f("uSceneBlend", std::clamp(scenePaletteBlend_, 0.0f, 1.0f));
     coreShader_->setUniform4f("uLegacyCircleFill",
-                              legacyColorAdjust_.circleFill.r,
-                              legacyColorAdjust_.circleFill.g,
-                              legacyColorAdjust_.circleFill.b,
-                              legacyColorAdjust_.circleFill.a);
+                              legacyColorAdjust_.circleFill[0],
+                              legacyColorAdjust_.circleFill[1],
+                              legacyColorAdjust_.circleFill[2],
+                              legacyColorAdjust_.circleFill[3]);
     coreShader_->setUniform4f("uLegacyCircleOutline",
-                              legacyColorAdjust_.circleOutline.r,
-                              legacyColorAdjust_.circleOutline.g,
-                              legacyColorAdjust_.circleOutline.b,
-                              legacyColorAdjust_.circleOutline.a);
+                              legacyColorAdjust_.circleOutline[0],
+                              legacyColorAdjust_.circleOutline[1],
+                              legacyColorAdjust_.circleOutline[2],
+                              legacyColorAdjust_.circleOutline[3]);
     coreShader_->setUniform4f("uLegacyBloomInner",
-                              legacyColorAdjust_.bloomInner.r,
-                              legacyColorAdjust_.bloomInner.g,
-                              legacyColorAdjust_.bloomInner.b,
-                              legacyColorAdjust_.bloomInner.a);
+                              legacyColorAdjust_.bloomInner[0],
+                              legacyColorAdjust_.bloomInner[1],
+                              legacyColorAdjust_.bloomInner[2],
+                              legacyColorAdjust_.bloomInner[3]);
     coreShader_->setUniform4f("uLegacyBloomOuter",
-                              legacyColorAdjust_.bloomOuter.r,
-                              legacyColorAdjust_.bloomOuter.g,
-                              legacyColorAdjust_.bloomOuter.b,
-                              legacyColorAdjust_.bloomOuter.a);
+                              legacyColorAdjust_.bloomOuter[0],
+                              legacyColorAdjust_.bloomOuter[1],
+                              legacyColorAdjust_.bloomOuter[2],
+                              legacyColorAdjust_.bloomOuter[3]);
 
     glBindVertexArray(coreVAO_);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, coreVertexCount_);
@@ -2667,4 +2002,295 @@ void Visualizer::renderText(const std::string& text, float x, float y) {
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
+}
+
+void Visualizer::randomizeLegacyColors() {
+    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+    legacyColorAdjust_.circleFill = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
+    legacyColorAdjust_.circleOutline = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
+    legacyColorAdjust_.bassBars = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
+    legacyColorAdjust_.midBars = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
+    legacyColorAdjust_.highBars = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
+    legacyColorAdjust_.beatExplosion = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
+    legacyColorAdjust_.waveform = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
+    legacyColorAdjust_.bloomInner = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
+    legacyColorAdjust_.bloomOuter = {dist(rng_), dist(rng_), dist(rng_), 1.0f};
+}
+
+void Visualizer::applyLegacyPreset(int index) {
+    if (index < 0 || index >= static_cast<int>(colorPresets_.size())) {
+        return;
+    }
+    
+    const auto& preset = colorPresets_[index];
+    legacyColorAdjust_.circleFill = {preset.primary[0], preset.primary[1], preset.primary[2], 1.0f};
+    legacyColorAdjust_.circleOutline = {preset.secondary[0], preset.secondary[1], preset.secondary[2], 1.0f};
+    legacyColorAdjust_.bassBars = {preset.primary[0], preset.primary[1], preset.primary[2], 1.0f};
+    legacyColorAdjust_.midBars = {preset.secondary[0], preset.secondary[1], preset.secondary[2], 1.0f};
+    legacyColorAdjust_.highBars = {preset.primary[0], preset.primary[1], preset.primary[2], 1.0f};
+    legacyColorAdjust_.beatExplosion = {preset.secondary[0], preset.secondary[1], preset.secondary[2], 1.0f};
+    legacyColorAdjust_.waveform = {preset.primary[0], preset.primary[1], preset.primary[2], 1.0f};
+    legacyColorAdjust_.bloomInner = {preset.primary[0], preset.primary[1], preset.primary[2], 0.8f};
+    legacyColorAdjust_.bloomOuter = {preset.secondary[0], preset.secondary[1], preset.secondary[2], 0.6f};
+    
+    currentPresetIndex_ = index;
+}
+
+void Visualizer::resetLegacyColorAdjustments() {
+    legacyColorAdjust_.circleFill = {1.0f, 1.0f, 1.0f, 1.0f};
+    legacyColorAdjust_.circleOutline = {1.0f, 1.0f, 1.0f, 1.0f};
+    legacyColorAdjust_.bassBars = {1.0f, 1.0f, 1.0f, 1.0f};
+    legacyColorAdjust_.midBars = {1.0f, 1.0f, 1.0f, 1.0f};
+    legacyColorAdjust_.highBars = {1.0f, 1.0f, 1.0f, 1.0f};
+    legacyColorAdjust_.beatExplosion = {1.0f, 1.0f, 1.0f, 1.0f};
+    legacyColorAdjust_.waveform = {1.0f, 1.0f, 1.0f, 1.0f};
+    legacyColorAdjust_.bloomInner = {1.0f, 1.0f, 1.0f, 1.0f};
+    legacyColorAdjust_.bloomOuter = {1.0f, 1.0f, 1.0f, 1.0f};
+}
+
+void Visualizer::setColorWithAdjust(float r, float g, float b, float a, const std::array<float, 4>& adjust) {
+    glColor4f(r * adjust[0], g * adjust[1], b * adjust[2], a * adjust[3]);
+}
+
+void Visualizer::setupCoreMesh() {
+    // Placeholder implementation
+    if (coreVAO_ == 0) {
+        glGenVertexArrays(1, &coreVAO_);
+        glGenBuffers(1, &coreVBO_);
+    }
+    
+    // Simple quad for now
+    float vertices[] = {
+        -1.0f, -1.0f, 0.0f,
+         1.0f, -1.0f, 0.0f,
+        -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f, 0.0f
+    };
+    
+    glBindVertexArray(coreVAO_);
+    glBindBuffer(GL_ARRAY_BUFFER, coreVBO_);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glBindVertexArray(0);
+    
+    coreVertexCount_ = 4;
+}
+
+void Visualizer::initializeDynamicSystems() {
+    // Initialize gears
+    gears_.clear();
+    for (int i = 0; i < 8; ++i) {
+        GearNode gear;
+        gear.x = 0.0f;
+        gear.y = 0.0f;
+        gear.radius = 0.1f + i * 0.05f;
+        gear.baseRadius = gear.radius;
+        gear.angle = 0.0f;
+        gear.angularVelocity = 1.0f + i * 0.2f;
+        gear.orbitAngle = i * 3.14159f / 4.0f;
+        gear.orbitSpeed = 0.5f + i * 0.1f;
+        gear.teeth = 8 + i * 2;
+        gear.jitterPhase = 0.0f;
+        gear.orbitDirection = (i % 2 == 0) ? 1.0f : -1.0f;
+        gear.anchorAngle = 0.0f;
+        gear.anchorRadius = 0.0f;
+        gear.ringIndex = i % 3;
+        gear.baseOffsetRadius = 0.0f;
+        gear.baseOffsetAngle = 0.0f;
+        gear.baseCenterX = 0.0f;
+        gear.baseCenterY = 0.0f;
+        gears_.push_back(gear);
+    }
+    
+    // Initialize life grid
+    lifeGrid_.cells.fill(0);
+    lifeGrid_.next.fill(0);
+    
+    // Seed some initial life
+    for (int i = 0; i < 100; ++i) {
+        int x = std::uniform_int_distribution<int>(0, LifeCellGrid::WIDTH - 1)(rng_);
+        int y = std::uniform_int_distribution<int>(0, LifeCellGrid::HEIGHT - 1)(rng_);
+        lifeGrid_.cells[y * LifeCellGrid::WIDTH + x] = 1;
+    }
+    
+    lifeTimeAccumulator_ = 0.0f;
+    lastLifeSeedTime_ = 0.0f;
+    gearSpawnRadius_ = 0.0f;
+    idleState_ = 0.0f;
+    idlePhase_ = 0.0f;
+}
+
+void Visualizer::renderProceduralLayer() {
+    LayerContext context{};
+    context.screenWidth = windowWidth_;
+    context.screenHeight = windowHeight_;
+    context.time = time_;
+    context.tempo = tempoMultiplier_;
+    context.audio = &audioFeatures_;
+    context.intensity = std::clamp(globalIntensityEnvelope_, 0.0f, 1.5f);
+
+    proceduralLayer_.setEnabled(showProceduralLayer_);
+    proceduralLayer_.setDebugPreview(proceduralLayerDebug_);
+    proceduralLayer_.setMode(proceduralLayerMode_);
+    proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+
+    proceduralLayer_.render(context);
+    proceduralLayer_.composite(context, proceduralLayerOpacity_);
+}
+
+void Visualizer::renderIdleSpinner(float animatedTime) const {
+    // Simple spinning triangle as placeholder
+    glUseProgram(0);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    glTranslatef(windowWidth_ / 2.0f, windowHeight_ / 2.0f, 0.0f);
+    glRotatef(animatedTime * 45.0f, 0.0f, 0.0f, 1.0f);
+    
+    glBegin(GL_TRIANGLES);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glVertex2f(0.0f, -50.0f);
+    glVertex2f(-43.3f, 25.0f);
+    glVertex2f(43.3f, 25.0f);
+    glEnd();
+    
+    glPopMatrix();
+}
+
+void Visualizer::renderGears(float animatedTime) const {
+    // Placeholder gear rendering
+    glUseProgram(0);
+    glMatrixMode(GL_MODELVIEW);
+    
+    for (const auto& gear : gears_) {
+        glPushMatrix();
+        glTranslatef(windowWidth_ / 2.0f + gear.x, windowHeight_ / 2.0f + gear.y, 0.0f);
+        glRotatef(gear.angle + animatedTime * gear.angularVelocity * 45.0f, 0.0f, 0.0f, 1.0f);
+        
+        glBegin(GL_LINE_LOOP);
+        glColor3f(0.8f, 0.8f, 0.8f);
+        for (int i = 0; i < gear.teeth; ++i) {
+            float angle = 2.0f * 3.14159f * i / gear.teeth;
+            float r = (i % 2 == 0) ? gear.radius : gear.radius * 0.8f;
+            glVertex2f(cosf(angle) * r * 50.0f, sinf(angle) * r * 50.0f);
+        }
+        glEnd();
+        
+        glPopMatrix();
+    }
+}
+
+void Visualizer::updateCore(float dt, const AudioAnalyzer::AudioFeatures& features) {
+    core_.radius = 0.3f + features.bassEnergy * 0.4f;
+    core_.baseRadius = core_.radius;
+    core_.pulse = features.onset ? 1.0f : 0.0f;
+    core_.energy = features.energy;
+    core_.kickEnvelope = features.kick;
+    core_.harmonicEnvelope = features.hiHat;
+    core_.growthTrend = features.bassShare;
+    core_.growthEnvelope = features.midShare;
+    core_.maturity = features.highShare;
+    core_.idlePulse = std::sin(time_ * 2.0f) * 0.5f + 0.5f;
+    core_.idleWarp = std::cos(time_ * 1.5f) * 0.3f + 0.7f;
+    core_.idleSpin = time_ * 0.5f;
+}
+
+void Visualizer::updateGears(float dt, const AudioAnalyzer::AudioFeatures& features) {
+    for (auto& gear : gears_) {
+        gear.angle += gear.angularVelocity * dt * (1.0f + features.energy * 2.0f);
+        gear.orbitAngle += gear.orbitSpeed * gear.orbitDirection * dt * (1.0f + features.bassEnergy * 1.5f);
+        gear.jitterPhase += dt * 3.0f;
+        
+        float jitter = std::sin(gear.jitterPhase) * 0.02f * features.energy;
+        gear.x = std::cos(gear.orbitAngle) * gearSpawnRadius_ + jitter;
+        gear.y = std::sin(gear.orbitAngle) * gearSpawnRadius_ + jitter;
+    }
+    
+    gearSpawnRadius_ = 50.0f + features.bassEnergy * 100.0f;
+}
+
+void Visualizer::updateLife(float dt, const AudioAnalyzer::AudioFeatures& features) {
+    lifeTimeAccumulator_ += dt;
+    
+    if (lifeTimeAccumulator_ > 0.1f) {
+        lifeTimeAccumulator_ = 0.0f;
+        
+        // Simple Conway's Game of Life rules
+        for (int y = 0; y < LifeCellGrid::HEIGHT; ++y) {
+            for (int x = 0; x < LifeCellGrid::WIDTH; ++x) {
+                int neighbors = 0;
+                for (int dy = -1; dy <= 1; ++dy) {
+                    for (int dx = -1; dx <= 1; ++dx) {
+                        if (dx == 0 && dy == 0) continue;
+                        int nx = (x + dx + LifeCellGrid::WIDTH) % LifeCellGrid::WIDTH;
+                        int ny = (y + dy + LifeCellGrid::HEIGHT) % LifeCellGrid::HEIGHT;
+                        neighbors += lifeGrid_.cells[ny * LifeCellGrid::WIDTH + nx];
+                    }
+                }
+                
+                int idx = y * LifeCellGrid::WIDTH + x;
+                if (lifeGrid_.cells[idx] == 1) {
+                    lifeGrid_.next[idx] = (neighbors == 2 || neighbors == 3) ? 1 : 0;
+                } else {
+                    lifeGrid_.next[idx] = (neighbors == 3) ? 1 : 0;
+                }
+            }
+        }
+        
+        lifeGrid_.cells.swap(lifeGrid_.next);
+    }
+    
+    // Seed new life based on audio
+    if (features.onset && time_ - lastLifeSeedTime_ > 0.5f) {
+        lastLifeSeedTime_ = time_;
+        seedLifeFromCore(10);
+    }
+}
+
+void Visualizer::seedLifeFromCore(float amount) {
+    for (int i = 0; i < static_cast<int>(amount); ++i) {
+        int x = LifeCellGrid::WIDTH / 2 + std::uniform_int_distribution<int>(-10, 10)(rng_);
+        int y = LifeCellGrid::HEIGHT / 2 + std::uniform_int_distribution<int>(-10, 10)(rng_);
+        if (x >= 0 && x < LifeCellGrid::WIDTH && y >= 0 && y < LifeCellGrid::HEIGHT) {
+            lifeGrid_.cells[y * LifeCellGrid::WIDTH + x] = 1;
+        }
+    }
+}
+
+float Visualizer::sampleCoreEnergyField(float x, float y) const {
+    float dx = x - windowWidth_ / 2.0f;
+    float dy = y - windowHeight_ / 2.0f;
+    float dist = std::sqrt(dx * dx + dy * dy);
+    return std::exp(-dist * dist / (2.0f * core_.radius * core_.radius * 10000.0f)) * core_.energy;
+}
+
+void Visualizer::renderLife(float animatedTime) const {
+    glUseProgram(0);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    float cellSize = 5.0f;
+    float offsetX = (windowWidth_ - LifeCellGrid::WIDTH * cellSize) / 2.0f;
+    float offsetY = (windowHeight_ - LifeCellGrid::HEIGHT * cellSize) / 2.0f;
+    
+    glBegin(GL_QUADS);
+    for (int y = 0; y < LifeCellGrid::HEIGHT; ++y) {
+        for (int x = 0; x < LifeCellGrid::WIDTH; ++x) {
+            if (lifeGrid_.cells[y * LifeCellGrid::WIDTH + x] == 1) {
+                float px = offsetX + x * cellSize;
+                float py = offsetY + y * cellSize;
+                glColor3f(0.2f, 0.8f, 0.3f);
+                glVertex2f(px, py);
+                glVertex2f(px + cellSize, py);
+                glVertex2f(px + cellSize, py + cellSize);
+                glVertex2f(px, py + cellSize);
+            }
+        }
+    }
+    glEnd();
+    
+    glPopMatrix();
 }

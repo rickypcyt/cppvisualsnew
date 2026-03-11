@@ -377,7 +377,7 @@ void Visualizer::renderLegacyFrequencyBars(float bass, float mid, float high, fl
         float bassWeight;
         float midWeight;
         float highWeight;
-        const ColorAdjust* adjust;
+        const std::array<float, 4>* adjust;
     };
 
     ArcLayer layers[] = {
