@@ -256,6 +256,47 @@ void Visualizer::renderMainImGuiWindow() {
     }
 
     if (useModernPipeline_) {
+        if (ImGui::TreeNode("Paleta moderna")) {
+            int paletteCount = static_cast<int>(scenePalettes_.size());
+            const char* currentName = (currentScenePaletteIndex_ >= 0 && currentScenePaletteIndex_ < paletteCount)
+                                        ? scenePalettes_[currentScenePaletteIndex_].name.c_str()
+                                        : "--";
+
+            if (ImGui::BeginCombo("Preset", currentName)) {
+                for (int i = 0; i < paletteCount; ++i) {
+                    bool selected = (currentScenePaletteIndex_ == i);
+                    if (ImGui::Selectable(scenePalettes_[i].name.c_str(), selected)) {
+                        applyScenePalette(i);
+                    }
+                    if (selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            ImGui::SetNextItemWidth(180.0f);
+            if (ImGui::SliderFloat("Mezcla", &scenePaletteBlend_, 0.0f, 1.0f, "%.2f")) {
+                scenePaletteBlend_ = std::clamp(scenePaletteBlend_, 0.0f, 1.0f);
+                proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+            }
+
+            ImGui::SetNextItemWidth(200.0f);
+            if (ImGui::ColorEdit3("Primario", scenePrimaryColor_.data(), ImGuiColorEditFlags_Float)) {
+                proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+            }
+            ImGui::SetNextItemWidth(200.0f);
+            if (ImGui::ColorEdit3("Secundario", sceneSecondaryColor_.data(), ImGuiColorEditFlags_Float)) {
+                proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+            }
+
+            if (ImGui::Button("Restaurar preset")) {
+                applyScenePalette(currentScenePaletteIndex_);
+            }
+
+            ImGui::TreePop();
+        }
+
         if (ImGui::TreeNode("Capas núcleo shader")) {
             ImGui::Checkbox("Base", &coreShowBase_);
             ImGui::SameLine();
@@ -327,7 +368,10 @@ void Visualizer::renderMainImGuiWindow() {
                 "Radial Burst",
                 "Kaleidoscope",
                 "Digital Glitch",
-                "Pixelate",
+                "Pixelate 8-bit",
+                "Pixelate 16-bit",
+                "Pixelate 32-bit",
+                "Pixelate 64-bit",
                 "Lens Distortion",
                 "Plasma Overlay",
                 "RGB Split",
@@ -353,7 +397,7 @@ void Visualizer::renderMainImGuiWindow() {
             }
 
             ImGui::SliderFloat("Intensidad", &postProcessStrength_, 0.0f, 1.0f, "%.2f");
-            if (postProcessMode_ == 12) {
+            if (postProcessMode_ == 15) {
                 ImGui::SetNextItemWidth(180.0f);
                 ImGui::SliderFloat("Canal R", &postProcessRgbAdjust_[0], 0.0f, 1.5f, "%.2f");
                 ImGui::SetNextItemWidth(180.0f);
@@ -362,6 +406,41 @@ void Visualizer::renderMainImGuiWindow() {
                 ImGui::SliderFloat("Canal B", &postProcessRgbAdjust_[2], 0.0f, 1.5f, "%.2f");
                 ImGui::TextDisabled("Ajusta cuánto se desplaza cada canal en el split.");
             }
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNode("Canales RGB externos")) {
+            static const char* kLabels[3] = {"Rojo", "Verde", "Azul"};
+            for (int i = 0; i < 3; ++i) {
+                ImGui::Checkbox(kLabels[i], &rgbChannelEnabled_[i]);
+                if (i < 2) {
+                    ImGui::SameLine();
+                }
+            }
+
+            ImGui::Spacing();
+            if (ImGui::Button("Activar todos")) {
+                rgbChannelEnabled_[0] = rgbChannelEnabled_[1] = rgbChannelEnabled_[2] = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Solo R")) {
+                rgbChannelEnabled_[0] = true;
+                rgbChannelEnabled_[1] = false;
+                rgbChannelEnabled_[2] = false;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Solo G")) {
+                rgbChannelEnabled_[0] = false;
+                rgbChannelEnabled_[1] = true;
+                rgbChannelEnabled_[2] = false;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Solo B")) {
+                rgbChannelEnabled_[0] = false;
+                rgbChannelEnabled_[1] = false;
+                rgbChannelEnabled_[2] = true;
+            }
+
             ImGui::TreePop();
         }
     }

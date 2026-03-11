@@ -12,6 +12,7 @@ struct LayerContext {
     float time;
     float tempo;
     const AudioAnalyzer::AudioFeatures* audio;
+    float intensity;
 };
 
 class ModularLayer {

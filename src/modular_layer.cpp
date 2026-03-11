@@ -35,6 +35,7 @@ uniform float uEnergy;
 uniform float uBass;
 uniform float uMid;
 uniform float uHigh;
+uniform float uIntensity;
 uniform int uMode;
 uniform vec3 uPrimaryColor;
 uniform vec3 uSecondaryColor;
@@ -1203,6 +1204,7 @@ void ModularLayer::render(const LayerContext& context) {
     activeShader->setUniform1f("uBass", bass);
     activeShader->setUniform1f("uMid", mid);
     activeShader->setUniform1f("uHigh", high);
+    activeShader->setUniform1f("uIntensity", context.intensity);
     activeShader->setUniform3f("uPrimaryColor", colorPrimary_[0], colorPrimary_[1], colorPrimary_[2]);
     activeShader->setUniform3f("uSecondaryColor", colorSecondary_[0], colorSecondary_[1], colorSecondary_[2]);
     activeShader->setUniform1f("uColorBlend", colorBlend_);

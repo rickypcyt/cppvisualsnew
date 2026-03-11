@@ -10,7 +10,7 @@
 
 namespace {
 constexpr int kProceduralModeCount = 24;
-constexpr int kPostProcessModeCount = 14;
+constexpr int kPostProcessModeCount = 17;
 }
 
 const char* vertexShaderSource = R"(
@@ -309,6 +309,11 @@ void Visualizer::renderProceduralLayer() {
         &audioFeatures_
     };
 
+    float blend = std::clamp(scenePaletteBlend_, 0.0f, 1.0f);
+    if (blend != scenePaletteBlend_) {
+        scenePaletteBlend_ = blend;
+    }
+    proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
     proceduralLayer_.setEnabled(showProceduralLayer_);
     proceduralLayer_.setDebugPreview(proceduralLayerDebug_);
     proceduralLayer_.render(context);
@@ -1366,6 +1371,13 @@ Visualizer::Visualizer()
       onsetColorCyclingEnabled_(true), onsetTriggerCount_(0), lastOnsetActive_(false),
       tempoMultiplier_(1.0f),
       mixColorSchemes_(true),
+      scenePalettes_(),
+      currentScenePaletteIndex_(0),
+      scenePrimaryColor_{0.25f, 0.32f, 0.58f},
+      sceneSecondaryColor_{0.35f, 0.65f, 0.92f},
+      scenePaletteBlend_(0.6f),
+      rgbChannelEnabled_{true, true, true},
+      globalIntensityEnvelope_(0.0f),
       overlayLegacyOnModern_(false),
       coreShowBase_(false),
       coreShowCorona_(false),
@@ -1393,6 +1405,8 @@ Visualizer::Visualizer()
     } else {
         legacyColorAdjust_ = LegacyColorAdjust{};
     }
+    buildScenePalettes();
+    applyScenePalette(0);
     setupDeviceList();
     core_ = {};
     idleState_ = 0.0f;
@@ -1620,6 +1634,59 @@ void Visualizer::randomizeLegacyColors() {
     colorRandomTimer_ = 0.0f;
 }
 
+void Visualizer::buildScenePalettes() {
+    scenePalettes_.clear();
+
+    scenePalettes_.push_back({
+        "Sesión Azul",
+        {0.10f, 0.24f, 0.58f},
+        {0.28f, 0.70f, 0.98f},
+        0.62f
+    });
+
+    scenePalettes_.push_back({
+        "Sesión Roja",
+        {0.58f, 0.12f, 0.16f},
+        {0.94f, 0.36f, 0.30f},
+        0.48f
+    });
+
+    scenePalettes_.push_back({
+        "Sesión Verde",
+        {0.10f, 0.32f, 0.18f},
+        {0.30f, 0.82f, 0.52f},
+        0.56f
+    });
+
+    if (scenePalettes_.empty()) {
+        currentScenePaletteIndex_ = 0;
+        return;
+    }
+
+    currentScenePaletteIndex_ = std::clamp(
+        currentScenePaletteIndex_,
+        0,
+        static_cast<int>(scenePalettes_.size()) - 1
+    );
+}
+
+void Visualizer::applyScenePalette(int index) {
+    if (scenePalettes_.empty()) {
+        currentScenePaletteIndex_ = 0;
+        return;
+    }
+
+    int clamped = std::clamp(index, 0, static_cast<int>(scenePalettes_.size()) - 1);
+    currentScenePaletteIndex_ = clamped;
+
+    const ScenePalette& palette = scenePalettes_[clamped];
+    scenePrimaryColor_ = palette.primary;
+    sceneSecondaryColor_ = palette.secondary;
+    scenePaletteBlend_ = std::clamp(palette.blend, 0.0f, 1.0f);
+
+    proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+}
+
 void Visualizer::shutdown() {
     if (imguiInitialized_) {
         shutdownImGui();
@@ -1837,6 +1904,24 @@ void Visualizer::updateAudioBuffer(const std::vector<float>& audioBuffer) {
 void Visualizer::render() {
     overlayLegacyOnModern_ = true;
 
+    float rawEnergy = std::clamp(audioFeatures_.energy, 0.0f, 2.5f);
+    float bass = std::clamp(audioFeatures_.bassEnergy, 0.0f, 2.0f);
+    float excitement = std::clamp(audioFeatures_.onset * 0.6f + audioFeatures_.beat * 0.8f
+                                  + audioFeatures_.kick * 0.5f, 0.0f, 1.6f);
+    float targetIntensity = std::clamp(rawEnergy * 0.55f + bass * 0.45f + excitement * 0.65f,
+                                       0.0f, 2.5f);
+
+    float dt = std::max(deltaTime_, 1.0f / 120.0f);
+    float rise = 1.0f - std::pow(0.04f, dt * tempoMultiplier_);
+    float decayBase = std::pow(0.18f, dt * tempoMultiplier_);
+
+    if (targetIntensity > globalIntensityEnvelope_) {
+        globalIntensityEnvelope_ += (targetIntensity - globalIntensityEnvelope_) * rise;
+    } else {
+        globalIntensityEnvelope_ = globalIntensityEnvelope_ * decayBase + targetIntensity * (1.0f - decayBase);
+    }
+    globalIntensityEnvelope_ = std::clamp(globalIntensityEnvelope_, 0.0f, 2.5f);
+
     bool usePost = showPostProcess_ && postProcessMode_ > 0 && postProcessStrength_ > 0.0f;
 
     if (usePost) {
@@ -1848,10 +1933,18 @@ void Visualizer::render() {
         glClear(GL_COLOR_BUFFER_BIT);
     }
 
+    GLboolean previousMask[4];
+    glGetBooleanv(GL_COLOR_WRITEMASK, previousMask);
+    glColorMask(rgbChannelEnabled_[0] ? GL_TRUE : GL_FALSE,
+                rgbChannelEnabled_[1] ? GL_TRUE : GL_FALSE,
+                rgbChannelEnabled_[2] ? GL_TRUE : GL_FALSE,
+                GL_TRUE);
+
     if (showProceduralLayer_) {
         renderProceduralLayer();
     }
 
+    float intensityScale = std::clamp(globalIntensityEnvelope_, 0.0f, 2.0f);
     renderModernCore();
     if (showCornerOrbs_) {
         renderCornerOrbs();
@@ -1874,8 +1967,11 @@ void Visualizer::render() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         float strength = std::clamp(postProcessStrength_, 0.0f, 1.0f);
-        postProcessor_.apply(postProcessMode_, strength, time_, postProcessRgbAdjust_);
+        strength *= std::clamp(0.35f + intensityScale * 0.65f, 0.3f, 1.0f);
+        postProcessor_.apply(postProcessMode_, strength, time_, postProcessRgbAdjust_, audioFeatures_.bassEnergy);
     }
+
+    glColorMask(previousMask[0], previousMask[1], previousMask[2], previousMask[3]);
 
     if (imguiInitialized_ && showImGuiWindow_) {
         renderImGui();
@@ -2203,6 +2299,15 @@ void Visualizer::renderModernVisualization() {
     shader_->setUniform2f("uResolution",
                           static_cast<float>(windowWidth_),
                           static_cast<float>(windowHeight_));
+    shader_->setUniform3f("uScenePrimary",
+                          scenePrimaryColor_[0],
+                          scenePrimaryColor_[1],
+                          scenePrimaryColor_[2]);
+    shader_->setUniform3f("uSceneSecondary",
+                          sceneSecondaryColor_[0],
+                          sceneSecondaryColor_[1],
+                          sceneSecondaryColor_[2]);
+    shader_->setUniform1f("uSceneBlend", std::clamp(scenePaletteBlend_, 0.0f, 1.0f));
 
     GLboolean depthWasEnabled = glIsEnabled(GL_DEPTH_TEST);
     if (depthWasEnabled) {
@@ -2320,6 +2425,15 @@ void Visualizer::renderModernCore() {
     coreShader_->setUniform1f("uShowRunes", 0.0f);
     coreShader_->setUniform1f("uShowSparkles", 0.0f);
     coreShader_->setUniform1f("uShowBloom", 0.0f);
+    coreShader_->setUniform3f("uScenePrimary",
+                              scenePrimaryColor_[0],
+                              scenePrimaryColor_[1],
+                              scenePrimaryColor_[2]);
+    coreShader_->setUniform3f("uSceneSecondary",
+                              sceneSecondaryColor_[0],
+                              sceneSecondaryColor_[1],
+                              sceneSecondaryColor_[2]);
+    coreShader_->setUniform1f("uSceneBlend", std::clamp(scenePaletteBlend_, 0.0f, 1.0f));
     coreShader_->setUniform4f("uLegacyCircleFill",
                               legacyColorAdjust_.circleFill.r,
                               legacyColorAdjust_.circleFill.g,

@@ -76,6 +76,13 @@ private:
         LegacyColorAdjust adjust;
     };
 
+    struct ScenePalette {
+        std::string name;
+        std::array<float, 3> primary{};
+        std::array<float, 3> secondary{};
+        float blend = 0.5f;
+    };
+
     struct CoreState {
         float radius = 0.0f;
         float baseRadius = 0.0f;
@@ -185,6 +192,13 @@ private:
     bool lastOnsetActive_;
     float tempoMultiplier_;
     bool mixColorSchemes_;
+    std::vector<ScenePalette> scenePalettes_;
+    int currentScenePaletteIndex_;
+    std::array<float, 3> scenePrimaryColor_{};
+    std::array<float, 3> sceneSecondaryColor_{};
+    float scenePaletteBlend_;
+    std::array<bool, 3> rgbChannelEnabled_{};
+    float globalIntensityEnvelope_;
     bool overlayLegacyOnModern_;
     bool showLegacyVisualization_;
     bool showModernCore_;
@@ -248,6 +262,8 @@ private:
     void setColorWithAdjust(float r, float g, float b, float a, const ColorAdjust& adjust) const;
     void applyLegacyPreset(int index);
     void randomizeLegacyColors();
+    void buildScenePalettes();
+    void applyScenePalette(int index);
 
     // Procedural visualization methods
     void renderProceduralVisualization();

@@ -29,6 +29,7 @@ uniform float uStrength;
 uniform float uTime;
 uniform vec3 uRgbAdjust;
 uniform vec2 uResolution;
+uniform float uBassLevel;
 
 const float THRESH = 0.10;
 const float PI = 3.14159265359;
@@ -120,6 +121,14 @@ vec3 pixelate(vec2 uv, float strength) {
     return texture(uScene, grid).rgb;
 }
 
+vec3 pixelateRetro(vec2 uv, float cells, float levels) {
+    vec2 grid = floor(uv * cells) / cells;
+    vec3 sampled = texture(uScene, grid).rgb;
+    float steps = max(levels - 1.0, 1.0);
+    sampled = floor(sampled * steps + 0.5) / steps;
+    return sampled;
+}
+
 vec2 lensDistort(vec2 uv, float power) {
     vec2 c = uv - 0.5;
     float r2 = dot(c, c);
@@ -162,6 +171,7 @@ vec3 recursiveEnergy(vec2 uv, float strength) {
 void main() {
     vec4 sceneColor = texture(uScene, vUV);
     float strength = clamp(uStrength, 0.0, 1.0);
+    float bass = clamp(uBassLevel, 0.0, 1.0);
     vec3 result = sceneColor.rgb;
 
     if (uMode == 1) {
@@ -190,12 +200,17 @@ void main() {
         result += pulseColor * strength * 0.25;
     } else if (uMode == 5) {
         float brightness = dot(sceneColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-        float bandCenter = (sin(uTime * 0.8) + 1.5) * 0.3;
-        float window = THRESH + strength * 0.35;
+        float bandCenter = (sin(uTime * (0.6 + bass * 1.2)) + 1.5) * 0.3;
+        bandCenter = mix(bandCenter, clamp(bass * 0.8, 0.05, 0.95), 0.6);
+        float window = mix(THRESH * 0.35, THRESH + 0.4, clamp(bass * 1.3, 0.0, 1.0));
+        window += strength * 0.25;
         float lower = clamp(bandCenter - window, 0.0, 1.0);
         float upper = clamp(bandCenter + window, 0.0, 1.0);
         float mask = step(lower, brightness) * step(brightness, upper);
-        result = sceneColor.rgb * mask;
+        float ridge = smoothstep(0.0, 1.0, abs(brightness - bandCenter) / max(window, 1e-4));
+        float gain = mix(0.6, 1.6, clamp(bass * 1.1, 0.0, 1.0));
+        result = sceneColor.rgb * mask * gain;
+        result += sceneColor.rgb * (1.0 - mask) * clamp(0.15 - bass * 0.1, 0.0, 0.15);
     } else if (uMode == 6) {
         vec3 blurred = radialBlur(vUV, strength);
         result = mix(sceneColor.rgb, blurred, strength);
@@ -206,14 +221,24 @@ void main() {
     } else if (uMode == 8) {
         result = mix(sceneColor.rgb, digitalGlitch(vUV, strength, uTime), strength * 0.9);
     } else if (uMode == 9) {
-        result = pixelate(vUV, strength);
+        vec3 pix = pixelateRetro(vUV, 64.0, 8.0);
+        result = mix(sceneColor.rgb, pix, strength);
     } else if (uMode == 10) {
+        vec3 pix = pixelateRetro(vUV, 128.0, 16.0);
+        result = mix(sceneColor.rgb, pix, strength);
+    } else if (uMode == 11) {
+        vec3 pix = pixelateRetro(vUV, 192.0, 32.0);
+        result = mix(sceneColor.rgb, pix, strength);
+    } else if (uMode == 12) {
+        vec3 pix = pixelateRetro(vUV, 256.0, 64.0);
+        result = mix(sceneColor.rgb, pix, strength);
+    } else if (uMode == 13) {
         vec2 uv = lensDistort(vUV, strength * 1.5);
         result = texture(uScene, clamp(uv, 0.0, 1.0)).rgb;
-    } else if (uMode == 11) {
+    } else if (uMode == 14) {
         vec3 plasma = plasmaOverlay(vUV, uTime * 1.2);
         result = mix(sceneColor.rgb, plasma, strength * 0.35);
-    } else if (uMode == 12) {
+    } else if (uMode == 15) {
         vec3 adjust = max(uRgbAdjust, vec3(0.0));
         float radius = strength * 0.01;
         float phase = uTime * 0.8;
@@ -231,7 +256,7 @@ void main() {
         result.r = mix(sceneColor.r, shifted.r, channelStrength.r);
         result.g = mix(sceneColor.g, shifted.g, channelStrength.g);
         result.b = mix(sceneColor.b, shifted.b, channelStrength.b);
-    } else if (uMode == 13) {
+    } else if (uMode == 16) {
         vec3 energy = recursiveEnergy(vUV, strength);
         result = mix(sceneColor.rgb, energy, strength);
     }
@@ -315,7 +340,7 @@ void PostProcessor::endCapture() {
     glViewport(previousViewport_[0], previousViewport_[1], previousViewport_[2], previousViewport_[3]);
 }
 
-void PostProcessor::apply(int mode, float strength, float time, const std::array<float, 3>& colorAdjust) {
+void PostProcessor::apply(int mode, float strength, float time, const std::array<float, 3>& colorAdjust, float bassLevel) {
     if (!initialized_ || mode == 0 || strength <= 0.0f) {
         return;
     }
@@ -338,6 +363,7 @@ void PostProcessor::apply(int mode, float strength, float time, const std::array
     shader_->setUniform1f("uTime", time);
     shader_->setUniform2f("uResolution", static_cast<float>(width_), static_cast<float>(height_));
     shader_->setUniform3f("uRgbAdjust", colorAdjust[0], colorAdjust[1], colorAdjust[2]);
+    shader_->setUniform1f("uBassLevel", bassLevel);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, colorTexture_);

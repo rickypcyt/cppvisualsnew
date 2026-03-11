@@ -17,7 +17,7 @@ public:
 
     void beginCapture(int width, int height);
     void endCapture();
-    void apply(int mode, float strength, float time, const std::array<float, 3>& colorAdjust);
+    void apply(int mode, float strength, float time, const std::array<float, 3>& colorAdjust, float bassLevel);
 
     bool isInitialized() const { return initialized_; }
 
