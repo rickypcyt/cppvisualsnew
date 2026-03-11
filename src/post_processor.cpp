@@ -28,6 +28,7 @@ uniform int uMode;
 uniform float uStrength;
 uniform float uTime;
 uniform vec3 uRgbAdjust;
+uniform vec2 uResolution;
 
 const float THRESH = 0.10;
 const float PI = 3.14159265359;
@@ -81,14 +82,20 @@ vec3 radialBlur(vec2 uv, float amount) {
     return acc / samples;
 }
 
-vec2 kaleido(vec2 uv, float segments) {
-    vec2 c = uv - 0.5;
-    float r = length(c);
-    float a = atan(c.y, c.x);
+vec2 kaleido(vec2 uv, float segments, vec2 resolution) {
+    vec2 centered = uv - 0.5;
+    float aspect = resolution.x / max(resolution.y, 1.0);
+    centered.x *= aspect;
+
+    float r = length(centered);
+    float a = atan(centered.y, centered.x);
     float sector = (2.0 * PI) / max(segments, 1.0);
     a = mod(a, sector);
     a = abs(a - sector * 0.5);
-    return vec2(cos(a), sin(a)) * r + 0.5;
+
+    vec2 result = vec2(cos(a), sin(a)) * r;
+    result.x /= aspect;
+    return result + 0.5;
 }
 
 float rand(vec2 co) {
@@ -194,7 +201,7 @@ void main() {
         result = mix(sceneColor.rgb, blurred, strength);
     } else if (uMode == 7) {
         float segments = 6.0 + strength * 10.0;
-        vec2 uv = kaleido(vUV, segments);
+        vec2 uv = kaleido(vUV, segments, uResolution);
         result = texture(uScene, uv).rgb;
     } else if (uMode == 8) {
         result = mix(sceneColor.rgb, digitalGlitch(vUV, strength, uTime), strength * 0.9);
@@ -329,6 +336,7 @@ void PostProcessor::apply(int mode, float strength, float time, const std::array
     shader_->setUniform1i("uMode", mode);
     shader_->setUniform1f("uStrength", strength);
     shader_->setUniform1f("uTime", time);
+    shader_->setUniform2f("uResolution", static_cast<float>(width_), static_cast<float>(height_));
     shader_->setUniform3f("uRgbAdjust", colorAdjust[0], colorAdjust[1], colorAdjust[2]);
 
     glActiveTexture(GL_TEXTURE0);
