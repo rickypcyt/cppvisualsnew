@@ -49,4 +49,10 @@ private:
     GLint previousViewport_[4]{0, 0, 0, 0};
 
     std::unique_ptr<Shader> shader_;
+    std::string commonShaderSource_;
+    std::vector<std::unique_ptr<Shader>> effectShaders_;
+    std::vector<std::string> effectPaths_;
+
+    bool loadEffectShaders();
+    std::unique_ptr<Shader> getEffectShader(int mode);
 };
