@@ -1,13 +1,83 @@
 #include "visualizer.h"
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <iostream>
-#include <iomanip>
+
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <deque>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
+
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
+#include "shader_loader.h"
+
+// Static mode name arrays - single source of truth
+const char* const Visualizer::kProceduralModes[] = {
+    "None",
+    "ASCII Ocean",
+    "Sacred Geometry",
+    "Glitch Grid",
+    "Chemical Flow",
+    "Crystal Lattice",
+    "Phantom Fractals",
+    "Fractal Object",
+    "Pulsar Tunnel",
+    "Aurora Bloom",
+    "Ribbon Scanlines",
+    "Nebula",
+    "Kaleidoscope Fractal",
+    "Voronoi Cells",
+    "Raymarched Object",
+    "Reaction Diffusion",
+    "Liquid Refraction",
+    "Starfield Warp",
+    "Plasma Classic",
+    "Domain Warped Fractal",
+    "Fractal Tunnel",
+    "Volumetric Starfield",
+    "Voxel Path Tracer",
+    "Etienne Pulse",
+    "Fractal Runway",
+    "Volumetric Tunnel",
+    "Chromatic Swirl",
+    "Hyper Pulse",
+    "Gyroid Reflections",
+    "Head",
+    "Metal Gyroid Hall",
+    "Hex Kaleidoscope"
+};
+
+const char* const Visualizer::kPostProcessModes[] = {
+    "None",
+    "Grayscale",
+    "Filmic + Vignette",
+    "CRT Monitor",
+    "Chromatic Pulse",
+    "Bass Threshold",
+    "Radial Blur",
+    "Kaleidoscope",
+    "Digital Glitch",
+    "Pixelate 64px",
+    "Pixelate 128px", 
+    "Pixelate 192px",
+    "Pixelate 256px",
+    "Lens Distortion",
+    "Plasma Overlay",
+    "RGB Split",
+    "Recursive Energy",
+    "Bloom + ACES",
+    "Pixel Tiles",
+    "Sobel Edge Detection",
+    "Kaleidoscope Mirror",
+    "Advanced Sobel"
+};
 
 bool Visualizer::setupImGui() {
     if (!window_) {
@@ -140,7 +210,7 @@ void Visualizer::renderMainImGuiWindow() {
         ImGui::EndCombo();
     }
 
-    ImGui::TextWrapped("Selecciona un dispositivo interno (Loopback/Monitor) para capturar audio del sistema, por ejemplo la salida del navegador. En Windows busca entradas 'WASAPI (loopback)', en Linux 'Monitor', en macOS 'Loopback'.");
+    ImGui::TextWrapped("Select an internal device (Loopback/Monitor) to capture system audio, for example browser output. On Windows look for 'WASAPI (loopback)' entries, on Linux 'Monitor', on macOS 'Loopback'.");
 
     ImGui::Spacing();
     ImGui::Text("🖥️ GPU Renderer:");
@@ -162,7 +232,7 @@ void Visualizer::renderMainImGuiWindow() {
     }
 
     ImGui::Spacing();
-    ImGui::Text("🎚️ Sensibilidad Visual");
+    ImGui::Text("🎚️ Visual Sensitivity");
     ImGui::SliderFloat("##VisualSensitivitySlider", &visualSensitivity_, 0.2f, 3.0f, "%.2fx", ImGuiSliderFlags_AlwaysClamp);
 
     ImGui::Text("🎛️ Input Gain");
@@ -277,68 +347,35 @@ void Visualizer::renderMainImGuiWindow() {
     }
 
     ImGui::SetNextItemWidth(180.0f);
-    if (ImGui::SliderFloat("Mezcla", &scenePaletteBlend_, 0.0f, 1.0f, "%.2f")) {
+    if (ImGui::SliderFloat("Blend", &scenePaletteBlend_, 0.0f, 1.0f, "%.2f")) {
         scenePaletteBlend_ = std::clamp(scenePaletteBlend_, 0.0f, 1.0f);
         proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
     }
 
     ImGui::SetNextItemWidth(200.0f);
-    if (ImGui::ColorEdit3("Primario", scenePrimaryColor_.data(), ImGuiColorEditFlags_Float)) {
+    if (ImGui::ColorEdit3("Primary", scenePrimaryColor_.data(), ImGuiColorEditFlags_Float)) {
         proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
     }
     ImGui::SetNextItemWidth(200.0f);
-    if (ImGui::ColorEdit3("Secundario", sceneSecondaryColor_.data(), ImGuiColorEditFlags_Float)) {
+    if (ImGui::ColorEdit3("Secondary", sceneSecondaryColor_.data(), ImGuiColorEditFlags_Float)) {
         proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
     }
 
-    if (ImGui::Button("Restaurar preset")) {
+    if (ImGui::Button("Restore preset")) {
         applyScenePalette(currentScenePaletteIndex_);
     }
 
     if (useModernPipeline_) {
-        ImGui::Checkbox("Orbes esquina", &showCornerOrbs_);
+        ImGui::Checkbox("Corner Orbs", &showCornerOrbs_);
 
-        if (ImGui::CollapsingHeader("Capa procedural", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Checkbox("Mostrar", &showProceduralLayer_);
+        if (ImGui::CollapsingHeader("Procedural Layer", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Checkbox("Show", &showProceduralLayer_);
             ImGui::SameLine();
             ImGui::Checkbox("Debug preview", &proceduralLayerDebug_);
-            ImGui::SliderFloat("Opacidad", &proceduralLayerOpacity_, 0.0f, 1.0f, "%.2f");
+            ImGui::SliderFloat("Opacity", &proceduralLayerOpacity_, 0.0f, 1.0f, "%.2f");
 
-            static const char* kProceduralModes[] = {
-                "None",
-                "ASCII Ocean",
-                "Sacred Geometry",
-                "Glitch Grid",
-                "Chemical Flow",
-                "Crystal Lattice",
-                "Phantom Fractals",
-                "Fractal Object",
-                "Pulsar Tunnel",
-                "Aurora Bloom",
-                "Ribbon Scanlines",
-                "Nebula",
-                "Kaleidoscope Fractal",
-                "Voronoi Cells",
-                "Raymarched Object",
-                "Reaction Diffusion",
-                "Liquid Refraction",
-                "Starfield Warp",
-                "Plasma Classic",
-                "Domain Warped Fractal",
-                "Fractal Tunnel",
-                "Volumetric Starfield",
-                "Voxel Path Tracer",
-                "Etienne Pulse",
-                "Fractal Runway",
-                "Volumetric Tunnel",
-                "Chromatic Swirl",
-                "Hyper Pulse",
-                "Gyroid Reflections",
-                "Metal Gyroid Hall",
-                "Hex Kaleidoscope"
-            };
             int modeIndex = std::clamp(proceduralLayerMode_, 0, static_cast<int>(std::size(kProceduralModes)) - 1);
-            if (ImGui::BeginCombo("Modo", kProceduralModes[modeIndex])) {
+            if (ImGui::BeginCombo("Mode", kProceduralModes[modeIndex])) {
                 for (int i = 0; i < static_cast<int>(std::size(kProceduralModes)); ++i) {
                     bool selected = (proceduralLayerMode_ == i);
                     if (ImGui::Selectable(kProceduralModes[i], selected)) {
@@ -355,55 +392,31 @@ void Visualizer::renderMainImGuiWindow() {
         }
     }
 
-    if (ImGui::CollapsingHeader("Post proceso", ImGuiTreeNodeFlags_DefaultOpen)) {
-        static const char* kModes[] = {
-            "Ninguno",
-            "Escala de Grises",
-            "Film + Vignette", 
-            "CRT",
-            "Chromatic Pulse",
-            "Bass Threshold",
-            "Radial Blur",
-            "Kaleidoscope",
-            "Digital Glitch",
-            "Pixelate 64",
-            "Pixelate 128",
-            "Pixelate 192", 
-            "Pixelate 256",
-            "Lens Distortion",
-            "Plasma Overlay",
-            "RGB Split",
-            "Recursive Energy",
-            "Bloom ACES",
-            "Pixel Tiles",
-            "Sobel Edge",
-            "Kaleidoscope Mirror"
-        };
-
+    if (ImGui::CollapsingHeader("Post Processing", ImGuiTreeNodeFlags_DefaultOpen)) {
         bool anySlotEnabled = false;
         for (int slotIndex = 0; slotIndex < kMaxPostProcessSlots; ++slotIndex) {
             auto& slot = postProcessSlots_[slotIndex];
 
             ImGui::PushID(slotIndex);
-            if (ImGui::CollapsingHeader(slotIndex == 0 ? "Slot 1 (Principal)" :
+            if (ImGui::CollapsingHeader(slotIndex == 0 ? "Slot 1 (Main)" :
                                slotIndex == 1 ? "Slot 2" :
                                slotIndex == 2 ? "Slot 3" :
                                slotIndex == 3 ? "Slot 4" : "Slot 5", 
                                slotIndex == 0 ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
 
-                ImGui::Checkbox("Activar", &slot.enabled);
+                ImGui::Checkbox("Enable", &slot.enabled);
                 anySlotEnabled = anySlotEnabled || slot.enabled;
 
                 if (slot.enabled) {
                     int currentMode = slot.mode;
-                    if (currentMode < 0 || currentMode >= static_cast<int>(std::size(kModes))) {
+                    if (currentMode < 0 || currentMode >= static_cast<int>(std::size(kPostProcessModes))) {
                         currentMode = 0;
                     }
 
-                    if (ImGui::BeginCombo("Modo", kModes[currentMode])) {
-                        for (int i = 0; i < static_cast<int>(std::size(kModes)); ++i) {
+                    if (ImGui::BeginCombo("Mode", kPostProcessModes[currentMode])) {
+                        for (int i = 0; i < static_cast<int>(std::size(kPostProcessModes)); ++i) {
                             bool selected = (slot.mode == i);
-                            if (ImGui::Selectable(kModes[i], selected)) {
+                            if (ImGui::Selectable(kPostProcessModes[i], selected)) {
                                 slot.mode = i;
                             }
                             if (selected) {
@@ -413,16 +426,16 @@ void Visualizer::renderMainImGuiWindow() {
                         ImGui::EndCombo();
                     }
 
-                    ImGui::SliderFloat("Intensidad", &slot.strength, 0.0f, 1.0f, "%.2f");
+                    ImGui::SliderFloat("Intensity", &slot.strength, 0.0f, 1.0f, "%.2f");
 
                     if (slot.mode == 15) {
                         ImGui::SetNextItemWidth(180.0f);
-                        ImGui::SliderFloat("Canal R", &slot.rgbAdjust[0], 0.0f, 1.5f, "%.2f");
+                        ImGui::SliderFloat("R Channel", &slot.rgbAdjust[0], 0.0f, 1.5f, "%.2f");
                         ImGui::SetNextItemWidth(180.0f);
-                        ImGui::SliderFloat("Canal G", &slot.rgbAdjust[1], 0.0f, 1.5f, "%.2f");
+                        ImGui::SliderFloat("G Channel", &slot.rgbAdjust[1], 0.0f, 1.5f, "%.2f");
                         ImGui::SetNextItemWidth(180.0f);
-                        ImGui::SliderFloat("Canal B", &slot.rgbAdjust[2], 0.0f, 1.5f, "%.2f");
-                        ImGui::TextDisabled("Ajusta cuánto se desplaza cada canal en el split.");
+                        ImGui::SliderFloat("B Channel", &slot.rgbAdjust[2], 0.0f, 1.5f, "%.2f");
+                        ImGui::TextDisabled("Adjust how much each channel shifts in the split.");
                     }
                 }
             }
@@ -430,8 +443,8 @@ void Visualizer::renderMainImGuiWindow() {
         }
     }
 
-    if (ImGui::CollapsingHeader("Canales RGB externos", ImGuiTreeNodeFlags_DefaultOpen)) {
-        static const char* kLabels[3] = {"Rojo", "Verde", "Azul"};
+    if (ImGui::CollapsingHeader("External RGB Channels", ImGuiTreeNodeFlags_DefaultOpen)) {
+        static const char* kLabels[3] = {"Red", "Green", "Blue"};
         for (int i = 0; i < 3; ++i) {
             ImGui::Checkbox(kLabels[i], &rgbChannelEnabled_[i]);
             if (i < 2) {
@@ -440,20 +453,12 @@ void Visualizer::renderMainImGuiWindow() {
         }
 
         ImGui::Spacing();
-        if (ImGui::Button("Activar todos")) {
+        if (ImGui::Button("Enable All")) {
             rgbChannelEnabled_[0] = rgbChannelEnabled_[1] = rgbChannelEnabled_[2] = true;
         }
         ImGui::SameLine();
-        if (ImGui::Button("Solo R")) {
-            rgbChannelEnabled_[0] = true;
-            rgbChannelEnabled_[1] = false;
-            rgbChannelEnabled_[2] = false;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Solo G")) {
-            rgbChannelEnabled_[0] = false;
-            rgbChannelEnabled_[1] = true;
-            rgbChannelEnabled_[2] = false;
+        if (ImGui::Button("Disable All")) {
+            rgbChannelEnabled_[0] = rgbChannelEnabled_[1] = rgbChannelEnabled_[2] = false;
         }
         ImGui::SameLine();
         if (ImGui::Button("Solo B")) {
@@ -466,10 +471,10 @@ void Visualizer::renderMainImGuiWindow() {
 
     ImGui::Checkbox("Random auto", &autoRandomizeColors_);
     ImGui::SameLine();
-    ImGui::Checkbox("Cambiar colores cada 2 onsets", &onsetColorCyclingEnabled_);
+    ImGui::Checkbox("Change colors every 2 onsets", &onsetColorCyclingEnabled_);
     ImGui::SameLine();
     ImGui::SetNextItemWidth(160.0f);
-    if (ImGui::SliderFloat("Intervalo (s)", &colorRandomInterval_, 1.0f, 60.0f)) {
+    if (ImGui::SliderFloat("Interval (s)", &colorRandomInterval_, 1.0f, 60.0f)) {
         colorRandomInterval_ = std::max(1.0f, colorRandomInterval_);
     }
 
@@ -618,63 +623,22 @@ void Visualizer::renderConsoleImGui() {
 void Visualizer::renderCurrentEffectsDisplay() {
     if (!showImGuiWindow_) return;
     
-    // Crear ventana flotante para mostrar efectos actuales
-    ImGui::Begin("Efectos Actuales", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+    // Create floating window to show current effects
+    ImGui::Begin("Current Effects", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
     
-    // Título con estilo
+    // Title with style
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 1.0f, 1.0f));
-    ImGui::Text("🎭 EFECTOS ACTUALES");
+    ImGui::Text("🎭 CURRENT EFFECTS");
     ImGui::PopStyleColor();
     ImGui::Separator();
     
-    // Mostrar capa procedural actual
-    ImGui::Text("📐 Capa Procedural:");
+    // Show current procedural layer
+    ImGui::Text("📐 Procedural Layer:");
     ImGui::SameLine();
     
-    const char* proceduralModeName = "Ninguno";
-    if (proceduralLayerMode_ >= 0 && proceduralLayerMode_ < 35) {
-        static const char* kProceduralModes[] = {
-            "None",
-            "ASCII Ocean",
-            "Sacred Geometry", 
-            "Glitch Grid",
-            "Chemical Flow",
-            "Crystal Lattice",
-            "Phantom Fractals",
-            "Fractal Object",
-            "Pulsar Tunnel",
-            "Aurora Bloom",
-            "Ribbon Scanlines",
-            "Nebula",
-            "Kaleidoscope Fractal",
-            "Voronoi Cells",
-            "Raymarched Object",
-            "Reaction Diffusion",
-            "Liquid Refraction",
-            "Starfield Warp",
-            "Plasma Classic",
-            "Domain Warped Fractal",
-            "Fractal Tunnel",
-            "Volumetric Starfield",
-            "Voxel Path Tracer",
-            "Etienne Pulse",
-            "Fractal Runway",
-            "Volumetric Tunnel",
-            "Chromatic Swirl",
-            "Hyper Pulse",
-            "Gyroid Reflections",
-            "Metal Gyroid Hall",
-            "Hex Kaleidoscope",
-            "Raymarching 4D",
-            "Vines Fractales",
-            "Whitney Music Box",
-            "Pixel Sorting",
-            "Interstellar"
-        };
-        
-        if (proceduralLayerMode_ < static_cast<int>(std::size(kProceduralModes))) {
-            proceduralModeName = kProceduralModes[proceduralLayerMode_];
-        }
+    const char* proceduralModeName = "None";
+    if (proceduralLayerMode_ >= 0 && proceduralLayerMode_ < static_cast<int>(std::size(kProceduralModes))) {
+        proceduralModeName = kProceduralModes[proceduralLayerMode_];
     }
     
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 1.0f, 0.8f, 1.0f));
@@ -691,8 +655,8 @@ void Visualizer::renderCurrentEffectsDisplay() {
     
     ImGui::Spacing();
     
-    // Mostrar efectos de post-procesamiento activos
-    ImGui::Text("🎨 Post-Procesamiento:");
+    // Show active post-processing effects
+    ImGui::Text("🎨 Post-Processing:");
     
     bool anyActive = false;
     for (int slotIndex = 0; slotIndex < kMaxPostProcessSlots; ++slotIndex) {
@@ -704,33 +668,8 @@ void Visualizer::renderCurrentEffectsDisplay() {
             ImGui::Text("Slot %d:", slotIndex + 1);
             ImGui::SameLine();
             
-            const char* postProcessModeName = "Ninguno";
-            if (slot.mode >= 0 && slot.mode < 22) {
-                static const char* kPostProcessModes[] = {
-                    "Ninguno",
-                    "Escala de Grises",
-                    "Filmic + Viñeteado",
-                    "CRT Monitor",
-                    "Pulso Cromático",
-                    "Umbral de Bajos",
-                    "Desenfoque Radial",
-                    "Caleidoscopio",
-                    "Glitch Digital",
-                    "Pixelación 64px",
-                    "Pixelación 128px", 
-                    "Pixelación 192px",
-                    "Pixelación 256px",
-                    "Distorsión de Lente",
-                    "Superposición Plasma",
-                    "Desplazamiento RGB",
-                    "Energía Recursiva",
-                    "Bloom + ACES",
-                    "Pixel Tiles",
-                    "Detección de Bordes Sobel",
-                    "Caleidoscopio Espejo",
-                    "Sobel Avanzado"
-                };
-                
+            const char* postProcessModeName = "None";
+            if (slot.mode >= 0 && slot.mode < static_cast<int>(std::size(kPostProcessModes))) {
                 if (slot.mode < static_cast<int>(std::size(kPostProcessModes))) {
                     postProcessModeName = kPostProcessModes[slot.mode];
                 }
@@ -748,19 +687,19 @@ void Visualizer::renderCurrentEffectsDisplay() {
     
     if (!anyActive) {
         ImGui::Indent();
-        ImGui::TextDisabled("Ningún efecto activo");
+        ImGui::TextDisabled("No active effects");
         ImGui::Unindent();
     }
     
     ImGui::Spacing();
     ImGui::Separator();
     
-    // Atajos de teclado
-    ImGui::Text("⌨️ Atajos:");
-    ImGui::TextDisabled("I - Mostrar/Ocultar esta ventana");
-    ImGui::TextDisabled("P - Avanzar post-procesamiento");
-    ImGui::TextDisabled("O - Retroceder post-procesamiento");
-    ImGui::TextDisabled("1 - Toggle orbes esquina");
+    // Keyboard shortcuts
+    ImGui::Text("⌨️ Shortcuts:");
+    ImGui::TextDisabled("I - Show/Hide this window");
+    ImGui::TextDisabled("P - Advance post-processing");
+    ImGui::TextDisabled("O - Rewind post-processing");
+    ImGui::TextDisabled("1 - Toggle corner orbs");
     
     ImGui::End();
 }

@@ -205,14 +205,14 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: \
  /home/ricky/coding/proyects/visuals/src/modular_layer.h \
  /home/ricky/coding/proyects/visuals/src/post_processor.h \
  /home/ricky/coding/proyects/visuals/src/settings_manager.h \
- /home/ricky/coding/proyects/visuals/imgui/imgui.h \
- /home/ricky/coding/proyects/visuals/imgui/imconfig.h \
- /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/float.h \
- /usr/include/string.h /usr/include/strings.h /usr/include/assert.h \
- /home/ricky/coding/proyects/visuals/imgui/backends/imgui_impl_glfw.h \
- /home/ricky/coding/proyects/visuals/imgui/backends/imgui_impl_opengl3.h \
- /usr/include/c++/15.2.1/iostream /usr/include/c++/15.2.1/iomanip \
- /usr/include/c++/15.2.1/locale \
+ /usr/include/c++/15.2.1/algorithm \
+ /usr/include/c++/15.2.1/bits/stl_algo.h \
+ /usr/include/c++/15.2.1/bits/algorithmfwd.h \
+ /usr/include/c++/15.2.1/bits/stl_heap.h \
+ /usr/include/c++/15.2.1/pstl/glue_algorithm_defs.h \
+ /usr/include/c++/15.2.1/cstring /usr/include/string.h \
+ /usr/include/strings.h /usr/include/c++/15.2.1/iostream \
+ /usr/include/c++/15.2.1/iomanip /usr/include/c++/15.2.1/locale \
  /usr/include/c++/15.2.1/bits/locale_facets_nonio.h \
  /usr/include/c++/15.2.1/ctime \
  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/time_members.h \
@@ -221,8 +221,19 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: \
  /usr/include/c++/15.2.1/bits/locale_facets_nonio.tcc \
  /usr/include/c++/15.2.1/bits/locale_conv.h \
  /usr/include/c++/15.2.1/bits/quoted_string.h \
- /usr/include/c++/15.2.1/algorithm \
- /usr/include/c++/15.2.1/bits/stl_algo.h \
- /usr/include/c++/15.2.1/bits/algorithmfwd.h \
- /usr/include/c++/15.2.1/bits/stl_heap.h \
- /usr/include/c++/15.2.1/pstl/glue_algorithm_defs.h
+ /home/ricky/coding/proyects/visuals/imgui/imgui.h \
+ /home/ricky/coding/proyects/visuals/imgui/imconfig.h \
+ /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/float.h \
+ /usr/include/assert.h \
+ /home/ricky/coding/proyects/visuals/imgui/backends/imgui_impl_glfw.h \
+ /home/ricky/coding/proyects/visuals/imgui/backends/imgui_impl_opengl3.h \
+ /home/ricky/coding/proyects/visuals/src/shader_loader.h \
+ /usr/include/c++/15.2.1/filesystem /usr/include/c++/15.2.1/bits/fs_fwd.h \
+ /usr/include/c++/15.2.1/bits/chrono.h /usr/include/c++/15.2.1/ratio \
+ /usr/include/c++/15.2.1/bits/parse_numbers.h \
+ /usr/include/c++/15.2.1/bits/fs_path.h /usr/include/c++/15.2.1/codecvt \
+ /usr/include/c++/15.2.1/bits/fs_dir.h \
+ /usr/include/c++/15.2.1/bits/fs_ops.h /usr/include/c++/15.2.1/fstream \
+ /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/basic_file.h \
+ /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/c++io.h \
+ /usr/include/c++/15.2.1/bits/fstream.tcc

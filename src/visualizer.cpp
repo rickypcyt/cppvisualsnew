@@ -882,7 +882,7 @@ Visualizer::Visualizer()
       coreShowSparkles_(true), coreShowBloom_(true), showCornerOrbs_(true),
       showProceduralLayer_(true), proceduralLayerDebug_(false), proceduralLayerOpacity_(0.85f),
       showPostProcess_(true),
-      proceduralLayerMode_(23), audioInputGain_(1.0f), visualSensitivity_(1.0f),
+      proceduralLayerMode_(1), audioInputGain_(1.0f), visualSensitivity_(1.0f),
       settingsManager_(std::make_unique<SettingsManager>()) {
     waveformBuffer_.resize(512);
     colorRandomTimer_ = 0.0f;

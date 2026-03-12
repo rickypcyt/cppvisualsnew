@@ -61,6 +61,12 @@ void main() {
         color = renderHyperPulse(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 28) {
         color = renderGyroidReflections(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 29) {
+        color = renderHead(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 30) {
+        color = renderMetalGyroidHall(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 31) {
+        color = renderHexKaleidoscope(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else {
         color = renderDomainWarpedFractal(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }

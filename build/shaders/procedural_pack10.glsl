@@ -191,3 +191,58 @@ vec4 renderMetalGyroidHall(vec2 st, float time, float tempo, float energy, float
     float alpha = clamp(0.35 + length(color) * 0.2, 0.0, 1.0);
     return vec4(color, alpha);
 }
+
+vec4 renderHexKaleidoscope(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
+    vec2 uv = st * 2.0 - 1.0;
+    uv.x *= uResolution.x / max(uResolution.y, 1.0);
+    
+    float angle = atan(uv.y, uv.x);
+    float radius = length(uv);
+    
+    // Hexagonal symmetry (6 segments)
+    float segment = PI / 3.0;
+    angle = mod(angle, segment);
+    if (angle > segment * 0.5) {
+        angle = segment - angle;
+    }
+    
+    uv = vec2(cos(angle), sin(angle)) * radius;
+    
+    // Add rotation based on audio
+    float rotation = time * 0.5 + tempo * 0.2;
+    float s = sin(rotation);
+    float c = cos(rotation);
+    uv = vec2(uv.x * c - uv.y * s, uv.x * s + uv.y * c);
+    
+    // Create hexagonal pattern
+    vec2 hex = vec2(0.5, sqrt(3.0) * 0.5);
+    vec2 hexCoord = uv / hex;
+    vec2 hexIndex = floor(hexCoord);
+    hexCoord = fract(hexCoord) - 0.5;
+    
+    float hexDist = length(hexCoord);
+    
+    // Audio-reactive parameters
+    float pulse = 1.0 + bass * 0.3 + energy * 0.2;
+    float colorShift = mid * 0.5 + high * 0.3;
+    
+    // Create pattern
+    float pattern = sin(hexDist * 10.0 * pulse - time * 2.0) * 0.5 + 0.5;
+    pattern *= 1.0 - smoothstep(0.4, 0.6, hexDist);
+    
+    // Color based on audio and position
+    vec3 color = vec3(0.0);
+    color.r = pattern * (0.5 + sin(time + colorShift) * 0.5);
+    color.g = pattern * (0.5 + cos(time * 1.3 + colorShift * 1.5) * 0.5);
+    color.b = pattern * (0.5 + sin(time * 0.7 + colorShift * 2.0) * 0.5);
+    
+    // Apply palette
+    vec3 palette = mix(uPrimaryColor, uSecondaryColor, uColorBlend);
+    color = mix(palette, color, pattern);
+    
+    // Add glow effect for high energy
+    float glow = exp(-hexDist * 2.0) * energy;
+    color += vec3(glow * 0.2, glow * 0.3, glow * 0.4);
+    
+    return vec4(color, pattern);
+}

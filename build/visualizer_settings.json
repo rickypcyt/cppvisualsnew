@@ -10,18 +10,18 @@
         "visualSensitivity": 1.0
     },
     "colors": {
-        "blend": 0.5600000023841858,
+        "blend": 0.47999998927116394,
         "hueSeed": 0.3374987840652466,
-        "paletteIndex": 2,
+        "paletteIndex": 1,
         "primary": [
-            0.10000000149011612,
-            0.3199999928474426,
-            0.18000000715255737
+            0.5799999833106995,
+            0.11999999731779099,
+            0.1599999964237213
         ],
         "secondary": [
-            0.30000001192092896,
-            0.8199999928474426,
-            0.5199999809265137
+            0.9399999976158142,
+            0.36000001430511475,
+            0.30000001192092896
         ]
     },
     "postProcess": {
@@ -80,12 +80,12 @@
     },
     "rgbChannels": [
         true,
-        false,
+        true,
         true
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerMode": 2,
+        "proceduralLayerMode": 27,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": true,
         "showImGuiWindow": false,

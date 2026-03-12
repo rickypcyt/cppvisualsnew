@@ -19,6 +19,10 @@ struct ImGuiIO;
 
 class Visualizer {
 public:
+    // Static mode name arrays - single source of truth
+    static const char* const kProceduralModes[];
+    static const char* const kPostProcessModes[];
+    
     Visualizer();
     ~Visualizer();
 
@@ -104,6 +108,9 @@ private:
     };
 
     static constexpr int kMaxPostProcessSlots = 5;
+    
+    // Procedural layer constants
+    static constexpr int kProceduralModeCount = 32;
     
     // Post-process constants
     static constexpr int kPostProcessModeCount = 22;

@@ -20,7 +20,7 @@ SettingsManager::SettingsManager() {
     showProceduralLayer_ = true;
     proceduralLayerDebug_ = false;
     proceduralLayerOpacity_ = 0.85f;
-    proceduralLayerMode_ = 23; // Voxel Path Tracer
+    proceduralLayerMode_ = 1; // ASCII Ocean (safe default within 0-31 range)
 
     // RGB channels always enabled by default
     rgbChannelEnabled_ = {true, true, true};
@@ -55,7 +55,11 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (ui.contains("showProceduralLayer")) showProceduralLayer_ = ui["showProceduralLayer"];
             if (ui.contains("proceduralLayerDebug")) proceduralLayerDebug_ = ui["proceduralLayerDebug"];
             if (ui.contains("proceduralLayerOpacity")) proceduralLayerOpacity_ = ui["proceduralLayerOpacity"];
-            if (ui.contains("proceduralLayerMode")) proceduralLayerMode_ = ui["proceduralLayerMode"];
+            if (ui.contains("proceduralLayerMode")) {
+                int loadedMode = ui["proceduralLayerMode"];
+                // Clamp to valid range (0-31 for 32 modes)
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 31);
+            }
         }
 
         // Load post-processing settings
@@ -66,7 +70,11 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                 for (size_t i = 0; i < slots.size() && i < postProcessSlots_.size(); ++i) {
                     const auto& slot = slots[i];
                     if (slot.contains("enabled")) postProcessSlots_[i].enabled = slot["enabled"];
-                    if (slot.contains("mode")) postProcessSlots_[i].mode = slot["mode"];
+                    if (slot.contains("mode")) {
+                        int loadedMode = slot["mode"];
+                        // Clamp to valid range (0-21 for 22 modes)
+                        postProcessSlots_[i].mode = std::clamp(loadedMode, 0, 21);
+                    }
                     if (slot.contains("strength")) postProcessSlots_[i].strength = slot["strength"];
                     if (slot.contains("rgbAdjust")) {
                         const auto& rgb = slot["rgbAdjust"];
@@ -146,13 +154,14 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["ui"]["showProceduralLayer"] = showProceduralLayer_;
         j["ui"]["proceduralLayerDebug"] = proceduralLayerDebug_;
         j["ui"]["proceduralLayerOpacity"] = proceduralLayerOpacity_;
-        j["ui"]["proceduralLayerMode"] = proceduralLayerMode_;
+        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 31);
 
         // Save post-processing settings
         for (size_t i = 0; i < postProcessSlots_.size(); ++i) {
             json slot;
             slot["enabled"] = postProcessSlots_[i].enabled;
-            slot["mode"] = postProcessSlots_[i].mode;
+            // Ensure mode is within valid range before saving
+            slot["mode"] = std::clamp(postProcessSlots_[i].mode, 0, 21);
             slot["strength"] = postProcessSlots_[i].strength;
             slot["rgbAdjust"] = postProcessSlots_[i].rgbAdjust;
             j["postProcess"]["slots"].push_back(slot);
