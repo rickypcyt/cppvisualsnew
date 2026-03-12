@@ -260,7 +260,7 @@ ValidationResult LayerValidator::validateModularLayerSystem() {
     }
     
     // Validar packs de shaders
-    for (int i = 1; i <= 10; ++i) {
+    for (int i = 1; i <= 11; ++i) {
         std::string packShader = "procedural_pack" + std::to_string(i) + ".glsl";
         auto shaderResult = validateShader(packShader);
         if (!shaderResult.isValid) {

@@ -57,8 +57,8 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (ui.contains("proceduralLayerOpacity")) proceduralLayerOpacity_ = ui["proceduralLayerOpacity"];
             if (ui.contains("proceduralLayerMode")) {
                 int loadedMode = ui["proceduralLayerMode"];
-                // Clamp to valid range (0-33 for 34 modes)
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 33);
+                // Clamp to valid range (0-34 for 35 modes)
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 34);
             }
         }
 
@@ -155,7 +155,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["ui"]["showProceduralLayer"] = showProceduralLayer_;
         j["ui"]["proceduralLayerDebug"] = proceduralLayerDebug_;
         j["ui"]["proceduralLayerOpacity"] = proceduralLayerOpacity_;
-        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 33);
+        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 34);
 
         // Save post-processing settings
         for (size_t i = 0; i < postProcessSlots_.size(); ++i) {
