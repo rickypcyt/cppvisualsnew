@@ -5,10 +5,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find packages
-find_package(OpenGL REQUIRED)
+find_package(glfw3 REQUIRED)
 find_package(PkgConfig REQUIRED)
-
-# Find nlohmann/json
+pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
+pkg_check_modules(ALSA REQUIRED alsa)
+find_package(Threads REQUIRED)
 find_package(nlohmann_json QUIET)
 if(NOT nlohmann_json_FOUND)
     message(STATUS "nlohmann_json not found, using header-only fallback")
@@ -92,17 +93,18 @@ include_directories(${IMGUI_DIR}/backends)
 # Add executable
 add_executable(audio_visualizer
     src/main.cpp
+    src/visualizer.cpp
+    src/visualizer_imgui.cpp
+    src/visualizer_console.cpp
+    src/visualizer_diagnostic.cpp
+    src/visualizer_procedural.cpp
     src/audio_capture.cpp
     src/audio_analyzer.cpp
-    src/visualizer.cpp
-    src/visualizer_diagnostic.cpp
-    src/visualizer_console.cpp
-    src/visualizer_imgui.cpp
-    src/visualizer_procedural.cpp
-    src/post_processor.cpp
     src/modular_layer.cpp
+    src/post_processor.cpp
     src/shader.cpp
     src/settings_manager.cpp
+    src/midi_controller.cpp
     src/layer_validator.cpp
     ${IMGUI_SOURCES}
 )
@@ -127,12 +129,14 @@ add_executable(test_layer_integration
 
 # Link libraries
 target_link_libraries(audio_visualizer
-    ${OPENGL_LIBRARIES}
-    ${GLEW_LIBRARIES}
+    ${CMAKE_DL_LIBS}
     glfw
+    ${GLEW_LIBRARIES}
+    ${OPENGL_LIBRARIES}
+    -lGL
     ${PORTAUDIO_LIBRARIES}
-    m
-    pthread
+    ${ALSA_LIBRARIES}
+    Threads::Threads
 )
 
 # Link libraries for validation utilities
@@ -142,10 +146,11 @@ target_link_libraries(validate_layers
 )
 
 target_link_libraries(test_layer_integration
+    ${CMAKE_DL_LIBS}
+    glfw
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
-    glfw
-    ${PORTAUDIO_LIBRARIES}
+    -lGL
     m
     pthread
 )

@@ -1,35 +1,48 @@
 {
-    "animation": {
-        "autoRandomize": true,
-        "autoRandomizeRgb": true,
-        "onsetColorCycling": true,
-        "randomInterval": 12.0
-    },
     "audio": {
-        "inputGain": 1.0,
-        "selectedDevice": -1,
-        "visualSensitivity": 1.0
+        "inputGain": 0.9399999976158142,
+        "manualBPM": 54.13385772705078,
+        "manualBPMMode": true,
+        "selectedDevice": 4,
+        "visualSensitivity": 1.0399999618530273
     },
     "colors": {
-        "blend": 0.47999998927116394,
-        "hueSeed": 0.3374987840652466,
-        "paletteIndex": 1,
         "primary": [
-            0.5799999833106995,
-            0.11999999731779099,
-            0.1599999964237213
-        ],
-        "secondary": [
-            0.9399999976158142,
-            0.36000001430511475,
-            0.30000001192092896
+            0.10000000149011612,
+            0.3199999928474426,
+            0.18000000715255737
         ]
     },
+    "midi": {
+        "tempoScale": 1.0
+    },
     "postProcess": {
+        "randomEnabled": false,
+        "randomInterval": 5.400000095367432,
         "slots": [
             {
                 "enabled": true,
-                "mode": 19,
+                "mode": 22,
+                "rgbAdjust": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "strength": 1.0
+            },
+            {
+                "enabled": true,
+                "mode": 3,
+                "rgbAdjust": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "strength": 1.0
+            },
+            {
+                "enabled": true,
+                "mode": 16,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -45,27 +58,7 @@
                     1.0,
                     1.0
                 ],
-                "strength": 1.0
-            },
-            {
-                "enabled": false,
-                "mode": 0,
-                "rgbAdjust": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "strength": 0.0
-            },
-            {
-                "enabled": false,
-                "mode": 0,
-                "rgbAdjust": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "strength": 0.0
+                "strength": 0.5433070659637451
             },
             {
                 "enabled": false,
@@ -79,17 +72,81 @@
             }
         ]
     },
-    "rgbChannels": [
-        true,
-        true,
-        true
-    ],
+    "procedural": {
+        "randomEnabled": false,
+        "randomInterval": 10.100000381469727
+    },
+    "proceduralSlots": {
+        "slots": [
+            {
+                "colorAdjust": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "enabled": true,
+                "mode": 42,
+                "opacity": 1.0
+            },
+            {
+                "colorAdjust": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "enabled": false,
+                "mode": 29,
+                "opacity": 0.49000000953674316
+            },
+            {
+                "colorAdjust": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "enabled": false,
+                "mode": 0,
+                "opacity": 1.0
+            },
+            {
+                "colorAdjust": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "enabled": false,
+                "mode": 0,
+                "opacity": 0.9055117964744568
+            },
+            {
+                "colorAdjust": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "enabled": false,
+                "mode": 0,
+                "opacity": 1.0
+            }
+        ]
+    },
+    "random": {
+        "postProcessEnabled": false,
+        "postProcessInterval": 5.400000095367432,
+        "postProcessSlotEnabled": false,
+        "postProcessSlotIndex": 0,
+        "proceduralEnabled": false,
+        "proceduralInterval": 10.100000381469727,
+        "proceduralSlotEnabled": false,
+        "proceduralSlotIndex": 0
+    },
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerMode": 29,
-        "proceduralLayerOpacity": 0.6999999284744263,
+        "proceduralLayerMode": 42,
+        "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": true,
-        "showImGuiWindow": true,
+        "showCurrentEffects": true,
+        "showImGuiWindow": false,
         "showProceduralLayer": true
     }
 }

@@ -27,31 +27,31 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 117,
+				"line" : 119,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 144,
+				"line" : 148,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 168,
-				"parent" : 0
-			},
-			{
-				"command" : 3,
-				"file" : 0,
-				"line" : 89,
+				"line" : 173,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
 				"line" : 90,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 91,
 				"parent" : 0
 			}
 		]
@@ -123,17 +123,7 @@
 		[
 			{
 				"backtrace" : 2,
-				"fragment" : "/usr/lib/libGL.so",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "/usr/lib/libGLU.so",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "/usr/lib/libGLEW.so",
+				"fragment" : "-ldl",
 				"role" : "libraries"
 			},
 			{
@@ -143,22 +133,12 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "-lportaudio",
+				"fragment" : "/usr/lib/libGLEW.so",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "-lasound",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "-lm",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "-lpthread",
+				"fragment" : "-lGL",
 				"role" : "libraries"
 			},
 			{
@@ -178,15 +158,7 @@
 	[
 		{
 			"backtrace" : 2,
-			"fragment" : "/usr/lib/libGL.so"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "/usr/lib/libGLU.so"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "/usr/lib/libGLEW.so"
+			"fragment" : "dl"
 		},
 		{
 			"backtrace" : 2,
@@ -194,19 +166,11 @@
 		},
 		{
 			"backtrace" : 2,
-			"fragment" : "portaudio"
+			"fragment" : "/usr/lib/libGLEW.so"
 		},
 		{
 			"backtrace" : 2,
-			"fragment" : "asound"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "m"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "pthread"
+			"fragment" : "-lGL"
 		},
 		{
 			"backtrace" : 2,

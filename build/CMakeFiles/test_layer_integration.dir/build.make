@@ -304,10 +304,8 @@ test_layer_integration: CMakeFiles/test_layer_integration.dir/imgui/backends/img
 test_layer_integration: CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o
 test_layer_integration: CMakeFiles/test_layer_integration.dir/build.make
 test_layer_integration: CMakeFiles/test_layer_integration.dir/compiler_depend.ts
-test_layer_integration: /usr/lib/libGL.so
-test_layer_integration: /usr/lib/libGLU.so
-test_layer_integration: /usr/lib/libGLEW.so
 test_layer_integration: /usr/lib/libglfw.so.3.4
+test_layer_integration: /usr/lib/libGLEW.so
 test_layer_integration: CMakeFiles/test_layer_integration.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Linking CXX executable test_layer_integration"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/test_layer_integration.dir/link.txt --verbose=$(VERBOSE)

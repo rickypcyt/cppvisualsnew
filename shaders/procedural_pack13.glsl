@@ -40,16 +40,19 @@ vec4 renderEvolutionNoise(vec2 st, float time, float tempo, float energy, float 
         }
     }
     
-    // Apply scene colors with audio modulation
+    // Apply scene colors with reduced intensity for TV static effect
     vec3 baseColor = mix(uPrimaryColor, uSecondaryColor, uColorBlend);
-    colour = mix(colour, baseColor, 0.3);
+    colour = mix(colour, baseColor * 0.3, 0.2); // Reduced base color influence
     
-    // Add energy-based brightness
-    colour *= (0.5 + energy * 0.5);
+    // Reduce overall brightness to TV static levels (mostly gray)
+    colour *= (0.3 + energy * 0.2); // Much lower brightness
     
-    // Add pulsing effect based on tempo
+    // Add subtle pulsing effect based on tempo
     float pulse = sin(time * tempo * 0.1) * 0.5 + 0.5;
-    colour += pulse * energy * 0.3;
+    colour += pulse * energy * 0.1; // Reduced pulse intensity
+    
+    // Ensure colors stay in TV static range (darker grays)
+    colour = clamp(colour, 0.1, 0.8); // Clamp to prevent white washout
     
     // Alpha based on energy and noise intensity
     float alpha = 0.6 + energy * 0.4;

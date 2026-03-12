@@ -2422,6 +2422,7 @@ CMakeFiles/test_layer_integration.dir/src/post_processor.cpp.o: /home/ricky/codi
 
 CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o: /home/ricky/coding/proyects/visuals/src/settings_manager.cpp \
   /home/ricky/coding/proyects/visuals/src/audio_analyzer.h \
+  /home/ricky/coding/proyects/visuals/src/midi_controller.h \
   /home/ricky/coding/proyects/visuals/src/modular_layer.h \
   /home/ricky/coding/proyects/visuals/src/post_processor.h \
   /home/ricky/coding/proyects/visuals/src/settings_manager.h \
@@ -2518,6 +2519,7 @@ CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o: /home/ricky/co
   /usr/include/c++/15.2.1/algorithm \
   /usr/include/c++/15.2.1/any \
   /usr/include/c++/15.2.1/array \
+  /usr/include/c++/15.2.1/atomic \
   /usr/include/c++/15.2.1/backward/auto_ptr.h \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
@@ -2600,6 +2602,8 @@ CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o: /home/ricky/co
   /usr/include/c++/15.2.1/bits/sstream.tcc \
   /usr/include/c++/15.2.1/bits/std_abs.h \
   /usr/include/c++/15.2.1/bits/std_function.h \
+  /usr/include/c++/15.2.1/bits/std_mutex.h \
+  /usr/include/c++/15.2.1/bits/std_thread.h \
   /usr/include/c++/15.2.1/bits/stl_algo.h \
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
@@ -2625,7 +2629,9 @@ CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o: /home/ricky/co
   /usr/include/c++/15.2.1/bits/streambuf_iterator.h \
   /usr/include/c++/15.2.1/bits/string_view.tcc \
   /usr/include/c++/15.2.1/bits/stringfwd.h \
+  /usr/include/c++/15.2.1/bits/this_thread_sleep.h \
   /usr/include/c++/15.2.1/bits/uniform_int_dist.h \
+  /usr/include/c++/15.2.1/bits/unique_lock.h \
   /usr/include/c++/15.2.1/bits/unique_ptr.h \
   /usr/include/c++/15.2.1/bits/unordered_map.h \
   /usr/include/c++/15.2.1/bits/uses_allocator.h \
@@ -2680,6 +2686,7 @@ CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o: /home/ricky/co
   /usr/include/c++/15.2.1/locale \
   /usr/include/c++/15.2.1/map \
   /usr/include/c++/15.2.1/memory \
+  /usr/include/c++/15.2.1/mutex \
   /usr/include/c++/15.2.1/new \
   /usr/include/c++/15.2.1/numeric \
   /usr/include/c++/15.2.1/optional \
@@ -2697,6 +2704,7 @@ CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o: /home/ricky/co
   /usr/include/c++/15.2.1/string \
   /usr/include/c++/15.2.1/string_view \
   /usr/include/c++/15.2.1/system_error \
+  /usr/include/c++/15.2.1/thread \
   /usr/include/c++/15.2.1/tr1/bessel_function.tcc \
   /usr/include/c++/15.2.1/tr1/beta_function.tcc \
   /usr/include/c++/15.2.1/tr1/ell_integral.tcc \
@@ -3338,42 +3346,35 @@ CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o: /home/ri
 test_layer_integration: /usr/lib/Scrt1.o \
   /usr/lib/crti.o \
   /usr/lib/crtn.o \
-  /usr/lib/libasound.so \
+  /usr/lib/libGL.so \
   /usr/lib/libc.so \
+  /usr/lib/libdl.a \
   /usr/lib/libgcc_s.so \
   /usr/lib/libgcc_s.so.1 \
   /usr/lib/libm.so \
-  /usr/lib/libportaudio.so \
   /usr/lib/libpthread.a \
   /usr/lib/libstdc++.so \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtbeginS.o \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtendS.o \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/libgcc.a \
   /usr/lib/ld-linux-x86-64.so.2 \
-  /usr/lib/libGL.so \
   /usr/lib/libGLEW.so \
-  /usr/lib/libGLU.so \
   /usr/lib/libGLX.so.0 \
   /usr/lib/libGLdispatch.so.0 \
-  /usr/lib/libOpenGL.so.0 \
   /usr/lib/libX11.so.6 \
   /usr/lib/libXau.so.6 \
   /usr/lib/libXdmcp.so.6 \
   /usr/lib/libc.so.6 \
   /usr/lib/libc_nonshared.a \
   /usr/lib/libglfw.so.3.4 \
-  /usr/lib/libjack.so.0 \
   /usr/lib/libm.so.6 \
   /usr/lib/libmvec.so.1 \
-  /usr/lib/libpipewire-0.3.so.0 \
   /usr/lib/libxcb.so.1 \
   /usr/lib32/libGLX.so.0 \
   /usr/lib32/libGLdispatch.so.0 \
-  /usr/lib32/libOpenGL.so.0 \
   /usr/lib32/libX11.so.6 \
   /usr/lib32/libXau.so.6 \
   /usr/lib32/libXdmcp.so.6 \
-  /usr/lib32/libpipewire-0.3.so.0 \
   /usr/lib32/libxcb.so.1 \
   CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_glfw.cpp.o \
   CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o \
@@ -3407,8 +3408,6 @@ CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
 /usr/lib32/libxcb.so.1:
 
-/usr/lib32/libpipewire-0.3.so.0:
-
 /usr/lib32/libXau.so.6:
 
 /usr/lib32/libX11.so.6:
@@ -3416,10 +3415,6 @@ CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 /usr/lib32/libGLdispatch.so.0:
 
 /usr/lib/libxcb.so.1:
-
-/usr/lib/libpipewire-0.3.so.0:
-
-/usr/lib/libjack.so.0:
 
 /usr/lib/libglfw.so.3.4:
 
@@ -3433,8 +3428,6 @@ CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
 /usr/lib/libGLEW.so:
 
-/usr/lib/libGL.so:
-
 /usr/lib/ld-linux-x86-64.so.2:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtendS.o:
@@ -3445,11 +3438,13 @@ CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
 /usr/lib/libpthread.a:
 
-/usr/lib/libportaudio.so:
-
 /usr/lib/libgcc_s.so.1:
 
 /usr/lib/libgcc_s.so:
+
+/usr/lib/libdl.a:
+
+/usr/lib/libGL.so:
 
 /usr/lib/Scrt1.o:
 
@@ -3525,7 +3520,11 @@ CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
 /usr/include/c++/15.2.1/utility:
 
+/usr/include/c++/15.2.1/thread:
+
 /usr/include/c++/15.2.1/optional:
+
+/usr/include/c++/15.2.1/mutex:
 
 /usr/include/c++/15.2.1/cstring:
 
@@ -3533,11 +3532,17 @@ CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
 /usr/include/c++/15.2.1/bits/valarray_before.h:
 
+/usr/include/c++/15.2.1/bits/unique_lock.h:
+
 /usr/include/nlohmann/detail/input/binary_reader.hpp:
 
 /usr/include/c++/15.2.1/bits/stl_relops.h:
 
 /usr/include/c++/15.2.1/bits/stl_multimap.h:
+
+/usr/include/c++/15.2.1/bits/std_mutex.h:
+
+/usr/include/c++/15.2.1/bits/random.tcc:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/emmintrin.h:
 
@@ -3709,6 +3714,10 @@ CMakeFiles/test_layer_integration.dir/src/layer_validator.cpp.o:
 
 /usr/include/c++/15.2.1/bits/functexcept.h:
 
+/usr/include/c++/15.2.1/bits/random.h:
+
+/usr/include/c++/15.2.1/bits/exception_defines.h:
+
 /usr/include/c++/15.2.1/vector:
 
 /usr/include/c++/15.2.1/tr1/ell_integral.tcc:
@@ -3716,8 +3725,6 @@ CMakeFiles/test_layer_integration.dir/src/layer_validator.cpp.o:
 /usr/include/bits/uio_lim.h:
 
 /usr/include/bits/math-vector.h:
-
-/usr/lib/libOpenGL.so.0:
 
 /usr/include/c++/15.2.1/bits/exception.h:
 
@@ -3876,8 +3883,6 @@ CMakeFiles/test_layer_integration.dir/imgui/imgui_widgets.cpp.o:
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/clflushoptintrin.h:
 
 /usr/include/X11/extensions/Xrender.h:
-
-/usr/lib/libGLU.so:
 
 /usr/include/c++/15.2.1/bits/stream_iterator.h:
 
@@ -4107,6 +4112,8 @@ CMakeFiles/test_layer_integration.dir/imgui/imgui_widgets.cpp.o:
 
 /usr/include/c++/15.2.1/bits/regex_error.h:
 
+/usr/include/c++/15.2.1/bits/this_thread_sleep.h:
+
 /usr/include/bits/signum-generic.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/cmpccxaddintrin.h:
@@ -4243,6 +4250,8 @@ CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_glfw.cpp.o:
 
 /home/ricky/coding/proyects/visuals/src/visualizer.h:
 
+/usr/include/c++/15.2.1/bits/std_thread.h:
+
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/sgxintrin.h:
 
 /usr/include/c++/15.2.1/iterator:
@@ -4280,10 +4289,6 @@ CMakeFiles/test_layer_integration.dir/imgui/imgui_demo.cpp.o:
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/uintrintrin.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/usermsrintrin.h:
-
-/usr/include/c++/15.2.1/bits/exception_defines.h:
-
-/usr/include/c++/15.2.1/bits/random.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/vaesintrin.h:
 
@@ -4356,8 +4361,6 @@ CMakeFiles/test_layer_integration.dir/imgui/imgui_demo.cpp.o:
 /usr/include/c++/15.2.1/bits/stl_map.h:
 
 /usr/include/asm/posix_types.h:
-
-/usr/lib/libasound.so:
 
 /usr/include/c++/15.2.1/bits/stl_vector.h:
 
@@ -4482,8 +4485,6 @@ CMakeFiles/test_layer_integration.dir/imgui/imgui_demo.cpp.o:
 /usr/include/c++/15.2.1/bits/stl_algo.h:
 
 /usr/include/c++/15.2.1/bits/stl_uninitialized.h:
-
-/usr/lib32/libOpenGL.so.0:
 
 /usr/include/pthread.h:
 
@@ -4697,11 +4698,15 @@ CMakeFiles/test_layer_integration.dir/src/shader.cpp.o:
 
 /usr/include/GL/glu.h:
 
+/home/ricky/coding/proyects/visuals/src/midi_controller.h:
+
 /home/ricky/coding/proyects/visuals/src/settings_manager.h:
 
 /usr/include/bits/unistd_ext.h:
 
 /usr/include/c++/15.2.1/any:
+
+/usr/include/c++/15.2.1/atomic:
 
 /usr/include/c++/15.2.1/bits/shared_ptr_atomic.h:
 
@@ -4712,5 +4717,3 @@ CMakeFiles/test_layer_integration.dir/src/shader.cpp.o:
 /usr/include/c++/15.2.1/bits/gslice.h:
 
 /usr/include/c++/15.2.1/bits/indirect_array.h:
-
-/usr/include/c++/15.2.1/bits/random.tcc:

@@ -55,11 +55,17 @@ const char* const Visualizer::kProceduralModes[] = {
     "HSV Color Shift",
     "Crypt Roots",
     "Breathing",
-    "Crystal Tetrahedron",
     "Evolution Noise",
     "Phi Fields",
-    "Stage7",
-    "Weird Creature"
+    "Fractal Infinity",
+    "Walker",
+    "Weird Creature",
+    "Anaglyph Assembly",
+    "Message Tunnel",
+    "Pouet Grid",
+    "Cylinder Repeat",
+    "Power Particle",
+    "Flopine"
 };
 
 const char* const Visualizer::kPostProcessModes[] = {
@@ -152,9 +158,12 @@ void Visualizer::renderImGui() {
     }
 
     // Current effects display window
-    if (showImGuiWindow_) {
+    if (showCurrentEffects_) {
         renderCurrentEffectsDisplay();
     }
+    
+    // Render MIDI controls
+    renderMIDIControls();
 
     // Device selector window
     if (showDeviceSelector_) {
@@ -247,6 +256,24 @@ void Visualizer::renderMainImGuiWindow() {
 
     ImGui::Text("🎛️ Input Gain");
     ImGui::SliderFloat("##InputGainSlider", &audioInputGain_, 0.1f, 5.0f, "%.2fx", ImGuiSliderFlags_AlwaysClamp);
+    
+    ImGui::Spacing();
+    ImGui::Text("🎵 Manual BPM Mode");
+    bool prevManualBPMMode = manualBPMMode_;
+    ImGui::Checkbox("Enable Manual BPM", &manualBPMMode_);
+    if (prevManualBPMMode != manualBPMMode_) {
+        saveCurrentSettings(); // Auto-save when BPM mode changes
+    }
+    
+    if (manualBPMMode_) {
+        ImGui::Indent();
+        float prevBPMValue = manualBPM_;
+        ImGui::SliderFloat("##ManualBPMSlider", &manualBPM_, 5.0f, 200.0f, "%.0f BPM", ImGuiSliderFlags_AlwaysClamp);
+        if (ImGui::IsItemDeactivatedAfterEdit() && manualBPM_ != prevBPMValue) {
+            saveCurrentSettings(); // Auto-save when BPM changes (after editing finishes)
+        }
+        ImGui::Unindent();
+    }
 
     ImGui::Separator();
     ImGui::Text("📊 Audio Levels:");
@@ -320,22 +347,30 @@ void Visualizer::renderMainImGuiWindow() {
 
     ImGui::Begin("Visual", &showImGuiVisualWindow_, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
-    ImGui::TextUnformatted("Motor visual:");
-    ImGui::SameLine();
-    ImGui::Checkbox("Shaders modernos", &useModernPipeline_);
-    ImGui::SameLine();
+    // === RENDER ENGINE SECTION ===
+    ImGui::Text("🎬 Render Engine");
+    ImGui::Separator();
+    
+    ImGui::Checkbox("Modern Shaders", &useModernPipeline_);
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Superpone el render legacy encima del moderno");
+        ImGui::SetTooltip("Overlays legacy render on top of modern pipeline");
     }
+    
+    ImGui::Spacing();
+    ImGui::Spacing();
 
+    // === COLOR PALETTE SECTION ===
+    ImGui::Text("🎨 Color Palette");
+    ImGui::Separator();
+    
     int paletteCount = static_cast<int>(scenePalettes_.size());
     const char* currentName = (currentScenePaletteIndex_ >= 0 && currentScenePaletteIndex_ < paletteCount)
                                 ? scenePalettes_[currentScenePaletteIndex_].name.c_str()
                                 : "Sin límites";
 
-    ImGui::Text("🎨 Paleta moderna:");
+    ImGui::Text("Preset:");
     ImGui::SetNextItemWidth(200.0f);
-    if (ImGui::BeginCombo("Preset", currentName)) {
+    if (ImGui::BeginCombo("##palette_preset", currentName)) {
         bool noneSelected = currentScenePaletteIndex_ < 0;
         if (ImGui::Selectable("Sin límites", noneSelected)) {
             currentScenePaletteIndex_ = -1;
@@ -356,67 +391,183 @@ void Visualizer::renderMainImGuiWindow() {
         ImGui::EndCombo();
     }
 
+    ImGui::Spacing();
+    
+    // Color Controls
+    ImGui::Text("Colors:");
     ImGui::SetNextItemWidth(180.0f);
     if (ImGui::SliderFloat("Blend", &scenePaletteBlend_, 0.0f, 1.0f, "%.2f")) {
         scenePaletteBlend_ = std::clamp(scenePaletteBlend_, 0.0f, 1.0f);
         proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
-        saveCurrentSettings(); // Auto-save when blend changes
+        saveCurrentSettings();
     }
 
-    ImGui::SetNextItemWidth(200.0f);
+    ImGui::SetNextItemWidth(180.0f);
     if (ImGui::ColorEdit3("Primary", scenePrimaryColor_.data(), ImGuiColorEditFlags_Float)) {
         proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
-        saveCurrentSettings(); // Auto-save when primary color changes
+        saveCurrentSettings();
     }
-    ImGui::SetNextItemWidth(200.0f);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(180.0f);
     if (ImGui::ColorEdit3("Secondary", sceneSecondaryColor_.data(), ImGuiColorEditFlags_Float)) {
         proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
-        saveCurrentSettings(); // Auto-save when secondary color changes
+        saveCurrentSettings();
     }
 
-    if (ImGui::Button("Restore preset")) {
+    if (ImGui::Button("Restore Preset")) {
         applyScenePalette(currentScenePaletteIndex_);
     }
 
+    ImGui::Spacing();
+    ImGui::Spacing();
+
+    // === MODERN PIPELINE SECTION ===
     if (useModernPipeline_) {
+        ImGui::Text("🔮 Modern Pipeline");
+        ImGui::Separator();
+        
         bool prevCornerOrbs = showCornerOrbs_;
         ImGui::Checkbox("Corner Orbs", &showCornerOrbs_);
         if (prevCornerOrbs != showCornerOrbs_) {
-            saveCurrentSettings(); // Auto-save when corner orbs setting changes
+            saveCurrentSettings();
         }
 
-        if (ImGui::CollapsingHeader("Procedural Layer", ImGuiTreeNodeFlags_DefaultOpen)) {
-            bool prevShowLayer = showProceduralLayer_;
-            bool prevDebug = proceduralLayerDebug_;
-            ImGui::Checkbox("Show", &showProceduralLayer_);
-            ImGui::SameLine();
-            ImGui::Checkbox("Debug preview", &proceduralLayerDebug_);
-            if (prevShowLayer != showProceduralLayer_ || prevDebug != proceduralLayerDebug_) {
-                saveCurrentSettings(); // Auto-save when procedural layer settings change
-            }
-            float prevOpacity = proceduralLayerOpacity_;
-            ImGui::SliderFloat("Opacity", &proceduralLayerOpacity_, 0.0f, 1.0f, "%.2f");
-            if (prevOpacity != proceduralLayerOpacity_) {
-                saveCurrentSettings(); // Auto-save when opacity changes
-            }
+        if (ImGui::CollapsingHeader("Procedural Layers", ImGuiTreeNodeFlags_DefaultOpen)) {
+        bool anySlotEnabled = false;
+        
+        // Individual Slot Controls
+        for (int slotIndex = 0; slotIndex < kMaxProceduralSlots; ++slotIndex) {
+            auto& slot = proceduralSlots_[slotIndex];
 
-            int modeIndex = std::clamp(proceduralLayerMode_, 0, static_cast<int>(std::size(kProceduralModes)) - 1);
-            if (ImGui::BeginCombo("Mode", kProceduralModes[modeIndex])) {
-                for (int i = 0; i < static_cast<int>(std::size(kProceduralModes)); ++i) {
-                    bool selected = (proceduralLayerMode_ == i);
-                    if (ImGui::Selectable(kProceduralModes[i], selected)) {
-                        proceduralLayerMode_ = i;
-                        proceduralLayer_.setMode(i);
-                        saveCurrentSettings(); // Auto-save when procedural mode changes
+            ImGui::PushID(slotIndex);
+            std::string slotName = "Slot " + std::to_string(slotIndex + 1) + (slotIndex == 0 ? " (Main)" : "");
+            if (ImGui::CollapsingHeader(slotName.c_str(), slotIndex == 0 ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
+
+                // Enable Control
+                bool prevEnabled = slot.enabled;
+                ImGui::Checkbox("##proc_enable", &slot.enabled);
+                ImGui::SameLine();
+                ImGui::Text("Enable");
+                anySlotEnabled = anySlotEnabled || slot.enabled;
+                if (prevEnabled != slot.enabled) {
+                    saveCurrentSettings();
+                }
+
+                ImGui::Spacing();
+
+                // Mode and Opacity Controls (only when enabled)
+                if (slot.enabled) {
+                    // Mode Selection
+                    ImGui::Text("Effect Mode:");
+                    int currentMode = slot.mode;
+                    if (currentMode < 0 || currentMode >= static_cast<int>(std::size(kProceduralModes))) {
+                        currentMode = 0;
                     }
-                    if (selected) {
-                        ImGui::SetItemDefaultFocus();
+
+                    if (ImGui::BeginCombo("##proc_mode", kProceduralModes[currentMode])) {
+                        for (int i = 0; i < static_cast<int>(std::size(kProceduralModes)); ++i) {
+                            bool selected = (slot.mode == i);
+                            if (ImGui::Selectable(kProceduralModes[i], selected)) {
+                                slot.mode = i;
+                                if (slotIndex == 0) {
+                                    proceduralLayer_.setMode(i); // Update actual layer for slot 1
+                                    proceduralLayerMode_ = i;
+                                    slot.enabled = true; // Always ensure Slot 1 is enabled
+                                    showProceduralLayer_ = true;
+                                }
+                                saveCurrentSettings();
+                            }
+                            if (selected) {
+                                ImGui::SetItemDefaultFocus();
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+                    
+                    ImGui::Spacing();
+                    
+                    // Opacity Control
+                    ImGui::Text("Opacity:");
+                    float prevOpacity = slot.opacity;
+                    ImGui::SliderFloat("##proc_opacity", &slot.opacity, 0.0f, 1.0f, "%.2f");
+                    if (prevOpacity != slot.opacity) {
+                        saveCurrentSettings();
+                        if (slotIndex == 0) {
+                            proceduralLayerOpacity_ = slot.opacity;
+                            slot.enabled = true; // Always ensure Slot 1 is enabled
+                            showProceduralLayer_ = true;
+                        }
                     }
                 }
-                ImGui::EndCombo();
             }
-
+            ImGui::PopID();
+            
+            // Add spacing between slots
+            if (slotIndex < kMaxProceduralSlots - 1) {
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+            }
         }
+        
+        // Update global state based on slots
+        if (!anySlotEnabled) {
+            showProceduralLayer_ = false;
+        } else if (proceduralSlots_[0].enabled) {
+            showProceduralLayer_ = true;
+            proceduralLayerOpacity_ = proceduralSlots_[0].opacity;
+        }
+        
+        // Random Cycle Section
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        
+        ImGui::Text("🎲 Random Cycle Settings");
+        ImGui::TextDisabled("Automatically changes Slot 1 effect at intervals");
+        
+        ImGui::Spacing();
+        
+        // Enable Random Cycle
+        bool prevRandomProcedural = randomProceduralEnabled_;
+        ImGui::Checkbox("##proc_random_enable", &randomProceduralEnabled_);
+        ImGui::SameLine();
+        ImGui::Text("Enable Random Cycle");
+        if (prevRandomProcedural != randomProceduralEnabled_) {
+            saveCurrentSettings();
+            if (randomProceduralEnabled_) {
+                selectRandomProcedural();
+            }
+        }
+        
+        // Random Cycle Controls (only when enabled)
+        if (randomProceduralEnabled_) {
+            ImGui::Spacing();
+            
+            // Interval Control
+            ImGui::Text("Change Interval:");
+            ImGui::SetNextItemWidth(200.0f);
+            if (ImGui::SliderFloat("##proc_random_interval", &randomProceduralInterval_, 1.0f, 30.0f, "%.1f seconds")) {
+                randomProceduralInterval_ = std::max(1.0f, randomProceduralInterval_);
+                saveCurrentSettings();
+            }
+            
+            ImGui::Spacing();
+            
+            // Current Mode Display
+            if (currentRandomProcedural_ >= 0 && currentRandomProcedural_ < static_cast<int>(std::size(kProceduralModes))) {
+                ImGui::Text("Current Effect: %s", kProceduralModes[currentRandomProcedural_]);
+            }
+            
+            // Force Change Button
+            ImGui::Spacing();
+            if (ImGui::Button("Change Effect Now")) {
+                selectRandomProcedural();
+                saveCurrentSettings();
+            }
+        }
+
+    }
     }
 
     if (ImGui::CollapsingHeader("Post Processing", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -432,7 +583,9 @@ void Visualizer::renderMainImGuiWindow() {
                                slotIndex == 0 ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
 
                 bool prevEnabled = slot.enabled;
-                ImGui::Checkbox("Enable", &slot.enabled);
+                ImGui::Checkbox("##post_enable", &slot.enabled);
+                ImGui::SameLine();
+                ImGui::Text("Enable");
                 anySlotEnabled = anySlotEnabled || slot.enabled;
                 if (prevEnabled != slot.enabled) {
                     saveCurrentSettings(); // Auto-save when slot enabled/disabled
@@ -444,7 +597,8 @@ void Visualizer::renderMainImGuiWindow() {
                         currentMode = 0;
                     }
 
-                    if (ImGui::BeginCombo("Mode", kPostProcessModes[currentMode])) {
+                    ImGui::Text("Effect Mode:");
+                    if (ImGui::BeginCombo("##post_mode", kPostProcessModes[currentMode])) {
                         for (int i = 0; i < static_cast<int>(std::size(kPostProcessModes)); ++i) {
                             bool selected = (slot.mode == i);
                             if (ImGui::Selectable(kPostProcessModes[i], selected)) {
@@ -458,19 +612,30 @@ void Visualizer::renderMainImGuiWindow() {
                         ImGui::EndCombo();
                     }
 
+                    ImGui::Spacing();
+                    
+                    ImGui::Text("Intensity:");
                     float prevStrength = slot.strength;
-                    ImGui::SliderFloat("Intensity", &slot.strength, 0.0f, 1.0f, "%.2f");
+                    ImGui::SliderFloat("##post_strength", &slot.strength, 0.0f, 1.0f, "%.2f");
                     if (prevStrength != slot.strength) {
                         saveCurrentSettings(); // Auto-save when intensity changes
                     }
 
                     if (slot.mode == 15) {
+                        ImGui::Spacing();
+                        ImGui::Text("RGB Channels:");
                         ImGui::SetNextItemWidth(180.0f);
-                        ImGui::SliderFloat("R Channel", &slot.rgbAdjust[0], 0.0f, 1.5f, "%.2f");
+                        ImGui::SliderFloat("##post_rgb_r", &slot.rgbAdjust[0], 0.0f, 1.5f, "%.2f");
+                        ImGui::SameLine();
+                        ImGui::Text("R");
                         ImGui::SetNextItemWidth(180.0f);
-                        ImGui::SliderFloat("G Channel", &slot.rgbAdjust[1], 0.0f, 1.5f, "%.2f");
+                        ImGui::SliderFloat("##post_rgb_g", &slot.rgbAdjust[1], 0.0f, 1.5f, "%.2f");
+                        ImGui::SameLine();
+                        ImGui::Text("G");
                         ImGui::SetNextItemWidth(180.0f);
-                        ImGui::SliderFloat("B Channel", &slot.rgbAdjust[2], 0.0f, 1.5f, "%.2f");
+                        ImGui::SliderFloat("##post_rgb_b", &slot.rgbAdjust[2], 0.0f, 1.5f, "%.2f");
+                        ImGui::SameLine();
+                        ImGui::Text("B");
                         saveCurrentSettings(); // Auto-save when RGB adjust changes
                         ImGui::TextDisabled("Adjust how much each channel shifts in the split.");
                     }
@@ -543,32 +708,48 @@ void Visualizer::renderMainImGuiWindow() {
     }
 
     ImGui::Spacing();
-    ImGui::Text("🎲 Random Post Process:");
-    ImGui::TextDisabled("Randomizes Slot 1 effect automatically");
+    ImGui::Separator();
+    ImGui::Spacing();
+    
+    ImGui::Text("🎲 Random Post Process Settings");
+    ImGui::TextDisabled("Automatically changes Slot 1 post-processing effect");
+    
+    ImGui::Spacing();
+    
+    // Enable Random Cycle
     bool prevRandomEnabled = randomPostProcessEnabled_;
-    ImGui::Checkbox("Enable Random Cycle", &randomPostProcessEnabled_);
+    ImGui::Checkbox("##post_random_enable", &randomPostProcessEnabled_);
+    ImGui::SameLine();
+    ImGui::Text("Enable Random Cycle");
     if (prevRandomEnabled != randomPostProcessEnabled_) {
-        saveCurrentSettings(); // Auto-save when random post process changes
+        saveCurrentSettings();
         if (randomPostProcessEnabled_) {
-            selectRandomPostProcess(); // Select initial random mode
+            selectRandomPostProcess();
         }
     }
     
+    // Random Cycle Controls (only when enabled)
     if (randomPostProcessEnabled_) {
-        ImGui::SetNextItemWidth(160.0f);
-        if (ImGui::SliderFloat("Change Interval (s)", &randomPostProcessInterval_, 1.0f, 30.0f)) {
+        ImGui::Spacing();
+        
+        // Interval Control
+        ImGui::Text("Change Interval:");
+        ImGui::SetNextItemWidth(200.0f);
+        if (ImGui::SliderFloat("##post_random_interval", &randomPostProcessInterval_, 1.0f, 30.0f, "%.1f seconds")) {
             randomPostProcessInterval_ = std::max(1.0f, randomPostProcessInterval_);
-            saveCurrentSettings(); // Auto-save when interval changes
+            saveCurrentSettings();
         }
         
-        // Show current random mode for Slot 1
+        ImGui::Spacing();
+        
+        // Current Mode Display
         if (kMaxPostProcessSlots > 0 && currentRandomPostProcess_ >= 0 && currentRandomPostProcess_ < static_cast<int>(std::size(kPostProcessModes))) {
-            ImGui::SameLine();
-            ImGui::TextDisabled("(Slot 1: %s)", kPostProcessModes[currentRandomPostProcess_]);
+            ImGui::Text("Current Effect: %s", kPostProcessModes[currentRandomPostProcess_]);
         }
         
-        // Button to force change
-        if (ImGui::Button("Change Now")) {
+        // Force Change Button
+        ImGui::Spacing();
+        if (ImGui::Button("Change Effect Now")) {
             selectRandomPostProcess();
             saveCurrentSettings();
         }
@@ -582,15 +763,19 @@ void Visualizer::renderMainImGuiWindow() {
     ImGui::Checkbox("Corner Orbs", &showCornerOrbs_);
     ImGui::SameLine();
     ImGui::Checkbox("Procedural Layer", &showProceduralLayer_);
+    ImGui::SameLine();
+    ImGui::Checkbox("Current Effects", &showCurrentEffects_);
     if (prevCornerOrbs2 != showCornerOrbs_ || prevProceduralLayer != showProceduralLayer_) {
         saveCurrentSettings(); // Auto-save when layer toggles change
     }
 
     ImGui::Spacing();
     ImGui::Text("🎮 Controls:");
-    ImGui::BulletText("Flechas ←/→: cambiar modo procedural");
-    ImGui::BulletText("ESC: salir de la aplicación");
-    ImGui::BulletText("TAB: mostrar/ocultar paneles");
+    ImGui::BulletText("Arrow Keys ←/→: Change Slot 1 effect");
+    ImGui::BulletText("Arrow Keys ↑/↓: Adjust Slot 1 opacity");
+    ImGui::BulletText("I: Toggle Current Effects display");
+    ImGui::BulletText("TAB: Show/Hide control panels");
+    ImGui::BulletText("ESC: Exit application");
 
     ImGui::End();
 }
@@ -722,8 +907,6 @@ void Visualizer::renderConsoleImGui() {
 }
 
 void Visualizer::renderCurrentEffectsDisplay() {
-    if (!showImGuiWindow_) return;
-    
     // Create floating window to show current effects
     ImGui::Begin("Current Effects", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
     
@@ -732,30 +915,64 @@ void Visualizer::renderCurrentEffectsDisplay() {
     ImGui::Text("🎭 CURRENT EFFECTS");
     ImGui::PopStyleColor();
     ImGui::Separator();
-    
-    // Show current procedural layer
-    ImGui::Text("📐 Procedural Layer:");
-    ImGui::SameLine();
-    
-    const char* proceduralModeName = "None";
-    if (proceduralLayerMode_ >= 0 && proceduralLayerMode_ < static_cast<int>(std::size(kProceduralModes))) {
-        proceduralModeName = kProceduralModes[proceduralLayerMode_];
-    }
-    
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 1.0f, 0.8f, 1.0f));
-    ImGui::Text("%s", proceduralModeName);
-    ImGui::PopStyleColor();
-    
-    if (showProceduralLayer_) {
-        ImGui::SameLine();
-        ImGui::TextDisabled("(✓)");
+
+    float fps = ImGui::GetIO().Framerate;
+    if (fps > 0.0f) {
+        ImGui::Text("⚡ FPS: %.1f (%.2f ms)", fps, 1000.0f / fps);
     } else {
-        ImGui::SameLine();
-        ImGui::TextDisabled("(✗)");
+        ImGui::Text("⚡ FPS: --");
     }
-    
+
+    // Show procedural layer stack (base + overlays)
+    ImGui::Text("📐 Procedural Layers:");
+    ImGui::Indent();
+
+    bool anyProceduralActive = false;
+    const float activeColor[4] = {0.4f, 1.0f, 0.8f, 1.0f};
+
+    for (int slotIndex = 0; slotIndex < kMaxProceduralSlots; ++slotIndex) {
+        const auto& slot = proceduralSlots_[slotIndex];
+        if (!slot.enabled || slot.opacity <= 0.001f) {
+            continue;
+        }
+
+        anyProceduralActive = true;
+        int mode = std::clamp(slot.mode, 0, static_cast<int>(std::size(kProceduralModes)) - 1);
+        const char* modeName = kProceduralModes[mode];
+
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(activeColor[0], activeColor[1], activeColor[2], activeColor[3]));
+        ImGui::Text("Slot %d%s: %s", slotIndex + 1, slotIndex == 0 ? " (base)" : "", modeName);
+        ImGui::PopStyleColor();
+
+        ImGui::SameLine();
+        ImGui::TextDisabled("Opacity %.0f%%", slot.opacity * 100.0f);
+
+        ImGui::TextDisabled("Color Adjust: R %.2f  G %.2f  B %.2f",
+                             slot.colorAdjust[0], slot.colorAdjust[1], slot.colorAdjust[2]);
+
+        if (slotIndex < kMaxProceduralSlots - 1) {
+            ImGui::Dummy(ImVec2(0.0f, 2.0f));
+        }
+    }
+
+    if (!anyProceduralActive) {
+        if (showProceduralLayer_) {
+            int mode = std::clamp(proceduralLayerMode_, 0, static_cast<int>(std::size(kProceduralModes)) - 1);
+            const char* modeName = kProceduralModes[mode];
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(activeColor[0], activeColor[1], activeColor[2], activeColor[3]));
+            ImGui::Text("Global: %s", modeName);
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::TextDisabled("Opacity %.0f%%", proceduralLayerOpacity_ * 100.0f);
+        } else {
+            ImGui::TextDisabled("Procedural layer disabled");
+        }
+    }
+
+    ImGui::Unindent();
+
     ImGui::Spacing();
-    
+
     // Show active post-processing effects
     ImGui::Text("🎨 Post-Processing:");
     
@@ -777,6 +994,9 @@ void Visualizer::renderCurrentEffectsDisplay() {
             }
             
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.6f, 0.4f, 1.0f));
+            ImGui::Text("%.0f", 5.0f + midiController_->getControlValue(17) * 195.0f); ImGui::NextColumn();
+            
+            ImGui::SameLine();
             ImGui::Text("%s", postProcessModeName);
             ImGui::PopStyleColor();
             
@@ -791,16 +1011,6 @@ void Visualizer::renderCurrentEffectsDisplay() {
         ImGui::TextDisabled("No active effects");
         ImGui::Unindent();
     }
-    
-    ImGui::Spacing();
-    ImGui::Separator();
-    
-    // Keyboard shortcuts
-    ImGui::Text("⌨️ Shortcuts:");
-    ImGui::TextDisabled("I - Show/Hide this window");
-    ImGui::TextDisabled("P - Advance post-processing");
-    ImGui::TextDisabled("O - Rewind post-processing");
-    ImGui::TextDisabled("1 - Toggle corner orbs");
     
     ImGui::End();
 }

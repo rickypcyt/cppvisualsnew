@@ -45,6 +45,8 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (audio.contains("selectedDevice")) selectedDevice_ = audio["selectedDevice"];
             if (audio.contains("inputGain")) audioInputGain_ = audio["inputGain"];
             if (audio.contains("visualSensitivity")) visualSensitivity_ = audio["visualSensitivity"];
+            if (audio.contains("manualBPMMode")) manualBPMMode_ = audio["manualBPMMode"];
+            if (audio.contains("manualBPM")) manualBPM_ = audio["manualBPM"];
         }
 
         // Load UI settings
@@ -53,12 +55,13 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (ui.contains("showImGuiWindow")) showImGuiWindow_ = ui["showImGuiWindow"];
             if (ui.contains("showCornerOrbs")) showCornerOrbs_ = ui["showCornerOrbs"];
             if (ui.contains("showProceduralLayer")) showProceduralLayer_ = ui["showProceduralLayer"];
+            if (ui.contains("showCurrentEffects")) showCurrentEffects_ = ui["showCurrentEffects"];
             if (ui.contains("proceduralLayerDebug")) proceduralLayerDebug_ = ui["proceduralLayerDebug"];
             if (ui.contains("proceduralLayerOpacity")) proceduralLayerOpacity_ = ui["proceduralLayerOpacity"];
             if (ui.contains("proceduralLayerMode")) {
                 int loadedMode = ui["proceduralLayerMode"];
-                // Clamp to valid range (0-38 for 39 modes)
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 38);
+                // Clamp to valid range (0-43 for 44 modes)
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 43);
             }
         }
 
@@ -86,6 +89,64 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                     }
                 }
             }
+        }
+
+        // Load procedural slots settings
+        if (j.contains("proceduralSlots")) {
+            const auto& procedural = j["proceduralSlots"];
+            if (procedural.contains("slots")) {
+                const auto& slots = procedural["slots"];
+                for (size_t i = 0; i < slots.size() && i < proceduralSlots_.size(); ++i) {
+                    const auto& slot = slots[i];
+                    if (slot.contains("enabled")) proceduralSlots_[i].enabled = slot["enabled"];
+                    if (slot.contains("mode")) {
+                        int loadedMode = slot["mode"];
+                        // Clamp to valid range (0-43 for 44 modes)
+                        proceduralSlots_[i].mode = std::clamp(loadedMode, 0, 43);
+                    }
+                    if (slot.contains("opacity")) proceduralSlots_[i].opacity = slot["opacity"];
+                    if (slot.contains("colorAdjust")) {
+                        const auto& rgb = slot["colorAdjust"];
+                        if (rgb.size() >= 3) {
+                            proceduralSlots_[i].colorAdjust[0] = rgb[0];
+                            proceduralSlots_[i].colorAdjust[1] = rgb[1];
+                            proceduralSlots_[i].colorAdjust[2] = rgb[2];
+                        }
+                    }
+                }
+            }
+        }
+
+        // Load random settings
+        if (j.contains("random")) {
+            const auto& random = j["random"];
+            if (random.contains("postProcessEnabled")) randomPostProcessEnabled_ = random["postProcessEnabled"];
+            if (random.contains("postProcessInterval")) randomPostProcessInterval_ = random["postProcessInterval"];
+            if (random.contains("proceduralEnabled")) randomProceduralEnabled_ = random["proceduralEnabled"];
+            if (random.contains("proceduralInterval")) randomProceduralInterval_ = random["proceduralInterval"];
+            if (random.contains("postProcessSlotEnabled")) randomPostProcessSlotEnabled_ = random["postProcessSlotEnabled"];
+            if (random.contains("postProcessSlotIndex")) randomPostProcessSlotIndex_ = random["postProcessSlotIndex"];
+            if (random.contains("proceduralSlotEnabled")) randomProceduralSlotEnabled_ = random["proceduralSlotEnabled"];
+            if (random.contains("proceduralSlotIndex")) randomProceduralSlotIndex_ = random["proceduralSlotIndex"];
+        }
+
+        // Load post-processing random settings (legacy compatibility)
+        if (j.contains("postProcess")) {
+            const auto& postProcess = j["postProcess"];
+            if (postProcess.contains("randomEnabled")) randomPostProcessEnabled_ = postProcess["randomEnabled"];
+            if (postProcess.contains("randomInterval")) randomPostProcessInterval_ = postProcess["randomInterval"];
+        }
+
+        if (j.contains("midi")) {
+            const auto& midi = j["midi"];
+            if (midi.contains("tempoScale")) midiTempoScale_ = midi["tempoScale"];
+        }
+
+        // Load procedural random settings (legacy compatibility)
+        if (j.contains("procedural")) {
+            const auto& procedural = j["procedural"];
+            if (procedural.contains("randomEnabled")) randomProceduralEnabled_ = procedural["randomEnabled"];
+            if (procedural.contains("randomInterval")) randomProceduralInterval_ = procedural["randomInterval"];
         }
 
         // Load color palette settings
@@ -153,9 +214,10 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["ui"]["showImGuiWindow"] = showImGuiWindow_;
         j["ui"]["showCornerOrbs"] = showCornerOrbs_;
         j["ui"]["showProceduralLayer"] = showProceduralLayer_;
+        j["ui"]["showCurrentEffects"] = showCurrentEffects_;
         j["ui"]["proceduralLayerDebug"] = proceduralLayerDebug_;
         j["ui"]["proceduralLayerOpacity"] = proceduralLayerOpacity_;
-        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 38);
+        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 43);
 
         // Save post-processing settings
         for (size_t i = 0; i < postProcessSlots_.size(); ++i) {
@@ -168,23 +230,44 @@ bool SettingsManager::saveSettings(const std::string& filename) {
             j["postProcess"]["slots"].push_back(slot);
         }
 
+        // Save procedural slots settings
+        for (size_t i = 0; i < proceduralSlots_.size(); ++i) {
+            json slot;
+            slot["enabled"] = proceduralSlots_[i].enabled;
+            // Ensure mode is within valid range before saving
+            slot["mode"] = std::clamp(proceduralSlots_[i].mode, 0, 43);
+            slot["opacity"] = proceduralSlots_[i].opacity;
+            slot["colorAdjust"] = proceduralSlots_[i].colorAdjust;
+            j["proceduralSlots"]["slots"].push_back(slot);
+        }
+
+        // Save random settings
+        j["random"]["postProcessEnabled"] = randomPostProcessEnabled_;
+        j["random"]["postProcessInterval"] = randomPostProcessInterval_;
+        j["random"]["proceduralEnabled"] = randomProceduralEnabled_;
+        j["random"]["proceduralInterval"] = randomProceduralInterval_;
+        j["random"]["postProcessSlotEnabled"] = randomPostProcessSlotEnabled_;
+        j["random"]["postProcessSlotIndex"] = randomPostProcessSlotIndex_;
+        j["random"]["proceduralSlotEnabled"] = randomProceduralSlotEnabled_;
+        j["random"]["proceduralSlotIndex"] = randomProceduralSlotIndex_;
+
+        // Save manual BPM settings
+        j["audio"]["manualBPMMode"] = manualBPMMode_;
+        j["audio"]["manualBPM"] = manualBPM_;
+
+        // Save post-processing random settings (legacy compatibility)
+        j["postProcess"]["randomEnabled"] = randomPostProcessEnabled_;
+        j["postProcess"]["randomInterval"] = randomPostProcessInterval_;
+
+        // Save procedural random settings (legacy compatibility)
+        j["procedural"]["randomEnabled"] = randomProceduralEnabled_;
+        j["procedural"]["randomInterval"] = randomProceduralInterval_;
+
         // Save color palette settings
         j["colors"]["primary"] = scenePrimaryColor_;
-        j["colors"]["secondary"] = sceneSecondaryColor_;
-        j["colors"]["blend"] = scenePaletteBlend_;
-        j["colors"]["paletteIndex"] = currentScenePaletteIndex_;
-        j["colors"]["hueSeed"] = scenePaletteHueSeed_;
+        
+        j["midi"]["tempoScale"] = midiTempoScale_;
 
-        // Save color animation settings
-        j["animation"]["autoRandomize"] = autoRandomizeColors_;
-        j["animation"]["randomInterval"] = colorRandomInterval_;
-        j["animation"]["onsetColorCycling"] = onsetColorCyclingEnabled_;
-        j["animation"]["autoRandomizeRgb"] = autoRandomizeRgbChannels_;
-
-        // Save RGB channel settings
-        j["rgbChannels"] = rgbChannelEnabled_;
-
-        // Write to file
         std::ofstream file(filename);
         if (!file.is_open()) {
             std::cerr << "Failed to open settings file for writing: " << filename << std::endl;
@@ -216,6 +299,10 @@ void SettingsManager::setRgbChannelEnabled(int channel, bool enabled) {
 
 void SettingsManager::setPostProcessSlots(const std::array<PostProcessSlot, 5>& slots) {
     postProcessSlots_ = slots;
+}
+
+void SettingsManager::setProceduralSlots(const std::array<ProceduralSlot, 5>& slots) {
+    proceduralSlots_ = slots;
 }
 
 void SettingsManager::updateFromVisualizerState() {

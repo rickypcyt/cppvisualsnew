@@ -1,8 +1,7 @@
 // Sine-based chromatic swirl shader
 
 vec4 renderChromaticSwirl(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
-    vec2 aspect = vec2(uResolution.x / max(uResolution.y, 1.0), 1.0);
-    vec2 uv = st / aspect + 0.5;
+    vec2 uv = st + 0.5;
     vec2 centered = uv - 0.5;
 
     vec3 phaseShift = vec3(0.5, 0.2, 0.3) + vec3(0.35 * bass, 0.25 * mid, 0.4 * high);

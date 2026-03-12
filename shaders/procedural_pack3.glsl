@@ -193,11 +193,19 @@ vec4 renderVolumetricStarfield(vec2 st, float time, float tempo, float energy, f
         float starValue = happyStar(p * 10.0, twist);
         float flake = smoothstep(1.5, 0.0, starValue);
 
-        float snowMix = clamp(mix(paletteBias, 0.5 + randSeed * 0.5, 0.6), 0.0, 1.0);
+        float snowMix = clamp(mix(paletteBias, 0.3 + randSeed * 0.7, 0.6), 0.0, 1.0);
         vec3 snowAccent = mix(uPrimaryColor, uSecondaryColor, snowMix);
-        vec3 snowColor = mix(paletteBase, snowAccent, 0.65);
-        color += snowColor * 0.05 * layerFade * flake;
-        color += clamp(uv.y * -0.08 + uv.y * abs(uv.x * 2.5) * -0.07, 0.0, 1.0);
+        
+        // Add more color variation to stars
+        vec3 starColorVariation = vec3(
+            0.8 + sin(time * 0.7 + randSeed * 10.0) * 0.2,
+            0.7 + cos(time * 0.5 + randSeed * 8.0) * 0.3,
+            0.9 + sin(time * 0.3 + randSeed * 12.0) * 0.1
+        );
+        
+        vec3 snowColor = mix(paletteBase, snowAccent * starColorVariation, 0.75);
+        color += snowColor * 0.06 * layerFade * flake;
+        color += clamp(uv.y * -0.08 + uv.y * abs(uv.x * 2.5) * -0.07, 0.0, 1.0) * 0.8;
     }
     color *= max(1.0 - dot(uv, uv) * 20.6, 0.0);
 
@@ -241,11 +249,224 @@ vec4 renderVolumetricStarfield(vec2 st, float time, float tempo, float energy, f
         s += kVolStepSize;
     }
 
-    v = mix(vec3(length(v)), v, kVolSaturation + high * 0.05);
-    vec3 result = v * 0.00501 + color * 0.1;
+    v = mix(vec3(length(v) * 0.6), v * 1.2, kVolSaturation + high * 0.05);
+    
+    // Add color variation based on audio and position
+    vec3 colorVariation = vec3(
+        sin(time * 0.3 + uv.x * 5.0) * 0.2 + 0.8,
+        cos(time * 0.2 + uv.y * 3.0) * 0.15 + 0.85, 
+        sin(time * 0.4 + bass * 2.0) * 0.25 + 0.75
+    );
+    
+    vec3 result = v * 0.008 * colorVariation + color * 0.15;
+    
+    // Add subtle hue shifts based on audio
+    result.r *= 1.0 + bass * 0.3;
+    result.g *= 1.0 + mid * 0.2;
+    result.b *= 1.0 + high * 0.4;
+    
     result = clamp(result, 0.0, 1.0);
     float alpha = clamp(length(result) * 0.9 + energy * 0.35, 0.0, 1.0);
     return vec4(result, alpha);
+}
+
+float fractalInfinitySDF(vec3 p, mat3 m) {
+    float q = 1.0;
+    float d = 1e9;
+    for(int n = 0; n < 5; n++) {
+        p *= m;
+        d = min(d,max(max(abs(p.x),max(abs(p.y),abs(p.z))) - 1.0,0.8-min(max(abs(p.x),abs(p.y)),min(max(abs(p.y),abs(p.z)),max(abs(p.z),abs(p.x))))) / q);
+        p = abs(p) - 0.9;
+        p *= 2.1;
+        q *= 2.1;
+    }
+    return d;
+}
+
+vec4 renderFractalInfinity(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
+    vec2 r = uResolution.xy;
+    vec3 raypos = vec3(0,0,-5);
+    vec3 raydir = normalize(vec3((st + st - r) / sqrt(r.x * r.y),1));
+    
+    float t = time + tempo * 0.1 + energy * 0.2;
+    mat3 rot = mat3(1,0,0,0,1,0,0,0,1);
+    for(int j = 0; j < 8; j++) {
+        rot *= mat3(cos(t),0,sin(t),0,1,0,-sin(t),0,cos(t));
+        rot *= mat3(0,1,0,0,0,1,1,0,0);
+        t /= -1.237415;
+    }
+    
+    vec4 c = vec4(1);
+    
+    for(int i = 0; i < 80; i++) {
+        float dist = fractalInfinitySDF(raypos,rot);
+        raypos += raydir * dist;
+        if(dist < 0.0001) {
+            break;
+        }
+        c /= 1.07;
+    }
+    
+    // Add color based on audio reactivity
+    vec3 color = c.rgb;
+    color.r *= 1.0 + bass * 0.3;
+    color.g *= 1.0 + mid * 0.2;
+    color.b *= 1.0 + high * 0.4;
+    
+    // Mix with user colors
+    float paletteBias = clamp(uColorBlend, 0.0, 1.0);
+    color = mix(color * uPrimaryColor, color * uSecondaryColor, paletteBias);
+    
+    float alpha = clamp(length(c.rgb) + energy * 0.3, 0.0, 1.0);
+    return vec4(clamp(color, 0.0, 1.0), alpha);
+}
+
+vec2 walkerRotate(vec2 inVec, float alpha) {
+    float c = cos(alpha);
+    float s = sin(alpha);
+    return vec2(
+        inVec.x * c + inVec.y * s,
+        inVec.y * c - inVec.x * s
+    );
+}
+
+float walkerAudioEnergy(float bass, float mid, float high) {
+    float energy = bass * 0.5 + mid * 0.3 + high * 0.2;
+    return max(energy, 0.25);
+}
+
+float walkerAssemblyFactor(float bass, float mid, float high) {
+    return smoothstep(0.15, 0.85, walkerAudioEnergy(bass, mid, high));
+}
+
+float walkerZoneThreshold(vec2 uv, float assemblyFactor) {
+    float normalizedHeight = clamp((uv.y + 0.9) / 1.8, 0.0, 1.0);
+    float threshold;
+    if (normalizedHeight > 0.75) {
+        threshold = 0.46;
+    } else if (normalizedHeight > 0.45) {
+        threshold = 0.32;
+    } else if (normalizedHeight > 0.2) {
+        threshold = 0.2;
+    } else {
+        threshold = 0.08;
+    }
+
+    float noise = sin(uv.x * 11.0 + uTime * 2.1) * cos(uv.y * 7.0 + uTime * 1.6);
+    threshold += noise * 0.05 * (1.0 - assemblyFactor);
+    return threshold;
+}
+
+float walkerBody(vec2 uv, vec2 leftLeg, vec2 rightLeg, vec2 center) {
+    float baseRadius = 0.18;
+    vec2 leftLeg2 = leftLeg - center;
+    vec2 rightLeg2 = rightLeg - center;
+    float leftRadius = length(leftLeg2);
+    float rightRadius = length(rightLeg2);
+    vec2 leftDir = leftLeg2 / max(leftRadius, 1e-4);
+    vec2 rightDir = rightLeg2 / max(rightRadius, 1e-4);
+    vec2 r = uv - center;
+    float lenUV = length(r);
+
+    vec2 uvDir = r / max(lenUV, 1e-4);
+    float leftDist = length(uvDir - leftDir);
+    float rightDist = length(uvDir - rightDir);
+    float leftFactor = pow(max(1.0 - leftDist, 0.0), 3.0);
+    float rightFactor = pow(max(1.0 - rightDist, 0.0), 3.0);
+    float centerFactor = clamp(1.0 - leftFactor - rightFactor, 0.0, 1.0);
+
+    float radius = leftFactor * leftRadius + rightFactor * rightRadius + centerFactor * baseRadius;
+    return lenUV - radius;
+}
+
+vec2 getWalkerLegCenter(float angle) {
+    vec2 legCenter = vec2(sin(angle), max(cos(angle), 0.0));
+    return vec2(0.4, 0.2) * legCenter + vec2(0.0, -0.6);
+}
+
+float walkerLeg(vec2 uv, vec2 legCenter) {
+    float angle = (legCenter.y + 0.6) * 1.5;
+    vec2 diff = uv - legCenter;
+    diff = walkerRotate(diff, angle);
+    diff.y *= 1.6;
+    if (diff.y < 0.0) {
+        diff.y *= 5.2;
+    }
+    return length(diff) - 0.2;
+}
+
+float walkerHead(vec2 diff) {
+    vec2 diff2 = walkerRotate(diff, -0.4);
+    diff2 *= vec2(5.0, 7.0);
+    return length(diff2) - 1.0;
+}
+
+float walkerCoreDistance(vec2 uv, float time, float energy, float bass, float mid, float high) {
+    float progress = 6.66 * time + bass * 0.5 + mid * 0.3;
+
+    vec2 leftLegCenter = getWalkerLegCenter(progress);
+    vec2 rightLegCenter = getWalkerLegCenter(progress + PI);
+
+    vec2 achillesOffset = vec2(-0.15, 0.0);
+
+    vec2 bodyCenter = vec2(0.0, -0.05 + 0.1 * sin(progress * 2.0) + energy * 0.1);
+    vec2 headCenter = bodyCenter + vec2(0.10 + 0.08 * cos(progress * 2.0 + 0.3), 0.23);
+
+    float leftLegDist = walkerLeg(uv, leftLegCenter);
+    float rightLegDist = walkerLeg(uv, rightLegCenter);
+    float bodyDist = walkerBody(uv, leftLegCenter + achillesOffset, rightLegCenter + achillesOffset, bodyCenter);
+    float headDist = walkerHead(uv - headCenter);
+
+    float dist = min(min(leftLegDist, rightLegDist), min(bodyDist, headDist));
+
+    if (uv.y < -0.6) {
+        dist = max(dist, uv.y + 0.6);
+    }
+
+    return dist;
+}
+
+float walkerDistance(vec2 uv, float time, float energy, float bass, float mid, float high, float assemblyFactor) {
+    float baseDist = walkerCoreDistance(uv, time, energy, bass, mid, high);
+    float threshold = walkerZoneThreshold(uv, assemblyFactor);
+    float gating = smoothstep(threshold - 0.12, threshold + 0.12, assemblyFactor);
+    return mix(0.6, baseDist, gating);
+}
+
+vec4 renderWalker(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
+    // Apply exact raymarched object coordinate system with proper aspect ratio
+    vec2 uv = st;
+    float aspect = uResolution.x / uResolution.y;
+    uv.x *= aspect;
+    uv *= 1.6;  // Small change from 1.5 to 1.6
+
+    float assemblyFactor = walkerAssemblyFactor(bass, mid, high);
+
+    float dist = walkerDistance(uv, time, energy, bass, mid, high, assemblyFactor);
+    float distY = walkerDistance(uv - vec2(0.0, 0.01), time, energy, bass, mid, high, assemblyFactor);
+    float distX = walkerDistance(uv - vec2(0.01, 0.0), time, energy, bass, mid, high, assemblyFactor);
+
+    float mask = smoothstep(0.0, -0.02, dist);
+    float edge = abs(mask - smoothstep(0.0, -0.02, distY));
+    edge += abs(mask - smoothstep(0.0, -0.02, distX));
+
+    float outline = smoothstep(0.0, 0.025, edge);
+    float glow = exp(-35.0 * abs(dist)) * (0.4 + assemblyFactor * 0.6);
+
+    float paletteBias = clamp(uColorBlend, 0.0, 1.0);
+    vec3 basePalette = mix(uPrimaryColor, uSecondaryColor, paletteBias);
+    vec3 edgeColor = mix(basePalette, vec3(1.0), 0.35 + assemblyFactor * 0.3);
+
+    vec3 color = outline * edgeColor;
+    color += glow * mix(vec3(0.1, 0.15, 0.2), edgeColor, clamp(energy * 0.6, 0.0, 1.0));
+
+    color.r *= 1.0 + bass * 0.35;
+    color.g *= 1.0 + mid * 0.3;
+    color.b *= 1.0 + high * 0.4;
+
+    color = clamp(color, 0.0, 1.0);
+    float alpha = clamp(outline * (0.55 + assemblyFactor * 0.45), 0.0, 1.0);
+    return vec4(color, alpha);
 }
 
 vec4 renderVoxelPathTracer(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {

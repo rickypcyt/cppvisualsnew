@@ -17,7 +17,7 @@ vec4 renderStage7(vec2 st, float time, float tempo, float energy, float bass, fl
     
     // Base geometric pattern
     vec3 col = vec3(pow(2.0 * abs(o.x + o.y) + abs(o.x - o.y), 5.0));
-    col = max(col, 1.0);
+    col = col * 0.5; // Scale down to prevent oversaturation
     
     // Time with beat influence
     float t = time + beat * 2.0;
@@ -68,7 +68,7 @@ vec4 renderStage7(vec2 st, float time, float tempo, float energy, float bass, fl
     }
     
     // Ensure colors are in valid range
-    col = clamp(col, 0.0, 2.0);
+    col = clamp(col, 0.0, 1.0);
     
     // Alpha based on intensity and energy
     float alpha = 0.7 + length(col) * 0.15 + energy * 0.3;

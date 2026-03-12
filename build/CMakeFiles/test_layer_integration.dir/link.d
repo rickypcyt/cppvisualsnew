@@ -16,18 +16,10 @@ test_layer_integration: \
   CMakeFiles/test_layer_integration.dir/imgui/imgui_widgets.cpp.o \
   CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_glfw.cpp.o \
   CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o \
-  /usr/lib/libGL.so \
-  /usr/lib/libGLU.so \
-  /usr/lib/libGLEW.so \
+  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libdl.a \
   /usr/lib/libglfw.so.3.4 \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libportaudio.so \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libasound.so \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libpthread.a \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so \
-  /usr/lib/libm.so.6 \
-  /usr/lib/libmvec.so.1 \
+  /usr/lib/libGLEW.so \
+  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libGL.so \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libpthread.a \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libstdc++.so \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so \
@@ -59,14 +51,9 @@ test_layer_integration: \
   /usr/lib/libGLdispatch.so.0 \
   /usr/lib32/libGLX.so.0 \
   /usr/lib/libGLX.so.0 \
-  /usr/lib32/libOpenGL.so.0 \
-  /usr/lib/libOpenGL.so.0 \
-  /usr/lib/libjack.so.0 \
   /usr/lib/ld-linux-x86-64.so.2 \
   /usr/lib32/libX11.so.6 \
   /usr/lib/libX11.so.6 \
-  /usr/lib32/libpipewire-0.3.so.0 \
-  /usr/lib/libpipewire-0.3.so.0 \
   /usr/lib32/libxcb.so.1 \
   /usr/lib/libxcb.so.1 \
   /usr/lib32/libXau.so.6 \
@@ -108,29 +95,13 @@ CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_glfw.cpp.o:
 
 CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
-/usr/lib/libGL.so:
-
-/usr/lib/libGLU.so:
-
-/usr/lib/libGLEW.so:
+/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libdl.a:
 
 /usr/lib/libglfw.so.3.4:
 
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libportaudio.so:
+/usr/lib/libGLEW.so:
 
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libasound.so:
-
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libpthread.a:
-
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so:
-
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so:
-
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so:
-
-/usr/lib/libm.so.6:
-
-/usr/lib/libmvec.so.1:
+/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libGL.so:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libpthread.a:
 
@@ -194,21 +165,11 @@ CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
 /usr/lib/libGLX.so.0:
 
-/usr/lib32/libOpenGL.so.0:
-
-/usr/lib/libOpenGL.so.0:
-
-/usr/lib/libjack.so.0:
-
 /usr/lib/ld-linux-x86-64.so.2:
 
 /usr/lib32/libX11.so.6:
 
 /usr/lib/libX11.so.6:
-
-/usr/lib32/libpipewire-0.3.so.0:
-
-/usr/lib/libpipewire-0.3.so.0:
 
 /usr/lib32/libxcb.so.1:
 

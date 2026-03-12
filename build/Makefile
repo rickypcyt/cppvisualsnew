@@ -449,6 +449,30 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/midi_controller.o: src/midi_controller.cpp.o
+.PHONY : src/midi_controller.o
+
+# target to build an object file
+src/midi_controller.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.o
+.PHONY : src/midi_controller.cpp.o
+
+src/midi_controller.i: src/midi_controller.cpp.i
+.PHONY : src/midi_controller.i
+
+# target to preprocess a source file
+src/midi_controller.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.i
+.PHONY : src/midi_controller.cpp.i
+
+src/midi_controller.s: src/midi_controller.cpp.s
+.PHONY : src/midi_controller.s
+
+# target to generate assembly for a file
+src/midi_controller.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.s
+.PHONY : src/midi_controller.cpp.s
+
 src/modular_layer.o: src/modular_layer.cpp.o
 .PHONY : src/modular_layer.o
 
@@ -769,6 +793,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/midi_controller.o"
+	@echo "... src/midi_controller.i"
+	@echo "... src/midi_controller.s"
 	@echo "... src/modular_layer.o"
 	@echo "... src/modular_layer.i"
 	@echo "... src/modular_layer.s"

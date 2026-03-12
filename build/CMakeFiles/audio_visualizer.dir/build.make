@@ -86,38 +86,10 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/main.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/main.cpp -o CMakeFiles/audio_visualizer.dir/src/main.cpp.s
 
-CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
-CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: /home/ricky/coding/proyects/visuals/src/audio_capture.cpp
-CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o -c /home/ricky/coding/proyects/visuals/src/audio_capture.cpp
-
-CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ricky/coding/proyects/visuals/src/audio_capture.cpp > CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.i
-
-CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/audio_capture.cpp -o CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.s
-
-CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
-CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o: /home/ricky/coding/proyects/visuals/src/audio_analyzer.cpp
-CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o -c /home/ricky/coding/proyects/visuals/src/audio_analyzer.cpp
-
-CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ricky/coding/proyects/visuals/src/audio_analyzer.cpp > CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.i
-
-CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/audio_analyzer.cpp -o CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.s
-
 CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
 CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyects/visuals/src/visualizer.cpp
 CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o -c /home/ricky/coding/proyects/visuals/src/visualizer.cpp
 
 CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.i: cmake_force
@@ -127,6 +99,34 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.i: cmake_force
 CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/visualizer.cpp -o CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.s
+
+CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
+CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: /home/ricky/coding/proyects/visuals/src/visualizer_imgui.cpp
+CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o -c /home/ricky/coding/proyects/visuals/src/visualizer_imgui.cpp
+
+CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ricky/coding/proyects/visuals/src/visualizer_imgui.cpp > CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.i
+
+CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/visualizer_imgui.cpp -o CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.s
+
+CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
+CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: /home/ricky/coding/proyects/visuals/src/visualizer_console.cpp
+CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o -c /home/ricky/coding/proyects/visuals/src/visualizer_console.cpp
+
+CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ricky/coding/proyects/visuals/src/visualizer_console.cpp > CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.i
+
+CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/visualizer_console.cpp -o CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.s
 
 CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
 CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/coding/proyects/visuals/src/visualizer_diagnostic.cpp
@@ -142,38 +142,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/visualizer_diagnostic.cpp -o CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.s
 
-CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
-CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: /home/ricky/coding/proyects/visuals/src/visualizer_console.cpp
-CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o -c /home/ricky/coding/proyects/visuals/src/visualizer_console.cpp
-
-CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ricky/coding/proyects/visuals/src/visualizer_console.cpp > CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.i
-
-CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/visualizer_console.cpp -o CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.s
-
-CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
-CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: /home/ricky/coding/proyects/visuals/src/visualizer_imgui.cpp
-CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o -c /home/ricky/coding/proyects/visuals/src/visualizer_imgui.cpp
-
-CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ricky/coding/proyects/visuals/src/visualizer_imgui.cpp > CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.i
-
-CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/visualizer_imgui.cpp -o CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.s
-
 CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
 CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/coding/proyects/visuals/src/visualizer_procedural.cpp
 CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o -c /home/ricky/coding/proyects/visuals/src/visualizer_procedural.cpp
 
 CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.i: cmake_force
@@ -184,24 +156,38 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/visualizer_procedural.cpp -o CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.s
 
-CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
-CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o: /home/ricky/coding/proyects/visuals/src/post_processor.cpp
-CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o -c /home/ricky/coding/proyects/visuals/src/post_processor.cpp
+CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
+CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: /home/ricky/coding/proyects/visuals/src/audio_capture.cpp
+CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o -c /home/ricky/coding/proyects/visuals/src/audio_capture.cpp
 
-CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ricky/coding/proyects/visuals/src/post_processor.cpp > CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.i
+CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ricky/coding/proyects/visuals/src/audio_capture.cpp > CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.i
 
-CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/post_processor.cpp -o CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.s
+CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/audio_capture.cpp -o CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.s
+
+CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
+CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o: /home/ricky/coding/proyects/visuals/src/audio_analyzer.cpp
+CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o -c /home/ricky/coding/proyects/visuals/src/audio_analyzer.cpp
+
+CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ricky/coding/proyects/visuals/src/audio_analyzer.cpp > CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.i
+
+CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/audio_analyzer.cpp -o CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.s
 
 CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
 CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: /home/ricky/coding/proyects/visuals/src/modular_layer.cpp
 CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o -c /home/ricky/coding/proyects/visuals/src/modular_layer.cpp
 
 CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.i: cmake_force
@@ -211,6 +197,20 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.i: cmake_force
 CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/modular_layer.cpp -o CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.s
+
+CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
+CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o: /home/ricky/coding/proyects/visuals/src/post_processor.cpp
+CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o -c /home/ricky/coding/proyects/visuals/src/post_processor.cpp
+
+CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ricky/coding/proyects/visuals/src/post_processor.cpp > CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.i
+
+CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/post_processor.cpp -o CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.s
 
 CMakeFiles/audio_visualizer.dir/src/shader.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
 CMakeFiles/audio_visualizer.dir/src/shader.cpp.o: /home/ricky/coding/proyects/visuals/src/shader.cpp
@@ -240,10 +240,24 @@ CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/settings_manager.cpp -o CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.s
 
+CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
+CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.o: /home/ricky/coding/proyects/visuals/src/midi_controller.cpp
+CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.o -c /home/ricky/coding/proyects/visuals/src/midi_controller.cpp
+
+CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ricky/coding/proyects/visuals/src/midi_controller.cpp > CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.i
+
+CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/midi_controller.cpp -o CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.s
+
 CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
 CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o: /home/ricky/coding/proyects/visuals/src/layer_validator.cpp
 CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o -MF CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o.d -o CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o -c /home/ricky/coding/proyects/visuals/src/layer_validator.cpp
 
 CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.i: cmake_force
@@ -257,7 +271,7 @@ CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.s: cmake_force
 CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
 CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o: /home/ricky/coding/proyects/visuals/imgui/imgui.cpp
 CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o -MF CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o.d -o CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o -c /home/ricky/coding/proyects/visuals/imgui/imgui.cpp
 
 CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.i: cmake_force
@@ -271,7 +285,7 @@ CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.s: cmake_force
 CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
 CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o: /home/ricky/coding/proyects/visuals/imgui/imgui_demo.cpp
 CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o -MF CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o.d -o CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o -c /home/ricky/coding/proyects/visuals/imgui/imgui_demo.cpp
 
 CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.i: cmake_force
@@ -285,7 +299,7 @@ CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.s: cmake_force
 CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
 CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o: /home/ricky/coding/proyects/visuals/imgui/imgui_draw.cpp
 CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o -MF CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o.d -o CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o -c /home/ricky/coding/proyects/visuals/imgui/imgui_draw.cpp
 
 CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.i: cmake_force
@@ -299,7 +313,7 @@ CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.s: cmake_force
 CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
 CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o: /home/ricky/coding/proyects/visuals/imgui/imgui_tables.cpp
 CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o -MF CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o.d -o CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o -c /home/ricky/coding/proyects/visuals/imgui/imgui_tables.cpp
 
 CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.i: cmake_force
@@ -313,7 +327,7 @@ CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.s: cmake_force
 CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
 CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o: /home/ricky/coding/proyects/visuals/imgui/imgui_widgets.cpp
 CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o -MF CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o.d -o CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o -c /home/ricky/coding/proyects/visuals/imgui/imgui_widgets.cpp
 
 CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.i: cmake_force
@@ -327,7 +341,7 @@ CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.s: cmake_force
 CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
 CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o: /home/ricky/coding/proyects/visuals/imgui/backends/imgui_impl_glfw.cpp
 CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o -MF CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o.d -o CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o -c /home/ricky/coding/proyects/visuals/imgui/backends/imgui_impl_glfw.cpp
 
 CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.i: cmake_force
@@ -341,7 +355,7 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.s: cmake_forc
 CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o: CMakeFiles/audio_visualizer.dir/flags.make
 CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o: /home/ricky/coding/proyects/visuals/imgui/backends/imgui_impl_opengl3.cpp
 CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building CXX object CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o -MF CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o.d -o CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o -c /home/ricky/coding/proyects/visuals/imgui/backends/imgui_impl_opengl3.cpp
 
 CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.i: cmake_force
@@ -355,17 +369,18 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.s: cmake_f
 # Object files for target audio_visualizer
 audio_visualizer_OBJECTS = \
 "CMakeFiles/audio_visualizer.dir/src/main.cpp.o" \
+"CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o" \
+"CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o" \
+"CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o" \
+"CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o" \
+"CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o" \
 "CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o" \
 "CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o" \
-"CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o" \
-"CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o" \
-"CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o" \
-"CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o" \
-"CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o" \
-"CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o" \
 "CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o" \
+"CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o" \
 "CMakeFiles/audio_visualizer.dir/src/shader.cpp.o" \
 "CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o" \
+"CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.o" \
 "CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o" \
 "CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o" \
 "CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o" \
@@ -379,17 +394,18 @@ audio_visualizer_OBJECTS = \
 audio_visualizer_EXTERNAL_OBJECTS =
 
 audio_visualizer: CMakeFiles/audio_visualizer.dir/src/main.cpp.o
+audio_visualizer: CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o
+audio_visualizer: CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o
+audio_visualizer: CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o
+audio_visualizer: CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o
+audio_visualizer: CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o
 audio_visualizer: CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o
 audio_visualizer: CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o
-audio_visualizer: CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o
-audio_visualizer: CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o
-audio_visualizer: CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o
-audio_visualizer: CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o
-audio_visualizer: CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o
-audio_visualizer: CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o
 audio_visualizer: CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o
+audio_visualizer: CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o
 audio_visualizer: CMakeFiles/audio_visualizer.dir/src/shader.cpp.o
 audio_visualizer: CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o
+audio_visualizer: CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.o
 audio_visualizer: CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o
 audio_visualizer: CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o
 audio_visualizer: CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o
@@ -400,12 +416,10 @@ audio_visualizer: CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw
 audio_visualizer: CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o
 audio_visualizer: CMakeFiles/audio_visualizer.dir/build.make
 audio_visualizer: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
-audio_visualizer: /usr/lib/libGL.so
-audio_visualizer: /usr/lib/libGLU.so
-audio_visualizer: /usr/lib/libGLEW.so
 audio_visualizer: /usr/lib/libglfw.so.3.4
+audio_visualizer: /usr/lib/libGLEW.so
 audio_visualizer: CMakeFiles/audio_visualizer.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Linking CXX executable audio_visualizer"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Linking CXX executable audio_visualizer"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/audio_visualizer.dir/link.txt --verbose=$(VERBOSE)
 	/usr/bin/cmake -E copy_directory /home/ricky/coding/proyects/visuals/shaders /home/ricky/coding/proyects/visuals/build/shaders
 

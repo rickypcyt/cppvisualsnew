@@ -4,6 +4,7 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <algorithm>
 #include <memory>
 
 struct PostProcessSlot {
@@ -11,6 +12,13 @@ struct PostProcessSlot {
     int mode = 0;
     float strength = 0.0f;
     std::array<float, 3> rgbAdjust{1.0f, 1.0f, 1.0f};
+};
+
+struct ProceduralSlot {
+    bool enabled = false;
+    int mode = 0;
+    float opacity = 1.0f;
+    std::array<float, 3> colorAdjust{1.0f, 1.0f, 1.0f};
 };
 
 class SettingsManager {
@@ -43,6 +51,9 @@ public:
     bool getShowProceduralLayer() const { return showProceduralLayer_; }
     void setShowProceduralLayer(bool show) { showProceduralLayer_ = show; }
 
+    bool getShowCurrentEffects() const { return showCurrentEffects_; }
+    void setShowCurrentEffects(bool show) { showCurrentEffects_ = show; }
+
     bool getProceduralLayerDebug() const { return proceduralLayerDebug_; }
     void setProceduralLayerDebug(bool debug) { proceduralLayerDebug_ = debug; }
 
@@ -54,6 +65,9 @@ public:
 
     const std::array<PostProcessSlot, 5>& getPostProcessSlots() const { return postProcessSlots_; }
     void setPostProcessSlots(const std::array<PostProcessSlot, 5>& slots);
+
+    const std::array<ProceduralSlot, 5>& getProceduralSlots() const { return proceduralSlots_; }
+    void setProceduralSlots(const std::array<ProceduralSlot, 5>& slots);
 
     const std::array<float, 3>& getScenePrimaryColor() const { return scenePrimaryColor_; }
     void setScenePrimaryColor(const std::array<float, 3>& color) { scenePrimaryColor_ = color; }
@@ -81,9 +95,28 @@ public:
 
     bool getAutoRandomizeRgbChannels() const { return autoRandomizeRgbChannels_; }
     void setAutoRandomizeRgbChannels(bool enabled) { autoRandomizeRgbChannels_ = enabled; }
+    
+    bool getManualBPMMode() const { return manualBPMMode_; }
+    void setManualBPMMode(bool enabled) { manualBPMMode_ = enabled; }
+    
+    float getManualBPM() const { return manualBPM_; }
+    void setManualBPM(float bpm) { manualBPM_ = std::clamp(bpm, 5.0f, 200.0f); }
 
     bool getRgbChannelEnabled(int channel) const;
     void setRgbChannelEnabled(int channel, bool enabled);
+
+    // Random settings getters/setters
+    bool getRandomPostProcessEnabled() const { return randomPostProcessEnabled_; }
+    void setRandomPostProcessEnabled(bool enabled) { randomPostProcessEnabled_ = enabled; }
+
+    float getRandomPostProcessInterval() const { return randomPostProcessInterval_; }
+    void setRandomPostProcessInterval(float interval) { randomPostProcessInterval_ = interval; }
+
+    bool getRandomProceduralEnabled() const { return randomProceduralEnabled_; }
+    void setRandomProceduralEnabled(bool enabled) { randomProceduralEnabled_ = enabled; }
+
+    float getRandomProceduralInterval() const { return randomProceduralInterval_; }
+    void setRandomProceduralInterval(float interval) { randomProceduralInterval_ = interval; }
 
     // Set all settings from current visualizer state
     void updateFromVisualizerState();
@@ -101,12 +134,26 @@ private:
     bool showImGuiWindow_ = true;
     bool showCornerOrbs_ = true;
     bool showProceduralLayer_ = true;
+    bool showCurrentEffects_ = true;
     bool proceduralLayerDebug_ = false;
     float proceduralLayerOpacity_ = 0.85f;
     int proceduralLayerMode_ = 23; // Voxel Path Tracer
 
     // Post-processing settings
     std::array<PostProcessSlot, 5> postProcessSlots_;
+    
+    // Procedural slots settings
+    std::array<ProceduralSlot, 5> proceduralSlots_;
+    
+    // Random settings
+    bool randomPostProcessEnabled_ = false;
+    float randomPostProcessInterval_ = 5.0f;
+    bool randomProceduralEnabled_ = false;
+    float randomProceduralInterval_ = 8.0f;
+    bool randomPostProcessSlotEnabled_ = false;
+    int randomPostProcessSlotIndex_ = 0;
+    bool randomProceduralSlotEnabled_ = false;
+    int randomProceduralSlotIndex_ = 0;
     bool showPostProcess_ = true;
 
     // Color palette settings
@@ -117,8 +164,16 @@ private:
     float scenePaletteHueSeed_ = 0.0f;
 
     // Color animation settings
-    bool autoRandomizeColors_ = true;
-    float colorRandomInterval_ = 12.0f;
+    bool autoRandomizeColors_;
+    float colorRandomInterval_;
+    float colorRandomTimer_;
+
+    float midiTempoScale_ = 1.0f;
+    
+    // Manual BPM settings
+    bool manualBPMMode_ = false;
+    float manualBPM_ = 120.0f;
+
     bool onsetColorCyclingEnabled_ = true;
     bool autoRandomizeRgbChannels_ = false;
 

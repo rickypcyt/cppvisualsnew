@@ -96,19 +96,23 @@ vec4 renderCrystalTetrahedron(vec2 st, float time, float tempo, float energy, fl
         // Calculate lighting
         col = calcLighting(p, rd, normal, baseColor, energy);
         
-        // Add glow for high energy moments
+        // Invert the effect: make bright areas dark and add subtle glow to dark areas
+        vec3 inverted = 1.0 - col;
+        col = mix(col, inverted, 0.6); // Mostly inverted
+        
+        // Add crystal-like glow for high energy moments
         if(energy > 0.6) {
-            float glowStrength = (energy - 0.6) * 2.5;
-            col += vec3(0.3, 0.5, 1.0) * glowStrength;
+            float glowStrength = (energy - 0.6) * 1.5; // Reduced intensity
+            col += vec3(0.2, 0.3, 0.7) * glowStrength;
         }
+        
+        // Add some edge glow with reduced intensity
+        float edgeFactor = 1.0 - abs(dot(normal, -rd));
+        col += vec3(0.1, 0.2, 0.5) * edgeFactor * 0.2 * energy;
         
         // Alpha based on energy and hit
         alpha = 0.7 + energy * 0.3;
         alpha = clamp(alpha, 0.0, 1.0);
-        
-        // Add some edge glow
-        float edgeFactor = 1.0 - abs(dot(normal, -rd));
-        col += vec3(0.2, 0.4, 0.8) * edgeFactor * 0.3 * energy;
     }
     
     return vec4(col, alpha);

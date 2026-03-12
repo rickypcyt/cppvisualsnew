@@ -13,6 +13,7 @@
 #include "modular_layer.h"
 #include "post_processor.h"
 #include "settings_manager.h"
+#include "midi_controller.h"
 
 // Forward declarations for ImGui
 struct ImGuiIO;
@@ -57,7 +58,11 @@ public:
     void initializeRandomPostProcess();
     void selectRandomPostProcess();
     
-    // No-ImGui methods
+    // Random procedural layer methods
+    void updateRandomProcedural(float deltaTime);
+    void initializeRandomProcedural();
+    void selectRandomProcedural();
+    void syncProceduralLayerWithSlot1(); // Sync procedural layer with Slot 1 state
     void renderNoImGuiLoop();
     
     // ImGui methods
@@ -113,9 +118,10 @@ private:
     };
 
     static constexpr int kMaxPostProcessSlots = 5;
+    static constexpr int kMaxProceduralSlots = 5;
     
     // Procedural layer constants
-    static constexpr int kProceduralModeCount = 39;
+    static constexpr int kProceduralModeCount = 47;
     
     // Post-process constants
     static constexpr int kPostProcessModeCount = 24;
@@ -165,7 +171,12 @@ private:
     std::unique_ptr<Shader> doodadShader_;
     ModularLayer proceduralLayer_;
     PostProcessor postProcessor_;
+    
+    // MIDI controller
+    std::unique_ptr<MidiController> midiController_;
+    bool midiEnabled_ = false;
     std::array<PostProcessSlot, kMaxPostProcessSlots> postProcessSlots_;
+    std::array<ProceduralSlot, kMaxProceduralSlots> proceduralSlots_;
     
     // Post-process controls
     int postProcessMode_;
@@ -178,6 +189,13 @@ private:
     float randomPostProcessTimer_ = 0.0f;
     int currentRandomPostProcess_ = 0;
     std::vector<int> availablePostProcessModes_;
+    
+    // Random procedural layer cycle
+    bool randomProceduralEnabled_ = false;
+    float randomProceduralInterval_ = 8.0f; // seconds
+    float randomProceduralTimer_ = 0.0f;
+    int currentRandomProcedural_ = 0;
+    std::vector<int> availableProceduralModes_;
     
     AudioAnalyzer::AudioFeatures audioFeatures_;
     std::vector<float> waveformBuffer_;
@@ -196,34 +214,50 @@ private:
     bool showImGuiWindow_;
     bool showImGuiVisualWindow_;
     bool showDeviceSelector_;
+    bool showCurrentEffects_ = true; // Current Effects window (independent, controlled by 'I' key)
     bool showDiagnosticInfo_;
     bool showConsoleMode_;
     bool imguiInitialized_;
     bool autoRandomizeColors_;
     float colorRandomInterval_;
     float colorRandomTimer_;
-    float deltaTime_;
-    std::mt19937 rng_;
-    bool onsetColorCyclingEnabled_;
-    int onsetTriggerCount_;
-    bool lastOnsetActive_;
-    float tempoMultiplier_;
-    std::vector<ScenePalette> scenePalettes_;
-    int currentScenePaletteIndex_;
-    float scenePaletteHueSeed_;
-    std::array<float, 3> scenePrimaryColor_{};
-    std::array<float, 3> sceneSecondaryColor_{};
-    float scenePaletteBlend_;
     std::array<bool, 3> rgbChannelEnabled_{};
     float globalIntensityEnvelope_;
     float visualSensitivity_;
+    float tempoMultiplier_ = 1.0f;
+    float midiTempoScale_ = 1.0f;
     
-    // Music-based RGB randomization
-    bool autoRandomizeRgbChannels_;
-    float rgbRandomTimer_;
-    float rgbRandomInterval_;
-    float lastRgbRandomTime_;
-    int lastOnsetCount_;
+    // Manual BPM mode
+    bool manualBPMMode_ = false;
+    float manualBPM_ = 120.0f;
+    
+    // Scene palette settings
+    std::array<float, 3> scenePrimaryColor_{0.25f, 0.32f, 0.58f};
+    std::array<float, 3> sceneSecondaryColor_{0.35f, 0.65f, 0.92f};
+    float scenePaletteBlend_ = 0.6f;
+    int currentScenePaletteIndex_ = -1;
+    float scenePaletteHueSeed_ = 0.0f;
+    
+    bool onsetColorCyclingEnabled_ = true;
+    bool autoRandomizeRgbChannels_ = false;
+    float rgbRandomTimer_ = 0.0f;
+    float rgbRandomInterval_ = 3.0f;
+    float lastRgbRandomTime_ = 0.0f;
+    int lastOnsetCount_ = 0;
+    
+    // Random number generator
+    std::mt19937 rng_;
+    
+    // Scene palettes
+    std::vector<ScenePalette> scenePalettes_;
+    
+    // Timing
+    float deltaTime_ = 0.0f;
+    
+    // Onset detection
+    bool lastOnsetActive_ = false;
+    int onsetTriggerCount_ = 0;
+    
     bool coreShowSpokes_;
     bool coreShowRunes_;
     bool coreShowSparkles_;
@@ -260,8 +294,6 @@ private:
     void setupDoodadMesh();
     void renderWaveform(const std::vector<float>& audioBuffer);
     void renderText(const std::string& text, float x, float y);
-    void setupDeviceList();
-    void renderDiagnosticInfo();
     void renderConsoleVisualization();
     void renderFallbackTriangle();
     void renderModernVisualization();
@@ -272,6 +304,19 @@ private:
     void renderProceduralLayer();
     void renderCore();
     void handleVisualizationShortcuts();
+    
+    // Audio device methods
+    void setupDeviceList();
+    
+    // Diagnostic methods
+    void renderDiagnosticInfo();
+    
+    // MIDI methods
+    bool initializeMIDI();
+    void shutdownMIDI();
+    void setupMIDIMappings();
+    void renderMIDIControls();
+    const char* getMIDIMappingName(int cc);
 
     // ImGui rendering methods
     void renderMainImGuiWindow();

@@ -29,7 +29,7 @@ void main() {
 }
 )";
 
-const std::array<const char*, 21> kProceduralShaderFiles = {
+const std::array<const char*, 26> kProceduralShaderFiles = {
     "procedural_header.glsl",
     "procedural_helpers.glsl",
     "procedural_shadertoy_bridge.glsl",
@@ -44,12 +44,17 @@ const std::array<const char*, 21> kProceduralShaderFiles = {
     "procedural_pack9.glsl",
     "procedural_pack10.glsl",
     "procedural_pack11.glsl",
-    "procedural_pack12.glsl",
     "procedural_pack13.glsl",
     "procedural_pack14.glsl",
     "procedural_pack15.glsl",
     "procedural_pack16.glsl",
+    "procedural_anaglyph.glsl",
+    "procedural_message.glsl",
+    "procedural_pouet.glsl",
+    "procedural_cylinder_repeat.glsl",
     "procedural_head.glsl",
+    "procedural_power_particle.glsl",
+    "procedural_flopine.glsl",
     "procedural_main.glsl"
 };
 
@@ -65,7 +70,6 @@ const std::array<const char*, 16> kProceduralPackFiles = {
     "procedural_pack9.glsl",
     "procedural_pack10.glsl",
     "procedural_pack11.glsl",
-    "procedural_pack12.glsl",
     "procedural_pack13.glsl",
     "procedural_pack14.glsl",
     "procedural_pack15.glsl",
