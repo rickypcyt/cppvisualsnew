@@ -79,6 +79,9 @@ public:
     bool getOnsetColorCyclingEnabled() const { return onsetColorCyclingEnabled_; }
     void setOnsetColorCyclingEnabled(bool enabled) { onsetColorCyclingEnabled_ = enabled; }
 
+    bool getAutoRandomizeRgbChannels() const { return autoRandomizeRgbChannels_; }
+    void setAutoRandomizeRgbChannels(bool enabled) { autoRandomizeRgbChannels_ = enabled; }
+
     bool getRgbChannelEnabled(int channel) const;
     void setRgbChannelEnabled(int channel, bool enabled);
 
@@ -117,6 +120,7 @@ private:
     bool autoRandomizeColors_ = true;
     float colorRandomInterval_ = 12.0f;
     bool onsetColorCyclingEnabled_ = true;
+    bool autoRandomizeRgbChannels_ = false;
 
     // RGB channel settings
     std::array<bool, 3> rgbChannelEnabled_{true, true, true};

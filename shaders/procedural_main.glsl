@@ -69,6 +69,8 @@ void main() {
         color = renderHexKaleidoscope(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 32) {
         color = renderHSVColorShift(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 33) {
+        color = renderCryptRoots(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else {
         color = renderDomainWarpedFractal(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }

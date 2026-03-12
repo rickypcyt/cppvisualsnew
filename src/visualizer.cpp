@@ -741,7 +741,14 @@ void main() {
 
 void Visualizer::renderCornerOrbs() {
     if (!cornerShader_ || cornerVAO_ == 0) {
+        std::cerr << "Corner orbs cannot render: shader=" << (cornerShader_ ? "valid" : "null") 
+                  << " VAO=" << cornerVAO_ << std::endl;
         return;
+    }
+
+    static int debugCounter = 0;
+    if (debugCounter++ % 300 == 0) { // Print every 5 seconds at 60fps
+        std::cout << "Rendering corner orbs - showCornerOrbs_: " << showCornerOrbs_ << std::endl;
     }
 
     GLboolean depthWasEnabled = glIsEnabled(GL_DEPTH_TEST);
@@ -878,7 +885,8 @@ Visualizer::Visualizer()
       currentScenePaletteIndex_(-1), scenePaletteHueSeed_(0.0f),
       scenePrimaryColor_{0.25f, 0.32f, 0.58f}, sceneSecondaryColor_{0.35f, 0.65f, 0.92f},
       scenePaletteBlend_(0.6f), rgbChannelEnabled_{true, true, true},
-      globalIntensityEnvelope_(0.0f), coreShowSpokes_(true), coreShowRunes_(true),
+      globalIntensityEnvelope_(0.0f), autoRandomizeRgbChannels_(false), rgbRandomTimer_(0.0f), 
+      rgbRandomInterval_(8.0f), lastRgbRandomTime_(0.0f), lastOnsetCount_(0), coreShowSpokes_(true), coreShowRunes_(true),
       coreShowSparkles_(true), coreShowBloom_(true), showCornerOrbs_(true),
       showProceduralLayer_(true), proceduralLayerDebug_(false), proceduralLayerOpacity_(0.85f),
       showPostProcess_(true),
@@ -945,6 +953,7 @@ bool Visualizer::initialize(int width, int height) {
     autoRandomizeColors_ = settingsManager_->getAutoRandomizeColors();
     colorRandomInterval_ = settingsManager_->getColorRandomInterval();
     onsetColorCyclingEnabled_ = settingsManager_->getOnsetColorCyclingEnabled();
+    autoRandomizeRgbChannels_ = settingsManager_->getAutoRandomizeRgbChannels();
     
     // Apply RGB channels
     for (int i = 0; i < 3; ++i) {
@@ -1129,6 +1138,49 @@ void Visualizer::updateDynamicScenePalette() {
 
     scenePaletteHueSeed_ = std::fmod(scenePaletteHueSeed_ + hueDrift, 1.0f);
     setDefaultScenePalette();
+}
+
+void Visualizer::randomizeRgbChannels() {
+    // Count currently enabled channels
+    int enabledCount = 0;
+    for (int i = 0; i < 3; ++i) {
+        if (rgbChannelEnabled_[i]) {
+            enabledCount++;
+        }
+    }
+    
+    // If all channels are currently enabled, turn off one random channel
+    if (enabledCount == 3) {
+        std::uniform_int_distribution<int> channelDist(0, 2);
+        int channelToDisable = channelDist(rng_);
+        rgbChannelEnabled_[channelToDisable] = false;
+    }
+    // If no channels are enabled, turn on exactly one
+    else if (enabledCount == 0) {
+        std::uniform_int_distribution<int> channelDist(0, 2);
+        int channelToEnable = channelDist(rng_);
+        rgbChannelEnabled_[channelToEnable] = true;
+    }
+    // If 1 or 2 channels are enabled, randomly toggle one channel
+    else {
+        std::uniform_int_distribution<int> channelDist(0, 2);
+        int channelToToggle = channelDist(rng_);
+        
+        // If we're about to turn off the last enabled channel, turn on a different one instead
+        if (enabledCount == 1 && rgbChannelEnabled_[channelToToggle]) {
+            // Find a different channel to turn on
+            int differentChannel = (channelToToggle + 1) % 3;
+            while (differentChannel == channelToToggle) {
+                differentChannel = (differentChannel + 1) % 3;
+            }
+            rgbChannelEnabled_[differentChannel] = true;
+        } else {
+            rgbChannelEnabled_[channelToToggle] = !rgbChannelEnabled_[channelToToggle];
+        }
+    }
+    
+    // Auto-save when RGB channels are randomized
+    saveCurrentSettings();
 }
 
 void Visualizer::shutdown() {
@@ -1335,6 +1387,22 @@ void Visualizer::endFrame() {
     } else {
         onsetTriggerCount_ = 0;
         lastOnsetActive_ = audioFeatures_.onset > 0.5f;
+    }
+    
+    // RGB channel randomization based on music
+    if (autoRandomizeRgbChannels_) {
+        bool onsetActive = audioFeatures_.onset > 0.5f;
+        if (onsetActive && !lastOnsetActive_) {
+            ++lastOnsetCount_;
+            // Randomize RGB channels every 3 onsets (different from color cycling)
+            if (lastOnsetCount_ >= 3) {
+                lastOnsetCount_ = 0;
+                randomizeRgbChannels();
+            }
+        } else if (!onsetActive) {
+            // Reset counter when there's no onset
+            lastOnsetCount_ = 0;
+        }
     }
 }
 
@@ -1587,6 +1655,7 @@ void Visualizer::updateSettingsFromCurrentState() {
     settingsManager_->setAutoRandomizeColors(autoRandomizeColors_);
     settingsManager_->setColorRandomInterval(colorRandomInterval_);
     settingsManager_->setOnsetColorCyclingEnabled(onsetColorCyclingEnabled_);
+    settingsManager_->setAutoRandomizeRgbChannels(autoRandomizeRgbChannels_);
     
     // Update RGB channels
     for (int i = 0; i < 3; ++i) {
@@ -1767,7 +1836,13 @@ bool Visualizer::loadSparkShader() {
 
 bool Visualizer::loadCornerShader() {
     cornerShader_ = std::make_unique<Shader>();
-    return cornerShader_->loadFromSource(cornerVertexShaderSource, cornerFragmentShaderSource);
+    bool result = cornerShader_->loadFromSource(cornerVertexShaderSource, cornerFragmentShaderSource);
+    if (result) {
+        std::cout << "Corner shader loaded successfully" << std::endl;
+    } else {
+        std::cerr << "Failed to load corner shader" << std::endl;
+    }
+    return result;
 }
 
 void Visualizer::setupQuad() {

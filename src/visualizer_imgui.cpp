@@ -52,7 +52,8 @@ const char* const Visualizer::kProceduralModes[] = {
     "Head",
     "Metal Gyroid Hall",
     "Hex Kaleidoscope",
-    "HSV Color Shift"
+    "HSV Color Shift",
+    "Crypt Roots"
 };
 
 const char* const Visualizer::kPostProcessModes[] = {
@@ -352,15 +353,18 @@ void Visualizer::renderMainImGuiWindow() {
     if (ImGui::SliderFloat("Blend", &scenePaletteBlend_, 0.0f, 1.0f, "%.2f")) {
         scenePaletteBlend_ = std::clamp(scenePaletteBlend_, 0.0f, 1.0f);
         proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+        saveCurrentSettings(); // Auto-save when blend changes
     }
 
     ImGui::SetNextItemWidth(200.0f);
     if (ImGui::ColorEdit3("Primary", scenePrimaryColor_.data(), ImGuiColorEditFlags_Float)) {
         proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+        saveCurrentSettings(); // Auto-save when primary color changes
     }
     ImGui::SetNextItemWidth(200.0f);
     if (ImGui::ColorEdit3("Secondary", sceneSecondaryColor_.data(), ImGuiColorEditFlags_Float)) {
         proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+        saveCurrentSettings(); // Auto-save when secondary color changes
     }
 
     if (ImGui::Button("Restore preset")) {
@@ -369,12 +373,15 @@ void Visualizer::renderMainImGuiWindow() {
 
     if (useModernPipeline_) {
         ImGui::Checkbox("Corner Orbs", &showCornerOrbs_);
+        saveCurrentSettings(); // Auto-save when corner orbs setting changes
 
         if (ImGui::CollapsingHeader("Procedural Layer", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("Show", &showProceduralLayer_);
             ImGui::SameLine();
             ImGui::Checkbox("Debug preview", &proceduralLayerDebug_);
+            saveCurrentSettings(); // Auto-save when procedural layer settings change
             ImGui::SliderFloat("Opacity", &proceduralLayerOpacity_, 0.0f, 1.0f, "%.2f");
+            saveCurrentSettings(); // Auto-save when opacity changes
 
             int modeIndex = std::clamp(proceduralLayerMode_, 0, static_cast<int>(std::size(kProceduralModes)) - 1);
             if (ImGui::BeginCombo("Mode", kProceduralModes[modeIndex])) {
@@ -383,6 +390,7 @@ void Visualizer::renderMainImGuiWindow() {
                     if (ImGui::Selectable(kProceduralModes[i], selected)) {
                         proceduralLayerMode_ = i;
                         proceduralLayer_.setMode(i);
+                        saveCurrentSettings(); // Auto-save when procedural mode changes
                     }
                     if (selected) {
                         ImGui::SetItemDefaultFocus();
@@ -408,6 +416,7 @@ void Visualizer::renderMainImGuiWindow() {
 
                 ImGui::Checkbox("Enable", &slot.enabled);
                 anySlotEnabled = anySlotEnabled || slot.enabled;
+                saveCurrentSettings(); // Auto-save when slot enabled/disabled
 
                 if (slot.enabled) {
                     int currentMode = slot.mode;
@@ -420,6 +429,7 @@ void Visualizer::renderMainImGuiWindow() {
                             bool selected = (slot.mode == i);
                             if (ImGui::Selectable(kPostProcessModes[i], selected)) {
                                 slot.mode = i;
+                                saveCurrentSettings(); // Auto-save when mode changes
                             }
                             if (selected) {
                                 ImGui::SetItemDefaultFocus();
@@ -429,6 +439,7 @@ void Visualizer::renderMainImGuiWindow() {
                     }
 
                     ImGui::SliderFloat("Intensity", &slot.strength, 0.0f, 1.0f, "%.2f");
+                    saveCurrentSettings(); // Auto-save when intensity changes
 
                     if (slot.mode == 15) {
                         ImGui::SetNextItemWidth(180.0f);
@@ -437,6 +448,7 @@ void Visualizer::renderMainImGuiWindow() {
                         ImGui::SliderFloat("G Channel", &slot.rgbAdjust[1], 0.0f, 1.5f, "%.2f");
                         ImGui::SetNextItemWidth(180.0f);
                         ImGui::SliderFloat("B Channel", &slot.rgbAdjust[2], 0.0f, 1.5f, "%.2f");
+                        saveCurrentSettings(); // Auto-save when RGB adjust changes
                         ImGui::TextDisabled("Adjust how much each channel shifts in the split.");
                     }
                 }
@@ -446,9 +458,18 @@ void Visualizer::renderMainImGuiWindow() {
     }
 
     if (ImGui::CollapsingHeader("External RGB Channels", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Checkbox("Music-based randomization", &autoRandomizeRgbChannels_);
+        saveCurrentSettings(); // Auto-save when randomization setting changes
+        if (autoRandomizeRgbChannels_) {
+            ImGui::SameLine();
+            ImGui::TextDisabled("(changes every 3 onsets)");
+        }
+        
+        ImGui::Spacing();
         static const char* kLabels[3] = {"Red", "Green", "Blue"};
         for (int i = 0; i < 3; ++i) {
             ImGui::Checkbox(kLabels[i], &rgbChannelEnabled_[i]);
+            saveCurrentSettings(); // Auto-save when RGB channel toggled
             if (i < 2) {
                 ImGui::SameLine();
             }
@@ -457,35 +478,43 @@ void Visualizer::renderMainImGuiWindow() {
         ImGui::Spacing();
         if (ImGui::Button("Enable All")) {
             rgbChannelEnabled_[0] = rgbChannelEnabled_[1] = rgbChannelEnabled_[2] = true;
+            saveCurrentSettings(); // Auto-save when RGB channels changed
         }
         ImGui::SameLine();
         if (ImGui::Button("Disable All")) {
             rgbChannelEnabled_[0] = rgbChannelEnabled_[1] = rgbChannelEnabled_[2] = false;
+            saveCurrentSettings(); // Auto-save when RGB channels changed
         }
         ImGui::SameLine();
         if (ImGui::Button("Solo B")) {
             rgbChannelEnabled_[0] = false;
             rgbChannelEnabled_[1] = false;
             rgbChannelEnabled_[2] = true;
+            saveCurrentSettings(); // Auto-save when RGB channels changed
         }
 
     }
 
     ImGui::Checkbox("Random auto", &autoRandomizeColors_);
+    saveCurrentSettings(); // Auto-save when auto-randomize changes
     ImGui::SameLine();
     ImGui::Checkbox("Change colors every 2 onsets", &onsetColorCyclingEnabled_);
+    saveCurrentSettings(); // Auto-save when onset cycling changes
     ImGui::SameLine();
     ImGui::SetNextItemWidth(160.0f);
     if (ImGui::SliderFloat("Interval (s)", &colorRandomInterval_, 1.0f, 60.0f)) {
         colorRandomInterval_ = std::max(1.0f, colorRandomInterval_);
+        saveCurrentSettings(); // Auto-save when interval changes
     }
 
     ImGuiColorEditFlags colorFlags = ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float;
 
     ImGui::Text("🎞️ Visual Layers:");
     ImGui::Checkbox("Corner Orbs", &showCornerOrbs_);
+    saveCurrentSettings(); // Auto-save when corner orbs setting changes
     ImGui::SameLine();
     ImGui::Checkbox("Procedural Layer", &showProceduralLayer_);
+    saveCurrentSettings(); // Auto-save when procedural layer toggle changes
 
     ImGui::Spacing();
     ImGui::Text("🎮 Controls:");

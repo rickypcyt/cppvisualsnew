@@ -110,7 +110,7 @@ private:
     static constexpr int kMaxPostProcessSlots = 5;
     
     // Procedural layer constants
-    static constexpr int kProceduralModeCount = 33;
+    static constexpr int kProceduralModeCount = 34;
     
     // Post-process constants
     static constexpr int kPostProcessModeCount = 23;
@@ -205,6 +205,13 @@ private:
     std::array<bool, 3> rgbChannelEnabled_{};
     float globalIntensityEnvelope_;
     float visualSensitivity_;
+    
+    // Music-based RGB randomization
+    bool autoRandomizeRgbChannels_;
+    float rgbRandomTimer_;
+    float rgbRandomInterval_;
+    float lastRgbRandomTime_;
+    int lastOnsetCount_;
     bool coreShowSpokes_;
     bool coreShowRunes_;
     bool coreShowSparkles_;
@@ -266,6 +273,7 @@ private:
     void randomizeScenePalette();
     void cycleScenePaletteSequential();
     void updateDynamicScenePalette();
+    void randomizeRgbChannels();
     void setUnifiedPalette(const std::array<float, 3>& primary,
                            const std::array<float, 3>& secondary,
                            float blend);

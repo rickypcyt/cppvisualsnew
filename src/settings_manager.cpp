@@ -57,8 +57,8 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (ui.contains("proceduralLayerOpacity")) proceduralLayerOpacity_ = ui["proceduralLayerOpacity"];
             if (ui.contains("proceduralLayerMode")) {
                 int loadedMode = ui["proceduralLayerMode"];
-                // Clamp to valid range (0-32 for 33 modes)
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 32);
+                // Clamp to valid range (0-33 for 34 modes)
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 33);
             }
         }
 
@@ -118,6 +118,7 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (animation.contains("autoRandomize")) autoRandomizeColors_ = animation["autoRandomize"];
             if (animation.contains("randomInterval")) colorRandomInterval_ = animation["randomInterval"];
             if (animation.contains("onsetColorCycling")) onsetColorCyclingEnabled_ = animation["onsetColorCycling"];
+            if (animation.contains("autoRandomizeRgb")) autoRandomizeRgbChannels_ = animation["autoRandomizeRgb"];
         }
 
         // Load RGB channel settings
@@ -154,7 +155,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["ui"]["showProceduralLayer"] = showProceduralLayer_;
         j["ui"]["proceduralLayerDebug"] = proceduralLayerDebug_;
         j["ui"]["proceduralLayerOpacity"] = proceduralLayerOpacity_;
-        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 32);
+        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 33);
 
         // Save post-processing settings
         for (size_t i = 0; i < postProcessSlots_.size(); ++i) {
@@ -178,6 +179,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["animation"]["autoRandomize"] = autoRandomizeColors_;
         j["animation"]["randomInterval"] = colorRandomInterval_;
         j["animation"]["onsetColorCycling"] = onsetColorCyclingEnabled_;
+        j["animation"]["autoRandomizeRgb"] = autoRandomizeRgbChannels_;
 
         // Save RGB channel settings
         j["rgbChannels"] = rgbChannelEnabled_;
