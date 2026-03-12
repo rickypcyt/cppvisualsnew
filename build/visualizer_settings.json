@@ -9,8 +9,8 @@
     "colors": {
         "primary": [
             0.949999988079071,
-            0.20900005102157593,
-            0.6066935062408447
+            0.4447004497051239,
+            0.20900005102157593
         ]
     },
     "hotReloadEnabled": true,
@@ -23,7 +23,7 @@
         "slots": [
             {
                 "enabled": true,
-                "mode": 19,
+                "mode": 1,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -86,7 +86,7 @@
                     1.0
                 ],
                 "enabled": true,
-                "mode": 14,
+                "mode": 43,
                 "opacity": 1.0
             },
             {
@@ -143,7 +143,7 @@
     },
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerMode": 14,
+        "proceduralLayerMode": 43,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": true,
         "showCurrentEffects": false,
