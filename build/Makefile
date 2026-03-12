@@ -129,12 +129,39 @@ audio_visualizer/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/build
 .PHONY : audio_visualizer/fast
 
+#=============================================================================
+# Target rules for targets named validate_layers
+
+# Build rule for target.
+validate_layers: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 validate_layers
+.PHONY : validate_layers
+
+# fast build rule for target.
+validate_layers/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/validate_layers.dir/build.make CMakeFiles/validate_layers.dir/build
+.PHONY : validate_layers/fast
+
+#=============================================================================
+# Target rules for targets named test_layer_integration
+
+# Build rule for target.
+test_layer_integration: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test_layer_integration
+.PHONY : test_layer_integration
+
+# fast build rule for target.
+test_layer_integration/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/build
+.PHONY : test_layer_integration/fast
+
 imgui/backends/imgui_impl_glfw.o: imgui/backends/imgui_impl_glfw.cpp.o
 .PHONY : imgui/backends/imgui_impl_glfw.o
 
 # target to build an object file
 imgui/backends/imgui_impl_glfw.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_glfw.cpp.o
 .PHONY : imgui/backends/imgui_impl_glfw.cpp.o
 
 imgui/backends/imgui_impl_glfw.i: imgui/backends/imgui_impl_glfw.cpp.i
@@ -143,6 +170,7 @@ imgui/backends/imgui_impl_glfw.i: imgui/backends/imgui_impl_glfw.cpp.i
 # target to preprocess a source file
 imgui/backends/imgui_impl_glfw.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_glfw.cpp.i
 .PHONY : imgui/backends/imgui_impl_glfw.cpp.i
 
 imgui/backends/imgui_impl_glfw.s: imgui/backends/imgui_impl_glfw.cpp.s
@@ -151,6 +179,7 @@ imgui/backends/imgui_impl_glfw.s: imgui/backends/imgui_impl_glfw.cpp.s
 # target to generate assembly for a file
 imgui/backends/imgui_impl_glfw.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_glfw.cpp.s
 .PHONY : imgui/backends/imgui_impl_glfw.cpp.s
 
 imgui/backends/imgui_impl_opengl3.o: imgui/backends/imgui_impl_opengl3.cpp.o
@@ -159,6 +188,7 @@ imgui/backends/imgui_impl_opengl3.o: imgui/backends/imgui_impl_opengl3.cpp.o
 # target to build an object file
 imgui/backends/imgui_impl_opengl3.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o
 .PHONY : imgui/backends/imgui_impl_opengl3.cpp.o
 
 imgui/backends/imgui_impl_opengl3.i: imgui/backends/imgui_impl_opengl3.cpp.i
@@ -167,6 +197,7 @@ imgui/backends/imgui_impl_opengl3.i: imgui/backends/imgui_impl_opengl3.cpp.i
 # target to preprocess a source file
 imgui/backends/imgui_impl_opengl3.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.i
 .PHONY : imgui/backends/imgui_impl_opengl3.cpp.i
 
 imgui/backends/imgui_impl_opengl3.s: imgui/backends/imgui_impl_opengl3.cpp.s
@@ -175,6 +206,7 @@ imgui/backends/imgui_impl_opengl3.s: imgui/backends/imgui_impl_opengl3.cpp.s
 # target to generate assembly for a file
 imgui/backends/imgui_impl_opengl3.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.s
 .PHONY : imgui/backends/imgui_impl_opengl3.cpp.s
 
 imgui/imgui.o: imgui/imgui.cpp.o
@@ -183,6 +215,7 @@ imgui/imgui.o: imgui/imgui.cpp.o
 # target to build an object file
 imgui/imgui.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui.cpp.o
 .PHONY : imgui/imgui.cpp.o
 
 imgui/imgui.i: imgui/imgui.cpp.i
@@ -191,6 +224,7 @@ imgui/imgui.i: imgui/imgui.cpp.i
 # target to preprocess a source file
 imgui/imgui.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui.cpp.i
 .PHONY : imgui/imgui.cpp.i
 
 imgui/imgui.s: imgui/imgui.cpp.s
@@ -199,6 +233,7 @@ imgui/imgui.s: imgui/imgui.cpp.s
 # target to generate assembly for a file
 imgui/imgui.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui.cpp.s
 .PHONY : imgui/imgui.cpp.s
 
 imgui/imgui_demo.o: imgui/imgui_demo.cpp.o
@@ -207,6 +242,7 @@ imgui/imgui_demo.o: imgui/imgui_demo.cpp.o
 # target to build an object file
 imgui/imgui_demo.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui_demo.cpp.o
 .PHONY : imgui/imgui_demo.cpp.o
 
 imgui/imgui_demo.i: imgui/imgui_demo.cpp.i
@@ -215,6 +251,7 @@ imgui/imgui_demo.i: imgui/imgui_demo.cpp.i
 # target to preprocess a source file
 imgui/imgui_demo.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui_demo.cpp.i
 .PHONY : imgui/imgui_demo.cpp.i
 
 imgui/imgui_demo.s: imgui/imgui_demo.cpp.s
@@ -223,6 +260,7 @@ imgui/imgui_demo.s: imgui/imgui_demo.cpp.s
 # target to generate assembly for a file
 imgui/imgui_demo.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui_demo.cpp.s
 .PHONY : imgui/imgui_demo.cpp.s
 
 imgui/imgui_draw.o: imgui/imgui_draw.cpp.o
@@ -231,6 +269,7 @@ imgui/imgui_draw.o: imgui/imgui_draw.cpp.o
 # target to build an object file
 imgui/imgui_draw.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui_draw.cpp.o
 .PHONY : imgui/imgui_draw.cpp.o
 
 imgui/imgui_draw.i: imgui/imgui_draw.cpp.i
@@ -239,6 +278,7 @@ imgui/imgui_draw.i: imgui/imgui_draw.cpp.i
 # target to preprocess a source file
 imgui/imgui_draw.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui_draw.cpp.i
 .PHONY : imgui/imgui_draw.cpp.i
 
 imgui/imgui_draw.s: imgui/imgui_draw.cpp.s
@@ -247,6 +287,7 @@ imgui/imgui_draw.s: imgui/imgui_draw.cpp.s
 # target to generate assembly for a file
 imgui/imgui_draw.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui_draw.cpp.s
 .PHONY : imgui/imgui_draw.cpp.s
 
 imgui/imgui_tables.o: imgui/imgui_tables.cpp.o
@@ -255,6 +296,7 @@ imgui/imgui_tables.o: imgui/imgui_tables.cpp.o
 # target to build an object file
 imgui/imgui_tables.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui_tables.cpp.o
 .PHONY : imgui/imgui_tables.cpp.o
 
 imgui/imgui_tables.i: imgui/imgui_tables.cpp.i
@@ -263,6 +305,7 @@ imgui/imgui_tables.i: imgui/imgui_tables.cpp.i
 # target to preprocess a source file
 imgui/imgui_tables.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui_tables.cpp.i
 .PHONY : imgui/imgui_tables.cpp.i
 
 imgui/imgui_tables.s: imgui/imgui_tables.cpp.s
@@ -271,6 +314,7 @@ imgui/imgui_tables.s: imgui/imgui_tables.cpp.s
 # target to generate assembly for a file
 imgui/imgui_tables.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui_tables.cpp.s
 .PHONY : imgui/imgui_tables.cpp.s
 
 imgui/imgui_widgets.o: imgui/imgui_widgets.cpp.o
@@ -279,6 +323,7 @@ imgui/imgui_widgets.o: imgui/imgui_widgets.cpp.o
 # target to build an object file
 imgui/imgui_widgets.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui_widgets.cpp.o
 .PHONY : imgui/imgui_widgets.cpp.o
 
 imgui/imgui_widgets.i: imgui/imgui_widgets.cpp.i
@@ -287,6 +332,7 @@ imgui/imgui_widgets.i: imgui/imgui_widgets.cpp.i
 # target to preprocess a source file
 imgui/imgui_widgets.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui_widgets.cpp.i
 .PHONY : imgui/imgui_widgets.cpp.i
 
 imgui/imgui_widgets.s: imgui/imgui_widgets.cpp.s
@@ -295,6 +341,7 @@ imgui/imgui_widgets.s: imgui/imgui_widgets.cpp.s
 # target to generate assembly for a file
 imgui/imgui_widgets.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/imgui/imgui_widgets.cpp.s
 .PHONY : imgui/imgui_widgets.cpp.s
 
 src/audio_analyzer.o: src/audio_analyzer.cpp.o
@@ -303,6 +350,7 @@ src/audio_analyzer.o: src/audio_analyzer.cpp.o
 # target to build an object file
 src/audio_analyzer.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/audio_analyzer.cpp.o
 .PHONY : src/audio_analyzer.cpp.o
 
 src/audio_analyzer.i: src/audio_analyzer.cpp.i
@@ -311,6 +359,7 @@ src/audio_analyzer.i: src/audio_analyzer.cpp.i
 # target to preprocess a source file
 src/audio_analyzer.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/audio_analyzer.cpp.i
 .PHONY : src/audio_analyzer.cpp.i
 
 src/audio_analyzer.s: src/audio_analyzer.cpp.s
@@ -319,6 +368,7 @@ src/audio_analyzer.s: src/audio_analyzer.cpp.s
 # target to generate assembly for a file
 src/audio_analyzer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/audio_analyzer.cpp.s
 .PHONY : src/audio_analyzer.cpp.s
 
 src/audio_capture.o: src/audio_capture.cpp.o
@@ -344,6 +394,36 @@ src/audio_capture.s: src/audio_capture.cpp.s
 src/audio_capture.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.s
 .PHONY : src/audio_capture.cpp.s
+
+src/layer_validator.o: src/layer_validator.cpp.o
+.PHONY : src/layer_validator.o
+
+# target to build an object file
+src/layer_validator.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/validate_layers.dir/build.make CMakeFiles/validate_layers.dir/src/layer_validator.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/layer_validator.cpp.o
+.PHONY : src/layer_validator.cpp.o
+
+src/layer_validator.i: src/layer_validator.cpp.i
+.PHONY : src/layer_validator.i
+
+# target to preprocess a source file
+src/layer_validator.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/validate_layers.dir/build.make CMakeFiles/validate_layers.dir/src/layer_validator.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/layer_validator.cpp.i
+.PHONY : src/layer_validator.cpp.i
+
+src/layer_validator.s: src/layer_validator.cpp.s
+.PHONY : src/layer_validator.s
+
+# target to generate assembly for a file
+src/layer_validator.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/validate_layers.dir/build.make CMakeFiles/validate_layers.dir/src/layer_validator.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/layer_validator.cpp.s
+.PHONY : src/layer_validator.cpp.s
 
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
@@ -375,6 +455,7 @@ src/modular_layer.o: src/modular_layer.cpp.o
 # target to build an object file
 src/modular_layer.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/modular_layer.cpp.o
 .PHONY : src/modular_layer.cpp.o
 
 src/modular_layer.i: src/modular_layer.cpp.i
@@ -383,6 +464,7 @@ src/modular_layer.i: src/modular_layer.cpp.i
 # target to preprocess a source file
 src/modular_layer.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/modular_layer.cpp.i
 .PHONY : src/modular_layer.cpp.i
 
 src/modular_layer.s: src/modular_layer.cpp.s
@@ -391,6 +473,7 @@ src/modular_layer.s: src/modular_layer.cpp.s
 # target to generate assembly for a file
 src/modular_layer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/modular_layer.cpp.s
 .PHONY : src/modular_layer.cpp.s
 
 src/post_processor.o: src/post_processor.cpp.o
@@ -399,6 +482,7 @@ src/post_processor.o: src/post_processor.cpp.o
 # target to build an object file
 src/post_processor.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/post_processor.cpp.o
 .PHONY : src/post_processor.cpp.o
 
 src/post_processor.i: src/post_processor.cpp.i
@@ -407,6 +491,7 @@ src/post_processor.i: src/post_processor.cpp.i
 # target to preprocess a source file
 src/post_processor.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/post_processor.cpp.i
 .PHONY : src/post_processor.cpp.i
 
 src/post_processor.s: src/post_processor.cpp.s
@@ -415,6 +500,7 @@ src/post_processor.s: src/post_processor.cpp.s
 # target to generate assembly for a file
 src/post_processor.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/post_processor.cpp.s
 .PHONY : src/post_processor.cpp.s
 
 src/settings_manager.o: src/settings_manager.cpp.o
@@ -423,6 +509,7 @@ src/settings_manager.o: src/settings_manager.cpp.o
 # target to build an object file
 src/settings_manager.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o
 .PHONY : src/settings_manager.cpp.o
 
 src/settings_manager.i: src/settings_manager.cpp.i
@@ -431,6 +518,7 @@ src/settings_manager.i: src/settings_manager.cpp.i
 # target to preprocess a source file
 src/settings_manager.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.i
 .PHONY : src/settings_manager.cpp.i
 
 src/settings_manager.s: src/settings_manager.cpp.s
@@ -439,6 +527,7 @@ src/settings_manager.s: src/settings_manager.cpp.s
 # target to generate assembly for a file
 src/settings_manager.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.s
 .PHONY : src/settings_manager.cpp.s
 
 src/shader.o: src/shader.cpp.o
@@ -447,6 +536,7 @@ src/shader.o: src/shader.cpp.o
 # target to build an object file
 src/shader.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/shader.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/shader.cpp.o
 .PHONY : src/shader.cpp.o
 
 src/shader.i: src/shader.cpp.i
@@ -455,6 +545,7 @@ src/shader.i: src/shader.cpp.i
 # target to preprocess a source file
 src/shader.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/shader.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/shader.cpp.i
 .PHONY : src/shader.cpp.i
 
 src/shader.s: src/shader.cpp.s
@@ -463,7 +554,56 @@ src/shader.s: src/shader.cpp.s
 # target to generate assembly for a file
 src/shader.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/shader.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/shader.cpp.s
 .PHONY : src/shader.cpp.s
+
+src/test_layer_integration.o: src/test_layer_integration.cpp.o
+.PHONY : src/test_layer_integration.o
+
+# target to build an object file
+src/test_layer_integration.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o
+.PHONY : src/test_layer_integration.cpp.o
+
+src/test_layer_integration.i: src/test_layer_integration.cpp.i
+.PHONY : src/test_layer_integration.i
+
+# target to preprocess a source file
+src/test_layer_integration.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.i
+.PHONY : src/test_layer_integration.cpp.i
+
+src/test_layer_integration.s: src/test_layer_integration.cpp.s
+.PHONY : src/test_layer_integration.s
+
+# target to generate assembly for a file
+src/test_layer_integration.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.s
+.PHONY : src/test_layer_integration.cpp.s
+
+src/validate_layers.o: src/validate_layers.cpp.o
+.PHONY : src/validate_layers.o
+
+# target to build an object file
+src/validate_layers.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/validate_layers.dir/build.make CMakeFiles/validate_layers.dir/src/validate_layers.cpp.o
+.PHONY : src/validate_layers.cpp.o
+
+src/validate_layers.i: src/validate_layers.cpp.i
+.PHONY : src/validate_layers.i
+
+# target to preprocess a source file
+src/validate_layers.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/validate_layers.dir/build.make CMakeFiles/validate_layers.dir/src/validate_layers.cpp.i
+.PHONY : src/validate_layers.cpp.i
+
+src/validate_layers.s: src/validate_layers.cpp.s
+.PHONY : src/validate_layers.s
+
+# target to generate assembly for a file
+src/validate_layers.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/validate_layers.dir/build.make CMakeFiles/validate_layers.dir/src/validate_layers.cpp.s
+.PHONY : src/validate_layers.cpp.s
 
 src/visualizer.o: src/visualizer.cpp.o
 .PHONY : src/visualizer.o
@@ -594,6 +734,8 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... audio_visualizer"
+	@echo "... test_layer_integration"
+	@echo "... validate_layers"
 	@echo "... imgui/backends/imgui_impl_glfw.o"
 	@echo "... imgui/backends/imgui_impl_glfw.i"
 	@echo "... imgui/backends/imgui_impl_glfw.s"
@@ -621,6 +763,9 @@ help:
 	@echo "... src/audio_capture.o"
 	@echo "... src/audio_capture.i"
 	@echo "... src/audio_capture.s"
+	@echo "... src/layer_validator.o"
+	@echo "... src/layer_validator.i"
+	@echo "... src/layer_validator.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
@@ -636,6 +781,12 @@ help:
 	@echo "... src/shader.o"
 	@echo "... src/shader.i"
 	@echo "... src/shader.s"
+	@echo "... src/test_layer_integration.o"
+	@echo "... src/test_layer_integration.i"
+	@echo "... src/test_layer_integration.s"
+	@echo "... src/validate_layers.o"
+	@echo "... src/validate_layers.i"
+	@echo "... src/validate_layers.s"
 	@echo "... src/visualizer.o"
 	@echo "... src/visualizer.i"
 	@echo "... src/visualizer.s"

@@ -18,6 +18,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o.d"
   "CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o"
   "CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o.d"
+  "CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o"
+  "CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o.d"
   "CMakeFiles/audio_visualizer.dir/src/main.cpp.o"
   "CMakeFiles/audio_visualizer.dir/src/main.cpp.o.d"
   "CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o"

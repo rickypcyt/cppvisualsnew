@@ -72,4 +72,6 @@ set(CMAKE_MAKEFILE_PRODUCTS
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/audio_visualizer.dir/DependInfo.cmake"
+  "CMakeFiles/validate_layers.dir/DependInfo.cmake"
+  "CMakeFiles/test_layer_integration.dir/DependInfo.cmake"
   )

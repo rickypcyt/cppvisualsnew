@@ -118,6 +118,36 @@ vec2 lensDistort(vec2 uv, float power) {
     return c + 0.5;
 }
 
+vec2 rotatingLensDistort(vec2 uv, float power, float time) {
+    // Center the coordinates
+    vec2 c = uv - 0.5;
+    
+    // Calculate rotation angle based on time
+    float rotationAngle = time * 0.5; // Rotation speed multiplier
+    
+    // Apply rotation matrix
+    float cos_r = cos(rotationAngle);
+    float sin_r = sin(rotationAngle);
+    vec2 rotated = vec2(
+        c.x * cos_r - c.y * sin_r,
+        c.x * sin_r + c.y * cos_r
+    );
+    
+    // Apply lens distortion to rotated coordinates
+    float r2 = dot(rotated, rotated);
+    rotated *= 1.0 + r2 * power;
+    
+    // Rotate back
+    cos_r = cos(-rotationAngle);
+    sin_r = sin(-rotationAngle);
+    vec2 result = vec2(
+        rotated.x * cos_r - rotated.y * sin_r,
+        rotated.x * sin_r + rotated.y * cos_r
+    );
+    
+    return result + 0.5;
+}
+
 vec3 plasmaOverlay(vec2 uv, float time) {
     float plasma = sin(uv.x * 12.0 + time)
                  + sin(uv.y * 10.0 + time * 1.3)

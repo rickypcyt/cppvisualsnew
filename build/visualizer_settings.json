@@ -28,7 +28,7 @@
         "slots": [
             {
                 "enabled": true,
-                "mode": 14,
+                "mode": 20,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -85,8 +85,8 @@
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerMode": 14,
-        "proceduralLayerOpacity": 0.8500000238418579,
+        "proceduralLayerMode": 2,
+        "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": true,
         "showImGuiWindow": false,
         "showProceduralLayer": true

@@ -103,11 +103,45 @@ add_executable(audio_visualizer
     src/modular_layer.cpp
     src/shader.cpp
     src/settings_manager.cpp
+    src/layer_validator.cpp
+    ${IMGUI_SOURCES}
+)
+
+# Layer validation utility
+add_executable(validate_layers
+    src/validate_layers.cpp
+    src/layer_validator.cpp
+)
+
+# Layer integration tests
+add_executable(test_layer_integration
+    src/test_layer_integration.cpp
+    src/layer_validator.cpp
+    src/modular_layer.cpp
+    src/post_processor.cpp
+    src/shader.cpp
+    src/audio_analyzer.cpp
+    src/settings_manager.cpp
     ${IMGUI_SOURCES}
 )
 
 # Link libraries
 target_link_libraries(audio_visualizer
+    ${OPENGL_LIBRARIES}
+    ${GLEW_LIBRARIES}
+    glfw
+    ${PORTAUDIO_LIBRARIES}
+    m
+    pthread
+)
+
+# Link libraries for validation utilities
+target_link_libraries(validate_layers
+    m
+    pthread
+)
+
+target_link_libraries(test_layer_integration
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
     glfw
@@ -124,3 +158,24 @@ add_custom_command(TARGET audio_visualizer POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:audio_visualizer>/shaders
 )
+
+# Copy shaders for validation utilities
+add_custom_command(TARGET validate_layers POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:validate_layers>/shaders
+)
+
+add_custom_command(TARGET test_layer_integration POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:test_layer_integration>/shaders
+)
+
+# Pre-build validation step (commented out for testing)
+# add_custom_target(validate_shaders ALL
+#     COMMAND validate_layers --all
+#     COMMENT "Validating all shader layers before compilation..."
+#     DEPENDS validate_layers
+# )
+
+# Make main executable depend on validation (commented out for testing)
+# add_dependencies(audio_visualizer validate_shaders)

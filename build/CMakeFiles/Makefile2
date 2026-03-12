@@ -64,10 +64,14 @@ CMAKE_BINARY_DIR = /home/ricky/coding/proyects/visuals/build
 
 # The main recursive "all" target.
 all: CMakeFiles/audio_visualizer.dir/all
+all: CMakeFiles/validate_layers.dir/all
+all: CMakeFiles/test_layer_integration.dir/all
 .PHONY : all
 
 # The main recursive "codegen" target.
 codegen: CMakeFiles/audio_visualizer.dir/codegen
+codegen: CMakeFiles/validate_layers.dir/codegen
+codegen: CMakeFiles/test_layer_integration.dir/codegen
 .PHONY : codegen
 
 # The main recursive "preinstall" target.
@@ -76,6 +80,8 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/audio_visualizer.dir/clean
+clean: CMakeFiles/validate_layers.dir/clean
+clean: CMakeFiles/test_layer_integration.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -85,12 +91,12 @@ clean: CMakeFiles/audio_visualizer.dir/clean
 CMakeFiles/audio_visualizer.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 "Built target audio_visualizer"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21 "Built target audio_visualizer"
 .PHONY : CMakeFiles/audio_visualizer.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/audio_visualizer.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/ricky/coding/proyects/visuals/build/CMakeFiles 20
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ricky/coding/proyects/visuals/build/CMakeFiles 21
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/audio_visualizer.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/ricky/coding/proyects/visuals/build/CMakeFiles 0
 .PHONY : CMakeFiles/audio_visualizer.dir/rule
@@ -102,13 +108,77 @@ audio_visualizer: CMakeFiles/audio_visualizer.dir/rule
 # codegen rule for target.
 CMakeFiles/audio_visualizer.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 "Finished codegen for target audio_visualizer"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21 "Finished codegen for target audio_visualizer"
 .PHONY : CMakeFiles/audio_visualizer.dir/codegen
 
 # clean rule for target.
 CMakeFiles/audio_visualizer.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/clean
 .PHONY : CMakeFiles/audio_visualizer.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/validate_layers.dir
+
+# All Build rule for target.
+CMakeFiles/validate_layers.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/validate_layers.dir/build.make CMakeFiles/validate_layers.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/validate_layers.dir/build.make CMakeFiles/validate_layers.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=37,38,39 "Built target validate_layers"
+.PHONY : CMakeFiles/validate_layers.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/validate_layers.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ricky/coding/proyects/visuals/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/validate_layers.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ricky/coding/proyects/visuals/build/CMakeFiles 0
+.PHONY : CMakeFiles/validate_layers.dir/rule
+
+# Convenience name for target.
+validate_layers: CMakeFiles/validate_layers.dir/rule
+.PHONY : validate_layers
+
+# codegen rule for target.
+CMakeFiles/validate_layers.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/validate_layers.dir/build.make CMakeFiles/validate_layers.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=37,38,39 "Finished codegen for target validate_layers"
+.PHONY : CMakeFiles/validate_layers.dir/codegen
+
+# clean rule for target.
+CMakeFiles/validate_layers.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/validate_layers.dir/build.make CMakeFiles/validate_layers.dir/clean
+.PHONY : CMakeFiles/validate_layers.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/test_layer_integration.dir
+
+# All Build rule for target.
+CMakeFiles/test_layer_integration.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=22,23,24,25,26,27,28,29,30,31,32,33,34,35,36 "Built target test_layer_integration"
+.PHONY : CMakeFiles/test_layer_integration.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/test_layer_integration.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ricky/coding/proyects/visuals/build/CMakeFiles 15
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/test_layer_integration.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ricky/coding/proyects/visuals/build/CMakeFiles 0
+.PHONY : CMakeFiles/test_layer_integration.dir/rule
+
+# Convenience name for target.
+test_layer_integration: CMakeFiles/test_layer_integration.dir/rule
+.PHONY : test_layer_integration
+
+# codegen rule for target.
+CMakeFiles/test_layer_integration.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=22,23,24,25,26,27,28,29,30,31,32,33,34,35,36 "Finished codegen for target test_layer_integration"
+.PHONY : CMakeFiles/test_layer_integration.dir/codegen
+
+# clean rule for target.
+CMakeFiles/test_layer_integration.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/clean
+.PHONY : CMakeFiles/test_layer_integration.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

@@ -109,7 +109,9 @@
 					"source" : ".",
 					"targetIndexes" : 
 					[
-						0
+						0,
+						1,
+						2
 					]
 				}
 			],
@@ -138,7 +140,9 @@
 					"name" : "AudioVisualizer",
 					"targetIndexes" : 
 					[
-						0
+						0,
+						1,
+						2
 					]
 				}
 			],
@@ -147,8 +151,22 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "audio_visualizer::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-audio_visualizer-7a489866e9588613ba0f.json",
+					"jsonFile" : "target-audio_visualizer-b8e82b335cbd799add21.json",
 					"name" : "audio_visualizer",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_layer_integration::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_layer_integration-a7534e764b41c969ec27.json",
+					"name" : "test_layer_integration",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "validate_layers::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-validate_layers-61ab4d16f5202e1651ae.json",
+					"name" : "validate_layers",
 					"projectIndex" : 0
 				}
 			]

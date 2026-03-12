@@ -384,6 +384,7 @@ bool PostProcessor::loadEffectShaders() {
         "shaders/post_effects/effect_pixelate_192.glsl",
         "shaders/post_effects/effect_pixelate_256.glsl",
         "shaders/post_effects/effect_lens_distort.glsl",
+        "shaders/post_effects/effect_rotating_lens.glsl",
         "shaders/post_effects/effect_plasma_overlay.glsl",
         "shaders/post_effects/effect_rgb_shift.glsl",
         "shaders/post_effects/effect_recursive_energy.glsl",
