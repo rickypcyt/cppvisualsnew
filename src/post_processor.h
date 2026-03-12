@@ -54,5 +54,5 @@ private:
     std::vector<std::string> effectPaths_;
 
     bool loadEffectShaders();
-    std::unique_ptr<Shader> getEffectShader(int mode);
+    Shader* getEffectShader(int mode);
 };

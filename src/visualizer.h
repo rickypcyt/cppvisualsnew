@@ -106,7 +106,7 @@ private:
     static constexpr int kMaxPostProcessSlots = 5;
     
     // Post-process constants
-    static constexpr int kPostProcessModeCount = 17;
+    static constexpr int kPostProcessModeCount = 22;
     static constexpr int kPostProcessKaleidoscopeModeIndex = 7;
     static constexpr int kPostProcessGrayscaleModeIndex = 1;
     static constexpr int kDefaultPostProcessMode = 2;

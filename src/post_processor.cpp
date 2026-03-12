@@ -397,6 +397,7 @@ bool PostProcessor::loadEffectShaders() {
     effectShaders_.resize(effectPaths_.size());
 
     // Load and compile each effect shader
+    size_t compiledCount = 0;
     for (size_t i = 0; i < effectPaths_.size(); ++i) {
         std::string effectSource = loadShaderFile(effectPaths_[i]);
         if (effectSource.empty()) {
@@ -408,19 +409,28 @@ bool PostProcessor::loadEffectShaders() {
         
         auto shader = std::make_unique<Shader>();
         if (!shader->loadFromSource(kPostVertexShader, fullSource.c_str())) {
-            std::cerr << "PostProcessor: Failed to compile effect shader: " << effectPaths_[i] << std::endl;
-            return false;
+            std::cerr << "PostProcessor: Failed to compile effect shader: " << effectPaths_[i] << " (index " << i << ")" << std::endl;
+            // Don't return false, continue with other shaders
+            continue;
         }
         
         effectShaders_[i] = std::move(shader);
+        ++compiledCount;
     }
+    
+    std::cout << "PostProcessor: Loaded " << compiledCount
+              << " of " << effectPaths_.size() << " post-process shaders successfully" << std::endl;
 
     return true;
 }
 
-std::unique_ptr<Shader> PostProcessor::getEffectShader(int mode) {
+Shader* PostProcessor::getEffectShader(int mode) {
     if (mode < 0 || static_cast<size_t>(mode) >= effectShaders_.size()) {
         return nullptr;
     }
-    return std::make_unique<Shader>(*effectShaders_[mode]);
+    if (!effectShaders_[mode]) {
+        std::cerr << "PostProcessor: Effect shader " << mode << " failed to compile during initialization" << std::endl;
+        return nullptr;
+    }
+    return effectShaders_[mode].get();
 }

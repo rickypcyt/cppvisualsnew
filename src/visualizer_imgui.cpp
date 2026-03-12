@@ -358,22 +358,26 @@ void Visualizer::renderMainImGuiWindow() {
     if (ImGui::CollapsingHeader("Post proceso", ImGuiTreeNodeFlags_DefaultOpen)) {
         static const char* kModes[] = {
             "Ninguno",
-            "Color Grading",
-            "Film + Vignette",
-            "Plasma Aberration",
-            "Pulse Aberration",
-            "Energy Bands",
+            "Escala de Grises",
+            "Film + Vignette", 
+            "CRT",
+            "Chromatic Pulse",
+            "Bass Threshold",
             "Radial Blur",
             "Kaleidoscope",
             "Digital Glitch",
-            "Pixelate 8-bit",
-            "Pixelate 16-bit",
-            "Pixelate 32-bit",
-            "Pixelate 64-bit",
+            "Pixelate 64",
+            "Pixelate 128",
+            "Pixelate 192", 
+            "Pixelate 256",
             "Lens Distortion",
             "Plasma Overlay",
             "RGB Split",
-            "Recursive Energy"
+            "Recursive Energy",
+            "Bloom ACES",
+            "Pixel Tiles",
+            "Sobel Edge",
+            "Kaleidoscope Mirror"
         };
 
         bool anySlotEnabled = false;

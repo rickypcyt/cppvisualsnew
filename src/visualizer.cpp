@@ -313,7 +313,7 @@ void main() {
 
     float baseSize = baseScale * aParams.x;
     float eased = mix(activation, smoothstep(0.0, 1.0, activation), 0.7);
-    float size = baseSize * (0.55 + eased * (0.7 + profile * 0.35)) + baseScale * 0.01f;
+    float size = baseSize * (0.72 + eased * (0.9 + profile * 0.45)) + baseScale * (0.02f + profile * 0.01f);
 
     gl_Position = vec4(pos, 0.0, 1.0);
     gl_PointSize = size;
@@ -388,10 +388,12 @@ void main() {
     	}
     }
     
-    vec3 baseColor = mix(vPalettePrimary, vPaletteSecondary, clamp(vPaletteBlend, 0.0, 1.0));
-    vec3 finalColor = mix(baseColor, particleColorResult, vActivation);
+    float activation = clamp(vActivation * 1.15, 0.0, 1.0);
+    vec3 baseColor = mix(vPalettePrimary, vPaletteSecondary, clamp(vPaletteBlend, 0.0, 1.0)) * 1.1;
+    vec3 glowColor = particleColorResult * mix(1.05, 1.35, activation);
+    vec3 finalColor = mix(baseColor, glowColor, activation);
     
-    float alpha = (1.0 - dist) * vActivation * 0.8;
+    float alpha = clamp((1.0 - pow(dist, 0.85)) * (0.85 + activation * 0.6), 0.0, 1.0);
     FragColor = vec4(finalColor, alpha);
 }
 )";
@@ -879,6 +881,7 @@ Visualizer::Visualizer()
       globalIntensityEnvelope_(0.0f), coreShowSpokes_(true), coreShowRunes_(true),
       coreShowSparkles_(true), coreShowBloom_(true), showCornerOrbs_(true),
       showProceduralLayer_(true), proceduralLayerDebug_(false), proceduralLayerOpacity_(0.85f),
+      showPostProcess_(true),
       proceduralLayerMode_(23), audioInputGain_(1.0f), visualSensitivity_(1.0f),
       settingsManager_(std::make_unique<SettingsManager>()) {
     waveformBuffer_.resize(512);
@@ -923,6 +926,13 @@ bool Visualizer::initialize(int width, int height) {
     
     // Apply post-process slots
     postProcessSlots_ = settingsManager_->getPostProcessSlots();
+    showPostProcess_ = false;
+    for (const auto &slot : postProcessSlots_) {
+        if (slot.enabled && slot.mode > 0 && slot.strength > 0.0f) {
+            showPostProcess_ = true;
+            break;
+        }
+    }
     
     // Apply colors
     scenePrimaryColor_ = settingsManager_->getScenePrimaryColor();
@@ -964,18 +974,7 @@ bool Visualizer::initialize(int width, int height) {
     }
 
     if (!postProcessor_.initialize(windowWidth_, windowHeight_)) {
-        std::cout << "Post processor initialization failed, but still setting default RGB Split" << std::endl;
-        // Still set default RGB Split even if initialization failed
-        postProcessSlots_[0].enabled = true;
-        postProcessSlots_[0].mode = 16; // RGB Split mode
-        postProcessSlots_[0].strength = 1.0f;
-        postProcessSlots_[0].rgbAdjust = {1.5f, 1.5f, 1.5f}; // 1.50 intensity on all RGB channels
-    } else {
-        // Set default post-processing: RGB Split with 1.50 intensity on RGB channels
-        postProcessSlots_[0].enabled = true;
-        postProcessSlots_[0].mode = 16; // RGB Split mode
-        postProcessSlots_[0].strength = 1.0f;
-        postProcessSlots_[0].rgbAdjust = {1.5f, 1.5f, 1.5f}; // 1.50 intensity on all RGB channels
+        std::cout << "Post processor initialization failed" << std::endl;
     }
 
     if (!loadShaders()) {
@@ -1270,45 +1269,27 @@ void Visualizer::beginFrame() {
 
             if ((now - lastPostProcessToggle) > 0.25) {
                 if (glfwGetKey(window_, GLFW_KEY_P) == GLFW_PRESS) {
-                    // Find first enabled slot and cycle its mode forward
-                    for (auto &slot : postProcessSlots_) {
-                        if (slot.enabled) {
-                            slot.mode = (slot.mode + 1) % kPostProcessModeCount;
-                            if (slot.mode == 0) {
-                                slot.enabled = false; // Disable if mode 0 (no effect)
-                            }
-                            break;
-                        }
-                        // If no slots enabled, enable first one with mode 1
-                        else if (&slot == &postProcessSlots_[0]) {
-                            slot.enabled = true;
-                            slot.mode = 1;
-                            slot.strength = 1.0f;
-                            slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
-                            break;
-                        }
+                    // Enable slot 1 (index 0) and cycle its mode forward
+                    auto& slot = postProcessSlots_[0];
+                    slot.enabled = true;
+                    slot.mode = (slot.mode + 1) % kPostProcessModeCount;
+                    if (slot.mode == 0) {
+                        slot.mode = 1; // Skip mode 0 (no effect)
                     }
+                    slot.strength = 1.0f;
+                    slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
                     lastPostProcessToggle = now;
                 }
                 else if (glfwGetKey(window_, GLFW_KEY_O) == GLFW_PRESS) {
-                    // Find first enabled slot and cycle its mode backward
-                    for (auto &slot : postProcessSlots_) {
-                        if (slot.enabled) {
-                            slot.mode = (slot.mode - 1 + kPostProcessModeCount) % kPostProcessModeCount;
-                            if (slot.mode == 0) {
-                                slot.enabled = false; // Disable if mode 0 (no effect)
-                            }
-                            break;
-                        }
-                        // If no slots enabled, enable first one with mode 1
-                        else if (&slot == &postProcessSlots_[0]) {
-                            slot.enabled = true;
-                            slot.mode = 1;
-                            slot.strength = 1.0f;
-                            slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
-                            break;
-                        }
+                    // Enable slot 1 (index 0) and cycle its mode backward
+                    auto& slot = postProcessSlots_[0];
+                    slot.enabled = true;
+                    slot.mode = (slot.mode - 1 + kPostProcessModeCount) % kPostProcessModeCount;
+                    if (slot.mode == 0) {
+                        slot.mode = kPostProcessModeCount - 1; // Skip mode 0 (no effect)
                     }
+                    slot.strength = 1.0f;
+                    slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
                     lastPostProcessToggle = now;
                 }
             }
@@ -1446,11 +1427,12 @@ void Visualizer::render() {
 
     float intensityScale = std::clamp(globalIntensityEnvelope_, 0.0f, 2.0f);
     renderModernCore();
+
+    renderIdleSpinner(time_);
+
     if (showCornerOrbs_) {
         renderCornerOrbs();
     }
-
-    renderIdleSpinner(time_);
 
     if (usePost) {
         postProcessor_.endCapture();
@@ -1492,13 +1474,13 @@ void Visualizer::handleVisualizationShortcuts() {
 
     static double lastOrbsToggle = 0.0;
     static double lastKaleidoToggle = 0.0;
-    static double lastGrayscaleToggle = 0.0;
+    static double lastGToggle = 0.0;
     static double lastRToggle = 0.0;
     static double lastBToggle = 0.0;
     static double lastIToggle = 0.0;
     static bool orbsWasDown = false;
     static bool kaleidoWasDown = false;
-    static bool grayscaleWasDown = false;
+    static bool gWasDown = false;
     static bool rWasDown = false;
     static bool bWasDown = false;
     static bool iWasDown = false;
@@ -1506,7 +1488,7 @@ void Visualizer::handleVisualizationShortcuts() {
     bool orbsKeyDown = (glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS ||
                         glfwGetKey(window_, GLFW_KEY_KP_1) == GLFW_PRESS);
     bool kaleidoKeyDown = glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS;
-    bool grayscaleKeyDown = glfwGetKey(window_, GLFW_KEY_G) == GLFW_PRESS;
+    bool gKeyDown = glfwGetKey(window_, GLFW_KEY_G) == GLFW_PRESS;
     bool rKeyDown = glfwGetKey(window_, GLFW_KEY_R) == GLFW_PRESS;
     bool bKeyDown = glfwGetKey(window_, GLFW_KEY_B) == GLFW_PRESS;
     bool iKeyDown = glfwGetKey(window_, GLFW_KEY_I) == GLFW_PRESS;
@@ -1562,14 +1544,12 @@ void Visualizer::handleVisualizationShortcuts() {
         togglePostProcessEffect(kPostProcessKaleidoscopeModeIndex, 1.0f);
     });
 
-    processToggle(grayscaleKeyDown, grayscaleWasDown, lastGrayscaleToggle,
-                  [this, &togglePostProcessEffect]() {
-                      togglePostProcessEffect(kPostProcessGrayscaleModeIndex, 1.0f);
-                  });
-
     // RGB channel toggles
     processToggle(rKeyDown, rWasDown, lastRToggle,
                   [this]() { rgbChannelEnabled_[0] = !rgbChannelEnabled_[0]; });
+
+    processToggle(gKeyDown, gWasDown, lastGToggle,
+                  [this]() { rgbChannelEnabled_[1] = !rgbChannelEnabled_[1]; });
 
     processToggle(bKeyDown, bWasDown, lastBToggle,
                   [this]() { rgbChannelEnabled_[2] = !rgbChannelEnabled_[2]; });

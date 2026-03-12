@@ -104,6 +104,7 @@ private:
 
     // Post-processing settings
     std::array<PostProcessSlot, 5> postProcessSlots_;
+    bool showPostProcess_ = true;
 
     // Color palette settings
     std::array<float, 3> scenePrimaryColor_{0.25f, 0.32f, 0.58f};
