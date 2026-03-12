@@ -67,6 +67,12 @@
 },
 {
   "directory": "/home/ricky/coding/proyects/visuals/build",
+  "command": "/usr/bin/clang++ -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -g -std=gnu++17 -pthread -o CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o -c /home/ricky/coding/proyects/visuals/src/settings_manager.cpp",
+  "file": "/home/ricky/coding/proyects/visuals/src/settings_manager.cpp",
+  "output": "/home/ricky/coding/proyects/visuals/build/CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o"
+},
+{
+  "directory": "/home/ricky/coding/proyects/visuals/build",
   "command": "/usr/bin/clang++ -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -g -std=gnu++17 -pthread -o CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o -c /home/ricky/coding/proyects/visuals/imgui/imgui.cpp",
   "file": "/home/ricky/coding/proyects/visuals/imgui/imgui.cpp",
   "output": "/home/ricky/coding/proyects/visuals/build/CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o"

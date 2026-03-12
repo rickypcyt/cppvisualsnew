@@ -204,6 +204,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: \
  /home/ricky/coding/proyects/visuals/src/shader.h \
  /home/ricky/coding/proyects/visuals/src/modular_layer.h \
  /home/ricky/coding/proyects/visuals/src/post_processor.h \
+ /home/ricky/coding/proyects/visuals/src/settings_manager.h \
  /home/ricky/coding/proyects/visuals/imgui/imgui.h \
  /home/ricky/coding/proyects/visuals/imgui/imconfig.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/float.h \

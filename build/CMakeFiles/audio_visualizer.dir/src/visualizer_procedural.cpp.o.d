@@ -204,6 +204,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: \
  /home/ricky/coding/proyects/visuals/src/shader.h \
  /home/ricky/coding/proyects/visuals/src/modular_layer.h \
  /home/ricky/coding/proyects/visuals/src/post_processor.h \
+ /home/ricky/coding/proyects/visuals/src/settings_manager.h \
  /usr/include/c++/15.2.1/algorithm \
  /usr/include/c++/15.2.1/bits/stl_algo.h \
  /usr/include/c++/15.2.1/bits/algorithmfwd.h \

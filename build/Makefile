@@ -417,6 +417,30 @@ src/post_processor.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.s
 .PHONY : src/post_processor.cpp.s
 
+src/settings_manager.o: src/settings_manager.cpp.o
+.PHONY : src/settings_manager.o
+
+# target to build an object file
+src/settings_manager.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o
+.PHONY : src/settings_manager.cpp.o
+
+src/settings_manager.i: src/settings_manager.cpp.i
+.PHONY : src/settings_manager.i
+
+# target to preprocess a source file
+src/settings_manager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.i
+.PHONY : src/settings_manager.cpp.i
+
+src/settings_manager.s: src/settings_manager.cpp.s
+.PHONY : src/settings_manager.s
+
+# target to generate assembly for a file
+src/settings_manager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.s
+.PHONY : src/settings_manager.cpp.s
+
 src/shader.o: src/shader.cpp.o
 .PHONY : src/shader.o
 
@@ -606,6 +630,9 @@ help:
 	@echo "... src/post_processor.o"
 	@echo "... src/post_processor.i"
 	@echo "... src/post_processor.s"
+	@echo "... src/settings_manager.o"
+	@echo "... src/settings_manager.i"
+	@echo "... src/settings_manager.s"
 	@echo "... src/shader.o"
 	@echo "... src/shader.i"
 	@echo "... src/shader.s"

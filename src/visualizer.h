@@ -12,6 +12,7 @@
 #include "shader.h"
 #include "modular_layer.h"
 #include "post_processor.h"
+#include "settings_manager.h"
 
 // Forward declarations for ImGui
 struct ImGuiIO;
@@ -43,11 +44,16 @@ public:
     bool isConsoleMode() const { return consoleMode_; }
     void handleFeatureToggleKeys();
     
+    // Settings management
+    void updateSettingsFromCurrentState();
+    void saveCurrentSettings();
+    
     // No-ImGui methods
     void renderNoImGuiLoop();
     
     // ImGui methods
     bool setupImGui();
+    void renderCurrentEffectsDisplay();
     void shutdownImGui();
     void renderImGui();
 
@@ -97,19 +103,19 @@ private:
         float baseCenterY;
     };
 
-    struct PostProcessSlot {
-        bool enabled = false;
-        int mode = 0;
-        float strength = 0.0f;
-        std::array<float, 3> rgbAdjust{1.0f, 1.0f, 1.0f};
-    };
-
     static constexpr int kMaxPostProcessSlots = 5;
     
     // Post-process constants
     static constexpr int kPostProcessModeCount = 17;
     static constexpr int kPostProcessKaleidoscopeModeIndex = 7;
     static constexpr int kPostProcessGrayscaleModeIndex = 1;
+    static constexpr int kDefaultPostProcessMode = 2;
+    static constexpr float kDefaultPostProcessStrength = 0.65f;
+    static constexpr int kKaleidoscopeSlotIndex = 1;
+    static constexpr float kDefaultKaleidoscopeStrength = 0.75f;
+
+    // Settings manager
+    std::unique_ptr<SettingsManager> settingsManager_;
 
     struct LifeCellGrid {
         static constexpr int WIDTH = 96;

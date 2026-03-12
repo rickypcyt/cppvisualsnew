@@ -8,6 +8,25 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(OpenGL REQUIRED)
 find_package(PkgConfig REQUIRED)
 
+# Find nlohmann/json
+find_package(nlohmann_json QUIET)
+if(NOT nlohmann_json_FOUND)
+    message(STATUS "nlohmann_json not found, using header-only fallback")
+    set(NLOHMANN_JSON_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/nlohmann")
+    if(NOT EXISTS "${NLOHMANN_JSON_INCLUDE_DIRS}/json.hpp")
+        message(STATUS "Downloading nlohmann/json header...")
+        file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external)
+        execute_process(
+            COMMAND wget https://github.com/nlohmann/json/releases/download/v3.11.2/json.hpp
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/nlohmann
+            OUTPUT_QUIET
+        )
+    endif()
+    include_directories(${NLOHMANN_JSON_INCLUDE_DIRS})
+else()
+    include_directories(${nlohmann_json_INCLUDE_DIRS})
+endif()
+
 # GLEW
 find_path(GLEW_INCLUDE_DIRS GL/glew.h)
 find_library(GLEW_LIBRARIES GLEW)
@@ -83,6 +102,7 @@ add_executable(audio_visualizer
     src/post_processor.cpp
     src/modular_layer.cpp
     src/shader.cpp
+    src/settings_manager.cpp
     ${IMGUI_SOURCES}
 )
 
@@ -98,3 +118,9 @@ target_link_libraries(audio_visualizer
 
 # Compiler flags
 target_compile_options(audio_visualizer PRIVATE ${PORTAUDIO_CFLAGS_OTHER})
+
+# Copy shaders to build directory after build
+add_custom_command(TARGET audio_visualizer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:audio_visualizer>/shaders
+)

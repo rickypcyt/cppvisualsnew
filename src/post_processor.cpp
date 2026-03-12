@@ -31,9 +31,36 @@ std::string loadShaderFile(const std::string& filepath) {
     return buffer.str();
 }
 
-std::string combineShaderSources(const std::string& commonSource, const std::string& effectSource) {
-    return commonSource + "\n" + effectSource;
+std::string stripIncludeDirective(const std::string& source, const std::string& includeName) {
+    std::istringstream input(source);
+    std::ostringstream output;
+    std::string line;
+    bool first = true;
+
+    while (std::getline(input, line)) {
+        if (line.find("#include") != std::string::npos && line.find(includeName) != std::string::npos) {
+            continue;
+        }
+
+        if (!first) {
+            output << '\n';
+        }
+        output << line;
+        first = false;
+    }
+
+    return output.str();
 }
+
+std::string combineShaderSources(const std::string& commonSource, const std::string& effectSource) {
+    std::string processedEffect = stripIncludeDirective(effectSource, "post_common.glsl");
+    if (!processedEffect.empty()) {
+        return commonSource + "\n" + processedEffect;
+    }
+    return commonSource;
+}
+
+} // anonymous namespace
 
 PostProcessor::PostProcessor() = default;
 
@@ -359,7 +386,12 @@ bool PostProcessor::loadEffectShaders() {
         "shaders/post_effects/effect_lens_distort.glsl",
         "shaders/post_effects/effect_plasma_overlay.glsl",
         "shaders/post_effects/effect_rgb_shift.glsl",
-        "shaders/post_effects/effect_recursive_energy.glsl"
+        "shaders/post_effects/effect_recursive_energy.glsl",
+        "shaders/post_effects/effect_bloom_aces.glsl",
+        "shaders/post_effects/effect_pixel_tiles.glsl",
+        "shaders/post_effects/effect_sobel_edge.glsl",
+        "shaders/post_effects/effect_kaleidoscope_mirror.glsl",
+        "shaders/post_effects/effect_sobel_advanced.glsl"
     };
 
     effectShaders_.resize(effectPaths_.size());
@@ -390,5 +422,5 @@ std::unique_ptr<Shader> PostProcessor::getEffectShader(int mode) {
     if (mode < 0 || static_cast<size_t>(mode) >= effectShaders_.size()) {
         return nullptr;
     }
-    return effectShaders_[mode].get();
+    return std::make_unique<Shader>(*effectShaders_[mode]);
 }

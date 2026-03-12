@@ -204,6 +204,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: \
  /home/ricky/coding/proyects/visuals/src/shader.h \
  /home/ricky/coding/proyects/visuals/src/modular_layer.h \
  /home/ricky/coding/proyects/visuals/src/post_processor.h \
+ /home/ricky/coding/proyects/visuals/src/settings_manager.h \
  /usr/include/c++/15.2.1/iostream /usr/include/c++/15.2.1/iomanip \
  /usr/include/c++/15.2.1/locale \
  /usr/include/c++/15.2.1/bits/locale_facets_nonio.h \

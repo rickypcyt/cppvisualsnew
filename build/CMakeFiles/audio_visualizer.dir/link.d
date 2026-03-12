@@ -13,6 +13,7 @@ audio_visualizer: \
   CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o \
   CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o \
   CMakeFiles/audio_visualizer.dir/src/shader.cpp.o \
+  CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o \
   CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o \
   CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o \
   CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o \
@@ -105,6 +106,8 @@ CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o:
 CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o:
 
 CMakeFiles/audio_visualizer.dir/src/shader.cpp.o:
+
+CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o:
 
 CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o:
 

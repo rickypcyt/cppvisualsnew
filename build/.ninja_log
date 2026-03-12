@@ -18,3 +18,4 @@
 3669	7287	1773274110545448706	CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o	13fa5737b006f525
 3275	7846	1773274110151451506	CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o	76d5182d1a6b2bd5
 7846	8138	1773274114722419019	audio_visualizer	6256546015fe81c8
+1	5720	1773281254790178916	CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o	c9e76eb741f0b5ae

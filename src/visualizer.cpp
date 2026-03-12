@@ -10,8 +10,8 @@
 #include <vector>
 
 namespace {
-constexpr int kProceduralModeCount = 31;
-constexpr int kPostProcessModeCount = 17;
+constexpr int kProceduralModeCount = 35;
+constexpr int kPostProcessModeCount = 22;
 constexpr int kKaleidoscopeModeIndex = 30;
 constexpr int kPostProcessKaleidoscopeModeIndex = 7;
 constexpr int kPostProcessGrayscaleModeIndex = 1;
@@ -330,6 +330,9 @@ void main() {
 
 const char *cornerFragmentShaderSource = R"(
 #version 330 core
+#define time uTime*1.25
+#define p0 0.5, 0.5, 0.5,  0.5, 0.5, 0.5,  1.0, 1.0, 1.0,  0.0, 0.33, 0.67	
+
 in float vSize;
 in float vAngle;
 in float vActivation;
@@ -349,41 +352,47 @@ uniform float uKick;
 uniform float uTime;
 uniform float uTempo;
 
+const float numParticles = 25.;
+const float numRings = 5.;
+const float offsetMult = 30.;
+const float tau = 6.23813;
+
+vec3 palette( in float t, in float a0, in float a1, in float a2, in float b0, in float b1, in float b2,
+              in float c0, in float c1, in float c2,in float d0, in float d1, in float d2)
+{
+    return vec3(a0,a1,a2) + vec3(b0,b1,b2)*cos( tau*(vec3(c0,c1,c2)*t+vec3(d0,d1,d2)) );
+}
+
+vec3 particleColor(vec2 uv, float radius, float offset, float periodOffset)
+{
+    vec3 color = palette(.4 + offset / 4., p0);
+    uv /= pow(periodOffset, .75) * sin(periodOffset * uTime) + sin(periodOffset + uTime);
+    vec2 pos = vec2(cos(offset * offsetMult + time + periodOffset),
+        		sin(offset * offsetMult + time * 5. + periodOffset * tau));
+    
+    float dist = radius / distance(uv, pos);
+    return color * pow(dist, 2.) * 1.75;
+} 
+
 void main() {
     vec2 uv = gl_PointCoord * 2.0 - 1.0;
     float dist = length(uv);
     if (dist > 1.0) discard;
 
-    float activation = clamp(vActivation, 0.0, 1.0);
-    float profile = clamp(vProfile, 0.0, 1.0);
-    float eased = smoothstep(0.0, 1.0, activation);
-
-    float coreRadius = 0.32 + profile * 0.08 + eased * 0.04;
-    float auraRadius = 0.78 + profile * 0.09;
-    float ringCenter = 0.55 + profile * 0.05;
-
-    float core = exp(-pow(dist / coreRadius, 2.2));
-    float aura = exp(-pow(dist / auraRadius, 4.0));
-    float ring = exp(-pow((dist - ringCenter) * (3.4 + eased * 1.8), 2.0));
-
-    float wave = sin(vAngle + uTime * (0.9 + uTempo * 0.35));
-    float shimmer = 0.5 + 0.5 * sin(uTime * (1.6 + uTempo * 0.4) + profile * 3.1);
-    float spectral = clamp(uBass * 0.32 + uMid * 0.44 + uHigh * 0.58, 0.0, 2.0);
-
+    vec3 particleColorResult = vec3(0.);
+    
+    for (float n = 0.; n <= numRings; n++)
+    {
+        for (float i = 0.; i <= numParticles; i++) {
+        	particleColorResult += particleColor(uv, .03, i / numParticles, n / 2.);
+    	}
+    }
+    
     vec3 baseColor = mix(vPalettePrimary, vPaletteSecondary, clamp(vPaletteBlend, 0.0, 1.0));
-    vec3 glowColor = mix(vPalettePrimary, vPaletteSecondary, clamp(vPaletteBlend + 0.2, 0.0, 1.0));
-    vec3 ringColor = mix(vPalettePrimary, vPaletteSecondary, clamp(vPaletteBlend + 0.4, 0.0, 1.0));
-
-    vec3 color = baseColor * core * (0.62 + eased * 0.48 + spectral * 0.12);
-    color += glowColor * aura * (0.3 + eased * (0.4 + 0.25 * shimmer));
-    color += ringColor * ring * (0.22 + eased * 0.4 + 0.12 * wave);
-
-    float alpha = core * (0.58 + eased * 0.34)
-                + aura * (0.26 + eased * 0.32)
-                + ring * (0.18 + eased * 0.24);
-    alpha = clamp(alpha, 0.0, 0.92);
-
-    FragColor = vec4(color, alpha);
+    vec3 finalColor = mix(baseColor, particleColorResult, vActivation);
+    
+    float alpha = (1.0 - dist) * vActivation * 0.8;
+    FragColor = vec4(finalColor, alpha);
 }
 )";
 
@@ -870,7 +879,8 @@ Visualizer::Visualizer()
       globalIntensityEnvelope_(0.0f), coreShowSpokes_(true), coreShowRunes_(true),
       coreShowSparkles_(true), coreShowBloom_(true), showCornerOrbs_(true),
       showProceduralLayer_(true), proceduralLayerDebug_(false), proceduralLayerOpacity_(0.85f),
-      proceduralLayerMode_(3), audioInputGain_(1.0f), visualSensitivity_(1.0f) {
+      proceduralLayerMode_(23), audioInputGain_(1.0f), visualSensitivity_(1.0f),
+      settingsManager_(std::make_unique<SettingsManager>()) {
     waveformBuffer_.resize(512);
     colorRandomTimer_ = 0.0f;
     buildScenePalettes();
@@ -887,11 +897,49 @@ Visualizer::Visualizer()
     // scenePalettes_ = scenePalettes_;
 }
 
-Visualizer::~Visualizer() { shutdown(); }
+Visualizer::~Visualizer() { 
+    // Save current settings before shutdown
+    saveCurrentSettings();
+    shutdown(); 
+}
 
 bool Visualizer::initialize(int width, int height) {
     windowWidth_ = width;
     windowHeight_ = height;
+
+    // Load settings first
+    settingsManager_->loadSettings();
+    
+    // Apply loaded settings to visualizer state
+    selectedDevice_ = settingsManager_->getSelectedDevice();
+    audioInputGain_ = settingsManager_->getAudioInputGain();
+    visualSensitivity_ = settingsManager_->getVisualSensitivity();
+    showImGuiWindow_ = settingsManager_->getShowImGuiWindow();
+    showCornerOrbs_ = settingsManager_->getShowCornerOrbs();
+    showProceduralLayer_ = settingsManager_->getShowProceduralLayer();
+    proceduralLayerDebug_ = settingsManager_->getProceduralLayerDebug();
+    proceduralLayerOpacity_ = settingsManager_->getProceduralLayerOpacity();
+    proceduralLayerMode_ = settingsManager_->getProceduralLayerMode();
+    
+    // Apply post-process slots
+    postProcessSlots_ = settingsManager_->getPostProcessSlots();
+    
+    // Apply colors
+    scenePrimaryColor_ = settingsManager_->getScenePrimaryColor();
+    sceneSecondaryColor_ = settingsManager_->getSceneSecondaryColor();
+    scenePaletteBlend_ = settingsManager_->getScenePaletteBlend();
+    currentScenePaletteIndex_ = settingsManager_->getCurrentScenePaletteIndex();
+    scenePaletteHueSeed_ = settingsManager_->getScenePaletteHueSeed();
+    
+    // Apply animation settings
+    autoRandomizeColors_ = settingsManager_->getAutoRandomizeColors();
+    colorRandomInterval_ = settingsManager_->getColorRandomInterval();
+    onsetColorCyclingEnabled_ = settingsManager_->getOnsetColorCyclingEnabled();
+    
+    // Apply RGB channels
+    for (int i = 0; i < 3; ++i) {
+        rgbChannelEnabled_[i] = settingsManager_->getRgbChannelEnabled(i);
+    }
 
     if (!setupOpenGL()) {
         return false;
@@ -916,11 +964,18 @@ bool Visualizer::initialize(int width, int height) {
     }
 
     if (!postProcessor_.initialize(windowWidth_, windowHeight_)) {
-        std::cout << "Post processor initialization failed, disabling post effects" << std::endl;
-        // Disable all post-process slots
-        for (auto &slot : postProcessSlots_) {
-            slot.enabled = false;
-        }
+        std::cout << "Post processor initialization failed, but still setting default RGB Split" << std::endl;
+        // Still set default RGB Split even if initialization failed
+        postProcessSlots_[0].enabled = true;
+        postProcessSlots_[0].mode = 16; // RGB Split mode
+        postProcessSlots_[0].strength = 1.0f;
+        postProcessSlots_[0].rgbAdjust = {1.5f, 1.5f, 1.5f}; // 1.50 intensity on all RGB channels
+    } else {
+        // Set default post-processing: RGB Split with 1.50 intensity on RGB channels
+        postProcessSlots_[0].enabled = true;
+        postProcessSlots_[0].mode = 16; // RGB Split mode
+        postProcessSlots_[0].strength = 1.0f;
+        postProcessSlots_[0].rgbAdjust = {1.5f, 1.5f, 1.5f}; // 1.50 intensity on all RGB channels
     }
 
     if (!loadShaders()) {
@@ -956,6 +1011,9 @@ bool Visualizer::initialize(int width, int height) {
     openglVersion_ = version ? version : "Unknown";
 
     initializeDynamicSystems();
+
+    // Save initial settings
+    settingsManager_->saveSettings();
 
     return true;
 }
@@ -1212,10 +1270,31 @@ void Visualizer::beginFrame() {
 
             if ((now - lastPostProcessToggle) > 0.25) {
                 if (glfwGetKey(window_, GLFW_KEY_P) == GLFW_PRESS) {
-                    // Find first enabled slot and cycle its mode
+                    // Find first enabled slot and cycle its mode forward
                     for (auto &slot : postProcessSlots_) {
                         if (slot.enabled) {
                             slot.mode = (slot.mode + 1) % kPostProcessModeCount;
+                            if (slot.mode == 0) {
+                                slot.enabled = false; // Disable if mode 0 (no effect)
+                            }
+                            break;
+                        }
+                        // If no slots enabled, enable first one with mode 1
+                        else if (&slot == &postProcessSlots_[0]) {
+                            slot.enabled = true;
+                            slot.mode = 1;
+                            slot.strength = 1.0f;
+                            slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
+                            break;
+                        }
+                    }
+                    lastPostProcessToggle = now;
+                }
+                else if (glfwGetKey(window_, GLFW_KEY_O) == GLFW_PRESS) {
+                    // Find first enabled slot and cycle its mode backward
+                    for (auto &slot : postProcessSlots_) {
+                        if (slot.enabled) {
+                            slot.mode = (slot.mode - 1 + kPostProcessModeCount) % kPostProcessModeCount;
                             if (slot.mode == 0) {
                                 slot.enabled = false; // Disable if mode 0 (no effect)
                             }
@@ -1416,11 +1495,13 @@ void Visualizer::handleVisualizationShortcuts() {
     static double lastGrayscaleToggle = 0.0;
     static double lastRToggle = 0.0;
     static double lastBToggle = 0.0;
+    static double lastIToggle = 0.0;
     static bool orbsWasDown = false;
     static bool kaleidoWasDown = false;
     static bool grayscaleWasDown = false;
     static bool rWasDown = false;
     static bool bWasDown = false;
+    static bool iWasDown = false;
 
     bool orbsKeyDown = (glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS ||
                         glfwGetKey(window_, GLFW_KEY_KP_1) == GLFW_PRESS);
@@ -1428,6 +1509,7 @@ void Visualizer::handleVisualizationShortcuts() {
     bool grayscaleKeyDown = glfwGetKey(window_, GLFW_KEY_G) == GLFW_PRESS;
     bool rKeyDown = glfwGetKey(window_, GLFW_KEY_R) == GLFW_PRESS;
     bool bKeyDown = glfwGetKey(window_, GLFW_KEY_B) == GLFW_PRESS;
+    bool iKeyDown = glfwGetKey(window_, GLFW_KEY_I) == GLFW_PRESS;
 
     auto updatePostProcessState = [this]() {
         bool anyActive = false;
@@ -1491,6 +1573,52 @@ void Visualizer::handleVisualizationShortcuts() {
 
     processToggle(bKeyDown, bWasDown, lastBToggle,
                   [this]() { rgbChannelEnabled_[2] = !rgbChannelEnabled_[2]; });
+
+    // Toggle effects display window
+    processToggle(iKeyDown, iWasDown, lastIToggle,
+                  [this]() { showImGuiWindow_ = !showImGuiWindow_; });
+}
+
+void Visualizer::updateSettingsFromCurrentState() {
+    if (!settingsManager_) return;
+    
+    // Update settings manager with current visualizer state
+    settingsManager_->setSelectedDevice(selectedDevice_);
+    settingsManager_->setAudioInputGain(audioInputGain_);
+    settingsManager_->setVisualSensitivity(visualSensitivity_);
+    settingsManager_->setShowImGuiWindow(showImGuiWindow_);
+    settingsManager_->setShowCornerOrbs(showCornerOrbs_);
+    settingsManager_->setShowProceduralLayer(showProceduralLayer_);
+    settingsManager_->setProceduralLayerDebug(proceduralLayerDebug_);
+    settingsManager_->setProceduralLayerOpacity(proceduralLayerOpacity_);
+    settingsManager_->setProceduralLayerMode(proceduralLayerMode_);
+    
+    // Update post-process slots
+    settingsManager_->setPostProcessSlots(postProcessSlots_);
+    
+    // Update colors
+    settingsManager_->setScenePrimaryColor(scenePrimaryColor_);
+    settingsManager_->setSceneSecondaryColor(sceneSecondaryColor_);
+    settingsManager_->setScenePaletteBlend(scenePaletteBlend_);
+    settingsManager_->setCurrentScenePaletteIndex(currentScenePaletteIndex_);
+    settingsManager_->setScenePaletteHueSeed(scenePaletteHueSeed_);
+    
+    // Update animation settings
+    settingsManager_->setAutoRandomizeColors(autoRandomizeColors_);
+    settingsManager_->setColorRandomInterval(colorRandomInterval_);
+    settingsManager_->setOnsetColorCyclingEnabled(onsetColorCyclingEnabled_);
+    
+    // Update RGB channels
+    for (int i = 0; i < 3; ++i) {
+        settingsManager_->setRgbChannelEnabled(i, rgbChannelEnabled_[i]);
+    }
+}
+
+void Visualizer::saveCurrentSettings() {
+    updateSettingsFromCurrentState();
+    if (settingsManager_) {
+        settingsManager_->saveSettings();
+    }
 }
 
 bool Visualizer::setupOpenGL() {

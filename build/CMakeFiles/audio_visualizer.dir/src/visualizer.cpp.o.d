@@ -204,6 +204,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: \
  /home/ricky/coding/proyects/visuals/src/shader.h \
  /home/ricky/coding/proyects/visuals/src/modular_layer.h \
  /home/ricky/coding/proyects/visuals/src/post_processor.h \
+ /home/ricky/coding/proyects/visuals/src/settings_manager.h \
  /home/ricky/coding/proyects/visuals/src/audio_capture.h \
  /usr/local/include/portaudio.h /usr/include/c++/15.2.1/mutex \
  /usr/include/c++/15.2.1/bits/chrono.h /usr/include/c++/15.2.1/ratio \
