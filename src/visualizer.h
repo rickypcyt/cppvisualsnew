@@ -52,6 +52,11 @@ public:
     void updateSettingsFromCurrentState();
     void saveCurrentSettings();
     
+    // Random post process methods
+    void updateRandomPostProcess(float deltaTime);
+    void initializeRandomPostProcess();
+    void selectRandomPostProcess();
+    
     // No-ImGui methods
     void renderNoImGuiLoop();
     
@@ -110,10 +115,10 @@ private:
     static constexpr int kMaxPostProcessSlots = 5;
     
     // Procedural layer constants
-    static constexpr int kProceduralModeCount = 35;
+    static constexpr int kProceduralModeCount = 39;
     
     // Post-process constants
-    static constexpr int kPostProcessModeCount = 23;
+    static constexpr int kPostProcessModeCount = 24;
     static constexpr int kPostProcessKaleidoscopeModeIndex = 7;
     static constexpr int kPostProcessGrayscaleModeIndex = 1;
     static constexpr int kDefaultPostProcessMode = 2;
@@ -166,6 +171,13 @@ private:
     int postProcessMode_;
     float postProcessStrength_;
     std::array<float, 3> postProcessRgbAdjust_;
+    
+    // Random post process cycle
+    bool randomPostProcessEnabled_ = false;
+    float randomPostProcessInterval_ = 5.0f; // seconds
+    float randomPostProcessTimer_ = 0.0f;
+    int currentRandomPostProcess_ = 0;
+    std::vector<int> availablePostProcessModes_;
     
     AudioAnalyzer::AudioFeatures audioFeatures_;
     std::vector<float> waveformBuffer_;

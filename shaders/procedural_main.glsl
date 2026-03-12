@@ -73,6 +73,16 @@ void main() {
         color = renderCryptRoots(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 34) {
         color = renderBreathing(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 35) {
+        color = renderCrystalTetrahedron(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 36) {
+        color = renderEvolutionNoise(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 37) {
+        color = renderPhiFields(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 38) {
+        color = renderStage7(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 39) {
+        color = renderWeirdCreature(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else {
         color = renderDomainWarpedFractal(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }

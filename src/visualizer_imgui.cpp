@@ -54,7 +54,12 @@ const char* const Visualizer::kProceduralModes[] = {
     "Hex Kaleidoscope",
     "HSV Color Shift",
     "Crypt Roots",
-    "Breathing"
+    "Breathing",
+    "Crystal Tetrahedron",
+    "Evolution Noise",
+    "Phi Fields",
+    "Stage7",
+    "Weird Creature"
 };
 
 const char* const Visualizer::kPostProcessModes[] = {
@@ -80,7 +85,8 @@ const char* const Visualizer::kPostProcessModes[] = {
     "Sobel Edge Detection",
     "Kaleidoscope Mirror",
     "Advanced Sobel",
-    "Ring Distortion"
+    "Ring Distortion",
+    "Random Cycle"
 };
 
 bool Visualizer::setupImGui() {
@@ -534,6 +540,38 @@ void Visualizer::renderMainImGuiWindow() {
     if (ImGui::SliderFloat("Interval (s)", &colorRandomInterval_, 1.0f, 60.0f)) {
         colorRandomInterval_ = std::max(1.0f, colorRandomInterval_);
         saveCurrentSettings(); // Auto-save when interval changes
+    }
+
+    ImGui::Spacing();
+    ImGui::Text("🎲 Random Post Process:");
+    ImGui::TextDisabled("Randomizes Slot 1 effect automatically");
+    bool prevRandomEnabled = randomPostProcessEnabled_;
+    ImGui::Checkbox("Enable Random Cycle", &randomPostProcessEnabled_);
+    if (prevRandomEnabled != randomPostProcessEnabled_) {
+        saveCurrentSettings(); // Auto-save when random post process changes
+        if (randomPostProcessEnabled_) {
+            selectRandomPostProcess(); // Select initial random mode
+        }
+    }
+    
+    if (randomPostProcessEnabled_) {
+        ImGui::SetNextItemWidth(160.0f);
+        if (ImGui::SliderFloat("Change Interval (s)", &randomPostProcessInterval_, 1.0f, 30.0f)) {
+            randomPostProcessInterval_ = std::max(1.0f, randomPostProcessInterval_);
+            saveCurrentSettings(); // Auto-save when interval changes
+        }
+        
+        // Show current random mode for Slot 1
+        if (kMaxPostProcessSlots > 0 && currentRandomPostProcess_ >= 0 && currentRandomPostProcess_ < static_cast<int>(std::size(kPostProcessModes))) {
+            ImGui::SameLine();
+            ImGui::TextDisabled("(Slot 1: %s)", kPostProcessModes[currentRandomPostProcess_]);
+        }
+        
+        // Button to force change
+        if (ImGui::Button("Change Now")) {
+            selectRandomPostProcess();
+            saveCurrentSettings();
+        }
     }
 
     ImGuiColorEditFlags colorFlags = ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float;

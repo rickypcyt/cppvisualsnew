@@ -75,7 +75,7 @@ private:
             std::cout << "✓ Capa modular inicializada correctamente" << std::endl;
             
             // Test diferentes modos
-            for (int mode = 0; mode < 11; ++mode) {
+            for (int mode = 0; mode < 15; ++mode) {
                 layer->setMode(mode);
                 LayerContext context{};
                 context.screenWidth = 1920;

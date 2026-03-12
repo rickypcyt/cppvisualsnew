@@ -10,7 +10,7 @@
 #include <vector>
 
 namespace {
-constexpr int kProceduralModeCount = 35;
+constexpr int kProceduralModeCount = 39;
 constexpr int kPostProcessModeCount = 22;
 constexpr int kKaleidoscopeModeIndex = 30;
 constexpr int kPostProcessKaleidoscopeModeIndex = 7;
@@ -903,6 +903,9 @@ Visualizer::Visualizer()
     core_ = {};
     idleState_ = 0.0f;
     idlePhase_ = 0.0f;
+    
+    // Initialize random post process
+    initializeRandomPostProcess();
 
     // Remove self-reference
     // scenePalettes_ = scenePalettes_;
@@ -1459,6 +1462,10 @@ void Visualizer::render() {
         std::clamp(rawEnergy * 0.55f + bass * 0.45f + excitement * 0.65f, 0.0f, 2.5f);
 
     float dt = std::max(deltaTime_, 1.0f / 120.0f);
+    
+    // Update random post process
+    updateRandomPostProcess(dt);
+    
     float rise = 1.0f - std::pow(0.04f, dt * tempoMultiplier_);
     float decayBase = std::pow(0.18f, dt * tempoMultiplier_);
 
@@ -2583,4 +2590,60 @@ void Visualizer::renderLife(float animatedTime) const {
     glEnd();
 
     glPopMatrix();
+}
+
+// Random Post Process Methods
+void Visualizer::initializeRandomPostProcess() {
+    // Initialize available post process modes (exclude "None" and "Random Cycle")
+    availablePostProcessModes_.clear();
+    for (int i = 1; i < kPostProcessModeCount - 1; ++i) { // Skip "None"(0) and "Random Cycle"(last)
+        availablePostProcessModes_.push_back(i);
+    }
+    
+    randomPostProcessTimer_ = 0.0f;
+    
+    // Get current mode from Slot 1
+    if (kMaxPostProcessSlots > 0) {
+        currentRandomPostProcess_ = postProcessSlots_[0].mode;
+    } else {
+        currentRandomPostProcess_ = 0;
+    }
+    
+    if (!availablePostProcessModes_.empty() && 
+        (currentRandomPostProcess_ == 0 || currentRandomPostProcess_ >= kPostProcessModeCount - 1)) {
+        // If current mode is invalid, select a random one
+        std::uniform_int_distribution<int> dist(0, availablePostProcessModes_.size() - 1);
+        currentRandomPostProcess_ = availablePostProcessModes_[dist(rng_)];
+    }
+}
+
+void Visualizer::selectRandomPostProcess() {
+    if (availablePostProcessModes_.empty()) return;
+    
+    std::uniform_int_distribution<int> dist(0, availablePostProcessModes_.size() - 1);
+    int newIndex = availablePostProcessModes_[dist(rng_)];
+    
+    // Avoid selecting the same mode twice in a row
+    while (availablePostProcessModes_.size() > 1 && newIndex == currentRandomPostProcess_) {
+        newIndex = availablePostProcessModes_[dist(rng_)];
+    }
+    
+    currentRandomPostProcess_ = newIndex;
+    
+    // Update Slot 1 (main post process slot) instead of global mode
+    if (kMaxPostProcessSlots > 0) {
+        postProcessSlots_[0].mode = currentRandomPostProcess_;
+        postProcessSlots_[0].enabled = true; // Ensure slot is enabled
+    }
+}
+
+void Visualizer::updateRandomPostProcess(float deltaTime) {
+    if (!randomPostProcessEnabled_) return;
+    
+    randomPostProcessTimer_ += deltaTime;
+    
+    if (randomPostProcessTimer_ >= randomPostProcessInterval_) {
+        selectRandomPostProcess();
+        randomPostProcessTimer_ = 0.0f;
+    }
 }

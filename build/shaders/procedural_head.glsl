@@ -517,6 +517,9 @@ float map(vec3 p) {
     
     // Audio-reactive assembly/disassembly
     float audioEnergy = uBass * 0.5 + uMid * 0.3 + uHigh * 0.2;
+    // Add base energy level so head is visible even without audio
+    float baseEnergy = 0.3; // Minimum energy level
+    audioEnergy = max(audioEnergy, baseEnergy);
     float assemblyFactor = smoothstep(0.1, 0.8, audioEnergy);
     
     // Create different assembly zones based on height
@@ -526,16 +529,16 @@ float map(vec3 p) {
     float zoneThreshold;
     if (headHeight > 0.2) {
         // Top parts (forehead, top of head) - need high energy
-        zoneThreshold = 0.7;
+        zoneThreshold = 0.4; // Reduced from 0.7
     } else if (headHeight > 0.0) {
         // Middle parts (eyes, nose) - need medium energy  
-        zoneThreshold = 0.4;
+        zoneThreshold = 0.25; // Reduced from 0.4
     } else if (headHeight > -0.2) {
         // Lower middle (mouth, cheeks) - need low-medium energy
-        zoneThreshold = 0.2;
+        zoneThreshold = 0.15; // Reduced from 0.2
     } else {
         // Bottom parts (chin, jaw) - assemble first
-        zoneThreshold = 0.1;
+        zoneThreshold = 0.05; // Reduced from 0.1
     }
     
     // Add some randomness based on audio for more organic effect
