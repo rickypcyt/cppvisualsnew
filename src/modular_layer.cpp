@@ -1,6 +1,8 @@
 #include "modular_layer.h"
 
 #include <array>
+#include <cctype>
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -8,9 +10,11 @@
 #include <string>
 #include <vector>
 
+#include "shader_loader.h"
+
 namespace {
 
-constexpr int kKaleidoscopeModeIndex = 23;
+constexpr int kKaleidoscopeModeIndex = 30;
 
 const char* kQuadVertexShader = R"(
 #version 330 core
@@ -25,50 +29,163 @@ void main() {
 }
 )";
 
-const std::array<const char*, 3> kShaderSearchRoots = {
-    "shaders/",
-    "../shaders/",
-    "../../shaders/"
-};
-
-const std::array<const char*, 6> kProceduralShaderFiles = {
+const std::array<const char*, 14> kProceduralShaderFiles = {
     "procedural_header.glsl",
     "procedural_helpers.glsl",
+    "procedural_shadertoy_bridge.glsl",
     "procedural_pack1.glsl",
     "procedural_pack2.glsl",
     "procedural_pack3.glsl",
+    "procedural_pack4.glsl",
+    "procedural_pack5.glsl",
+    "procedural_pack6.glsl",
+    "procedural_pack7.glsl",
+    "procedural_pack8.glsl",
+    "procedural_pack9.glsl",
+    "procedural_pack10.glsl",
     "procedural_main.glsl"
 };
 
-template <std::size_t N>
-bool LoadShaderFiles(const std::array<const char*, 3>& roots,
-                     const std::array<const char*, N>& files,
-                     std::string& outSource) {
-    for (const char* root : roots) {
-        std::stringstream shaderStream;
-        bool allLoaded = true;
-        for (const char* file : files) {
-            std::string path = std::string(root) + file;
-            std::ifstream input(path, std::ios::in);
-            if (!input.is_open()) {
-                allLoaded = false;
-                break;
-            }
-            shaderStream << input.rdbuf() << '\n';
+const std::array<const char*, 10> kProceduralPackFiles = {
+    "procedural_pack1.glsl",
+    "procedural_pack2.glsl",
+    "procedural_pack3.glsl",
+    "procedural_pack4.glsl",
+    "procedural_pack5.glsl",
+    "procedural_pack6.glsl",
+    "procedural_pack7.glsl",
+    "procedural_pack8.glsl",
+    "procedural_pack9.glsl",
+    "procedural_pack10.glsl"
+};
+
+const char* kProceduralDebugMain = R"(
+// --- Debug main stub ---
+void main() {
+    FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+}
+)";
+
+std::string TrimmedLower(std::string value) {
+    const auto first = value.find_first_not_of(" \t\n\r");
+    const auto last = value.find_last_not_of(" \t\n\r");
+    if (first == std::string::npos) {
+        return {};
+    }
+    value = value.substr(first, last - first + 1U);
+    for (char& ch : value) {
+        ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+    }
+    return value;
+}
+
+bool ResolveDebugPack(const std::string& request, std::string& outFile) {
+    if (request.empty()) {
+        return false;
+    }
+
+    const std::string key = TrimmedLower(request);
+    if (key.empty()) {
+        return false;
+    }
+
+    auto digitsToIndex = [](const std::string& digits) -> int {
+        if (digits.empty()) {
+            return -1;
         }
-        if (allLoaded) {
-            outSource = shaderStream.str();
+        for (char ch : digits) {
+            if (!std::isdigit(static_cast<unsigned char>(ch))) {
+                return -1;
+            }
+        }
+        int value = std::stoi(digits);
+        return (value >= 1 && value <= static_cast<int>(kProceduralPackFiles.size())) ? value - 1 : -1;
+    };
+
+    int packIndex = -1;
+
+    // Accept plain numbers (e.g. "8")
+    packIndex = digitsToIndex(key);
+
+    // Accept forms like "pack8" or "pack8.glsl"
+    if (packIndex == -1 && key.rfind("pack", 0) == 0) {
+        std::string suffix = key.substr(4);
+        if (suffix.size() > 5 && suffix.substr(suffix.size() - 5) == ".glsl") {
+            suffix.erase(suffix.size() - 5);
+        }
+        packIndex = digitsToIndex(suffix);
+    }
+
+    // Accept forms like "procedural_pack8" or with extension
+    if (packIndex == -1 && key.rfind("procedural_pack", 0) == 0) {
+        std::string suffix = key.substr(15);
+        if (suffix.size() > 5 && suffix.substr(suffix.size() - 5) == ".glsl") {
+            suffix.erase(suffix.size() - 5);
+        }
+        packIndex = digitsToIndex(suffix);
+    }
+
+    if (packIndex >= 0) {
+        outFile = kProceduralPackFiles[static_cast<size_t>(packIndex)];
+        return true;
+    }
+
+    // Accept full filename match
+    for (const char* packFile : kProceduralPackFiles) {
+        if (key == TrimmedLower(packFile)) {
+            outFile = packFile;
             return true;
         }
     }
+
     return false;
 }
 
 const std::string& GetProceduralFragmentShaderSource() {
     static std::string source;
-    if (source.empty()) {
-        LoadShaderFiles(kShaderSearchRoots, kProceduralShaderFiles, source);
+    static std::string lastDebugKey;
+
+    const char* debugEnv = std::getenv("PROCEDURAL_DEBUG_PACK");
+    const std::string debugKey = debugEnv ? debugEnv : std::string{};
+
+    if (source.empty() || debugKey != lastDebugKey) {
+        lastDebugKey = debugKey;
+        source.clear();
+
+        if (!debugKey.empty()) {
+            std::string packFile;
+            if (ResolveDebugPack(debugKey, packFile)) {
+                std::vector<std::string> debugFiles = {
+                    "procedural_header.glsl",
+                    "procedural_helpers.glsl",
+                    "procedural_shadertoy_bridge.glsl",
+                    packFile
+                };
+
+                std::string error;
+                if (LoadShaderSources(kShaderSearchRoots, debugFiles, source, &error)) {
+                    source += kProceduralDebugMain;
+                    std::cout << "ModularLayer: PROCEDURAL_DEBUG_PACK active (" << packFile
+                              << ")" << std::endl;
+                } else {
+                    std::cerr << "ModularLayer: failed to load debug pack '" << debugKey
+                              << "': " << error << std::endl;
+                    source.clear();
+                }
+            } else {
+                std::cerr << "ModularLayer: unknown PROCEDURAL_DEBUG_PACK value '" << debugKey
+                          << "'" << std::endl;
+            }
+        }
+
+        if (source.empty()) {
+            std::string error;
+            if (!LoadShaderSources(kShaderSearchRoots, kProceduralShaderFiles, source, &error)) {
+                std::cerr << "ModularLayer: failed to load procedural shader sources: " << error << std::endl;
+            }
+        }
     }
+
     return source;
 }
 
@@ -278,28 +395,9 @@ bool ModularLayer::ensureKaleidoscopeShader() {
         return true;
     }
 
-    const std::array<const char*, 3> searchPaths = {
-        "shaders/procedural_kaleidoscope.glsl",
-        "../shaders/procedural_kaleidoscope.glsl",
-        "../../shaders/procedural_kaleidoscope.glsl"
-    };
-
-    std::string fragmentSource;
-    bool loaded = false;
-    for (const char* path : searchPaths) {
-        std::ifstream file(path, std::ios::in);
-        if (!file.is_open()) {
-            continue;
-        }
-        std::stringstream buffer;
-        buffer << file.rdbuf();
-        fragmentSource = buffer.str();
-        loaded = true;
-        break;
-    }
-
-    if (!loaded) {
-        std::cerr << "ModularLayer: unable to locate procedural_kaleidoscope.glsl" << std::endl;
+    std::string fragmentSource = GetProceduralFragmentShaderSource();
+    if (fragmentSource.empty()) {
+        std::cerr << "ModularLayer: failed to locate procedural shader sources" << std::endl;
         return false;
     }
 

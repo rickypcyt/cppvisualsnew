@@ -2159,6 +2159,7 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: /home/ricky/coding/proy
   /home/ricky/coding/proyects/visuals/src/audio_analyzer.h \
   /home/ricky/coding/proyects/visuals/src/modular_layer.h \
   /home/ricky/coding/proyects/visuals/src/shader.h \
+  /home/ricky/coding/proyects/visuals/src/shader_loader.h \
   /usr/include/GL/gl.h \
   /usr/include/GL/glew.h \
   /usr/include/GL/glu.h \
@@ -2261,6 +2262,7 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/bits/basic_string.tcc \
   /usr/include/c++/15.2.1/bits/char_traits.h \
   /usr/include/c++/15.2.1/bits/charconv.h \
+  /usr/include/c++/15.2.1/bits/chrono.h \
   /usr/include/c++/15.2.1/bits/codecvt.h \
   /usr/include/c++/15.2.1/bits/concept_check.h \
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
@@ -2270,6 +2272,10 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
+  /usr/include/c++/15.2.1/bits/fs_dir.h \
+  /usr/include/c++/15.2.1/bits/fs_fwd.h \
+  /usr/include/c++/15.2.1/bits/fs_ops.h \
+  /usr/include/c++/15.2.1/bits/fs_path.h \
   /usr/include/c++/15.2.1/bits/fstream.tcc \
   /usr/include/c++/15.2.1/bits/functexcept.h \
   /usr/include/c++/15.2.1/bits/functional_hash.h \
@@ -2293,6 +2299,7 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/bits/ostream.h \
   /usr/include/c++/15.2.1/bits/ostream.tcc \
   /usr/include/c++/15.2.1/bits/ostream_insert.h \
+  /usr/include/c++/15.2.1/bits/parse_numbers.h \
   /usr/include/c++/15.2.1/bits/postypes.h \
   /usr/include/c++/15.2.1/bits/predefined_ops.h \
   /usr/include/c++/15.2.1/bits/ptr_traits.h \
@@ -2333,6 +2340,7 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/cerrno \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/codecvt \
   /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
@@ -2354,6 +2362,7 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/ext/numeric_traits.h \
   /usr/include/c++/15.2.1/ext/string_conversions.h \
   /usr/include/c++/15.2.1/ext/type_traits.h \
+  /usr/include/c++/15.2.1/filesystem \
   /usr/include/c++/15.2.1/fstream \
   /usr/include/c++/15.2.1/initializer_list \
   /usr/include/c++/15.2.1/iomanip \
@@ -2369,6 +2378,7 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/pstl/execution_defs.h \
   /usr/include/c++/15.2.1/pstl/glue_memory_defs.h \
   /usr/include/c++/15.2.1/pstl/pstl_config.h \
+  /usr/include/c++/15.2.1/ratio \
   /usr/include/c++/15.2.1/sstream \
   /usr/include/c++/15.2.1/stdexcept \
   /usr/include/c++/15.2.1/streambuf \
@@ -4459,6 +4469,12 @@ CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o:
 
 /usr/lib/libc_nonshared.a:
 
+/usr/lib/libXdmcp.so.6:
+
+/usr/lib/libXau.so.6:
+
+/usr/lib/libX11.so.6:
+
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/emmintrin.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/clzerointrin.h:
@@ -4565,8 +4581,6 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
 /home/ricky/coding/proyects/visuals/src/audio_analyzer.h:
 
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/avx512vpopcntdqintrin.h:
-
 /home/ricky/coding/proyects/visuals/src/audio_analyzer.cpp:
 
 /usr/include/c++/15.2.1/tr1/gamma.tcc:
@@ -4624,6 +4638,10 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 /usr/include/bits/uio_lim.h:
 
 /usr/include/bits/math-vector.h:
+
+/usr/lib/libOpenGL.so.0:
+
+/usr/include/c++/15.2.1/bits/exception.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/avx512fp16vlintrin.h:
 
@@ -4697,6 +4715,8 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
 /usr/include/bits/stdio_lim.h:
 
+/usr/include/c++/15.2.1/bits/fs_dir.h:
+
 /usr/include/sys/types.h:
 
 /usr/include/c++/15.2.1/bits/cpp_type_traits.h:
@@ -4704,10 +4724,6 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/avx512bitalgintrin.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/avx512vbmivlintrin.h:
-
-/usr/include/c++/15.2.1/bits/exception.h:
-
-/usr/lib/libOpenGL.so.0:
 
 /usr/include/bits/types/__FILE.h:
 
@@ -4718,6 +4734,10 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 /usr/include/bits/struct_rwlock.h:
 
 /usr/include/bits/sched.h:
+
+/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/avx512vpopcntdqintrin.h:
+
+/home/ricky/coding/proyects/visuals/src/shader_loader.h:
 
 /usr/include/bits/types/__mbstate_t.h:
 
@@ -4893,6 +4913,8 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/sm4intrin.h:
 
+/usr/include/c++/15.2.1/filesystem:
+
 /usr/include/c++/15.2.1/numeric:
 
 /usr/include/c++/15.2.1/tr1/hypergeometric.tcc:
@@ -4916,6 +4938,8 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o:
 /usr/include/c++/15.2.1/bits/quoted_string.h:
 
 /usr/include/bits/pthreadtypes-arch.h:
+
+/usr/include/c++/15.2.1/bits/fs_fwd.h:
 
 /usr/include/gnu/stubs.h:
 
@@ -5295,6 +5319,12 @@ CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o:
 
 /usr/include/c++/15.2.1/bits/deque.tcc:
 
+/usr/lib/libGLX.so.0:
+
+/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/pkuintrin.h:
+
+/usr/include/c++/15.2.1/bits/exception_ptr.h:
+
 /usr/include/c++/15.2.1/bits/functional_hash.h:
 
 /home/ricky/coding/proyects/visuals/imgui/imgui.h:
@@ -5370,6 +5400,8 @@ CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o:
 /usr/include/c++/15.2.1/cmath:
 
 /usr/include/c++/15.2.1/bits/stringfwd.h:
+
+/usr/include/c++/15.2.1/bits/fs_path.h:
 
 /usr/include/c++/15.2.1/cstddef:
 
@@ -5451,8 +5483,6 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o:
 
 /usr/include/c++/15.2.1/atomic:
 
-/usr/include/c++/15.2.1/bits/atomic_base.h:
-
 /usr/include/sys/select.h:
 
 /usr/include/c++/15.2.1/bits/stl_function.h:
@@ -5491,11 +5521,17 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o:
 
 /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/opt_random.h:
 
+/usr/include/c++/15.2.1/bits/atomic_base.h:
+
+/usr/include/c++/15.2.1/bits/fs_ops.h:
+
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/pmmintrin.h:
 
 /usr/include/c++/15.2.1/bits/locale_conv.h:
 
 /usr/include/c++/15.2.1/bits/locale_facets_nonio.h:
+
+/usr/include/c++/15.2.1/codecvt:
 
 /usr/include/c++/15.2.1/fstream:
 
@@ -5548,15 +5584,3 @@ CMakeFiles/audio_visualizer.dir/src/shader.cpp.o:
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/libgcc.a:
 
 /usr/lib/ld-linux-x86-64.so.2:
-
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/pkuintrin.h:
-
-/usr/include/c++/15.2.1/bits/exception_ptr.h:
-
-/usr/lib/libGLX.so.0:
-
-/usr/lib/libX11.so.6:
-
-/usr/lib/libXau.so.6:
-
-/usr/lib/libXdmcp.so.6:

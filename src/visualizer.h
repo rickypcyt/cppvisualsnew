@@ -109,6 +109,7 @@ private:
     // Post-process constants
     static constexpr int kPostProcessModeCount = 17;
     static constexpr int kPostProcessKaleidoscopeModeIndex = 7;
+    static constexpr int kPostProcessGrayscaleModeIndex = 1;
 
     struct LifeCellGrid {
         static constexpr int WIDTH = 96;
@@ -136,11 +137,14 @@ private:
     GLuint cornerVAO_;
     GLuint cornerVBO_;
     GLsizei cornerVertexCount_;
+    GLuint doodadVAO_;
+    GLuint doodadVBO_;
 
     std::unique_ptr<Shader> shader_;
     std::unique_ptr<Shader> coreShader_;
     std::unique_ptr<Shader> sparkShader_;
     std::unique_ptr<Shader> cornerShader_;
+    std::unique_ptr<Shader> doodadShader_;
     ModularLayer proceduralLayer_;
     PostProcessor postProcessor_;
     std::array<PostProcessSlot, kMaxPostProcessSlots> postProcessSlots_;
@@ -215,11 +219,13 @@ private:
     bool loadCoreShader();
     bool loadSparkShader();
     bool loadCornerShader();
+    bool loadDoodadShader();
     void setupQuad();
     void setupWaveform();
     void setupCoreMesh();
     void setupSparkField();
     void setupCornerQuad();
+    void setupDoodadMesh();
     void renderWaveform(const std::vector<float>& audioBuffer);
     void renderText(const std::string& text, float x, float y);
     void setupDeviceList();
@@ -230,6 +236,7 @@ private:
     void renderModernCore();
     void renderShaderSparkles();
     void renderCornerOrbs();
+    void renderDoodadObject();
     void renderProceduralLayer();
     void renderCore();
     void handleVisualizationShortcuts();

@@ -323,6 +323,13 @@ void Visualizer::renderMainImGuiWindow() {
                 "Fractal Tunnel",
                 "Volumetric Starfield",
                 "Voxel Path Tracer",
+                "Etienne Pulse",
+                "Fractal Runway",
+                "Volumetric Tunnel",
+                "Chromatic Swirl",
+                "Hyper Pulse",
+                "Gyroid Reflections",
+                "Metal Gyroid Hall",
                 "Hex Kaleidoscope"
             };
             int modeIndex = std::clamp(proceduralLayerMode_, 0, static_cast<int>(std::size(kProceduralModes)) - 1);

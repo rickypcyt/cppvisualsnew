@@ -10,10 +10,11 @@
 #include <vector>
 
 namespace {
-constexpr int kProceduralModeCount = 24;
+constexpr int kProceduralModeCount = 31;
 constexpr int kPostProcessModeCount = 17;
-constexpr int kKaleidoscopeModeIndex = 23;
+constexpr int kKaleidoscopeModeIndex = 30;
 constexpr int kPostProcessKaleidoscopeModeIndex = 7;
+constexpr int kPostProcessGrayscaleModeIndex = 1;
 constexpr int kDefaultPostProcessMode = 2;
 constexpr float kDefaultPostProcessStrength = 0.65f;
 constexpr int kKaleidoscopeSlotIndex = 1;
@@ -73,6 +74,194 @@ void main() {
 }
 )";
 
+const char *doodadVertexShaderSource = R"(
+#version 330 core
+layout (location = 0) in vec2 aPos;
+
+out vec2 vUV;
+
+void main() {
+    vUV = (aPos + 1.0) * 0.5;
+    gl_Position = vec4(aPos, 0.0, 1.0);
+}
+)";
+
+const char *doodadFragmentShaderSource = R"(
+#version 330 core
+
+in vec2 vUV;
+out vec4 FragColor;
+
+uniform vec2 uResolution;
+uniform float uTime;
+uniform float uTempo;
+uniform float uEnergy;
+uniform float uBass;
+uniform float uMid;
+uniform float uHigh;
+uniform vec3 uPrimaryColor;
+uniform vec3 uSecondaryColor;
+uniform float uColorBlend;
+
+#define PI 3.14159265359
+#define iTime uTime
+#define iResolution vec3(uResolution, 1.0)
+
+const float BUMP_AMP = 6.0;
+const float HUE_MIX = 0.7;
+const float BPM = 160.0;
+const int MAX_STEPS = 100;
+const float EPS = 0.01;
+const float FAR_DIST = 1e5;
+
+vec3 hueRotate(vec3 col, float h) {
+    const vec3 k = vec3(0.57735);
+    float a = h * 6.28318;
+    float c = cos(a);
+    float s = sin(a);
+    return col * c + cross(k, col) * s + k * dot(k, col) * (1.0 - c);
+}
+
+vec3 erot(vec3 p, vec3 ax, float ro) {
+    return mix(dot(p, ax) * ax, p, cos(ro)) + sin(ro) * cross(ax, p);
+}
+
+float smin(float a, float b, float k) {
+    float h = max(0.0, k - abs(b - a)) / k;
+    return min(a, b) - h * h * h * k / 6.0;
+}
+
+vec4 wrot(vec4 p) {
+    return vec4(dot(p, vec4(1.0)), p.yzw + p.zwy - p.wyz - p.xxx) * 0.5;
+}
+
+float t;
+float doodad;
+vec3 p2;
+
+float doodadDist(vec3 p, float t_offset) {
+    float d_time = t_offset + iTime;
+
+    p2 = erot(p, vec3(0.0, 1.0, 0.0), d_time);
+    p2 = erot(p2, vec3(0.0, 0.0, 1.0), d_time / 3.0);
+    p2 = erot(p2, vec3(1.0, 0.0, 0.0), d_time / 5.0);
+
+    float morph_speed = 3.0;
+    float bpt = d_time / 60.0 * BPM;
+    vec4 p4 = vec4(p2, 0.0);
+    p4 = mix(p4, wrot(p4), smoothstep(-0.55, 0.55, sin(bpt / 4.0)));
+    p4 = abs(p4);
+    p4 = mix(p4, wrot(p4), smoothstep(-0.5, 0.5, sin(bpt / morph_speed)));
+
+    float fctr = smoothstep(-0.5, 0.5, sin(bpt / 4.0));
+
+    float num_faciness = mix(0.09, 0.3, fctr);
+    float roundness = mix(-0.1, 0.22, fctr);
+    float scale = mix(0.15, 0.45, fctr * fctr);
+    float shapeniess = 0.0;
+
+    doodad = length(max(abs(p4) - num_faciness, shapeniess) + roundness) - scale;
+
+    p.x += asin(sin(d_time / 80.0) * 0.99) * 80.0;
+
+    return doodad;
+}
+
+float scene(vec3 p) {
+    float d = 1e5;
+    const int numel = 13;
+    float period = 45.0;
+    float startX = -6.0 * float(numel);
+    float endX = 10.0;
+    float maxRadius = 12.0;
+    float minRadius = 0.01;
+
+    for (int i = 0; i < numel; ++i) {
+        float fi = float(i);
+        float phaseOffset = period / float(numel);
+        float travel = fract((iTime + fi * phaseOffset) / period);
+
+        float xPos = mix(startX, endX, travel);
+        float angle = travel * 4.0 * PI + fi;
+        float radius = mix(maxRadius, minRadius, travel);
+        vec3 offset = vec3(xPos, cos(angle) * radius, sin(angle) * radius);
+
+        float dtemp = doodadDist(p + offset, fi * 4.5);
+        float fade = smoothstep(0.8, 1.0, travel);
+        dtemp = mix(dtemp, 1e5, fade);
+        d = smin(d, dtemp, 0.1);
+    }
+
+    return d;
+}
+
+vec3 norm(vec3 p) {
+    float precis = length(p) < 1.0 ? 0.005 : 0.01;
+    mat3 k = mat3(p, p, p) - mat3(precis);
+    return normalize(scene(p) - vec3(scene(k[0]), scene(k[1]), scene(k[2])));
+}
+
+void main() {
+    vec2 fragCoord = vUV * uResolution;
+    vec2 uv = (fragCoord - 0.5 * uResolution) / uResolution.y;
+
+    float bpt = iTime / 60.0 * BPM;
+    float bp = mix(pow(sin(fract(bpt) * PI * 0.5), 20.0) + floor(bpt), bpt, 0.4);
+    t = bp;
+
+    vec3 cam = normalize(vec3(2.2, uv));
+    vec3 init = vec3(BUMP_AMP * sin(0.5 * bp * PI), 0.0, 0.0);
+
+    vec3 p = init;
+    bool hit = false;
+    float atten = 1.4 + clamp(uEnergy * 0.35 + uTempo * 0.25, 0.0, 1.5);
+    float tlen = 0.0;
+    float dist;
+
+    for (int i = 0; i < MAX_STEPS; ++i) {
+        dist = scene(p);
+        if (dist < EPS) {
+            hit = true;
+            break;
+        }
+        if (tlen > FAR_DIST) {
+            break;
+        }
+        p += cam * dist;
+        tlen += dist;
+    }
+
+    if (!hit) {
+        vec3 paletteColor = mix(uPrimaryColor, uSecondaryColor, clamp(uColorBlend, 0.0, 1.0));
+        FragColor = vec4(paletteColor * 0.08, 0.0);
+        return;
+    }
+
+    vec3 n = norm(p);
+    vec3 r = reflect(cam, n);
+
+    float fact = length(sin(r * 4.0) * 0.5 + 0.5) / sqrt(3.0) * 0.7 + 0.3;
+    fact += pow(fact, 15.0);
+    float levels = 3.0;
+    fact = floor(fact * levels) / levels;
+
+    vec3 matcol = mix(vec3(0.0, 0.8, 0.8), vec3(0.8, 0.0, 0.8), HUE_MIX);
+    float hueDrift = bpt / 4.0 + clamp(uTempo * 0.3 + uHigh * 0.25, 0.0, 1.0);
+    matcol = hueRotate(matcol, hueDrift);
+
+    vec3 col = matcol * fact;
+    col *= atten;
+    col = sqrt(max(col, 0.0));
+    col = smoothstep(vec3(0.0), vec3(1.2), col);
+
+    vec3 paletteColor = mix(uPrimaryColor, uSecondaryColor, clamp(uColorBlend, 0.0, 1.0));
+    float mixAmount = clamp(0.45 + uEnergy * 0.35 + uTempo * 0.2, 0.0, 1.0);
+    vec3 finalColor = mix(paletteColor, col, mixAmount);
+    float alpha = clamp(0.35 + length(finalColor) * 0.25, 0.0, 1.0);
+
+    FragColor = vec4(finalColor, alpha);
+}
+)";
 const char *cornerVertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec2 aCornerPos;
@@ -1224,21 +1413,53 @@ void Visualizer::handleVisualizationShortcuts() {
 
     static double lastOrbsToggle = 0.0;
     static double lastKaleidoToggle = 0.0;
+    static double lastGrayscaleToggle = 0.0;
     static double lastRToggle = 0.0;
-    static double lastGToggle = 0.0;
     static double lastBToggle = 0.0;
     static bool orbsWasDown = false;
     static bool kaleidoWasDown = false;
+    static bool grayscaleWasDown = false;
     static bool rWasDown = false;
-    static bool gWasDown = false;
     static bool bWasDown = false;
 
     bool orbsKeyDown = (glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS ||
                         glfwGetKey(window_, GLFW_KEY_KP_1) == GLFW_PRESS);
     bool kaleidoKeyDown = glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS;
+    bool grayscaleKeyDown = glfwGetKey(window_, GLFW_KEY_G) == GLFW_PRESS;
     bool rKeyDown = glfwGetKey(window_, GLFW_KEY_R) == GLFW_PRESS;
-    bool gKeyDown = glfwGetKey(window_, GLFW_KEY_G) == GLFW_PRESS;
     bool bKeyDown = glfwGetKey(window_, GLFW_KEY_B) == GLFW_PRESS;
+
+    auto updatePostProcessState = [this]() {
+        bool anyActive = false;
+        for (const auto &slot : postProcessSlots_) {
+            if (slot.enabled && slot.mode > 0 && slot.strength > 0.0f) {
+                anyActive = true;
+                break;
+            }
+        }
+        showPostProcess_ = anyActive;
+    };
+
+    auto togglePostProcessEffect = [&](int mode, float defaultStrength) {
+        for (auto &slot : postProcessSlots_) {
+            if (slot.enabled && slot.mode == mode) {
+                slot.enabled = false;
+                updatePostProcessState();
+                return;
+            }
+        }
+
+        for (auto &slot : postProcessSlots_) {
+            if (!slot.enabled) {
+                slot.enabled = true;
+                slot.mode = mode;
+                slot.strength = defaultStrength;
+                slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
+                updatePostProcessState();
+                return;
+            }
+        }
+    };
 
     auto processToggle = [&](bool keyDown, bool &wasDown, double &lastToggle, auto &&action) {
         if (keyDown) {
@@ -1255,25 +1476,18 @@ void Visualizer::handleVisualizationShortcuts() {
     processToggle(orbsKeyDown, orbsWasDown, lastOrbsToggle,
                   [this]() { showCornerOrbs_ = !showCornerOrbs_; });
 
-    processToggle(kaleidoKeyDown, kaleidoWasDown, lastKaleidoToggle, [this]() {
-        auto &slot = postProcessSlots_[0];
-        if (slot.enabled && slot.mode == kPostProcessKaleidoscopeModeIndex) {
-            slot.enabled = false;
-        } else {
-            slot.enabled = true;
-            slot.mode = kPostProcessKaleidoscopeModeIndex;
-            slot.strength = 1.0f;
-            slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
-            showPostProcess_ = true;
-        }
+    processToggle(kaleidoKeyDown, kaleidoWasDown, lastKaleidoToggle, [this, &togglePostProcessEffect]() {
+        togglePostProcessEffect(kPostProcessKaleidoscopeModeIndex, 1.0f);
     });
+
+    processToggle(grayscaleKeyDown, grayscaleWasDown, lastGrayscaleToggle,
+                  [this, &togglePostProcessEffect]() {
+                      togglePostProcessEffect(kPostProcessGrayscaleModeIndex, 1.0f);
+                  });
 
     // RGB channel toggles
     processToggle(rKeyDown, rWasDown, lastRToggle,
                   [this]() { rgbChannelEnabled_[0] = !rgbChannelEnabled_[0]; });
-
-    processToggle(gKeyDown, gWasDown, lastGToggle,
-                  [this]() { rgbChannelEnabled_[1] = !rgbChannelEnabled_[1]; });
 
     processToggle(bKeyDown, bWasDown, lastBToggle,
                   [this]() { rgbChannelEnabled_[2] = !rgbChannelEnabled_[2]; });

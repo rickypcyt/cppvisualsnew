@@ -209,4 +209,11 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: \
  /usr/include/c++/15.2.1/bits/locale_facets_nonio.tcc \
  /usr/include/c++/15.2.1/bits/locale_conv.h \
  /usr/include/c++/15.2.1/bits/quoted_string.h \
- /usr/include/c++/15.2.1/iostream
+ /usr/include/c++/15.2.1/iostream \
+ /home/ricky/coding/proyects/visuals/src/shader_loader.h \
+ /usr/include/c++/15.2.1/filesystem /usr/include/c++/15.2.1/bits/fs_fwd.h \
+ /usr/include/c++/15.2.1/bits/chrono.h /usr/include/c++/15.2.1/ratio \
+ /usr/include/c++/15.2.1/bits/parse_numbers.h \
+ /usr/include/c++/15.2.1/bits/fs_path.h /usr/include/c++/15.2.1/codecvt \
+ /usr/include/c++/15.2.1/bits/fs_dir.h \
+ /usr/include/c++/15.2.1/bits/fs_ops.h

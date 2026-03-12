@@ -3,6 +3,7 @@
         "*.c": "c",
         "*.cpp": "cpp",
         "*.tcc": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "array": "cpp"
     }
 }

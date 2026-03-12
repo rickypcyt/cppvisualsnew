@@ -49,6 +49,18 @@ void main() {
         color = renderVolumetricStarfield(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 22) {
         color = renderVoxelPathTracer(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 23) {
+        color = renderEtiennePulse(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 24) {
+        color = renderFractalRunway(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 25) {
+        color = renderVolumetricTunnel(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 26) {
+        color = renderChromaticSwirl(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 27) {
+        color = renderHyperPulse(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 28) {
+        color = renderGyroidReflections(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else {
         color = renderDomainWarpedFractal(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
