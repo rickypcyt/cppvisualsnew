@@ -217,6 +217,18 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: \
  /usr/include/c++/15.2.1/array /usr/include/c++/15.2.1/compare \
  /home/ricky/coding/proyects/visuals/src/shader.h \
  /home/ricky/coding/proyects/visuals/src/modular_layer.h \
+ /usr/include/c++/15.2.1/filesystem /usr/include/c++/15.2.1/bits/fs_fwd.h \
+ /usr/include/c++/15.2.1/bits/fs_path.h /usr/include/c++/15.2.1/locale \
+ /usr/include/c++/15.2.1/bits/locale_facets_nonio.h \
+ /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/time_members.h \
+ /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/messages_members.h \
+ /usr/include/libintl.h /usr/include/c++/15.2.1/bits/codecvt.h \
+ /usr/include/c++/15.2.1/bits/locale_facets_nonio.tcc \
+ /usr/include/c++/15.2.1/bits/locale_conv.h \
+ /usr/include/c++/15.2.1/iomanip \
+ /usr/include/c++/15.2.1/bits/quoted_string.h \
+ /usr/include/c++/15.2.1/codecvt /usr/include/c++/15.2.1/bits/fs_dir.h \
+ /usr/include/c++/15.2.1/bits/fs_ops.h \
  /home/ricky/coding/proyects/visuals/src/post_processor.h \
  /home/ricky/coding/proyects/visuals/src/settings_manager.h \
  /usr/include/c++/15.2.1/algorithm \

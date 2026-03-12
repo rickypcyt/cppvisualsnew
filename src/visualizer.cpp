@@ -972,6 +972,9 @@ bool Visualizer::initialize(int width, int height) {
     randomProceduralEnabled_ = settingsManager_->getRandomProceduralEnabled();
     randomProceduralInterval_ = settingsManager_->getRandomProceduralInterval();
     
+    // Apply hot-reload setting
+    hotReloadEnabled_ = settingsManager_->getHotReloadEnabled();
+    
     // Apply colors
     scenePrimaryColor_ = settingsManager_->getScenePrimaryColor();
     sceneSecondaryColor_ = settingsManager_->getSceneSecondaryColor();
@@ -1012,6 +1015,11 @@ bool Visualizer::initialize(int width, int height) {
     } else {
         proceduralLayerMode_ = std::clamp(proceduralLayerMode_, 0, kProceduralModeCount - 1);
         proceduralLayer_.setMode(proceduralLayerMode_);
+    }
+    
+    // Initialize hot-reload if enabled
+    if (hotReloadEnabled_) {
+        proceduralLayer_.enableHotReload(true);
     }
 
     if (!postProcessor_.initialize(windowWidth_, windowHeight_)) {
@@ -1748,6 +1756,9 @@ void Visualizer::updateSettingsFromCurrentState() {
     settingsManager_->setRandomPostProcessInterval(randomPostProcessInterval_);
     settingsManager_->setRandomProceduralEnabled(randomProceduralEnabled_);
     settingsManager_->setRandomProceduralInterval(randomProceduralInterval_);
+    
+    // Update hot-reload setting
+    settingsManager_->setHotReloadEnabled(hotReloadEnabled_);
     
     // Update colors
     settingsManager_->setScenePrimaryColor(scenePrimaryColor_);

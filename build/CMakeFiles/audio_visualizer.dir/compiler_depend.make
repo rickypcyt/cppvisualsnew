@@ -2269,6 +2269,7 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/bits/char_traits.h \
   /usr/include/c++/15.2.1/bits/charconv.h \
   /usr/include/c++/15.2.1/bits/chrono.h \
+  /usr/include/c++/15.2.1/bits/codecvt.h \
   /usr/include/c++/15.2.1/bits/concept_check.h \
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
@@ -2279,6 +2280,10 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
+  /usr/include/c++/15.2.1/bits/fs_dir.h \
+  /usr/include/c++/15.2.1/bits/fs_fwd.h \
+  /usr/include/c++/15.2.1/bits/fs_ops.h \
+  /usr/include/c++/15.2.1/bits/fs_path.h \
   /usr/include/c++/15.2.1/bits/functexcept.h \
   /usr/include/c++/15.2.1/bits/functional_hash.h \
   /usr/include/c++/15.2.1/bits/hash_bytes.h \
@@ -2289,8 +2294,11 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/bits/istream.tcc \
   /usr/include/c++/15.2.1/bits/locale_classes.h \
   /usr/include/c++/15.2.1/bits/locale_classes.tcc \
+  /usr/include/c++/15.2.1/bits/locale_conv.h \
   /usr/include/c++/15.2.1/bits/locale_facets.h \
   /usr/include/c++/15.2.1/bits/locale_facets.tcc \
+  /usr/include/c++/15.2.1/bits/locale_facets_nonio.h \
+  /usr/include/c++/15.2.1/bits/locale_facets_nonio.tcc \
   /usr/include/c++/15.2.1/bits/localefwd.h \
   /usr/include/c++/15.2.1/bits/memory_resource.h \
   /usr/include/c++/15.2.1/bits/memoryfwd.h \
@@ -2305,6 +2313,7 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/bits/postypes.h \
   /usr/include/c++/15.2.1/bits/predefined_ops.h \
   /usr/include/c++/15.2.1/bits/ptr_traits.h \
+  /usr/include/c++/15.2.1/bits/quoted_string.h \
   /usr/include/c++/15.2.1/bits/random.h \
   /usr/include/c++/15.2.1/bits/random.tcc \
   /usr/include/c++/15.2.1/bits/range_access.h \
@@ -2354,6 +2363,7 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/chrono \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/codecvt \
   /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
@@ -2376,13 +2386,16 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/ext/numeric_traits.h \
   /usr/include/c++/15.2.1/ext/string_conversions.h \
   /usr/include/c++/15.2.1/ext/type_traits.h \
+  /usr/include/c++/15.2.1/filesystem \
   /usr/include/c++/15.2.1/functional \
   /usr/include/c++/15.2.1/initializer_list \
+  /usr/include/c++/15.2.1/iomanip \
   /usr/include/c++/15.2.1/ios \
   /usr/include/c++/15.2.1/iosfwd \
   /usr/include/c++/15.2.1/iostream \
   /usr/include/c++/15.2.1/istream \
   /usr/include/c++/15.2.1/limits \
+  /usr/include/c++/15.2.1/locale \
   /usr/include/c++/15.2.1/memory \
   /usr/include/c++/15.2.1/mutex \
   /usr/include/c++/15.2.1/new \
@@ -2429,8 +2442,10 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/error_constants.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/gthr-default.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/gthr.h \
+  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/messages_members.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/opt_random.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/os_defines.h \
+  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/time_members.h \
   /usr/include/ctype.h \
   /usr/include/endian.h \
   /usr/include/errno.h \
@@ -2438,6 +2453,7 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/features.h \
   /usr/include/gnu/stubs-64.h \
   /usr/include/gnu/stubs.h \
+  /usr/include/libintl.h \
   /usr/include/linux/errno.h \
   /usr/include/linux/posix_types.h \
   /usr/include/linux/sched/types.h \
@@ -2860,6 +2876,7 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: /home/ricky/coding/proy
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
   /usr/include/c++/15.2.1/array \
+  /usr/include/c++/15.2.1/atomic \
   /usr/include/c++/15.2.1/backward/auto_ptr.h \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
@@ -2926,6 +2943,7 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/bits/specfun.h \
   /usr/include/c++/15.2.1/bits/sstream.tcc \
   /usr/include/c++/15.2.1/bits/std_abs.h \
+  /usr/include/c++/15.2.1/bits/std_thread.h \
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
@@ -2943,6 +2961,7 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/bits/streambuf_iterator.h \
   /usr/include/c++/15.2.1/bits/string_view.tcc \
   /usr/include/c++/15.2.1/bits/stringfwd.h \
+  /usr/include/c++/15.2.1/bits/this_thread_sleep.h \
   /usr/include/c++/15.2.1/bits/unique_ptr.h \
   /usr/include/c++/15.2.1/bits/uses_allocator.h \
   /usr/include/c++/15.2.1/bits/uses_allocator_args.h \
@@ -2951,6 +2970,7 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/bits/version.h \
   /usr/include/c++/15.2.1/cctype \
   /usr/include/c++/15.2.1/cerrno \
+  /usr/include/c++/15.2.1/chrono \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
   /usr/include/c++/15.2.1/codecvt \
@@ -2998,6 +3018,7 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/string \
   /usr/include/c++/15.2.1/string_view \
   /usr/include/c++/15.2.1/system_error \
+  /usr/include/c++/15.2.1/thread \
   /usr/include/c++/15.2.1/tr1/bessel_function.tcc \
   /usr/include/c++/15.2.1/tr1/beta_function.tcc \
   /usr/include/c++/15.2.1/tr1/ell_integral.tcc \
@@ -3529,6 +3550,7 @@ CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o: /home/ricky/coding/p
   /usr/include/c++/15.2.1/cassert \
   /usr/include/c++/15.2.1/cctype \
   /usr/include/c++/15.2.1/cerrno \
+  /usr/include/c++/15.2.1/chrono \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
   /usr/include/c++/15.2.1/codecvt \
@@ -4041,6 +4063,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/bits/char_traits.h \
   /usr/include/c++/15.2.1/bits/charconv.h \
   /usr/include/c++/15.2.1/bits/chrono.h \
+  /usr/include/c++/15.2.1/bits/codecvt.h \
   /usr/include/c++/15.2.1/bits/concept_check.h \
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
@@ -4051,6 +4074,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
+  /usr/include/c++/15.2.1/bits/fs_dir.h \
+  /usr/include/c++/15.2.1/bits/fs_fwd.h \
+  /usr/include/c++/15.2.1/bits/fs_ops.h \
+  /usr/include/c++/15.2.1/bits/fs_path.h \
   /usr/include/c++/15.2.1/bits/functexcept.h \
   /usr/include/c++/15.2.1/bits/functional_hash.h \
   /usr/include/c++/15.2.1/bits/hash_bytes.h \
@@ -4061,8 +4088,11 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/bits/istream.tcc \
   /usr/include/c++/15.2.1/bits/locale_classes.h \
   /usr/include/c++/15.2.1/bits/locale_classes.tcc \
+  /usr/include/c++/15.2.1/bits/locale_conv.h \
   /usr/include/c++/15.2.1/bits/locale_facets.h \
   /usr/include/c++/15.2.1/bits/locale_facets.tcc \
+  /usr/include/c++/15.2.1/bits/locale_facets_nonio.h \
+  /usr/include/c++/15.2.1/bits/locale_facets_nonio.tcc \
   /usr/include/c++/15.2.1/bits/localefwd.h \
   /usr/include/c++/15.2.1/bits/memory_resource.h \
   /usr/include/c++/15.2.1/bits/memoryfwd.h \
@@ -4077,6 +4107,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/bits/postypes.h \
   /usr/include/c++/15.2.1/bits/predefined_ops.h \
   /usr/include/c++/15.2.1/bits/ptr_traits.h \
+  /usr/include/c++/15.2.1/bits/quoted_string.h \
   /usr/include/c++/15.2.1/bits/random.h \
   /usr/include/c++/15.2.1/bits/random.tcc \
   /usr/include/c++/15.2.1/bits/range_access.h \
@@ -4129,6 +4160,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/chrono \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/codecvt \
   /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
@@ -4150,13 +4182,16 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/ext/numeric_traits.h \
   /usr/include/c++/15.2.1/ext/string_conversions.h \
   /usr/include/c++/15.2.1/ext/type_traits.h \
+  /usr/include/c++/15.2.1/filesystem \
   /usr/include/c++/15.2.1/functional \
   /usr/include/c++/15.2.1/initializer_list \
+  /usr/include/c++/15.2.1/iomanip \
   /usr/include/c++/15.2.1/ios \
   /usr/include/c++/15.2.1/iosfwd \
   /usr/include/c++/15.2.1/iostream \
   /usr/include/c++/15.2.1/istream \
   /usr/include/c++/15.2.1/limits \
+  /usr/include/c++/15.2.1/locale \
   /usr/include/c++/15.2.1/memory \
   /usr/include/c++/15.2.1/mutex \
   /usr/include/c++/15.2.1/new \
@@ -4204,8 +4239,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/error_constants.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/gthr-default.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/gthr.h \
+  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/messages_members.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/opt_random.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/os_defines.h \
+  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/time_members.h \
   /usr/include/ctype.h \
   /usr/include/endian.h \
   /usr/include/errno.h \
@@ -4213,6 +4250,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/features.h \
   /usr/include/gnu/stubs-64.h \
   /usr/include/gnu/stubs.h \
+  /usr/include/libintl.h \
   /usr/include/linux/errno.h \
   /usr/include/linux/posix_types.h \
   /usr/include/linux/sched/types.h \
@@ -4367,6 +4405,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: /home/ricky/coding
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
+  /usr/include/c++/15.2.1/bits/fs_dir.h \
+  /usr/include/c++/15.2.1/bits/fs_fwd.h \
+  /usr/include/c++/15.2.1/bits/fs_ops.h \
+  /usr/include/c++/15.2.1/bits/fs_path.h \
   /usr/include/c++/15.2.1/bits/functexcept.h \
   /usr/include/c++/15.2.1/bits/functional_hash.h \
   /usr/include/c++/15.2.1/bits/hash_bytes.h \
@@ -4443,8 +4485,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: /home/ricky/coding
   /usr/include/c++/15.2.1/bits/version.h \
   /usr/include/c++/15.2.1/cctype \
   /usr/include/c++/15.2.1/cerrno \
+  /usr/include/c++/15.2.1/chrono \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/codecvt \
   /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
@@ -4466,6 +4510,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o: /home/ricky/coding
   /usr/include/c++/15.2.1/ext/numeric_traits.h \
   /usr/include/c++/15.2.1/ext/string_conversions.h \
   /usr/include/c++/15.2.1/ext/type_traits.h \
+  /usr/include/c++/15.2.1/filesystem \
   /usr/include/c++/15.2.1/functional \
   /usr/include/c++/15.2.1/initializer_list \
   /usr/include/c++/15.2.1/iomanip \
@@ -4672,6 +4717,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/char_traits.h \
   /usr/include/c++/15.2.1/bits/charconv.h \
   /usr/include/c++/15.2.1/bits/chrono.h \
+  /usr/include/c++/15.2.1/bits/codecvt.h \
   /usr/include/c++/15.2.1/bits/concept_check.h \
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
@@ -4682,6 +4728,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
+  /usr/include/c++/15.2.1/bits/fs_dir.h \
+  /usr/include/c++/15.2.1/bits/fs_fwd.h \
+  /usr/include/c++/15.2.1/bits/fs_ops.h \
+  /usr/include/c++/15.2.1/bits/fs_path.h \
   /usr/include/c++/15.2.1/bits/functexcept.h \
   /usr/include/c++/15.2.1/bits/functional_hash.h \
   /usr/include/c++/15.2.1/bits/hash_bytes.h \
@@ -4692,8 +4742,11 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/istream.tcc \
   /usr/include/c++/15.2.1/bits/locale_classes.h \
   /usr/include/c++/15.2.1/bits/locale_classes.tcc \
+  /usr/include/c++/15.2.1/bits/locale_conv.h \
   /usr/include/c++/15.2.1/bits/locale_facets.h \
   /usr/include/c++/15.2.1/bits/locale_facets.tcc \
+  /usr/include/c++/15.2.1/bits/locale_facets_nonio.h \
+  /usr/include/c++/15.2.1/bits/locale_facets_nonio.tcc \
   /usr/include/c++/15.2.1/bits/localefwd.h \
   /usr/include/c++/15.2.1/bits/memory_resource.h \
   /usr/include/c++/15.2.1/bits/memoryfwd.h \
@@ -4708,6 +4761,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/postypes.h \
   /usr/include/c++/15.2.1/bits/predefined_ops.h \
   /usr/include/c++/15.2.1/bits/ptr_traits.h \
+  /usr/include/c++/15.2.1/bits/quoted_string.h \
   /usr/include/c++/15.2.1/bits/random.h \
   /usr/include/c++/15.2.1/bits/random.tcc \
   /usr/include/c++/15.2.1/bits/range_access.h \
@@ -4754,8 +4808,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/version.h \
   /usr/include/c++/15.2.1/cctype \
   /usr/include/c++/15.2.1/cerrno \
+  /usr/include/c++/15.2.1/chrono \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/codecvt \
   /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
@@ -4777,12 +4833,15 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/ext/numeric_traits.h \
   /usr/include/c++/15.2.1/ext/string_conversions.h \
   /usr/include/c++/15.2.1/ext/type_traits.h \
+  /usr/include/c++/15.2.1/filesystem \
   /usr/include/c++/15.2.1/functional \
   /usr/include/c++/15.2.1/initializer_list \
+  /usr/include/c++/15.2.1/iomanip \
   /usr/include/c++/15.2.1/ios \
   /usr/include/c++/15.2.1/iosfwd \
   /usr/include/c++/15.2.1/istream \
   /usr/include/c++/15.2.1/limits \
+  /usr/include/c++/15.2.1/locale \
   /usr/include/c++/15.2.1/memory \
   /usr/include/c++/15.2.1/mutex \
   /usr/include/c++/15.2.1/new \
@@ -4829,8 +4888,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/error_constants.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/gthr-default.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/gthr.h \
+  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/messages_members.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/opt_random.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/os_defines.h \
+  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/time_members.h \
   /usr/include/ctype.h \
   /usr/include/endian.h \
   /usr/include/errno.h \
@@ -4838,6 +4899,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: /home/ricky/cod
   /usr/include/features.h \
   /usr/include/gnu/stubs-64.h \
   /usr/include/gnu/stubs.h \
+  /usr/include/libintl.h \
   /usr/include/linux/errno.h \
   /usr/include/linux/posix_types.h \
   /usr/include/linux/sched/types.h \
@@ -5075,6 +5137,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: /home/ricky/coding/p
   /usr/include/c++/15.2.1/bits/version.h \
   /usr/include/c++/15.2.1/cctype \
   /usr/include/c++/15.2.1/cerrno \
+  /usr/include/c++/15.2.1/chrono \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
   /usr/include/c++/15.2.1/codecvt \
@@ -5313,6 +5376,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/char_traits.h \
   /usr/include/c++/15.2.1/bits/charconv.h \
   /usr/include/c++/15.2.1/bits/chrono.h \
+  /usr/include/c++/15.2.1/bits/codecvt.h \
   /usr/include/c++/15.2.1/bits/concept_check.h \
   /usr/include/c++/15.2.1/bits/cpp_type_traits.h \
   /usr/include/c++/15.2.1/bits/cxxabi_forced.h \
@@ -5323,6 +5387,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/exception.h \
   /usr/include/c++/15.2.1/bits/exception_defines.h \
   /usr/include/c++/15.2.1/bits/exception_ptr.h \
+  /usr/include/c++/15.2.1/bits/fs_dir.h \
+  /usr/include/c++/15.2.1/bits/fs_fwd.h \
+  /usr/include/c++/15.2.1/bits/fs_ops.h \
+  /usr/include/c++/15.2.1/bits/fs_path.h \
   /usr/include/c++/15.2.1/bits/functexcept.h \
   /usr/include/c++/15.2.1/bits/functional_hash.h \
   /usr/include/c++/15.2.1/bits/hash_bytes.h \
@@ -5333,8 +5401,11 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/istream.tcc \
   /usr/include/c++/15.2.1/bits/locale_classes.h \
   /usr/include/c++/15.2.1/bits/locale_classes.tcc \
+  /usr/include/c++/15.2.1/bits/locale_conv.h \
   /usr/include/c++/15.2.1/bits/locale_facets.h \
   /usr/include/c++/15.2.1/bits/locale_facets.tcc \
+  /usr/include/c++/15.2.1/bits/locale_facets_nonio.h \
+  /usr/include/c++/15.2.1/bits/locale_facets_nonio.tcc \
   /usr/include/c++/15.2.1/bits/localefwd.h \
   /usr/include/c++/15.2.1/bits/memory_resource.h \
   /usr/include/c++/15.2.1/bits/memoryfwd.h \
@@ -5349,6 +5420,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/postypes.h \
   /usr/include/c++/15.2.1/bits/predefined_ops.h \
   /usr/include/c++/15.2.1/bits/ptr_traits.h \
+  /usr/include/c++/15.2.1/bits/quoted_string.h \
   /usr/include/c++/15.2.1/bits/random.h \
   /usr/include/c++/15.2.1/bits/random.tcc \
   /usr/include/c++/15.2.1/bits/range_access.h \
@@ -5395,8 +5467,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/bits/version.h \
   /usr/include/c++/15.2.1/cctype \
   /usr/include/c++/15.2.1/cerrno \
+  /usr/include/c++/15.2.1/chrono \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/codecvt \
   /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
@@ -5418,12 +5492,15 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/ext/numeric_traits.h \
   /usr/include/c++/15.2.1/ext/string_conversions.h \
   /usr/include/c++/15.2.1/ext/type_traits.h \
+  /usr/include/c++/15.2.1/filesystem \
   /usr/include/c++/15.2.1/functional \
   /usr/include/c++/15.2.1/initializer_list \
+  /usr/include/c++/15.2.1/iomanip \
   /usr/include/c++/15.2.1/ios \
   /usr/include/c++/15.2.1/iosfwd \
   /usr/include/c++/15.2.1/istream \
   /usr/include/c++/15.2.1/limits \
+  /usr/include/c++/15.2.1/locale \
   /usr/include/c++/15.2.1/memory \
   /usr/include/c++/15.2.1/mutex \
   /usr/include/c++/15.2.1/new \
@@ -5470,8 +5547,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/cod
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/error_constants.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/gthr-default.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/gthr.h \
+  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/messages_members.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/opt_random.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/os_defines.h \
+  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/time_members.h \
   /usr/include/ctype.h \
   /usr/include/endian.h \
   /usr/include/errno.h \
@@ -5479,6 +5558,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: /home/ricky/cod
   /usr/include/features.h \
   /usr/include/gnu/stubs-64.h \
   /usr/include/gnu/stubs.h \
+  /usr/include/libintl.h \
   /usr/include/linux/errno.h \
   /usr/include/linux/posix_types.h \
   /usr/include/linux/sched/types.h \

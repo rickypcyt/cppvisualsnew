@@ -2,6 +2,10 @@
 
 #include <GL/glew.h>
 #include <memory>
+#include <thread>
+#include <atomic>
+#include <filesystem>
+#include <chrono>
 
 #include "audio_analyzer.h"
 #include "shader.h"
@@ -34,6 +38,10 @@ public:
     void setMode(int mode) { mode_ = mode; }
     int mode() const { return mode_; }
     void setColorPalette(const float primary[3], const float secondary[3], float blend);
+    
+    // Hot-reload methods
+    void enableHotReload(bool enabled);
+    bool isHotReloadEnabled() const { return hotReloadEnabled_; }
 
 private:
     bool createResources(int width, int height);
@@ -41,6 +49,18 @@ private:
     bool ensureShader();
     bool ensureCompositeShader();
     bool ensureKaleidoscopeShader();
+    
+    // Hot-reload private methods
+    void watchShaderFiles();
+    void reloadShaders();
+    bool shouldReloadShaders();
+    
+    // Hot-reload members
+    std::thread fileWatcherThread_;
+    std::atomic<bool> hotReloadEnabled_{false};
+    std::atomic<bool> shouldWatchFiles_{false};
+    std::filesystem::file_time_type lastShaderModifyTime_;
+    static constexpr std::chrono::milliseconds WATCH_INTERVAL{500};
 
     GLuint fbo_{0};
     GLuint colorTexture_{0};

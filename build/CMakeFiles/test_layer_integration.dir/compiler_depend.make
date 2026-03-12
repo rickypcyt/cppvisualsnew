@@ -1977,6 +1977,7 @@ CMakeFiles/test_layer_integration.dir/src/modular_layer.cpp.o: /home/ricky/codin
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
   /usr/include/c++/15.2.1/array \
+  /usr/include/c++/15.2.1/atomic \
   /usr/include/c++/15.2.1/backward/auto_ptr.h \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
@@ -2043,6 +2044,7 @@ CMakeFiles/test_layer_integration.dir/src/modular_layer.cpp.o: /home/ricky/codin
   /usr/include/c++/15.2.1/bits/specfun.h \
   /usr/include/c++/15.2.1/bits/sstream.tcc \
   /usr/include/c++/15.2.1/bits/std_abs.h \
+  /usr/include/c++/15.2.1/bits/std_thread.h \
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
@@ -2060,6 +2062,7 @@ CMakeFiles/test_layer_integration.dir/src/modular_layer.cpp.o: /home/ricky/codin
   /usr/include/c++/15.2.1/bits/streambuf_iterator.h \
   /usr/include/c++/15.2.1/bits/string_view.tcc \
   /usr/include/c++/15.2.1/bits/stringfwd.h \
+  /usr/include/c++/15.2.1/bits/this_thread_sleep.h \
   /usr/include/c++/15.2.1/bits/unique_ptr.h \
   /usr/include/c++/15.2.1/bits/uses_allocator.h \
   /usr/include/c++/15.2.1/bits/uses_allocator_args.h \
@@ -2068,6 +2071,7 @@ CMakeFiles/test_layer_integration.dir/src/modular_layer.cpp.o: /home/ricky/codin
   /usr/include/c++/15.2.1/bits/version.h \
   /usr/include/c++/15.2.1/cctype \
   /usr/include/c++/15.2.1/cerrno \
+  /usr/include/c++/15.2.1/chrono \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
   /usr/include/c++/15.2.1/codecvt \
@@ -2115,6 +2119,7 @@ CMakeFiles/test_layer_integration.dir/src/modular_layer.cpp.o: /home/ricky/codin
   /usr/include/c++/15.2.1/string \
   /usr/include/c++/15.2.1/string_view \
   /usr/include/c++/15.2.1/system_error \
+  /usr/include/c++/15.2.1/thread \
   /usr/include/c++/15.2.1/tr1/bessel_function.tcc \
   /usr/include/c++/15.2.1/tr1/beta_function.tcc \
   /usr/include/c++/15.2.1/tr1/ell_integral.tcc \
@@ -2646,6 +2651,7 @@ CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o: /home/ricky/co
   /usr/include/c++/15.2.1/cassert \
   /usr/include/c++/15.2.1/cctype \
   /usr/include/c++/15.2.1/cerrno \
+  /usr/include/c++/15.2.1/chrono \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
   /usr/include/c++/15.2.1/codecvt \
@@ -3133,6 +3139,7 @@ CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o: /home/ri
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
   /usr/include/c++/15.2.1/array \
+  /usr/include/c++/15.2.1/atomic \
   /usr/include/c++/15.2.1/backward/auto_ptr.h \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
@@ -3205,6 +3212,7 @@ CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o: /home/ri
   /usr/include/c++/15.2.1/bits/sstream.tcc \
   /usr/include/c++/15.2.1/bits/std_abs.h \
   /usr/include/c++/15.2.1/bits/std_function.h \
+  /usr/include/c++/15.2.1/bits/std_thread.h \
   /usr/include/c++/15.2.1/bits/stl_algobase.h \
   /usr/include/c++/15.2.1/bits/stl_bvector.h \
   /usr/include/c++/15.2.1/bits/stl_construct.h \
@@ -3222,6 +3230,7 @@ CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o: /home/ri
   /usr/include/c++/15.2.1/bits/streambuf_iterator.h \
   /usr/include/c++/15.2.1/bits/string_view.tcc \
   /usr/include/c++/15.2.1/bits/stringfwd.h \
+  /usr/include/c++/15.2.1/bits/this_thread_sleep.h \
   /usr/include/c++/15.2.1/bits/unique_ptr.h \
   /usr/include/c++/15.2.1/bits/unordered_map.h \
   /usr/include/c++/15.2.1/bits/uses_allocator.h \
@@ -3231,6 +3240,7 @@ CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o: /home/ri
   /usr/include/c++/15.2.1/bits/version.h \
   /usr/include/c++/15.2.1/cctype \
   /usr/include/c++/15.2.1/cerrno \
+  /usr/include/c++/15.2.1/chrono \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
   /usr/include/c++/15.2.1/codecvt \
@@ -3279,6 +3289,7 @@ CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o: /home/ri
   /usr/include/c++/15.2.1/string \
   /usr/include/c++/15.2.1/string_view \
   /usr/include/c++/15.2.1/system_error \
+  /usr/include/c++/15.2.1/thread \
   /usr/include/c++/15.2.1/tr1/bessel_function.tcc \
   /usr/include/c++/15.2.1/tr1/beta_function.tcc \
   /usr/include/c++/15.2.1/tr1/ell_integral.tcc \
@@ -3520,8 +3531,6 @@ CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
 /usr/include/c++/15.2.1/utility:
 
-/usr/include/c++/15.2.1/thread:
-
 /usr/include/c++/15.2.1/optional:
 
 /usr/include/c++/15.2.1/mutex:
@@ -3543,6 +3552,14 @@ CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 /usr/include/c++/15.2.1/bits/std_mutex.h:
 
 /usr/include/c++/15.2.1/bits/random.tcc:
+
+/usr/include/c++/15.2.1/bits/mask_array.h:
+
+/usr/include/c++/15.2.1/bits/indirect_array.h:
+
+/usr/include/c++/15.2.1/bits/gslice_array.h:
+
+/usr/include/c++/15.2.1/bits/gslice.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/emmintrin.h:
 
@@ -3833,8 +3850,6 @@ CMakeFiles/test_layer_integration.dir/imgui/imgui_widgets.cpp.o:
 /home/ricky/coding/proyects/visuals/src/shader_loader.h:
 
 /usr/include/c++/15.2.1/bits/forward_list.tcc:
-
-/usr/include/c++/15.2.1/bits/mask_array.h:
 
 /usr/include/bits/types/__mbstate_t.h:
 
@@ -4234,6 +4249,8 @@ CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_glfw.cpp.o:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/prfchiintrin.h:
 
+/usr/include/c++/15.2.1/thread:
+
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/prfchwintrin.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/raointintrin.h:
@@ -4588,8 +4605,6 @@ CMakeFiles/test_layer_integration.dir/src/shader.cpp.o:
 
 /usr/include/locale.h:
 
-/usr/include/c++/15.2.1/bits/gslice_array.h:
-
 /usr/include/asm-generic/errno.h:
 
 /usr/include/sys/single_threaded.h:
@@ -4643,6 +4658,8 @@ CMakeFiles/test_layer_integration.dir/src/shader.cpp.o:
 /usr/include/c++/15.2.1/bits/regex_executor.h:
 
 /usr/include/c++/15.2.1/bits/regex_executor.tcc:
+
+/usr/include/c++/15.2.1/chrono:
 
 /usr/include/features.h:
 
@@ -4698,6 +4715,8 @@ CMakeFiles/test_layer_integration.dir/src/shader.cpp.o:
 
 /usr/include/GL/glu.h:
 
+/usr/include/c++/15.2.1/atomic:
+
 /home/ricky/coding/proyects/visuals/src/midi_controller.h:
 
 /home/ricky/coding/proyects/visuals/src/settings_manager.h:
@@ -4706,14 +4725,8 @@ CMakeFiles/test_layer_integration.dir/src/shader.cpp.o:
 
 /usr/include/c++/15.2.1/any:
 
-/usr/include/c++/15.2.1/atomic:
-
 /usr/include/c++/15.2.1/bits/shared_ptr_atomic.h:
 
 /home/ricky/coding/proyects/visuals/src/shader.h:
 
 /usr/include/c++/15.2.1/bits/forward_list.h:
-
-/usr/include/c++/15.2.1/bits/gslice.h:
-
-/usr/include/c++/15.2.1/bits/indirect_array.h:

@@ -24,14 +24,13 @@ vec4 renderPouetGrid(vec2 st, float time, float tempo, float energy, float bass,
         vec2 uv;
         vec2 p = fragCoord / uResolution.xy;
         uv = p;
-        p -= 0.5;
-        p.x *= uResolution.x / max(uResolution.y, 1.0);
         
-        // Apply raymarched object style centering (no Y adjustment)
-        // Keep original coordinates like raymarched object
+        // Apply exact raymarched object coordinate system
+        p.x *= uResolution.x / max(uResolution.y, 1.0);
+        // No manual offset - keep neutral coordinates like raymarched object
 
         float l = length(p) + 1e-4;
-        float wobble = sin(z) + 1.0;
+        float wobble = sin(z * 3.0) + 1.0;  // Changed from sin(z * 2.0) to sin(z * 3.0) for even faster wobble
         float pulse = abs(sin(l * (9.0 + high * 4.0) - z - z));
         vec2 ripple = p / l * wobble * pulse * mix(0.4, 0.8, clamp(energy, 0.0, 1.0));
 

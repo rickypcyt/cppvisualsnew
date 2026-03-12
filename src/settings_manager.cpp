@@ -129,6 +129,9 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (random.contains("proceduralSlotEnabled")) randomProceduralSlotEnabled_ = random["proceduralSlotEnabled"];
             if (random.contains("proceduralSlotIndex")) randomProceduralSlotIndex_ = random["proceduralSlotIndex"];
         }
+        
+        // Load hot-reload setting
+        if (j.contains("hotReloadEnabled")) hotReloadEnabled_ = j["hotReloadEnabled"];
 
         // Load post-processing random settings (legacy compatibility)
         if (j.contains("postProcess")) {
@@ -250,6 +253,9 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["random"]["postProcessSlotIndex"] = randomPostProcessSlotIndex_;
         j["random"]["proceduralSlotEnabled"] = randomProceduralSlotEnabled_;
         j["random"]["proceduralSlotIndex"] = randomProceduralSlotIndex_;
+        
+        // Save hot-reload setting
+        j["hotReloadEnabled"] = hotReloadEnabled_;
 
         // Save manual BPM settings
         j["audio"]["manualBPMMode"] = manualBPMMode_;

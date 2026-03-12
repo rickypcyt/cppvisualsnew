@@ -209,6 +209,9 @@ private:
     std::string openglVersion_;
     float audioInputGain_;
     bool useModernPipeline_;
+    
+    // Hot-reload settings
+    bool hotReloadEnabled_ = false;
 
     // ImGui state
     bool showImGuiWindow_;

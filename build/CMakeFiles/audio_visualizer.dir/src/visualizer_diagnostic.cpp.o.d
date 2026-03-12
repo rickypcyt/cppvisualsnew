@@ -203,6 +203,24 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: \
  /usr/include/c++/15.2.1/bits/deque.tcc \
  /home/ricky/coding/proyects/visuals/src/shader.h \
  /home/ricky/coding/proyects/visuals/src/modular_layer.h \
+ /usr/include/c++/15.2.1/thread /usr/include/c++/15.2.1/bits/std_thread.h \
+ /usr/include/c++/15.2.1/bits/this_thread_sleep.h \
+ /usr/include/c++/15.2.1/bits/chrono.h /usr/include/c++/15.2.1/ratio \
+ /usr/include/c++/15.2.1/ctime \
+ /usr/include/c++/15.2.1/bits/parse_numbers.h \
+ /usr/include/c++/15.2.1/atomic /usr/include/c++/15.2.1/filesystem \
+ /usr/include/c++/15.2.1/bits/fs_fwd.h \
+ /usr/include/c++/15.2.1/bits/fs_path.h /usr/include/c++/15.2.1/locale \
+ /usr/include/c++/15.2.1/bits/locale_facets_nonio.h \
+ /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/time_members.h \
+ /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/messages_members.h \
+ /usr/include/libintl.h /usr/include/c++/15.2.1/bits/codecvt.h \
+ /usr/include/c++/15.2.1/bits/locale_facets_nonio.tcc \
+ /usr/include/c++/15.2.1/bits/locale_conv.h \
+ /usr/include/c++/15.2.1/iomanip \
+ /usr/include/c++/15.2.1/bits/quoted_string.h \
+ /usr/include/c++/15.2.1/codecvt /usr/include/c++/15.2.1/bits/fs_dir.h \
+ /usr/include/c++/15.2.1/bits/fs_ops.h /usr/include/c++/15.2.1/chrono \
  /home/ricky/coding/proyects/visuals/src/post_processor.h \
  /home/ricky/coding/proyects/visuals/src/settings_manager.h \
  /usr/include/c++/15.2.1/algorithm \
@@ -219,12 +237,6 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o: \
  /usr/include/c++/15.2.1/bits/hashtable_policy.h \
  /usr/include/c++/15.2.1/bits/enable_special_members.h \
  /usr/include/c++/15.2.1/bits/node_handle.h \
- /usr/include/c++/15.2.1/bits/erase_if.h /usr/include/c++/15.2.1/thread \
- /usr/include/c++/15.2.1/bits/std_thread.h \
- /usr/include/c++/15.2.1/bits/this_thread_sleep.h \
- /usr/include/c++/15.2.1/bits/chrono.h /usr/include/c++/15.2.1/ratio \
- /usr/include/c++/15.2.1/ctime \
- /usr/include/c++/15.2.1/bits/parse_numbers.h \
- /usr/include/c++/15.2.1/atomic /usr/include/c++/15.2.1/mutex \
+ /usr/include/c++/15.2.1/bits/erase_if.h /usr/include/c++/15.2.1/mutex \
  /usr/include/c++/15.2.1/bits/std_mutex.h \
  /usr/include/c++/15.2.1/bits/unique_lock.h

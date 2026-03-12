@@ -271,6 +271,9 @@ bool ModularLayer::initialize(int width, int height) {
 }
 
 void ModularLayer::shutdown() {
+    // Stop hot-reload thread first
+    enableHotReload(false);
+    
     destroyResources();
     proceduralShader_.reset();
     compositeShader_.reset();
@@ -548,5 +551,101 @@ void ModularLayer::composite(const LayerContext& context, float opacity) {
     }
     if (depthWasEnabled) {
         glEnable(GL_DEPTH_TEST);
+    }
+}
+
+// Hot-reload implementation
+void ModularLayer::enableHotReload(bool enabled) {
+    if (hotReloadEnabled_ == enabled) return;
+    
+    hotReloadEnabled_ = enabled;
+    
+    if (enabled) {
+        // Initialize last modify time
+        lastShaderModifyTime_ = std::filesystem::file_time_type::min();
+        
+        // Start file watcher thread
+        shouldWatchFiles_ = true;
+        fileWatcherThread_ = std::thread(&ModularLayer::watchShaderFiles, this);
+        
+        std::cout << "Hot-reload enabled for shaders" << std::endl;
+    } else {
+        // Stop file watcher thread
+        shouldWatchFiles_ = false;
+        if (fileWatcherThread_.joinable()) {
+            fileWatcherThread_.join();
+        }
+        
+        std::cout << "Hot-reload disabled for shaders" << std::endl;
+    }
+}
+
+void ModularLayer::watchShaderFiles() {
+    while (shouldWatchFiles_) {
+        std::this_thread::sleep_for(WATCH_INTERVAL);
+        
+        if (!hotReloadEnabled_ || !initialized_) continue;
+        
+        if (shouldReloadShaders()) {
+            reloadShaders();
+        }
+    }
+}
+
+bool ModularLayer::shouldReloadShaders() {
+    try {
+        std::filesystem::file_time_type latestTime = std::filesystem::file_time_type::min();
+        
+        // Check all shader files
+        for (const auto& shaderFile : kProceduralShaderFiles) {
+            std::string fullPath = "shaders/" + std::string(shaderFile);
+            
+            if (std::filesystem::exists(fullPath)) {
+                auto currentTime = std::filesystem::last_write_time(fullPath);
+                if (currentTime > latestTime) {
+                    latestTime = currentTime;
+                }
+            }
+        }
+        
+        // Also check the build directory
+        for (const auto& shaderFile : kProceduralShaderFiles) {
+            std::string fullPath = "build/shaders/" + std::string(shaderFile);
+            
+            if (std::filesystem::exists(fullPath)) {
+                auto currentTime = std::filesystem::last_write_time(fullPath);
+                if (currentTime > latestTime) {
+                    latestTime = currentTime;
+                }
+            }
+        }
+        
+        if (latestTime > lastShaderModifyTime_) {
+            lastShaderModifyTime_ = latestTime;
+            return true;
+        }
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Filesystem error watching shaders: " << e.what() << std::endl;
+    }
+    
+    return false;
+}
+
+void ModularLayer::reloadShaders() {
+    std::cout << "Reloading shaders..." << std::endl;
+    
+    try {
+        // Force shader reload by resetting the shader pointer
+        proceduralShader_.reset();
+        
+        // Recreate shader
+        if (!ensureShader()) {
+            std::cerr << "Failed to reload shaders" << std::endl;
+            return;
+        }
+        
+        std::cout << "Shaders reloaded successfully" << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Error reloading shaders: " << e.what() << std::endl;
     }
 }

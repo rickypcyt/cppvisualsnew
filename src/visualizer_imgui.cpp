@@ -523,8 +523,8 @@ void Visualizer::renderMainImGuiWindow() {
         ImGui::Separator();
         ImGui::Spacing();
         
-        ImGui::Text("🎲 Random Cycle Settings");
-        ImGui::TextDisabled("Automatically changes Slot 1 effect at intervals");
+        ImGui::Text("🎲 Random Cycle - CAPAS PROCEDURALES");
+        ImGui::TextDisabled("Cambia automáticamente los efectos de CAPAS cada cierto tiempo");
         
         ImGui::Spacing();
         
@@ -711,8 +711,8 @@ void Visualizer::renderMainImGuiWindow() {
     ImGui::Separator();
     ImGui::Spacing();
     
-    ImGui::Text("🎲 Random Post Process Settings");
-    ImGui::TextDisabled("Automatically changes Slot 1 post-processing effect");
+    ImGui::Text("🎲 Random Cycle - POST-PROCESSING");
+    ImGui::TextDisabled("Cambia automáticamente los efectos de POST-PROCESSING cada cierto tiempo");
     
     ImGui::Spacing();
     

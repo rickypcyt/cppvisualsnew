@@ -1,28 +1,29 @@
 {
     "audio": {
-        "inputGain": 0.9399999976158142,
-        "manualBPM": 54.13385772705078,
+        "inputGain": 5.0,
+        "manualBPM": 153.0,
         "manualBPMMode": true,
-        "selectedDevice": 4,
-        "visualSensitivity": 1.0399999618530273
+        "selectedDevice": 6,
+        "visualSensitivity": 1.5099999904632568
     },
     "colors": {
         "primary": [
-            0.10000000149011612,
-            0.3199999928474426,
-            0.18000000715255737
+            0.949999988079071,
+            0.9109909534454346,
+            0.20900005102157593
         ]
     },
+    "hotReloadEnabled": true,
     "midi": {
         "tempoScale": 1.0
     },
     "postProcess": {
-        "randomEnabled": false,
-        "randomInterval": 5.400000095367432,
+        "randomEnabled": true,
+        "randomInterval": 18.5,
         "slots": [
             {
                 "enabled": true,
-                "mode": 22,
+                "mode": 8,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -62,19 +63,19 @@
             },
             {
                 "enabled": false,
-                "mode": 0,
+                "mode": 7,
                 "rgbAdjust": [
                     1.0,
                     1.0,
                     1.0
                 ],
-                "strength": 0.0
+                "strength": 1.0
             }
         ]
     },
     "procedural": {
-        "randomEnabled": false,
-        "randomInterval": 10.100000381469727
+        "randomEnabled": true,
+        "randomInterval": 10.899999618530273
     },
     "proceduralSlots": {
         "slots": [
@@ -85,7 +86,7 @@
                     1.0
                 ],
                 "enabled": true,
-                "mode": 42,
+                "mode": 24,
                 "opacity": 1.0
             },
             {
@@ -131,22 +132,22 @@
         ]
     },
     "random": {
-        "postProcessEnabled": false,
-        "postProcessInterval": 5.400000095367432,
+        "postProcessEnabled": true,
+        "postProcessInterval": 18.5,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
-        "proceduralEnabled": false,
-        "proceduralInterval": 10.100000381469727,
+        "proceduralEnabled": true,
+        "proceduralInterval": 10.899999618530273,
         "proceduralSlotEnabled": false,
         "proceduralSlotIndex": 0
     },
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerMode": 42,
+        "proceduralLayerMode": 24,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": true,
         "showCurrentEffects": true,
-        "showImGuiWindow": false,
+        "showImGuiWindow": true,
         "showProceduralLayer": true
     }
 }

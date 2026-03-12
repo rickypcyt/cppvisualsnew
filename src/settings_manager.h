@@ -118,6 +118,9 @@ public:
     float getRandomProceduralInterval() const { return randomProceduralInterval_; }
     void setRandomProceduralInterval(float interval) { randomProceduralInterval_ = interval; }
 
+    bool getHotReloadEnabled() const { return hotReloadEnabled_; }
+    void setHotReloadEnabled(bool enabled) { hotReloadEnabled_ = enabled; }
+
     // Set all settings from current visualizer state
     void updateFromVisualizerState();
 
@@ -169,6 +172,9 @@ private:
     float colorRandomTimer_;
 
     float midiTempoScale_ = 1.0f;
+    
+    // Hot-reload settings
+    bool hotReloadEnabled_ = false;
     
     // Manual BPM settings
     bool manualBPMMode_ = false;
