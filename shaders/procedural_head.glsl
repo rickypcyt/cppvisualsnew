@@ -570,12 +570,17 @@ vec3 calcNormal(vec3 pos){
     return normalize(nor);
 }
 
+// Forward declaration
+vec4 renderSingleHead(vec2 st, float uTime, float uTempo, float uEnergy, float uBass, float uMid, float uHigh);
+
 vec4 renderHead(vec2 st, float uTime, float uTempo, float uEnergy, float uBass, float uMid, float uHigh) {
-    vec2 p = (-vec2(1.0, 1.0) + 2.0 * st) / 1.0;
-    
+    return renderSingleHead(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+}
+
+vec4 renderSingleHead(vec2 st, float uTime, float uTempo, float uEnergy, float uBass, float uMid, float uHigh) {
     // Center the head by moving camera back and adjusting view
     vec3 camPos = vec3(0, 0.1, 3.5);  // Slightly up and back
-    vec3 rayDirection = normalize(vec3(p.x, p.y - 0.1, -4));  // Slightly down
+    vec3 rayDirection = normalize(vec3(st.x, st.y - 0.1, -4));  // Slightly down
     
     vec3 rayPosition = camPos;
     float rayLength = 0.;
@@ -621,5 +626,5 @@ vec4 renderHead(vec2 st, float uTime, float uTempo, float uEnergy, float uBass, 
         col = pow(col, vec3(1./2.2));
     }
 
-    return vec4(col,1);
+    return vec4(col, 1.0);
 }

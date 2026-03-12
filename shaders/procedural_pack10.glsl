@@ -246,3 +246,73 @@ vec4 renderHexKaleidoscope(vec2 st, float time, float tempo, float energy, float
     
     return vec4(color, pattern);
 }
+
+vec3 rgb2hsv(vec3 c) {
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+    float d = q.x - min(q.w, q.y);
+    float e = 1.0e-10;
+    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+vec3 hsv2rgb(vec3 c) {
+    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+vec4 renderHSVColorShift(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
+    vec2 uv = st;
+    vec2 tc = uv;
+    float aspect = uResolution.x / uResolution.y;
+    
+    uv = uv * 2.0 - 1.0;
+    uv.x *= aspect;
+    
+    // Audio-reactive movement
+    float audioMovement = (bass * 0.5 + mid * 0.3) * 0.05;
+    uv += vec2(sin(time + audioMovement), cos(time + audioMovement)) * 0.025;
+    
+    float s = 1.0 - smoothstep(0.0, 0.6, length(max(abs(uv.x), abs(uv.y))));
+    s = sin(s);
+    
+    tc = 2.0 * tc - 1.0;
+    tc *= 0.999;
+    tc = tc * 0.5 + 0.5;
+    
+    // Create a base pattern using previous frame or generated texture
+    vec3 h = vec3(0.5 + 0.5 * sin(time + tc.x * 10.0), 
+                  0.5 + 0.5 * cos(time + tc.y * 10.0), 
+                  0.5 + 0.5 * sin(time * 1.3 + length(tc) * 5.0));
+    h = rgb2hsv(h);
+    
+    // Audio-reactive hue shift
+    h.r += time * 0.1 + energy * 0.2;
+    
+    vec2 texel = 1.0 / uResolution.xy;
+    vec2 d = texel * 0.75;
+    vec3 p = vec3(0.5 + 0.5 * sin(h.r * 6.283 + time),
+                  0.5 + 0.5 * cos(h.r * 6.283 + time * 1.3),
+                  0.5 + 0.5 * sin(h.r * 6.283 + time * 0.7));
+    
+    vec3 c = vec3(s, 0.0, 0.0) + p;
+    c = clamp(c, vec3(0.0), vec3(1.0));
+    
+    c = rgb2hsv(c);
+    c.r += 0.002 + high * 0.01; // Audio-reactive hue shift
+        
+    c = hsv2rgb(c);
+    c = c.r > 0.99 ? fract(c.rgb) : c;
+    
+    // Apply audio-reactive brightness
+    float brightness = 1.0 + energy * 0.3 + bass * 0.2;
+    c *= brightness;
+    
+    // Apply palette
+    vec3 palette = mix(uPrimaryColor, uSecondaryColor, uColorBlend);
+    c = mix(palette, c, 0.7);
+    
+    return vec4(c, 1.0);
+}

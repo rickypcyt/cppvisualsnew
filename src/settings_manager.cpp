@@ -57,8 +57,8 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (ui.contains("proceduralLayerOpacity")) proceduralLayerOpacity_ = ui["proceduralLayerOpacity"];
             if (ui.contains("proceduralLayerMode")) {
                 int loadedMode = ui["proceduralLayerMode"];
-                // Clamp to valid range (0-31 for 32 modes)
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 31);
+                // Clamp to valid range (0-32 for 33 modes)
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 32);
             }
         }
 
@@ -72,8 +72,8 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                     if (slot.contains("enabled")) postProcessSlots_[i].enabled = slot["enabled"];
                     if (slot.contains("mode")) {
                         int loadedMode = slot["mode"];
-                        // Clamp to valid range (0-21 for 22 modes)
-                        postProcessSlots_[i].mode = std::clamp(loadedMode, 0, 21);
+                        // Clamp to valid range (0-22 for 23 modes)
+                        postProcessSlots_[i].mode = std::clamp(loadedMode, 0, 22);
                     }
                     if (slot.contains("strength")) postProcessSlots_[i].strength = slot["strength"];
                     if (slot.contains("rgbAdjust")) {
@@ -154,14 +154,14 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["ui"]["showProceduralLayer"] = showProceduralLayer_;
         j["ui"]["proceduralLayerDebug"] = proceduralLayerDebug_;
         j["ui"]["proceduralLayerOpacity"] = proceduralLayerOpacity_;
-        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 31);
+        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 32);
 
         // Save post-processing settings
         for (size_t i = 0; i < postProcessSlots_.size(); ++i) {
             json slot;
             slot["enabled"] = postProcessSlots_[i].enabled;
             // Ensure mode is within valid range before saving
-            slot["mode"] = std::clamp(postProcessSlots_[i].mode, 0, 21);
+            slot["mode"] = std::clamp(postProcessSlots_[i].mode, 0, 22);
             slot["strength"] = postProcessSlots_[i].strength;
             slot["rgbAdjust"] = postProcessSlots_[i].rgbAdjust;
             j["postProcess"]["slots"].push_back(slot);

@@ -51,7 +51,8 @@ const char* const Visualizer::kProceduralModes[] = {
     "Gyroid Reflections",
     "Head",
     "Metal Gyroid Hall",
-    "Hex Kaleidoscope"
+    "Hex Kaleidoscope",
+    "HSV Color Shift"
 };
 
 const char* const Visualizer::kPostProcessModes[] = {
@@ -76,7 +77,8 @@ const char* const Visualizer::kPostProcessModes[] = {
     "Pixel Tiles",
     "Sobel Edge Detection",
     "Kaleidoscope Mirror",
-    "Advanced Sobel"
+    "Advanced Sobel",
+    "Ring Distortion"
 };
 
 bool Visualizer::setupImGui() {

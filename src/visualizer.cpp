@@ -966,7 +966,7 @@ bool Visualizer::initialize(int width, int height) {
     if (!proceduralLayer_.initialize(windowWidth_, windowHeight_)) {
         std::cout << "Procedural layer initialization failed, disabling procedural overlay"
                   << std::endl;
-        showProceduralLayer_ = false;
+        // showProceduralLayer_ = false;  // Commented out to preserve saved UI state
         proceduralLayerDebug_ = false;
     } else {
         proceduralLayerMode_ = std::clamp(proceduralLayerMode_, 0, kProceduralModeCount - 1);
