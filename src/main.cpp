@@ -39,6 +39,7 @@ public:
         }
 
         audioAnalyzer_.setSampleRate(static_cast<float>(audioCapture_.getSampleRate()));
+        visualizer_.setAudioAnalyzer(&audioAnalyzer_);
 
         std::cout << "Audio Visualizer initialized successfully!" << std::endl;
         std::cout << "Listening to microphone input..." << std::endl;

@@ -1424,6 +1424,7 @@ CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o: /home/ricky/coding/pro
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
   /usr/include/c++/15.2.1/algorithm \
+  /usr/include/c++/15.2.1/array \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
   /usr/include/c++/15.2.1/bits/algorithmfwd.h \
@@ -1500,6 +1501,7 @@ CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o: /home/ricky/coding/pro
   /usr/include/c++/15.2.1/cerrno \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
   /usr/include/c++/15.2.1/cstddef \
@@ -1678,6 +1680,7 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: /home/ricky/coding/proy
   /usr/include/bits/wctype-wchar.h \
   /usr/include/bits/wordsize.h \
   /usr/include/c++/15.2.1/algorithm \
+  /usr/include/c++/15.2.1/array \
   /usr/include/c++/15.2.1/atomic \
   /usr/include/c++/15.2.1/backward/binders.h \
   /usr/include/c++/15.2.1/bit \
@@ -1760,6 +1763,7 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: /home/ricky/coding/proy
   /usr/include/c++/15.2.1/cerrno \
   /usr/include/c++/15.2.1/clocale \
   /usr/include/c++/15.2.1/cmath \
+  /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
   /usr/include/c++/15.2.1/cstddef \
@@ -6258,9 +6262,9 @@ CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/avx512vlintrin.h:
 
-/usr/include/c++/15.2.1/cwctype:
-
 /usr/include/c++/15.2.1/compare:
+
+/usr/include/c++/15.2.1/cwctype:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/avx512dqintrin.h:
 
@@ -7110,11 +7114,11 @@ CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o:
 
 /usr/include/c++/15.2.1/algorithm:
 
+/usr/include/c++/15.2.1/array:
+
 /usr/lib/libGLdispatch.so.0:
 
 /usr/include/c++/15.2.1/backward/binders.h:
-
-/usr/include/c++/15.2.1/array:
 
 /usr/include/c++/15.2.1/bits/basic_ios.tcc:
 

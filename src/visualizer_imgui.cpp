@@ -468,6 +468,49 @@ void Visualizer::renderMainImGuiWindow() {
     renderBandRow("Mid (120-2kHz):", audioFeatures_.midShare, audioFeatures_.midEnergy);
     renderBandRow("High (2k-12kHz):", audioFeatures_.highShare, audioFeatures_.highEnergy);
 
+    // === MEL-SCALE FREQUENCY BANDS (12 bands) ===
+    if (ImGui::CollapsingHeader("🎵 Mel-Scale Bands (12 bands)")) {
+        ImGui::Indent();
+        const char* melBandNames[12] = {
+            "Sub-Bass", "Bass", "Low-Mid", "Mid", "High-Mid",
+            "Presence", "Brilliance 1", "Brilliance 2", "Air 1", "Air 2", "Air 3", "Air 4"
+        };
+        
+        // Debug info
+        ImGui::TextDisabled("Total Mel Energy: %.6f", 
+            std::accumulate(audioFeatures_.melBandEnergies.begin(), 
+                           audioFeatures_.melBandEnergies.end(), 0.0f));
+        ImGui::Separator();
+        
+        for (int i = 0; i < 12; ++i) {
+            float share = audioFeatures_.melBandShares[i];
+            float energy = audioFeatures_.melBandEnergies[i];
+            ImGui::Text("%s:", melBandNames[i]);
+            ImGui::SameLine();
+            ImGui::ProgressBar(std::clamp(share, 0.0f, 1.0f), ImVec2(100, 15), 
+                (std::to_string(static_cast<int>(share * 100)) + "%").c_str());
+            ImGui::SameLine();
+            // Show energy with more precision and scientific notation for small values
+            if (energy < 0.001f && energy > 0.0f) {
+                ImGui::TextDisabled("%.2e", energy);
+            } else {
+                ImGui::TextDisabled("%.4f", energy);
+            }
+        }
+        ImGui::Unindent();
+    }
+
+    // === SPECTRAL FEATURES ===
+    if (ImGui::CollapsingHeader("📊 Spectral Features")) {
+        ImGui::Indent();
+        ImGui::Text("Spectral Flux: %.4f", audioFeatures_.spectralFlux);
+        ImGui::Text("Zero-Crossing Rate: %.4f", audioFeatures_.zeroCrossingRate);
+        ImGui::Text("Spectral Centroid: %.1f Hz", audioFeatures_.spectralCentroid);
+        ImGui::Text("Spectral Rolloff: %.1f Hz", audioFeatures_.spectralRolloff);
+        ImGui::Text("Percussion/Tonal: %.2f (0=tonal, 1=percussion)", audioFeatures_.percussionTonalRatio);
+        ImGui::Unindent();
+    }
+
     ImGui::Separator();
     ImGui::Text("🥁 Beat Detection:");
 
@@ -489,6 +532,62 @@ void Visualizer::renderMainImGuiWindow() {
     float bpm = audioFeatures_.bpm;
     ImVec4 bpmColor = bpm > 0.1f ? ImVec4(0.2f, 0.8f, 1.0f, 1.0f) : ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
     ImGui::TextColored(bpmColor, "BPM Estimate: %s", bpm > 0.1f ? (std::to_string(static_cast<int>(std::round(bpm))) + " BPM").c_str() : "--");
+
+    // Beat Detection Tuning (only if analyzer connected)
+    if (audioAnalyzer_ && ImGui::CollapsingHeader("Beat Detection Tuning")) {
+        ImGui::Indent();
+        
+        // Onset threshold
+        float onsetThresh = audioAnalyzer_->getOnsetThreshold();
+        ImGui::Text("Onset Threshold:");
+        if (ImGui::SliderFloat("##onset_thresh", &onsetThresh, 1.0f, 3.0f, "%.2f")) {
+            audioAnalyzer_->setOnsetThreshold(onsetThresh);
+        }
+        
+        ImGui::Spacing();
+        ImGui::Text("Kick Detection:");
+        float kickThresh = audioAnalyzer_->getKickThresholdMultiplier();
+        ImGui::SetNextItemWidth(120);
+        if (ImGui::SliderFloat("Threshold##kick_thresh", &kickThresh, 0.5f, 5.0f, "%.2f")) {
+            audioAnalyzer_->setKickThresholdMultiplier(kickThresh);
+        }
+        ImGui::SameLine();
+        float kickInterval = audioAnalyzer_->getKickMinInterval();
+        ImGui::SetNextItemWidth(120);
+        if (ImGui::SliderFloat("Min Interval##kick_int", &kickInterval, 0.02f, 0.3f, "%.3fs")) {
+            audioAnalyzer_->setKickMinInterval(kickInterval);
+        }
+        
+        ImGui::Spacing();
+        ImGui::Text("Clap Detection:");
+        float clapThresh = audioAnalyzer_->getClapThresholdMultiplier();
+        ImGui::SetNextItemWidth(120);
+        if (ImGui::SliderFloat("Threshold##clap_thresh", &clapThresh, 0.5f, 5.0f, "%.2f")) {
+            audioAnalyzer_->setClapThresholdMultiplier(clapThresh);
+        }
+        ImGui::SameLine();
+        float clapBassShare = audioAnalyzer_->getClapMaxBassShare();
+        ImGui::SetNextItemWidth(120);
+        if (ImGui::SliderFloat("Max Bass##clap_bass", &clapBassShare, 0.1f, 0.9f, "%.2f")) {
+            audioAnalyzer_->setClapMaxBassShare(clapBassShare);
+        }
+        
+        ImGui::Spacing();
+        ImGui::Text("Hi-Hat Detection:");
+        float hiHatThresh = audioAnalyzer_->getHiHatThresholdMultiplier();
+        ImGui::SetNextItemWidth(120);
+        if (ImGui::SliderFloat("Threshold##hh_thresh", &hiHatThresh, 0.5f, 5.0f, "%.2f")) {
+            audioAnalyzer_->setHiHatThresholdMultiplier(hiHatThresh);
+        }
+        ImGui::SameLine();
+        float hiHatShare = audioAnalyzer_->getHiHatMinHighShare();
+        ImGui::SetNextItemWidth(120);
+        if (ImGui::SliderFloat("Min High##hh_share", &hiHatShare, 0.05f, 0.5f, "%.2f")) {
+            audioAnalyzer_->setHiHatMinHighShare(hiHatShare);
+        }
+        
+        ImGui::Unindent();
+    }
 
     ImGui::Separator();
     ImVec4 statusColor = rms > 0.01f ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f) : ImVec4(1.0f, 0.5f, 0.0f, 1.0f);

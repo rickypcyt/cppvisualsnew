@@ -175,7 +175,8 @@ CMakeFiles/test_layer_integration.dir/src/audio_analyzer.cpp.o: \
  /usr/include/c++/15.2.1/bits/istream.tcc \
  /usr/include/c++/15.2.1/bits/sstream.tcc /usr/include/c++/15.2.1/deque \
  /usr/include/c++/15.2.1/bits/stl_deque.h \
- /usr/include/c++/15.2.1/bits/deque.tcc /usr/include/c++/15.2.1/algorithm \
+ /usr/include/c++/15.2.1/bits/deque.tcc /usr/include/c++/15.2.1/array \
+ /usr/include/c++/15.2.1/compare /usr/include/c++/15.2.1/algorithm \
  /usr/include/c++/15.2.1/bits/stl_algo.h \
  /usr/include/c++/15.2.1/bits/algorithmfwd.h \
  /usr/include/c++/15.2.1/bits/stl_heap.h \

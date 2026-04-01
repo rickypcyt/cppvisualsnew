@@ -208,9 +208,9 @@ CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o: \
  /usr/include/c++/15.2.1/tr1/poly_laguerre.tcc \
  /usr/include/c++/15.2.1/tr1/riemann_zeta.tcc \
  /usr/include/c++/15.2.1/deque /usr/include/c++/15.2.1/bits/stl_deque.h \
- /usr/include/c++/15.2.1/bits/deque.tcc \
+ /usr/include/c++/15.2.1/bits/deque.tcc /usr/include/c++/15.2.1/array \
+ /usr/include/c++/15.2.1/compare \
  /home/ricky/coding/proyects/visuals/src/shader.h \
- /usr/include/c++/15.2.1/array /usr/include/c++/15.2.1/compare \
  /usr/include/c++/15.2.1/fstream \
  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/basic_file.h \
  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/c++io.h \

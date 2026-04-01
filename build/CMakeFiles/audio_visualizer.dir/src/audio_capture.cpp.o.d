@@ -186,7 +186,8 @@ CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: \
  /usr/include/c++/15.2.1/bits/istream.tcc \
  /usr/include/c++/15.2.1/bits/sstream.tcc /usr/include/c++/15.2.1/deque \
  /usr/include/c++/15.2.1/bits/stl_deque.h \
- /usr/include/c++/15.2.1/bits/deque.tcc /usr/include/c++/15.2.1/iostream \
+ /usr/include/c++/15.2.1/bits/deque.tcc /usr/include/c++/15.2.1/array \
+ /usr/include/c++/15.2.1/compare /usr/include/c++/15.2.1/iostream \
  /usr/include/c++/15.2.1/cstring /usr/include/string.h \
  /usr/include/strings.h /usr/include/c++/15.2.1/algorithm \
  /usr/include/c++/15.2.1/bits/stl_algo.h \

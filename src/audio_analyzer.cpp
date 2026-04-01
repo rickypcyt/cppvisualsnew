@@ -5,9 +5,10 @@
 
 AudioAnalyzer::AudioAnalyzer() 
     : fftInput_(FFT_SIZE), fftOutput_(FFT_SIZE), spectrum_(SPECTRUM_SIZE),
+      prevSpectrum_(SPECTRUM_SIZE, 0.0f),
       window_(FFT_SIZE),
-      features_{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
-      smoothedFeatures_{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+      features_{},
+      smoothedFeatures_{},
       sampleRate_(48000.0f), previousEnergyRaw_(1e-4f),
       bassEnergyEMA_(1e-3f), midEnergyEMA_(1e-3f), highEnergyEMA_(1e-3f),
       bassPeak_(1e-3f), midPeak_(1e-3f), highPeak_(1e-3f), energyPeak_(1e-3f),
@@ -53,6 +54,17 @@ void AudioAnalyzer::processAudio(const std::vector<float>& audioBuffer) {
 
     // Copy and window the audio
     std::copy(audioBuffer.begin(), audioBuffer.begin() + FFT_SIZE, fftInput_.begin());
+    
+    // === ZERO-CROSSING RATE (percussion vs tonal) ===
+    // High ZCR = more noise-like/percussive, Low ZCR = more tonal/harmonic
+    int zeroCrossings = 0;
+    for (int i = 1; i < FFT_SIZE; ++i) {
+        if ((fftInput_[i] > 0.0f) != (fftInput_[i-1] > 0.0f)) {
+            zeroCrossings++;
+        }
+    }
+    features_.zeroCrossingRate = static_cast<float>(zeroCrossings) / static_cast<float>(FFT_SIZE - 1);
+    
     applyWindow(fftInput_);
     
     // Perform FFT
@@ -60,6 +72,13 @@ void AudioAnalyzer::processAudio(const std::vector<float>& audioBuffer) {
     
     // Extract features
     extractFeatures();
+    
+    // === PERCUSSION vs TONAL CLASSIFICATION ===
+    // Combine spectral flux and ZCR for classification
+    // Percussion: high spectral flux + high ZCR
+    // Tonal: low spectral flux + low ZCR
+    float fluxNorm = std::min(features_.spectralFlux / (features_.energy + 1e-6f), 1.0f);
+    features_.percussionTonalRatio = 0.6f * fluxNorm + 0.4f * features_.zeroCrossingRate;
     
     // Smooth features
     smoothFeatures();
@@ -142,6 +161,82 @@ void AudioAnalyzer::extractFeatures() {
     features_.midShare = features_.midEnergy * invEnergy;
     features_.highShare = features_.highEnergy * invEnergy;
 
+    // === MEL-SCALE FREQUENCY BANDS (12 bands) ===
+    // Convert Hz to Mel: mel = 2595 * log10(1 + hz/700)
+    // Mel scale better represents human hearing perception
+    const float MIN_MEL = 0.0f;
+    const float MAX_MEL = 2595.0f * log10f(1.0f + 12000.0f / 700.0f); // ~3600 mel for 12kHz
+    const float MEL_STEP = (MAX_MEL - MIN_MEL) / AudioFeatures::NUM_MEL_BANDS;
+    
+    for (int melBand = 0; melBand < AudioFeatures::NUM_MEL_BANDS; ++melBand) {
+        float melStart = MIN_MEL + melBand * MEL_STEP;
+        float melEnd = melStart + MEL_STEP;
+        
+        // Convert back to Hz: hz = 700 * (10^(mel/2595) - 1)
+        float freqStart = 700.0f * (powf(10.0f, melStart / 2595.0f) - 1.0f);
+        float freqEnd = 700.0f * (powf(10.0f, melEnd / 2595.0f) - 1.0f);
+        
+        int binStart = static_cast<int>(freqStart / BIN_RESOLUTION);
+        int binEnd = static_cast<int>(freqEnd / BIN_RESOLUTION);
+        binStart = std::clamp(binStart, 0, SPECTRUM_SIZE_LOCAL);
+        binEnd = std::clamp(binEnd, binStart + 1, SPECTRUM_SIZE_LOCAL);
+        
+        // Calculate energy in this mel band
+        features_.melBandEnergies[melBand] = 0.0f;
+        for (int i = binStart; i < binEnd; ++i) {
+            features_.melBandEnergies[melBand] += spectrum_[i];
+        }
+    }
+    
+    // Calculate mel band shares
+    float totalMelEnergy = 0.0f;
+    for (int i = 0; i < AudioFeatures::NUM_MEL_BANDS; ++i) {
+        totalMelEnergy += features_.melBandEnergies[i];
+    }
+    if (totalMelEnergy > 1e-6f) {
+        for (int i = 0; i < AudioFeatures::NUM_MEL_BANDS; ++i) {
+            features_.melBandShares[i] = features_.melBandEnergies[i] / totalMelEnergy;
+        }
+    }
+
+    // === SPECTRAL FLUX (frame-to-frame spectral change) ===
+    // High flux = sudden change in spectrum = likely percussion/onset
+    features_.spectralFlux = 0.0f;
+    for (int i = 0; i < SPECTRUM_SIZE_LOCAL; ++i) {
+        float diff = spectrum_[i] - prevSpectrum_[i];
+        if (diff > 0) {
+            features_.spectralFlux += diff;
+        }
+    }
+    
+    // Store current spectrum for next frame
+    std::copy(spectrum_.begin(), spectrum_.begin() + SPECTRUM_SIZE_LOCAL, prevSpectrum_.begin());
+
+    // === SPECTRAL CENTROID (brightness) ===
+    float weightedSum = 0.0f;
+    float sum = 0.0f;
+    for (int i = 0; i < SPECTRUM_SIZE_LOCAL; ++i) {
+        float freq = i * BIN_RESOLUTION;
+        weightedSum += freq * spectrum_[i];
+        sum += spectrum_[i];
+    }
+    features_.spectralCentroid = (sum > 1e-6f) ? weightedSum / sum : 0.0f;
+
+    // === SPECTRAL ROLLOFF (frequency below which 85% of energy resides) ===
+    float cumulative = 0.0f;
+    float threshold = 0.85f * sum;
+    features_.spectralRolloff = 0.0f;
+    for (int i = 0; i < SPECTRUM_SIZE_LOCAL; ++i) {
+        cumulative += spectrum_[i];
+        if (cumulative >= threshold) {
+            features_.spectralRolloff = i * BIN_RESOLUTION;
+            break;
+        }
+    }
+
+    // Note: Zero-crossing rate and percussion/tonal ratio calculated in processAudio
+    // where we have access to the raw audio buffer
+
     // Update band EMAs for adaptive thresholds (keep in raw energy domain)
     const float EMA_ALPHA = 0.12f;
     auto updateEMA = [EMA_ALPHA](float ema, float value) {
@@ -195,8 +290,8 @@ void AudioAnalyzer::extractFeatures() {
 
     // Kick detection: strong bass spike on onset
     bool kickDetected = false;
-    if (features_.onset > 0.5f && kickTimer_ > 0.08f) {
-        float kickThreshold = std::max(bassEnergyEMA_ * 1.6f, 0.0025f);
+    if (features_.onset > 0.5f && kickTimer_ > kickMinInterval_) {
+        float kickThreshold = std::max(bassEnergyEMA_ * kickThresholdMultiplier_, 0.0025f);
         if (features_.bassEnergy > kickThreshold) {
             kickDetected = true;
             kickTimer_ = 0.0f;
@@ -206,10 +301,9 @@ void AudioAnalyzer::extractFeatures() {
 
     // Clap detection: mid-band burst with onset and moderate bass dominance
     bool clapDetected = false;
-    if (features_.onset > 0.5f && clapTimer_ > 0.1f) {
-        float clapThreshold = std::max(midEnergyEMA_ * 1.4f, 0.0015f);
-        float bassShareLimit = 0.55f;
-        if (clapBandEnergy > clapThreshold && features_.bassShare < bassShareLimit) {
+    if (features_.onset > 0.5f && clapTimer_ > clapMinInterval_) {
+        float clapThreshold = std::max(midEnergyEMA_ * clapThresholdMultiplier_, 0.0015f);
+        if (clapBandEnergy > clapThreshold && features_.bassShare < clapMaxBassShare_) {
             clapDetected = true;
             clapTimer_ = 0.0f;
         }
@@ -218,10 +312,9 @@ void AudioAnalyzer::extractFeatures() {
 
     // Hi-hat detection: persistent high-frequency spikes
     bool hiHatDetected = false;
-    if (hiHatTimer_ > 0.05f) {
-        float hiHatThreshold = std::max(highEnergyEMA_ * 1.35f, 0.001f);
-        float highShareGuard = 0.18f;
-        if (hiHatBandEnergy > hiHatThreshold && features_.highShare > highShareGuard) {
+    if (hiHatTimer_ > hiHatMinInterval_) {
+        float hiHatThreshold = std::max(highEnergyEMA_ * hiHatThresholdMultiplier_, 0.001f);
+        if (hiHatBandEnergy > hiHatThreshold && features_.highShare > hiHatMinHighShare_) {
             hiHatDetected = true;
             hiHatTimer_ = 0.0f;
         }
@@ -246,6 +339,19 @@ void AudioAnalyzer::smoothFeatures() {
     smoothedFeatures_.clap = features_.clap;
     smoothedFeatures_.hiHat = features_.hiHat;
     smoothedFeatures_.bpm = smoothedFeatures_.bpm * (1.0f - BPM_ALPHA) + features_.bpm * BPM_ALPHA;
+    
+    // Smooth mel band energies
+    for (int i = 0; i < AudioFeatures::NUM_MEL_BANDS; ++i) {
+        smoothedFeatures_.melBandEnergies[i] = smoothedFeatures_.melBandEnergies[i] * (1.0f - ALPHA) + features_.melBandEnergies[i] * ALPHA;
+        smoothedFeatures_.melBandShares[i] = smoothedFeatures_.melBandShares[i] * (1.0f - ALPHA) + features_.melBandShares[i] * ALPHA;
+    }
+    
+    // Smooth spectral features
+    smoothedFeatures_.spectralFlux = smoothedFeatures_.spectralFlux * (1.0f - ALPHA) + features_.spectralFlux * ALPHA;
+    smoothedFeatures_.zeroCrossingRate = smoothedFeatures_.zeroCrossingRate * (1.0f - ALPHA) + features_.zeroCrossingRate * ALPHA;
+    smoothedFeatures_.spectralCentroid = smoothedFeatures_.spectralCentroid * (1.0f - ALPHA) + features_.spectralCentroid * ALPHA;
+    smoothedFeatures_.spectralRolloff = smoothedFeatures_.spectralRolloff * (1.0f - ALPHA) + features_.spectralRolloff * ALPHA;
+    smoothedFeatures_.percussionTonalRatio = smoothedFeatures_.percussionTonalRatio * (1.0f - ALPHA) + features_.percussionTonalRatio * ALPHA;
 
     features_ = smoothedFeatures_;
 

@@ -34,6 +34,7 @@ public:
     void endFrame();
     void updateAudioData(const AudioAnalyzer::AudioFeatures& features);
     void updateAudioBuffer(const std::vector<float>& audioBuffer);
+    void setAudioAnalyzer(AudioAnalyzer* analyzer) { audioAnalyzer_ = analyzer; }
     void render();
     void renderGUI();
     bool showDeviceSelector();
@@ -198,7 +199,9 @@ private:
     int currentRandomProcedural_ = 0;
     std::vector<int> availableProceduralModes_;
     
+    // Audio features (copied from analyzer each frame)
     AudioAnalyzer::AudioFeatures audioFeatures_;
+    AudioAnalyzer* audioAnalyzer_ = nullptr;
     std::vector<float> waveformBuffer_;
     int selectedDevice_;
     bool showDeviceMenu_;
