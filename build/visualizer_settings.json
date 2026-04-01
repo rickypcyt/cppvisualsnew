@@ -1,7 +1,7 @@
 {
     "animation": {
         "autoRandomize": true,
-        "autoRandomizeRgb": false,
+        "autoRandomizeRgb": true,
         "onsetColorCycling": true,
         "randomInterval": 0.5
     },
@@ -9,22 +9,22 @@
         "inputGain": 0.10000000149011612,
         "manualBPM": 130.0,
         "manualBPMMode": true,
-        "selectedDevice": 7,
+        "selectedDevice": 8,
         "visualSensitivity": 3.0
     },
     "colors": {
-        "blend": 0.47999998927116394,
+        "blend": 0.6200000047683716,
         "hueSeed": 0.8295143246650696,
-        "paletteIndex": 1,
+        "paletteIndex": 0,
         "primary": [
-            0.5799999833106995,
-            0.11999999731779099,
-            0.1599999964237213
+            0.10000000149011612,
+            0.23999999463558197,
+            0.5799999833106995
         ],
         "secondary": [
-            0.9399999976158142,
-            0.36000001430511475,
-            0.30000001192092896
+            0.2800000011920929,
+            0.699999988079071,
+            0.9800000190734863
         ]
     },
     "hotReloadEnabled": false,
@@ -37,7 +37,7 @@
         "slots": [
             {
                 "enabled": true,
-                "mode": 9,
+                "mode": 3,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -99,9 +99,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Breathing",
+                "effectName": "Fractal Runway",
                 "enabled": true,
-                "mode": 34,
+                "mode": 24,
                 "opacity": 1.0
             },
             {
@@ -163,8 +163,8 @@
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Breathing",
-        "proceduralLayerMode": 34,
+        "proceduralLayerEffectName": "Fractal Runway",
+        "proceduralLayerMode": 24,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,

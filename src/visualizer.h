@@ -217,6 +217,9 @@ private:
     // ImGui state
     bool showImGuiWindow_;
     bool showImGuiVisualWindow_;
+    bool showImGuiColorsWindow_;
+    bool showImGuiProceduralWindow_;
+    bool showImGuiPostProcessWindow_;
     bool showDeviceSelector_;
     bool showCurrentEffects_ = true; // Current Effects window (independent, controlled by 'I' key)
     bool showDiagnosticInfo_;
@@ -324,6 +327,9 @@ private:
 
     // ImGui rendering methods
     void renderMainImGuiWindow();
+    void renderColorsWindow();
+    void renderProceduralWindow();
+    void renderPostProcessWindow();
     void renderDeviceSelectorImGui();
     void renderDiagnosticImGui();
     void renderConsoleImGui();
