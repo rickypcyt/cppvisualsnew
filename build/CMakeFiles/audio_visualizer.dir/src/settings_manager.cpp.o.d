@@ -244,10 +244,28 @@ CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o: \
  /usr/include/c++/15.2.1/bits/erase_if.h /usr/include/c++/15.2.1/mutex \
  /usr/include/c++/15.2.1/bits/std_mutex.h \
  /usr/include/c++/15.2.1/bits/unique_lock.h \
+ /home/ricky/coding/proyects/visuals/src/shader_loader.h \
  /usr/include/c++/15.2.1/fstream \
  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/basic_file.h \
  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/c++io.h \
  /usr/include/c++/15.2.1/bits/fstream.tcc \
+ /usr/include/c++/15.2.1/optional /usr/include/c++/15.2.1/regex \
+ /usr/include/c++/15.2.1/bitset /usr/include/c++/15.2.1/stack \
+ /usr/include/c++/15.2.1/bits/stl_stack.h \
+ /usr/include/c++/15.2.1/bits/stl_tree.h \
+ /usr/include/c++/15.2.1/bits/stl_map.h \
+ /usr/include/c++/15.2.1/bits/regex_constants.h \
+ /usr/include/c++/15.2.1/bits/regex_error.h \
+ /usr/include/c++/15.2.1/bits/regex_automaton.h \
+ /usr/include/c++/15.2.1/bits/regex_automaton.tcc \
+ /usr/include/c++/15.2.1/bits/regex_scanner.h \
+ /usr/include/c++/15.2.1/bits/regex_scanner.tcc \
+ /usr/include/c++/15.2.1/bits/regex_compiler.h \
+ /usr/include/c++/15.2.1/bits/regex_compiler.tcc \
+ /usr/include/c++/15.2.1/bits/regex.h \
+ /usr/include/c++/15.2.1/bits/regex.tcc \
+ /usr/include/c++/15.2.1/bits/regex_executor.h \
+ /usr/include/c++/15.2.1/bits/regex_executor.tcc \
  /usr/include/c++/15.2.1/iostream /usr/include/nlohmann/json.hpp \
  /usr/include/c++/15.2.1/iterator \
  /usr/include/c++/15.2.1/bits/stream_iterator.h \
@@ -259,9 +277,7 @@ CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o: \
  /usr/include/c++/15.2.1/forward_list \
  /usr/include/c++/15.2.1/bits/forward_list.h \
  /usr/include/c++/15.2.1/bits/forward_list.tcc \
- /usr/include/c++/15.2.1/map /usr/include/c++/15.2.1/bits/stl_tree.h \
- /usr/include/c++/15.2.1/bits/stl_map.h \
- /usr/include/c++/15.2.1/bits/stl_multimap.h \
+ /usr/include/c++/15.2.1/map /usr/include/c++/15.2.1/bits/stl_multimap.h \
  /usr/include/c++/15.2.1/valarray \
  /usr/include/c++/15.2.1/bits/valarray_array.h \
  /usr/include/c++/15.2.1/bits/valarray_array.tcc \
@@ -293,7 +309,6 @@ CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o: \
  /usr/include/nlohmann/detail/meta/identity_tag.hpp \
  /usr/include/nlohmann/detail/meta/std_fs.hpp \
  /usr/include/nlohmann/detail/conversions/to_json.hpp \
- /usr/include/c++/15.2.1/optional \
  /usr/include/nlohmann/detail/iterators/iteration_proxy.hpp \
  /usr/include/nlohmann/detail/string_utils.hpp \
  /usr/include/nlohmann/byte_container_with_subtype.hpp \

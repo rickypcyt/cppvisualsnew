@@ -1,3 +1,4 @@
+// @EFFECT name="Pouet Grid" index=42 desc="Audio-reactive UV distortion homage" author="Danilo Guanabara"
 // Pouet Grid Redux - audio-reactive UV distortion homage (Danilo Guanabara)
 const float kPouetPi = 3.14159265359;
 const float kPouetTau = kPouetPi * 2.0;

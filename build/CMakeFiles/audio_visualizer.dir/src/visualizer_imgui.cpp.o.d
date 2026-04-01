@@ -252,4 +252,21 @@ CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o: \
  /usr/include/c++/15.2.1/fstream \
  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/basic_file.h \
  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/c++io.h \
- /usr/include/c++/15.2.1/bits/fstream.tcc
+ /usr/include/c++/15.2.1/bits/fstream.tcc \
+ /usr/include/c++/15.2.1/optional /usr/include/c++/15.2.1/regex \
+ /usr/include/c++/15.2.1/bitset /usr/include/c++/15.2.1/stack \
+ /usr/include/c++/15.2.1/bits/stl_stack.h \
+ /usr/include/c++/15.2.1/bits/stl_tree.h \
+ /usr/include/c++/15.2.1/bits/stl_map.h \
+ /usr/include/c++/15.2.1/bits/regex_constants.h \
+ /usr/include/c++/15.2.1/bits/regex_error.h \
+ /usr/include/c++/15.2.1/bits/regex_automaton.h \
+ /usr/include/c++/15.2.1/bits/regex_automaton.tcc \
+ /usr/include/c++/15.2.1/bits/regex_scanner.h \
+ /usr/include/c++/15.2.1/bits/regex_scanner.tcc \
+ /usr/include/c++/15.2.1/bits/regex_compiler.h \
+ /usr/include/c++/15.2.1/bits/regex_compiler.tcc \
+ /usr/include/c++/15.2.1/bits/regex.h \
+ /usr/include/c++/15.2.1/bits/regex.tcc \
+ /usr/include/c++/15.2.1/bits/regex_executor.h \
+ /usr/include/c++/15.2.1/bits/regex_executor.tcc

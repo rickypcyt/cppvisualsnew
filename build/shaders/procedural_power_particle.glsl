@@ -1,3 +1,4 @@
+// @EFFECT name="Power Particle" index=44 desc="Audio-reactive geometric pattern shader" author="System"
 // Power Particle - audio-reactive geometric pattern shader
 #define PI 3.14159265359
 #define TWO_PI 6.28318530718

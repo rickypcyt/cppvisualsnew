@@ -32,6 +32,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o.d"
   "CMakeFiles/audio_visualizer.dir/src/shader.cpp.o"
   "CMakeFiles/audio_visualizer.dir/src/shader.cpp.o.d"
+  "CMakeFiles/audio_visualizer.dir/src/shader_loader.cpp.o"
+  "CMakeFiles/audio_visualizer.dir/src/shader_loader.cpp.o.d"
   "CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o"
   "CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o.d"
   "CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o"

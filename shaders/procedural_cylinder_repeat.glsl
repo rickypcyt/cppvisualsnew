@@ -1,3 +1,4 @@
+// @EFFECT name="Cylinder Repeat" index=43 desc="Volumetric raymarch with audio-reactive glow" author="System"
 // Cylinder Repeat Redux - volumetric raymarch with audio-reactive glow
 const float CYL_NEAR_CLIP = 2.8;
 const float CYL_FAR_CLIP = 30.0;

@@ -1,3 +1,4 @@
+// @EFFECT name="Weird Creature" index=39 desc="Endless living creature with audio reactivity" author="Leon Denise"
 // Weird Endless Living Creature
 // Inspired by Inigo Quilez live stream shader deconstruction
 // Leon Denise (ponk) 2019.08.28

@@ -1,3 +1,6 @@
+// @EFFECT name="Metal Gyroid Hall" index=30 desc="Metal gyroid hall with audio-reactive tweaks" author="System"
+// @EFFECT name="Hex Kaleidoscope" index=31 desc="Hexagonal kaleidoscope pattern with audio reactivity" author="System"
+// @EFFECT name="HSV Color Shift" index=32 desc="HSV color shifting with audio-reactive movement" author="System"
 // Metal gyroid hall shader adapted from a Shadertoy snippet with audio-reactive tweaks
 
 const vec3 kMetalLightDirection = normalize(vec3(-1.0, 2.0, 4.0));
@@ -317,6 +320,7 @@ vec4 renderHSVColorShift(vec2 st, float time, float tempo, float energy, float b
     return vec4(c, 1.0);
 }
 
+// @EFFECT name="Crypt Roots" index=33 desc="Ray marched improvised geometry with curvy shapes" author="System"
 // Crypt Roots - Ray marching improvised geometry with curvy shapes and rock textures
 // Adapted for audio reactivity
 #define repeat(p,r) (mod(p,r)-r/2.)

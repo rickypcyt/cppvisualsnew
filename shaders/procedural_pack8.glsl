@@ -1,3 +1,4 @@
+// @EFFECT name="Hyper Pulse" index=27 desc="Hyper-dimensional raymarch with audio modulation" author="Blackle Mori"
 // Hyper-dimensional raymarch shader adapted from Blackle Mori (CC0)
 
 float hyper_comp(vec3 p) {

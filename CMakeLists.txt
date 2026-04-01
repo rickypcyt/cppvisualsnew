@@ -106,6 +106,7 @@ add_executable(audio_visualizer
     src/settings_manager.cpp
     src/midi_controller.cpp
     src/layer_validator.cpp
+    src/shader_loader.cpp
     ${IMGUI_SOURCES}
 )
 
@@ -113,6 +114,7 @@ add_executable(audio_visualizer
 add_executable(validate_layers
     src/validate_layers.cpp
     src/layer_validator.cpp
+    src/shader_loader.cpp
 )
 
 # Layer integration tests
@@ -124,6 +126,7 @@ add_executable(test_layer_integration
     src/shader.cpp
     src/audio_analyzer.cpp
     src/settings_manager.cpp
+    src/shader_loader.cpp
     ${IMGUI_SOURCES}
 )
 

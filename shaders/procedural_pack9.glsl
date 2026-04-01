@@ -1,3 +1,4 @@
+// @EFFECT name="Gyroid Reflections" index=28 desc="Gyroid reflection shader with audio/tempo modulation" author="System"
 // Gyroid reflection shader adapted from Shadertoy (CC0) with audio/tempo modulation
 
 const float kGyroidPi = acos(-1.0);

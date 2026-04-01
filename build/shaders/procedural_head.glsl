@@ -1,3 +1,4 @@
+// @EFFECT name="Head" index=29 desc="Hand modeled 3D head with audio-reactive assembly" author="System"
 /*
 
 Head

@@ -1,3 +1,11 @@
+// @EFFECT name="Nebula" index=11 desc="Nebula cloud effect with fbm noise" author="System"
+// @EFFECT name="ASCII Ocean" index=1 desc="ASCII-style ocean waves" author="System"
+// @EFFECT name="Sacred Geometry" index=2 desc="Sacred geometry flower pattern" author="System"
+// @EFFECT name="Glitch Grid" index=3 desc="Digital glitch grid pattern" author="System"
+// @EFFECT name="Chemical Flow" index=4 desc="Flowing chemical reaction diffusion" author="System"
+// @EFFECT name="Crystal Lattice" index=5 desc="Crystal lattice structure" author="System"
+// @EFFECT name="Phantom Fractals" index=6 desc="Phantom fractal bands" author="System"
+
 vec4 renderNebula(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
     vec2 p = st;
     float warp = time * (0.15 + tempo * 0.05);

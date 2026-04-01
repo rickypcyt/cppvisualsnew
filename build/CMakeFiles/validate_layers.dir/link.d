@@ -4,6 +4,7 @@ validate_layers: \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtbeginS.o \
   CMakeFiles/validate_layers.dir/src/validate_layers.cpp.o \
   CMakeFiles/validate_layers.dir/src/layer_validator.cpp.o \
+  CMakeFiles/validate_layers.dir/src/shader_loader.cpp.o \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libpthread.a \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libstdc++.so \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libm.so \
@@ -42,6 +43,8 @@ validate_layers: \
 CMakeFiles/validate_layers.dir/src/validate_layers.cpp.o:
 
 CMakeFiles/validate_layers.dir/src/layer_validator.cpp.o:
+
+CMakeFiles/validate_layers.dir/src/shader_loader.cpp.o:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libpthread.a:
 

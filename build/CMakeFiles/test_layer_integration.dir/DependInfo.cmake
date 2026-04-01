@@ -21,6 +21,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/ricky/coding/proyects/visuals/src/post_processor.cpp" "CMakeFiles/test_layer_integration.dir/src/post_processor.cpp.o" "gcc" "CMakeFiles/test_layer_integration.dir/src/post_processor.cpp.o.d"
   "/home/ricky/coding/proyects/visuals/src/settings_manager.cpp" "CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o" "gcc" "CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o.d"
   "/home/ricky/coding/proyects/visuals/src/shader.cpp" "CMakeFiles/test_layer_integration.dir/src/shader.cpp.o" "gcc" "CMakeFiles/test_layer_integration.dir/src/shader.cpp.o.d"
+  "/home/ricky/coding/proyects/visuals/src/shader_loader.cpp" "CMakeFiles/test_layer_integration.dir/src/shader_loader.cpp.o" "gcc" "CMakeFiles/test_layer_integration.dir/src/shader_loader.cpp.o.d"
   "/home/ricky/coding/proyects/visuals/src/test_layer_integration.cpp" "CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o" "gcc" "CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o.d"
   "" "test_layer_integration" "gcc" "CMakeFiles/test_layer_integration.dir/link.d"
   )

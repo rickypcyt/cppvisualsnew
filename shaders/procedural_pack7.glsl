@@ -1,3 +1,4 @@
+// @EFFECT name="Chromatic Swirl" index=26 desc="Sine-based chromatic swirl" author="System"
 // Sine-based chromatic swirl shader
 
 vec4 renderChromaticSwirl(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {

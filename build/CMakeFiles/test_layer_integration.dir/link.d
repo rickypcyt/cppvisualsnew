@@ -9,6 +9,7 @@ test_layer_integration: \
   CMakeFiles/test_layer_integration.dir/src/shader.cpp.o \
   CMakeFiles/test_layer_integration.dir/src/audio_analyzer.cpp.o \
   CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o \
+  CMakeFiles/test_layer_integration.dir/src/shader_loader.cpp.o \
   CMakeFiles/test_layer_integration.dir/imgui/imgui.cpp.o \
   CMakeFiles/test_layer_integration.dir/imgui/imgui_demo.cpp.o \
   CMakeFiles/test_layer_integration.dir/imgui/imgui_draw.cpp.o \
@@ -80,6 +81,8 @@ CMakeFiles/test_layer_integration.dir/src/shader.cpp.o:
 CMakeFiles/test_layer_integration.dir/src/audio_analyzer.cpp.o:
 
 CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o:
+
+CMakeFiles/test_layer_integration.dir/src/shader_loader.cpp.o:
 
 CMakeFiles/test_layer_integration.dir/imgui/imgui.cpp.o:
 

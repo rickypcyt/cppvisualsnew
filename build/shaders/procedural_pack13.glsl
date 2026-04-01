@@ -1,3 +1,4 @@
+// @EFFECT name="Evolution Noise" index=35 desc="Time-evolving noise pattern with audio reactivity" author="System"
 // Evolution Noise - Time-evolving noise pattern
 // Based on fractal noise with temporal evolution
 

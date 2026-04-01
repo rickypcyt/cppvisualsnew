@@ -1,3 +1,4 @@
+// @EFFECT name="Volumetric Tunnel" index=25 desc="Volumetric streak tunnel with audio reactivity" author="System"
 // Volumetric streak tunnel shader adapted from Shadertoy snippet
 
 vec4 renderVolumetricTunnel(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {

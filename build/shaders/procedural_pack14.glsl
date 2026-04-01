@@ -1,3 +1,4 @@
+// @EFFECT name="Phi Fields" index=36 desc="Stabilized lissajous spiral field with tonemapping" author="System"
 // Eye of Phi Redux: stabilized lissajous/spiral field with controlled tonemapping
 const float kPhiScale = 7.5;
 const float kPhiPI = 3.14159265359;

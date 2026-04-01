@@ -1,3 +1,4 @@
+// @EFFECT name="Message Tunnel" index=41 desc="Audio-reactive tunnel riff with trace marching" author="System"
 // Little Message Redux - audio-reactive tunnel riff
 const int kMessageTraceSteps = 48;
 const float kMessagePi = 3.14159265359;

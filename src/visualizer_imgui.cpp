@@ -18,54 +18,84 @@
 
 #include "shader_loader.h"
 
-// Static mode name arrays - single source of truth
+// Structure to hold effect info for ImGui with proper index mapping
+struct EffectListForImGui {
+    std::vector<std::string> names;      // Display names for ImGui
+    std::vector<int> modeIndices;        // Actual mode indices (can be sparse)
+    std::vector<const char*> ptrs;       // Pointers for ImGui
+    
+    void rebuild() {
+        auto& registry = GetEffectRegistry();
+        names.clear();
+        modeIndices.clear();
+        ptrs.clear();
+        
+        // Always add "None" at index 0 with mode 0
+        names.push_back("None");
+        modeIndices.push_back(0);
+        
+        if (!registry.empty()) {
+            auto effects = registry.getAllEffects();
+            for (const auto& effect : effects) {
+                names.push_back(effect.name);
+                modeIndices.push_back(effect.modeIndex);
+            }
+        }
+        
+        // Build pointer array
+        for (const auto& name : names) {
+            ptrs.push_back(name.c_str());
+        }
+    }
+    
+    // Find UI index for a given mode index
+    int findUiIndex(int modeIndex) const {
+        for (size_t i = 0; i < modeIndices.size(); ++i) {
+            if (modeIndices[i] == modeIndex) {
+                return static_cast<int>(i);
+            }
+        }
+        return 0; // Default to None
+    }
+    
+    // Get mode index from UI index
+    int getModeIndex(int uiIndex) const {
+        if (uiIndex >= 0 && uiIndex < static_cast<int>(modeIndices.size())) {
+            return modeIndices[uiIndex];
+        }
+        return 0;
+    }
+    
+    size_t size() const { return names.size(); }
+};
+
+// Helper to get effect names from registry for ImGui
+static EffectListForImGui& GetEffectListForImGui() {
+    static EffectListForImGui list;
+    static bool initialized = false;
+    
+    auto& registry = GetEffectRegistry();
+    if (!initialized || (registry.empty() == false && list.size() <= 1)) {
+        list.rebuild();
+        initialized = true;
+    }
+    
+    return list;
+}
+
+// Static mode name arrays - kept for compatibility but not the source of truth
 const char* const Visualizer::kProceduralModes[] = {
-    "None",
-    "ASCII Ocean",
-    "Sacred Geometry",
-    "Glitch Grid",
-    "Chemical Flow",
-    "Crystal Lattice",
-    "Phantom Fractals",
-    "Fractal Object",
-    "Pulsar Tunnel",
-    "Aurora Bloom",
-    "Ribbon Scanlines",
-    "Nebula",
-    "Kaleidoscope Fractal",
-    "Voronoi Cells",
-    "Raymarched Object",
-    "Reaction Diffusion",
-    "Liquid Refraction",
-    "Starfield Warp",
-    "Plasma Classic",
-    "Domain Warped Fractal",
-    "Fractal Tunnel",
-    "Volumetric Starfield",
-    "Voxel Path Tracer",
-    "Etienne Pulse",
-    "Fractal Runway",
-    "Volumetric Tunnel",
-    "Chromatic Swirl",
-    "Hyper Pulse",
-    "Gyroid Reflections",
-    "Head",
-    "Metal Gyroid Hall",
-    "Hex Kaleidoscope",
-    "HSV Color Shift",
-    "Crypt Roots",
-    "Breathing",
-    "Evolution Noise",
-    "Phi Fields",
-    "Fractal Infinity",
-    "Walker",
-    "Weird Creature",
-    "Anaglyph Assembly",
-    "Message Tunnel",
-    "Pouet Grid",
-    "Cylinder Repeat",
-    "Power Particle",
-    "Flopine"
+    "None", "ASCII Ocean", "Sacred Geometry", "Glitch Grid", "Chemical Flow",
+    "Crystal Lattice", "Phantom Fractals", "Fractal Object", "Pulsar Tunnel",
+    "Aurora Bloom", "Ribbon Scanlines", "Nebula", "Kaleidoscope Fractal",
+    "Voronoi Cells", "Raymarched Object", "Reaction Diffusion", "Liquid Refraction",
+    "Starfield Warp", "Plasma Classic", "Domain Warped Fractal", "Fractal Tunnel",
+    "Volumetric Starfield", "Voxel Path Tracer", "Etienne Pulse", "Fractal Runway",
+    "Volumetric Tunnel", "Chromatic Swirl", "Hyper Pulse", "Gyroid Reflections",
+    "Head", "Metal Gyroid Hall", "Hex Kaleidoscope", "HSV Color Shift",
+    "Crypt Roots", "Breathing", "Evolution Noise", "Phi Fields",
+    "Fractal Infinity", "Walker", "Weird Creature", "Anaglyph Assembly",
+    "Message Tunnel", "Pouet Grid", "Cylinder Repeat", "Power Particle", "Flopine"
 };
 
 const char* const Visualizer::kPostProcessModes[] = {
@@ -564,21 +594,20 @@ void Visualizer::renderMainImGuiWindow() {
 
                 // Mode and Opacity Controls (only when enabled)
                 if (slot.enabled) {
-                    // Mode Selection
+                    // Mode Selection with proper index mapping
                     ImGui::Text("Effect Mode:");
+                    auto& effectList = GetEffectListForImGui();
                     int currentMode = slot.mode;
-                    if (currentMode < 0 || currentMode >= static_cast<int>(std::size(kProceduralModes))) {
-                        currentMode = 0;
-                    }
-
-                    if (ImGui::BeginCombo("##proc_mode", kProceduralModes[currentMode])) {
-                        for (int i = 0; i < static_cast<int>(std::size(kProceduralModes)); ++i) {
-                            bool selected = (slot.mode == i);
-                            if (ImGui::Selectable(kProceduralModes[i], selected)) {
-                                slot.mode = i;
+                    int uiIndex = effectList.findUiIndex(currentMode);
+                    
+                    if (ImGui::BeginCombo("##proc_mode", effectList.ptrs[uiIndex])) {
+                        for (int i = 0; i < static_cast<int>(effectList.size()); ++i) {
+                            bool selected = (uiIndex == i);
+                            if (ImGui::Selectable(effectList.ptrs[i], selected)) {
+                                slot.mode = effectList.getModeIndex(i);
                                 if (slotIndex == 0) {
-                                    proceduralLayer_.setMode(i); // Update actual layer for slot 1
-                                    proceduralLayerMode_ = i;
+                                    proceduralLayer_.setMode(slot.mode); // Update actual layer for slot 1
+                                    proceduralLayerMode_ = slot.mode;
                                     slot.enabled = true; // Always ensure Slot 1 is enabled
                                     showProceduralLayer_ = true;
                                 }
@@ -661,9 +690,11 @@ void Visualizer::renderMainImGuiWindow() {
             
             ImGui::Spacing();
             
-            // Current Mode Display
-            if (currentRandomProcedural_ >= 0 && currentRandomProcedural_ < static_cast<int>(std::size(kProceduralModes))) {
-                ImGui::Text("Current Effect: %s", kProceduralModes[currentRandomProcedural_]);
+            // Current Mode Display with proper mapping
+            auto& effectList = GetEffectListForImGui();
+            int uiIdx = effectList.findUiIndex(currentRandomProcedural_);
+            if (uiIdx >= 0 && uiIdx < static_cast<int>(effectList.size())) {
+                ImGui::Text("Current Effect: %s", effectList.ptrs[uiIdx]);
             }
             
             // Force Change Button
@@ -1067,8 +1098,11 @@ void Visualizer::renderCurrentEffectsDisplay() {
         }
 
         anyProceduralActive = true;
-        int mode = std::clamp(slot.mode, 0, static_cast<int>(std::size(kProceduralModes)) - 1);
-        const char* modeName = kProceduralModes[mode];
+        auto& effectList = GetEffectListForImGui();
+        int uiIdx = effectList.findUiIndex(slot.mode);
+        const char* modeName = (uiIdx >= 0 && uiIdx < static_cast<int>(effectList.size())) 
+                                ? effectList.ptrs[uiIdx] 
+                                : "Unknown";
 
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(activeColor[0], activeColor[1], activeColor[2], activeColor[3]));
         ImGui::Text("Slot %d%s: %s", slotIndex + 1, slotIndex == 0 ? " (base)" : "", modeName);
@@ -1087,8 +1121,11 @@ void Visualizer::renderCurrentEffectsDisplay() {
 
     if (!anyProceduralActive) {
         if (showProceduralLayer_) {
-            int mode = std::clamp(proceduralLayerMode_, 0, static_cast<int>(std::size(kProceduralModes)) - 1);
-            const char* modeName = kProceduralModes[mode];
+            auto& effectList = GetEffectListForImGui();
+            int uiIdx = effectList.findUiIndex(proceduralLayerMode_);
+            const char* modeName = (uiIdx >= 0 && uiIdx < static_cast<int>(effectList.size())) 
+                                    ? effectList.ptrs[uiIdx] 
+                                    : "Unknown";
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(activeColor[0], activeColor[1], activeColor[2], activeColor[3]));
             ImGui::Text("Global: %s", modeName);
             ImGui::PopStyleColor();

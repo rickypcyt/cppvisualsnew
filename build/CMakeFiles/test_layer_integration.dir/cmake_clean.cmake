@@ -26,6 +26,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o.d"
   "CMakeFiles/test_layer_integration.dir/src/shader.cpp.o"
   "CMakeFiles/test_layer_integration.dir/src/shader.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/src/shader_loader.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/src/shader_loader.cpp.o.d"
   "CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o"
   "CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o.d"
   "test_layer_integration"

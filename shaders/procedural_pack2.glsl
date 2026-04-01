@@ -1,3 +1,9 @@
+// @EFFECT name="Fractal Object" index=7 desc="Rotating fractal object" author="System"
+// @EFFECT name="Pulsar Tunnel" index=8 desc="Pulsar spiral tunnel" author="System"
+// @EFFECT name="Aurora Bloom" index=9 desc="Aurora curtain effect" author="System"
+// @EFFECT name="Ribbon Scanlines" index=10 desc="Ribbon scanline distortion" author="System"
+// @EFFECT name="Kaleidoscope Fractal" index=12 desc="Kaleidoscope fractal pattern" author="System"
+
 vec4 renderFractalObject(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
     vec2 p = rotate(st, time * 0.2);
     float r = length(p);

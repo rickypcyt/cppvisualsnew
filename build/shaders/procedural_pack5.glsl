@@ -1,13 +1,18 @@
+// @EFFECT name="Fractal Runway" index=24 desc="Temporal fractal runway raymarch" author="etiennejcb"
 // Temporal fractal runway shader adapted from Shadertoy snippet by @etiennejcb
 
 const float runway_defaultStep = 0.025;
 const float runway_defaultMaxDist = 15.0;
+const float runway_referencePixels = 1280.0 * 720.0;
 
 float runway_time = 0.0;
 vec3 runway_lightDir = vec3(0.0);
 vec3 runway_colorAccum = vec3(0.0);
 vec2 runway_fragCoord = vec2(0.0);
 bool runway_accumulateColor = true;
+float runway_resolutionPressure = 1.0;
+float runway_fractalIterationLimit = 8.0;
+float runway_marchIterationLimit = 200.0;
 
 mat2 runway_rot(float a) {
     float s = sin(a);
@@ -23,6 +28,9 @@ vec3 runway_fractal(vec2 p) {
     p = abs(fract(p * 0.1) - 0.5);
     vec2 c = p;
     for (int i = 0; i < 8; ++i) {
+        if (float(i) >= runway_fractalIterationLimit) {
+            break;
+        }
         d = dot(p, p);
         p = abs(p + 1.0) - abs(p - 1.0) - p;
         p = p * -1.5 / clamp(d, 0.5, 1.0) - c;
@@ -44,8 +52,6 @@ vec3 runway_fractal(vec2 p) {
 float runway_map(vec2 p) {
     if (runway_accumulateColor) {
         runway_colorAccum += runway_fractal(p);
-    } else {
-        runway_fractal(p);
     }
 
     float t = runway_time;
@@ -111,8 +117,13 @@ vec3 runway_march(vec3 from, vec3 dir, float baseStep, float maxDist) {
     float travel = 0.5;
     float step = baseStep;
     vec2 hitInfo = vec2(0.0);
+    int dynamicMaxSteps = int(runway_marchIterationLimit);
+    dynamicMaxSteps = max(dynamicMaxSteps, 40);
 
-    for (int i = 0; i < 600; ++i) {
+    for (int i = 0; i < 200; ++i) {
+        if (i >= dynamicMaxSteps) {
+            break;
+        }
         pos = from + dir * travel;
         hitInfo = runway_hit(pos);
         if (hitInfo.x > 0.5 || travel > maxDist) {
@@ -149,13 +160,21 @@ vec4 renderFractalRunway(vec2 st, float time, float tempo, float energy, float b
     vec2 fragCoord = (st / aspect + 0.5) * uResolution.xy;
     runway_fragCoord = fragCoord;
 
+    float pixelCount = max(1.0, uResolution.x * uResolution.y);
+    runway_resolutionPressure = clamp(pixelCount / runway_referencePixels, 1.0, 4.0);
+    float highResFactor = clamp((runway_resolutionPressure - 1.0) / 3.0, 0.0, 1.0);
+    runway_fractalIterationLimit = mix(8.0, 5.0, highResFactor);
+    runway_marchIterationLimit = mix(200.0, 90.0, highResFactor);
+
     runway_time = time;
     runway_colorAccum = vec3(0.0);
     runway_lightDir = normalize(vec3(0.0, -1.0, -1.0 + high * 0.4));
 
     float tempoInfluence = clamp(tempo * 0.2 + bass * 0.3, 0.0, 1.0);
-    float baseStep = runway_defaultStep * mix(1.2, 0.6, clamp(energy + tempoInfluence, 0.0, 1.0));
+    float resolutionStepBoost = mix(1.0, 2.2, highResFactor);
+    float baseStep = runway_defaultStep * mix(1.2, 0.6, clamp(energy + tempoInfluence, 0.0, 1.0)) * resolutionStepBoost;
     float maxDist = runway_defaultMaxDist * mix(1.0, 1.5, clamp(energy * 0.6, 0.0, 1.0));
+    maxDist *= mix(1.0, 0.85, highResFactor);
 
     vec2 uv = (fragCoord - 0.5 * uResolution.xy) / max(uResolution.y, 1.0);
     float travelTime = time * 0.2;
@@ -165,7 +184,7 @@ vec4 renderFractalRunway(vec2 st, float time, float tempo, float energy, float b
     vec3 up = vec3(advance.x * 0.1, 1.0, 0.0);
     dir = runway_lookat(advance + vec3(0.0, -0.2 - (1.0 + sin(travelTime * 2.0)), 0.0), up) * dir;
 
-    runway_accumulateColor = true;
+    runway_accumulateColor = highResFactor < 0.85;
     vec3 coreColor = runway_march(from, dir, baseStep, maxDist) * 1.5;
 
     vec3 paletteBase = mix(uPrimaryColor, uSecondaryColor, clamp(uColorBlend, 0.0, 1.0));

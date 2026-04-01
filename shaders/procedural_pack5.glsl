@@ -1,3 +1,4 @@
+// @EFFECT name="Fractal Runway" index=24 desc="Temporal fractal runway raymarch" author="etiennejcb"
 // Temporal fractal runway shader adapted from Shadertoy snippet by @etiennejcb
 
 const float runway_defaultStep = 0.025;

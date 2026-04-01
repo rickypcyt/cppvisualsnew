@@ -24,6 +24,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/ricky/coding/proyects/visuals/src/post_processor.cpp" "CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o" "gcc" "CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o.d"
   "/home/ricky/coding/proyects/visuals/src/settings_manager.cpp" "CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o" "gcc" "CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o.d"
   "/home/ricky/coding/proyects/visuals/src/shader.cpp" "CMakeFiles/audio_visualizer.dir/src/shader.cpp.o" "gcc" "CMakeFiles/audio_visualizer.dir/src/shader.cpp.o.d"
+  "/home/ricky/coding/proyects/visuals/src/shader_loader.cpp" "CMakeFiles/audio_visualizer.dir/src/shader_loader.cpp.o" "gcc" "CMakeFiles/audio_visualizer.dir/src/shader_loader.cpp.o.d"
   "/home/ricky/coding/proyects/visuals/src/visualizer.cpp" "CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o" "gcc" "CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o.d"
   "/home/ricky/coding/proyects/visuals/src/visualizer_console.cpp" "CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o" "gcc" "CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o.d"
   "/home/ricky/coding/proyects/visuals/src/visualizer_diagnostic.cpp" "CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o" "gcc" "CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o.d"

@@ -1,5 +1,6 @@
 #include "settings_manager.h"
 #include "visualizer.h"
+#include "shader_loader.h"
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -91,7 +92,7 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             }
         }
 
-        // Load procedural slots settings
+        // Load procedural slots settings - now with name-based lookup
         if (j.contains("proceduralSlots")) {
             const auto& procedural = j["proceduralSlots"];
             if (procedural.contains("slots")) {
@@ -99,11 +100,26 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                 for (size_t i = 0; i < slots.size() && i < proceduralSlots_.size(); ++i) {
                     const auto& slot = slots[i];
                     if (slot.contains("enabled")) proceduralSlots_[i].enabled = slot["enabled"];
-                    if (slot.contains("mode")) {
+                    
+                    // Try to load by name first (new format)
+                    if (slot.contains("effectName")) {
+                        std::string effectName = slot["effectName"];
+                        int idx = GetEffectRegistry().getEffectIndexByName(effectName);
+                        if (idx >= 0) {
+                            proceduralSlots_[i].mode = idx;
+                        } else {
+                            // Fallback: try to load by index for backwards compatibility
+                            if (slot.contains("mode")) {
+                                int loadedMode = slot["mode"];
+                                proceduralSlots_[i].mode = std::clamp(loadedMode, 0, 43);
+                            }
+                        }
+                    } else if (slot.contains("mode")) {
+                        // Legacy: load by index
                         int loadedMode = slot["mode"];
-                        // Clamp to valid range (0-43 for 44 modes)
                         proceduralSlots_[i].mode = std::clamp(loadedMode, 0, 43);
                     }
+                    
                     if (slot.contains("opacity")) proceduralSlots_[i].opacity = slot["opacity"];
                     if (slot.contains("colorAdjust")) {
                         const auto& rgb = slot["colorAdjust"];
@@ -114,6 +130,26 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                         }
                     }
                 }
+            }
+        }
+
+        // Load main procedural layer mode (with name support)
+        if (j.contains("ui") && j["ui"].contains("proceduralLayerMode")) {
+            // Try new format first: effect name
+            if (j["ui"].contains("proceduralLayerEffectName")) {
+                std::string effectName = j["ui"]["proceduralLayerEffectName"];
+                int idx = GetEffectRegistry().getEffectIndexByName(effectName);
+                if (idx >= 0) {
+                    proceduralLayerMode_ = idx;
+                } else {
+                    // Fallback to index
+                    int loadedMode = j["ui"]["proceduralLayerMode"];
+                    proceduralLayerMode_ = std::clamp(loadedMode, 0, 43);
+                }
+            } else {
+                // Legacy: load by index
+                int loadedMode = j["ui"]["proceduralLayerMode"];
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 43);
             }
         }
 
@@ -213,7 +249,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["audio"]["inputGain"] = audioInputGain_;
         j["audio"]["visualSensitivity"] = visualSensitivity_;
 
-        // Save UI settings
+        // Save UI settings with effect name
         j["ui"]["showImGuiWindow"] = showImGuiWindow_;
         j["ui"]["showCornerOrbs"] = showCornerOrbs_;
         j["ui"]["showProceduralLayer"] = showProceduralLayer_;
@@ -221,6 +257,11 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["ui"]["proceduralLayerDebug"] = proceduralLayerDebug_;
         j["ui"]["proceduralLayerOpacity"] = proceduralLayerOpacity_;
         j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 43);
+        // Also save effect name for robustness
+        std::string mainEffectName = GetEffectRegistry().getEffectNameByIndex(proceduralLayerMode_);
+        if (!mainEffectName.empty()) {
+            j["ui"]["proceduralLayerEffectName"] = mainEffectName;
+        }
 
         // Save post-processing settings
         for (size_t i = 0; i < postProcessSlots_.size(); ++i) {
@@ -233,12 +274,17 @@ bool SettingsManager::saveSettings(const std::string& filename) {
             j["postProcess"]["slots"].push_back(slot);
         }
 
-        // Save procedural slots settings
+        // Save procedural slots settings with name support
         for (size_t i = 0; i < proceduralSlots_.size(); ++i) {
             json slot;
             slot["enabled"] = proceduralSlots_[i].enabled;
-            // Ensure mode is within valid range before saving
-            slot["mode"] = std::clamp(proceduralSlots_[i].mode, 0, 43);
+            // Save both index (for compatibility) and name (for robustness)
+            int modeIndex = std::clamp(proceduralSlots_[i].mode, 0, 43);
+            slot["mode"] = modeIndex;
+            std::string effectName = GetEffectRegistry().getEffectNameByIndex(modeIndex);
+            if (!effectName.empty()) {
+                slot["effectName"] = effectName;
+            }
             slot["opacity"] = proceduralSlots_[i].opacity;
             slot["colorAdjust"] = proceduralSlots_[i].colorAdjust;
             j["proceduralSlots"]["slots"].push_back(slot);
@@ -271,6 +317,16 @@ bool SettingsManager::saveSettings(const std::string& filename) {
 
         // Save color palette settings
         j["colors"]["primary"] = scenePrimaryColor_;
+        j["colors"]["secondary"] = sceneSecondaryColor_;
+        j["colors"]["blend"] = scenePaletteBlend_;
+        j["colors"]["paletteIndex"] = currentScenePaletteIndex_;
+        j["colors"]["hueSeed"] = scenePaletteHueSeed_;
+
+        // Save color animation settings
+        j["animation"]["autoRandomize"] = autoRandomizeColors_;
+        j["animation"]["randomInterval"] = colorRandomInterval_;
+        j["animation"]["onsetColorCycling"] = onsetColorCyclingEnabled_;
+        j["animation"]["autoRandomizeRgb"] = autoRandomizeRgbChannels_;
         
         // Save RGB channel settings
         j["rgbChannels"] = rgbChannelEnabled_;

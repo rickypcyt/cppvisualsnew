@@ -1,3 +1,4 @@
+// @EFFECT name="Flopine" index=45 desc="Geometric scene with audio-reactive primitives" author="Flopine"
 // Code by Flopine
 // Thanks to wsmind, leon, XT95, lsdlive, lamogui, 
 // Coyhot, Alkama,YX, NuSan, slerpy and wwrighter for teaching me

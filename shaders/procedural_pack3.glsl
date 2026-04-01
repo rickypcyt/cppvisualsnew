@@ -1,3 +1,16 @@
+// @EFFECT name="Voronoi Cells" index=13 desc="Voronoi cell pattern with edge glow" author="System"
+// @EFFECT name="Raymarched Object" index=14 desc="3D raymarched metallic object" author="System"
+// @EFFECT name="Reaction Diffusion" index=15 desc="Reaction diffusion pattern" author="System"
+// @EFFECT name="Liquid Refraction" index=16 desc="Liquid refraction with caustics" author="System"
+// @EFFECT name="Starfield Warp" index=17 desc="Warping starfield effect" author="System"
+// @EFFECT name="Plasma Classic" index=18 desc="Classic plasma effect" author="System"
+// @EFFECT name="Domain Warped Fractal" index=19 desc="Domain warped fractal noise" author="System"
+// @EFFECT name="Volumetric Starfield" index=21 desc="Volumetric starfield with depth" author="System"
+// @EFFECT name="Fractal Infinity" index=37 desc="Infinite fractal maze" author="System"
+// @EFFECT name="Walker" index=38 desc="Walking figure assembly" author="System"
+// @EFFECT name="Voxel Path Tracer" index=22 desc="Voxel path tracing scene" author="System"
+// @EFFECT name="Fractal Tunnel" index=20 desc="Fractal tunnel journey" author="System"
+
 vec4 renderVoronoiCells(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
     float scale = mix(1.4, 3.8, clamp(bass * 0.9, 0.0, 1.0));
     vec2 p = st * (3.0 + energy * 1.2);

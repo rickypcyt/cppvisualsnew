@@ -1,3 +1,4 @@
+// @EFFECT name="Anaglyph Assembly" index=40 desc="Stereoscopic anaglyph with assembly/disassembly" author="Leon Denise"
 // Audio-reactive stereoscopic anaglyph inspired by Leon Denise's "Anaglyph Quick Sketch"
 // Adapted to the Cascade procedural pipeline with assembly/disassembly behaviour similar to the head shader.
 

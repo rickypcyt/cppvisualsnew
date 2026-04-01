@@ -1,3 +1,8 @@
+// @EFFECT name="Etienne Pulse" index=23 desc="Pulse grid by Etienne" author="etiennejcb"
+// @EFFECT name="Fractal Runway" index=24 desc="Temporal fractal runway" author="etiennejcb"
+// @EFFECT name="Volumetric Tunnel" index=25 desc="Volumetric streak tunnel" author="System"
+// @EFFECT name="Chromatic Swirl" index=26 desc="Sine-based chromatic swirl" author="System"
+
 // by @etiennejcb
 
 float etienne_t;

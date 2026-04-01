@@ -58,6 +58,19 @@ const std::array<const char*, 26> kProceduralShaderFiles = {
     "procedural_main.glsl"
 };
 
+// Helper to initialize effect registry from shader files
+void InitializeEffectRegistry() {
+    static bool initialized = false;
+    if (!initialized) {
+        std::vector<std::string> files;
+        for (const auto& f : kProceduralShaderFiles) {
+            files.push_back(f);
+        }
+        GetEffectRegistry().scanShaderFiles(kShaderSearchRoots, files);
+        initialized = true;
+    }
+}
+
 const std::array<const char*, 16> kProceduralPackFiles = {
     "procedural_pack1.glsl",
     "procedural_pack2.glsl",
@@ -253,6 +266,9 @@ bool ModularLayer::initialize(int width, int height) {
         resize(width, height);
         return true;
     }
+
+    // Initialize effect registry (scans shaders for @EFFECT metadata)
+    InitializeEffectRegistry();
 
     if (!createResources(width, height)) {
         std::cerr << "ModularLayer: failed to create framebuffer resources" << std::endl;

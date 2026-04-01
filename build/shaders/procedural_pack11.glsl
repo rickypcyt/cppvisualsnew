@@ -1,3 +1,4 @@
+// @EFFECT name="Breathing" index=34 desc="Rhythmic expansion effect with audio reactivity" author="System"
 // Breathing Layer - Rhythmic expansion effect
 // Based on glslify quintic-out easing function
 
