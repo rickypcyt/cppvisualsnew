@@ -1,81 +1,81 @@
 {
     "audio": {
-        "inputGain": 5.0,
-        "manualBPM": 153.0,
-        "manualBPMMode": true,
-        "selectedDevice": 6,
-        "visualSensitivity": 1.5099999904632568
+        "inputGain": 1.0,
+        "manualBPM": 120.0,
+        "manualBPMMode": false,
+        "selectedDevice": -1,
+        "visualSensitivity": 1.0
     },
     "colors": {
         "primary": [
-            0.949999988079071,
-            0.4447004497051239,
-            0.20900005102157593
+            0.10000000149011612,
+            0.23999999463558197,
+            0.5799999833106995
         ]
     },
-    "hotReloadEnabled": true,
+    "hotReloadEnabled": false,
     "midi": {
         "tempoScale": 1.0
     },
     "postProcess": {
-        "randomEnabled": true,
-        "randomInterval": 18.5,
+        "randomEnabled": false,
+        "randomInterval": 5.0,
         "slots": [
             {
-                "enabled": true,
-                "mode": 1,
-                "rgbAdjust": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "strength": 1.0
-            },
-            {
-                "enabled": true,
-                "mode": 3,
-                "rgbAdjust": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "strength": 1.0
-            },
-            {
-                "enabled": true,
-                "mode": 16,
-                "rgbAdjust": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "strength": 1.0
-            },
-            {
-                "enabled": true,
+                "enabled": false,
                 "mode": 0,
                 "rgbAdjust": [
                     1.0,
                     1.0,
                     1.0
                 ],
-                "strength": 0.5433070659637451
+                "strength": 0.0
             },
             {
                 "enabled": false,
-                "mode": 7,
+                "mode": 0,
                 "rgbAdjust": [
                     1.0,
                     1.0,
                     1.0
                 ],
-                "strength": 1.0
+                "strength": 0.0
+            },
+            {
+                "enabled": false,
+                "mode": 0,
+                "rgbAdjust": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "strength": 0.0
+            },
+            {
+                "enabled": false,
+                "mode": 0,
+                "rgbAdjust": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "strength": 0.0
+            },
+            {
+                "enabled": false,
+                "mode": 0,
+                "rgbAdjust": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "strength": 0.0
             }
         ]
     },
     "procedural": {
         "randomEnabled": true,
-        "randomInterval": 10.899999618530273
+        "randomInterval": 8.0
     },
     "proceduralSlots": {
         "slots": [
@@ -86,18 +86,8 @@
                     1.0
                 ],
                 "enabled": true,
-                "mode": 43,
+                "mode": 1,
                 "opacity": 1.0
-            },
-            {
-                "colorAdjust": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "enabled": false,
-                "mode": 29,
-                "opacity": 0.49000000953674316
             },
             {
                 "colorAdjust": [
@@ -117,7 +107,17 @@
                 ],
                 "enabled": false,
                 "mode": 0,
-                "opacity": 0.9055117964744568
+                "opacity": 1.0
+            },
+            {
+                "colorAdjust": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "enabled": false,
+                "mode": 0,
+                "opacity": 1.0
             },
             {
                 "colorAdjust": [
@@ -132,22 +132,22 @@
         ]
     },
     "random": {
-        "postProcessEnabled": true,
-        "postProcessInterval": 18.5,
+        "postProcessEnabled": false,
+        "postProcessInterval": 5.0,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
         "proceduralEnabled": true,
-        "proceduralInterval": 10.899999618530273,
+        "proceduralInterval": 8.0,
         "proceduralSlotEnabled": false,
         "proceduralSlotIndex": 0
     },
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerMode": 43,
+        "proceduralLayerMode": 1,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": true,
-        "showCurrentEffects": false,
-        "showImGuiWindow": false,
+        "showCurrentEffects": true,
+        "showImGuiWindow": true,
         "showProceduralLayer": true
     }
 }

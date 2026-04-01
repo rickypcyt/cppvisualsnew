@@ -14,10 +14,46 @@ AudioCapture::~AudioCapture() {
 }
 
 bool AudioCapture::initialize() {
-    return initialize(getDefaultInputDevice());
+    // Initialize PortAudio first
+    PaError err = Pa_Initialize();
+    if (err != paNoError) {
+        std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
+        return false;
+    }
+    
+    int defaultDevice = getDefaultInputDevice();
+    
+    // If default device is invalid, try to find the first available input device
+    if (defaultDevice < 0) {
+        std::cout << "No default input device found, searching for available input devices..." << std::endl;
+        int numDevices = Pa_GetDeviceCount();
+        std::cout << "Found " << numDevices << " total devices" << std::endl;
+        
+        for (int i = 0; i < numDevices; ++i) {
+            const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
+            if (deviceInfo && deviceInfo->maxInputChannels > 0) {
+                defaultDevice = i;
+                std::cout << "Found input device: " << deviceInfo->name << " (index: " << i << ")" << std::endl;
+                break;
+            }
+        }
+    }
+    
+    if (defaultDevice < 0) {
+        std::cerr << "No input devices available" << std::endl;
+        Pa_Terminate();
+        return false;
+    }
+    
+    bool result = initialize(defaultDevice);
+    if (!result) {
+        Pa_Terminate();
+    }
+    return result;
 }
 
 bool AudioCapture::initialize(int deviceIndex) {
+    // Initialize PortAudio if not already initialized
     PaError err = Pa_Initialize();
     if (err != paNoError) {
         std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
@@ -63,7 +99,7 @@ bool AudioCapture::initialize(int deviceIndex) {
     for (double sampleRate : sampleRates) {
         std::cout << "Trying sample rate: " << sampleRate << " Hz..." << std::endl;
         
-        err = Pa_IsFormatSupported(&inputParameters, nullptr, sampleRate);
+        PaError err = Pa_IsFormatSupported(&inputParameters, nullptr, sampleRate);
         if (err == paFormatIsSupported) {
             err = Pa_OpenStream(&stream_,
                                &inputParameters,

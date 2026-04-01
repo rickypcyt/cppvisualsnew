@@ -7,28 +7,28 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "Threads::Threads::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Threads__Threads-5df694ab76724f31032e.json",
+					"jsonFile" : "target-Threads__Threads-Debug-682a7264727d5cccc414.json",
 					"name" : "Threads::Threads",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "glfw::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-glfw-d07d4cfe31c54ea57cb7.json",
+					"jsonFile" : "target-glfw-Debug-c763bb16e50fb52b03c8.json",
 					"name" : "glfw",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "nlohmann_json::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-nlohmann_json-9cc01e3276cbea82846c.json",
+					"jsonFile" : "target-nlohmann_json-Debug-624f773eae5d34d4c101.json",
 					"name" : "nlohmann_json",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "nlohmann_json::nlohmann_json::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-nlohmann_json__nlohmann_json-ffc14b90878e12dc64bd.json",
+					"jsonFile" : "target-nlohmann_json__nlohmann_json-Debug-c5e6d9f6b527efbc1288.json",
 					"name" : "nlohmann_json::nlohmann_json",
 					"projectIndex" : 0
 				}
@@ -44,7 +44,7 @@
 						3
 					],
 					"build" : ".",
-					"jsonFile" : "directory-.-9ad1a58d4644cf6543fa.json",
+					"jsonFile" : "directory-.-Debug-fd6451d79dc282e2f566.json",
 					"minimumCMakeVersion" : 
 					{
 						"string" : "3.10"
@@ -59,7 +59,7 @@
 					]
 				}
 			],
-			"name" : "",
+			"name" : "Debug",
 			"projects" : 
 			[
 				{
@@ -88,21 +88,21 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "audio_visualizer::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-audio_visualizer-bea24c7fb13ea8c5bdd0.json",
+					"jsonFile" : "target-audio_visualizer-Debug-40498f50327af021f84b.json",
 					"name" : "audio_visualizer",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "test_layer_integration::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-test_layer_integration-370bd70c77cc833fe31c.json",
+					"jsonFile" : "target-test_layer_integration-Debug-3499f76f4b769589298c.json",
 					"name" : "test_layer_integration",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "validate_layers::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-validate_layers-f79895813dfff4fa4f57.json",
+					"jsonFile" : "target-validate_layers-Debug-3cb925428345267323c1.json",
 					"name" : "validate_layers",
 					"projectIndex" : 0
 				}
@@ -118,6 +118,6 @@
 	"version" : 
 	{
 		"major" : 2,
-		"minor" : 9
+		"minor" : 10
 	}
 }

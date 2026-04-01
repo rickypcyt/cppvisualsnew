@@ -1022,28 +1022,39 @@ bool Visualizer::initialize(int width, int height) {
         proceduralLayer_.enableHotReload(true);
     }
 
+    std::cout << "[DEBUG] Initializing post processor..." << std::endl;
     if (!postProcessor_.initialize(windowWidth_, windowHeight_)) {
         std::cout << "Post processor initialization failed" << std::endl;
     }
+    std::cout << "[DEBUG] Post processor initialized" << std::endl;
 
+    std::cout << "[DEBUG] Loading main shaders..." << std::endl;
     if (!loadShaders()) {
         std::cout << "Failed to load shaders, using fallback rendering" << std::endl;
         shader_.reset(); // Will trigger fallback triangle
     }
+    std::cout << "[DEBUG] Main shaders loaded" << std::endl;
     useModernPipeline_ = shader_ != nullptr;
 
+    std::cout << "[DEBUG] Loading core shader..." << std::endl;
     if (!loadCoreShader()) {
         coreShader_.reset();
     }
+    std::cout << "[DEBUG] Core shader loaded" << std::endl;
 
+    std::cout << "[DEBUG] Loading spark shader..." << std::endl;
     if (!loadSparkShader()) {
         sparkShader_.reset();
     }
+    std::cout << "[DEBUG] Spark shader loaded" << std::endl;
 
+    std::cout << "[DEBUG] Loading corner shader..." << std::endl;
     if (!loadCornerShader()) {
         cornerShader_.reset();
     }
+    std::cout << "[DEBUG] Corner shader loaded" << std::endl;
 
+    std::cout << "[DEBUG] Setting up ImGui..." << std::endl;
     if (setupImGui()) {
         imguiInitialized_ = true;
     } else {
@@ -1051,20 +1062,28 @@ bool Visualizer::initialize(int width, int height) {
         showImGuiWindow_ = false;
         imguiInitialized_ = false;
     }
-    
-    // Initialize MIDI
-    initializeMIDI();
+    std::cout << "[DEBUG] ImGui setup complete" << std::endl;
 
+    std::cout << "[DEBUG] Initializing MIDI controller..." << std::endl;
+    initializeMIDI();
+    std::cout << "[DEBUG] MIDI controller initialized" << std::endl;
+
+    std::cout << "[DEBUG] Getting OpenGL info..." << std::endl;
     const char *renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
     rendererName_ = renderer ? renderer : "Unknown";
 
     const char *version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
     openglVersion_ = version ? version : "Unknown";
+    std::cout << "[DEBUG] OpenGL info: " << rendererName_ << " - " << openglVersion_ << std::endl;
 
+    std::cout << "[DEBUG] Initializing dynamic systems..." << std::endl;
     initializeDynamicSystems();
+    std::cout << "[DEBUG] Dynamic systems initialized" << std::endl;
 
+    std::cout << "[DEBUG] Saving initial settings..." << std::endl;
     // Save initial settings
     settingsManager_->saveSettings();
+    std::cout << "[DEBUG] Initialization complete!" << std::endl;
 
     return true;
 }
@@ -1789,10 +1808,13 @@ void Visualizer::saveCurrentSettings() {
 }
 
 bool Visualizer::setupOpenGL() {
+    std::cout << "[DEBUG] Initializing OpenGL..." << std::endl;
+    
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return false;
     }
+    std::cout << "[DEBUG] GLFW initialized successfully" << std::endl;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2); // Use OpenGL 2.1 for compatibility
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -1801,13 +1823,16 @@ bool Visualizer::setupOpenGL() {
     // Try with OpenGL ES if desktop OpenGL fails
     bool useGLES = false;
 
+    std::cout << "[DEBUG] Creating window (" << windowWidth_ << "x" << windowHeight_ << ")..." << std::endl;
     window_ = glfwCreateWindow(windowWidth_, windowHeight_, "Audio Visualizer", nullptr, nullptr);
     if (!window_) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         return false;
     }
+    std::cout << "[DEBUG] Window created successfully" << std::endl;
 
     glfwMakeContextCurrent(window_);
+    std::cout << "[DEBUG] OpenGL context made current" << std::endl;
 
     // Initialize GLEW with experimental features
     glewExperimental = GL_TRUE;
