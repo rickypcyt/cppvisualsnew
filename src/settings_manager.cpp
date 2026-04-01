@@ -272,6 +272,9 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         // Save color palette settings
         j["colors"]["primary"] = scenePrimaryColor_;
         
+        // Save RGB channel settings
+        j["rgbChannels"] = rgbChannelEnabled_;
+        
         j["midi"]["tempoScale"] = midiTempoScale_;
 
         std::ofstream file(filename);

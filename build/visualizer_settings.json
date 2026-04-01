@@ -1,10 +1,10 @@
 {
     "audio": {
-        "inputGain": 1.0,
+        "inputGain": 3.7100000381469727,
         "manualBPM": 120.0,
-        "manualBPMMode": false,
+        "manualBPMMode": true,
         "selectedDevice": -1,
-        "visualSensitivity": 1.0
+        "visualSensitivity": 2.299999952316284
     },
     "colors": {
         "primary": [
@@ -22,14 +22,14 @@
         "randomInterval": 5.0,
         "slots": [
             {
-                "enabled": false,
-                "mode": 0,
+                "enabled": true,
+                "mode": 22,
                 "rgbAdjust": [
                     1.0,
                     1.0,
                     1.0
                 ],
-                "strength": 0.0
+                "strength": 1.0
             },
             {
                 "enabled": false,
@@ -74,8 +74,8 @@
         ]
     },
     "procedural": {
-        "randomEnabled": true,
-        "randomInterval": 8.0
+        "randomEnabled": false,
+        "randomInterval": 30.0
     },
     "proceduralSlots": {
         "slots": [
@@ -86,7 +86,7 @@
                     1.0
                 ],
                 "enabled": true,
-                "mode": 1,
+                "mode": 25,
                 "opacity": 1.0
             },
             {
@@ -136,14 +136,19 @@
         "postProcessInterval": 5.0,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
-        "proceduralEnabled": true,
-        "proceduralInterval": 8.0,
+        "proceduralEnabled": false,
+        "proceduralInterval": 30.0,
         "proceduralSlotEnabled": false,
         "proceduralSlotIndex": 0
     },
+    "rgbChannels": [
+        true,
+        true,
+        true
+    ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerMode": 1,
+        "proceduralLayerMode": 25,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": true,
         "showCurrentEffects": true,

@@ -70,6 +70,7 @@ public:
     void renderCurrentEffectsDisplay();
     void shutdownImGui();
     void renderImGui();
+    void handleKeyboardInput();
 
 private:
 

@@ -146,11 +146,118 @@ void Visualizer::shutdownImGui() {
     ImGui::DestroyContext();
 }
 
+void Visualizer::handleKeyboardInput() {
+    // Check for 'D' key toggle
+    if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) {
+        static double lastPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastPress > 0.5) { // 500ms debounce
+            showImGuiWindow_ = !showImGuiWindow_;
+            saveCurrentSettings();
+            std::cout << "ImGui window toggled via D key: " << (showImGuiWindow_ ? "SHOWN" : "HIDDEN") << std::endl;
+            lastPress = currentTime;
+        }
+    }
+
+    // Check for 'I' key toggle for diagnostic mode
+    if (glfwGetKey(window_, GLFW_KEY_I) == GLFW_PRESS) {
+        static double lastPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastPress > 0.5) { // 500ms debounce
+            showCurrentEffects_ = !showCurrentEffects_;
+            saveCurrentSettings();
+            std::cout << "Current effects display toggled via I key: " << (showCurrentEffects_ ? "SHOWN" : "HIDDEN") << std::endl;
+            lastPress = currentTime;
+        }
+    }
+
+    // Check for 'C' key toggle for console mode
+    if (glfwGetKey(window_, GLFW_KEY_C) == GLFW_PRESS) {
+        static double lastPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastPress > 0.5) { // 500ms debounce
+            proceduralLayerDebug_ = !proceduralLayerDebug_;
+            saveCurrentSettings();
+            std::cout << "Procedural layer debug toggled via C key: " << (proceduralLayerDebug_ ? "ENABLED" : "DISABLED") << std::endl;
+            lastPress = currentTime;
+        }
+    }
+
+    // Check for 'O' key for post-processing effects when device menu is closed
+    bool oKeyPressed = glfwGetKey(window_, GLFW_KEY_O) == GLFW_PRESS;
+    bool deviceMenuOpen = showDeviceMenu_;
+    
+    // Debug: Show device menu state and O key detection
+    static bool lastOKeyState = false;
+    bool currentOKeyState = oKeyPressed;
+    if (currentOKeyState != lastOKeyState) {
+        std::cout << "O key detected: " << (currentOKeyState ? "PRESSED" : "RELEASED") 
+                  << " | Device menu: " << (deviceMenuOpen ? "OPEN" : "CLOSED") << std::endl;
+        lastOKeyState = currentOKeyState;
+    }
+    
+    if (!deviceMenuOpen && oKeyPressed) {
+        static double lastOPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastOPress > 0.5) { // 500ms debounce
+            // Enable slot 1 (index 0) and cycle its mode backward
+            auto& slot = postProcessSlots_[0];
+            slot.enabled = true;
+            slot.mode = (slot.mode - 1 + kPostProcessModeCount) % kPostProcessModeCount;
+            if (slot.mode == 0) {
+                slot.mode = kPostProcessModeCount - 1; // Skip mode 0 (no effect)
+            }
+            slot.strength = 1.0f;
+            slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
+            std::cout << "Post-processing effect changed via O key: " << slot.mode << std::endl;
+            lastOPress = currentTime;
+        }
+    }
+
+    // Check for 'X' key toggle for corner orbs when device menu is closed
+    bool xKeyPressed = (glfwGetKey(window_, GLFW_KEY_X) == GLFW_PRESS);
+    
+    // Debug: Show X key detection
+    static bool lastXKeyState = false;
+    bool currentXKeyState = xKeyPressed;
+    if (currentXKeyState != lastXKeyState) {
+        std::cout << "X key detected: " << (currentXKeyState ? "PRESSED" : "RELEASED") 
+                  << " | Device menu: " << (deviceMenuOpen ? "OPEN" : "CLOSED") << std::endl;
+        lastXKeyState = currentXKeyState;
+    }
+    
+    if (xKeyPressed) {
+        static double lastXPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastXPress > 0.5) { // 500ms debounce
+            showCornerOrbs_ = !showCornerOrbs_;
+            saveCurrentSettings(); // Save like ImGui does
+            std::cout << "Corner Orbs toggled via X key: " << (showCornerOrbs_ ? "ENABLED" : "DISABLED") << std::endl;
+            lastXPress = currentTime;
+        }
+    }
+
+    // Check for 'K' key to activate kaleidoscope mode
+    if (glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS) {
+        static double lastPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastPress > 0.5) { // 500ms debounce
+            proceduralLayerMode_ = 29; // kKaleidoscopeModeIndex
+            proceduralLayer_.setMode(proceduralLayerMode_);
+            std::cout << "Kaleidoscope mode activated via K key" << std::endl;
+            lastPress = currentTime;
+        }
+    }
+}
+
 void Visualizer::renderImGui() {
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+
+    // Handle keyboard input
+    handleKeyboardInput();
 
     // Main control window
     if (showImGuiWindow_) {
@@ -186,7 +293,7 @@ void Visualizer::renderImGui() {
 }
 
 void Visualizer::renderMainImGuiWindow() {
-    ImGui::Begin("Info", &showImGuiWindow_, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("Info", &showImGuiWindow_, ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::Text("🎤 Current Device:");
     std::string deviceName = "System Default";
@@ -345,7 +452,7 @@ void Visualizer::renderMainImGuiWindow() {
 
     ImGui::End();
 
-    ImGui::Begin("Visual", &showImGuiVisualWindow_, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("Visual", &showImGuiVisualWindow_, ImGuiWindowFlags_AlwaysAutoResize);
 
     // === RENDER ENGINE SECTION ===
     ImGui::Text("🎬 Render Engine");
@@ -908,7 +1015,7 @@ void Visualizer::renderConsoleImGui() {
 
 void Visualizer::renderCurrentEffectsDisplay() {
     // Create floating window to show current effects
-    ImGui::Begin("Current Effects", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+    ImGui::Begin("Current Effects", &showCurrentEffects_, ImGuiWindowFlags_AlwaysAutoResize);
     
     // Title with style
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 1.0f, 1.0f));
@@ -922,6 +1029,29 @@ void Visualizer::renderCurrentEffectsDisplay() {
     } else {
         ImGui::Text("⚡ FPS: --");
     }
+
+    ImGui::Spacing();
+    
+    // Random settings status
+    ImGui::Text("🎲 Random Settings:");
+    ImGui::Indent();
+    
+    // Post-processing random
+    ImGui::Text("Post-Process: %s", randomPostProcessEnabled_ ? "🟢 ACTIVE" : "🔴 INACTIVE");
+    if (randomPostProcessEnabled_) {
+        ImGui::SameLine();
+        ImGui::TextDisabled("(%.1fs interval)", randomPostProcessInterval_);
+    }
+    
+    // Procedural random
+    ImGui::Text("Procedural: %s", randomProceduralEnabled_ ? "🟢 ACTIVE" : "🔴 INACTIVE");
+    if (randomProceduralEnabled_) {
+        ImGui::SameLine();
+        ImGui::TextDisabled("(%.1fs interval)", randomProceduralInterval_);
+    }
+    
+    ImGui::Unindent();
+    ImGui::Spacing();
 
     // Show procedural layer stack (base + overlays)
     ImGui::Text("📐 Procedural Layers:");

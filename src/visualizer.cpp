@@ -761,6 +761,21 @@ void Visualizer::renderCornerOrbs() {
     if (!blendWasEnabled) {
         glEnable(GL_BLEND);
     }
+
+    // Save current color mask and restore full RGB for corner orbs
+    GLboolean previousMask[4];
+    glGetBooleanv(GL_COLOR_WRITEMASK, previousMask);
+    
+    // Debug: Show RGB channel state (reuse existing debugCounter)
+    if (debugCounter++ % 300 == 0) { // Print every 5 seconds at 60fps
+        std::cout << "RGB Channels enabled: R=" << rgbChannelEnabled_[0] 
+                  << " G=" << rgbChannelEnabled_[1] 
+                  << " B=" << rgbChannelEnabled_[2] << std::endl;
+        std::cout << "Current colors: Primary={" << scenePrimaryColor_[0] << "," << scenePrimaryColor_[1] << "," << scenePrimaryColor_[2] 
+                  << "} Secondary={" << sceneSecondaryColor_[0] << "," << sceneSecondaryColor_[1] << "," << sceneSecondaryColor_[2] << "}" << std::endl;
+    }
+    
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
     GLboolean programPointEnabled = glIsEnabled(GL_PROGRAM_POINT_SIZE);
@@ -797,6 +812,9 @@ void Visualizer::renderCornerOrbs() {
     glBindVertexArray(0);
 
     glUseProgram(0);
+
+    // Restore original color mask
+    glColorMask(previousMask[0], previousMask[1], previousMask[2], previousMask[3]);
 
     if (!pointSpriteEnabled) {
         glDisable(GL_POINT_SPRITE);
@@ -1429,18 +1447,7 @@ void Visualizer::beginFrame() {
                     slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
                     lastPostProcessToggle = now;
                 }
-                else if (glfwGetKey(window_, GLFW_KEY_O) == GLFW_PRESS) {
-                    // Enable slot 1 (index 0) and cycle its mode backward
-                    auto& slot = postProcessSlots_[0];
-                    slot.enabled = true;
-                    slot.mode = (slot.mode - 1 + kPostProcessModeCount) % kPostProcessModeCount;
-                    if (slot.mode == 0) {
-                        slot.mode = kPostProcessModeCount - 1; // Skip mode 0 (no effect)
-                    }
-                    slot.strength = 1.0f;
-                    slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
-                    lastPostProcessToggle = now;
-                }
+                // 'O' key now controls corner orbs instead of post-processing
             }
         }
     }
@@ -1645,6 +1652,7 @@ void Visualizer::render() {
 
     glColorMask(previousMask[0], previousMask[1], previousMask[2], previousMask[3]);
 
+    handleKeyboardInput();
     handleVisualizationShortcuts();
 
     if (imguiInitialized_ && showImGuiWindow_) {
@@ -1675,8 +1683,8 @@ void Visualizer::handleVisualizationShortcuts() {
     static bool bWasDown = false;
     static bool iWasDown = false;
 
-    bool orbsKeyDown = (glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS ||
-                        glfwGetKey(window_, GLFW_KEY_KP_1) == GLFW_PRESS);
+    // Post-processing effects are handled in render() to avoid conflicts
+    
     bool kaleidoKeyDown = glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS;
     bool gKeyDown = glfwGetKey(window_, GLFW_KEY_G) == GLFW_PRESS;
     bool rKeyDown = glfwGetKey(window_, GLFW_KEY_R) == GLFW_PRESS;
@@ -1727,8 +1735,7 @@ void Visualizer::handleVisualizationShortcuts() {
         }
     };
 
-    processToggle(orbsKeyDown, orbsWasDown, lastOrbsToggle,
-                  [this]() { showCornerOrbs_ = !showCornerOrbs_; });
+    // Post-processing effects are handled in render() to avoid conflicts
 
     processToggle(kaleidoKeyDown, kaleidoWasDown, lastKaleidoToggle, [this, &togglePostProcessEffect]() {
         togglePostProcessEffect(kPostProcessKaleidoscopeModeIndex, 1.0f);
@@ -2335,55 +2342,12 @@ void Visualizer::setupDeviceList() {
 }
 
 void Visualizer::renderGUI() {
-    // Check for 'D' key toggle
+    // Check for 'D' key toggle (only for device menu when ImGui is not initialized)
     if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) {
         static double lastPress = 0.0;
         double currentTime = glfwGetTime();
         if (currentTime - lastPress > 0.5) { // 500ms debounce
             showDeviceMenu_ = !showDeviceMenu_;
-            lastPress = currentTime;
-        }
-    }
-
-    // Check for 'I' key toggle for diagnostic mode
-    if (glfwGetKey(window_, GLFW_KEY_I) == GLFW_PRESS) {
-        static double lastPress = 0.0;
-        double currentTime = glfwGetTime();
-        if (currentTime - lastPress > 0.5) { // 500ms debounce
-            showDiagnostic_ = !showDiagnostic_;
-            lastPress = currentTime;
-        }
-    }
-
-    // Check for 'C' key toggle for console mode
-    if (glfwGetKey(window_, GLFW_KEY_C) == GLFW_PRESS) {
-        static double lastPress = 0.0;
-        double currentTime = glfwGetTime();
-        if (currentTime - lastPress > 0.5) { // 500ms debounce
-            consoleMode_ = !consoleMode_;
-            lastPress = currentTime;
-        }
-    }
-
-    // Check for '1' key toggle for corner orbs (main row or keypad) when device menu is closed
-    if (!showDeviceMenu_ && (glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS ||
-                             glfwGetKey(window_, GLFW_KEY_KP_1) == GLFW_PRESS)) {
-        static double lastPress = 0.0;
-        double currentTime = glfwGetTime();
-        if (currentTime - lastPress > 0.5) { // 500ms debounce
-            showCornerOrbs_ = !showCornerOrbs_;
-            lastPress = currentTime;
-        }
-    }
-
-    // Check for 'K' key to activate kaleidoscope mode
-    if (glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS) {
-        static double lastPress = 0.0;
-        double currentTime = glfwGetTime();
-        if (currentTime - lastPress > 0.5) { // 500ms debounce
-            proceduralLayerMode_ = kKaleidoscopeModeIndex;
-            proceduralLayer_.setMode(proceduralLayerMode_);
-            showProceduralLayer_ = true; // Ensure procedural layer is visible
             lastPress = currentTime;
         }
     }
