@@ -2532,7 +2532,7 @@ void Visualizer::renderProceduralLayer() {
     proceduralLayer_.setEnabled(true);
     proceduralLayer_.setDebugPreview(proceduralLayerDebug_);
 
-    auto renderSlot = [&](int mode, float opacity, const std::array<float, 3>& colorAdjust) {
+    auto renderSlot = [&](int mode, float opacity, const std::array<float, 3>& colorAdjust, bool clearFramebuffer = true) {
         float adjustedPrimary[3];
         float adjustedSecondary[3];
         for (int i = 0; i < 3; ++i) {
@@ -2542,7 +2542,7 @@ void Visualizer::renderProceduralLayer() {
 
         proceduralLayer_.setMode(std::clamp(mode, 0, kProceduralModeCount - 1));
         proceduralLayer_.setColorPalette(adjustedPrimary, adjustedSecondary, scenePaletteBlend_);
-        proceduralLayer_.render(context);
+        proceduralLayer_.render(context, clearFramebuffer);
         proceduralLayer_.composite(context, std::clamp(opacity, 0.0f, 1.0f));
     };
 
@@ -2569,7 +2569,8 @@ void Visualizer::renderProceduralLayer() {
         if (!slot.enabled || slot.opacity <= 0.001f) {
             continue;
         }
-        renderSlot(slot.mode, slot.opacity, slot.colorAdjust);
+        // Slots secundarios no limpian el framebuffer para acumular sobre el slot anterior
+        renderSlot(slot.mode, slot.opacity, slot.colorAdjust, false);
     }
 }
 

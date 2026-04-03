@@ -1,30 +1,30 @@
 {
     "animation": {
-        "autoRandomize": false,
+        "autoRandomize": true,
         "autoRandomizeRgb": true,
         "onsetColorCycling": true,
-        "randomInterval": 0.5
+        "randomInterval": 4.2779998779296875
     },
     "audio": {
-        "inputGain": 1.5199999809265137,
-        "manualBPM": 130.0,
+        "inputGain": 5.0,
+        "manualBPM": 181.0,
         "manualBPMMode": true,
-        "selectedDevice": 7,
-        "visualSensitivity": 0.49000000953674316
+        "selectedDevice": 4,
+        "visualSensitivity": 1.6100000143051147
     },
     "colors": {
-        "blend": 0.47999998927116394,
+        "blend": 0.5600000023841858,
         "hueSeed": 0.8295143246650696,
-        "paletteIndex": 1,
+        "paletteIndex": 2,
         "primary": [
-            0.5799999833106995,
-            0.11999999731779099,
-            0.1599999964237213
+            0.10000000149011612,
+            0.3199999928474426,
+            0.18000000715255737
         ],
         "secondary": [
-            0.9399999976158142,
-            0.36000001430511475,
-            0.30000001192092896
+            0.30000001192092896,
+            0.8199999928474426,
+            0.5199999809265137
         ]
     },
     "hotReloadEnabled": false,
@@ -32,12 +32,22 @@
         "tempoScale": 1.0
     },
     "postProcess": {
-        "randomEnabled": false,
-        "randomInterval": 5.0,
+        "randomEnabled": true,
+        "randomInterval": 5.599999904632568,
         "slots": [
             {
                 "enabled": true,
-                "mode": 22,
+                "mode": 6,
+                "rgbAdjust": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "strength": 1.0
+            },
+            {
+                "enabled": false,
+                "mode": 7,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -47,7 +57,7 @@
             },
             {
                 "enabled": true,
-                "mode": 0,
+                "mode": 20,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -56,8 +66,8 @@
                 "strength": 1.0
             },
             {
-                "enabled": true,
-                "mode": 0,
+                "enabled": false,
+                "mode": 6,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -66,18 +76,8 @@
                 "strength": 1.0
             },
             {
-                "enabled": true,
-                "mode": 0,
-                "rgbAdjust": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "strength": 1.0
-            },
-            {
-                "enabled": true,
-                "mode": 0,
+                "enabled": false,
+                "mode": 16,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -88,8 +88,8 @@
         ]
     },
     "procedural": {
-        "randomEnabled": false,
-        "randomInterval": 8.0
+        "randomEnabled": true,
+        "randomInterval": 10.0
     },
     "proceduralSlots": {
         "slots": [
@@ -99,10 +99,10 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Voxel Path Tracer",
+                "effectName": "Metal Gyroid Hall",
                 "enabled": true,
-                "mode": 22,
-                "opacity": 0.949999988079071
+                "mode": 30,
+                "opacity": 1.0
             },
             {
                 "colorAdjust": [
@@ -147,27 +147,27 @@
         ]
     },
     "random": {
-        "postProcessEnabled": false,
-        "postProcessInterval": 5.0,
+        "postProcessEnabled": true,
+        "postProcessInterval": 5.599999904632568,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
-        "proceduralEnabled": false,
-        "proceduralInterval": 8.0,
+        "proceduralEnabled": true,
+        "proceduralInterval": 10.0,
         "proceduralSlotEnabled": false,
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
-        true,
-        true,
+        false,
+        false,
         true
     ],
     "ui": {
         "proceduralLayerDebug": true,
-        "proceduralLayerEffectName": "Voxel Path Tracer",
-        "proceduralLayerMode": 22,
-        "proceduralLayerOpacity": 0.949999988079071,
+        "proceduralLayerEffectName": "Metal Gyroid Hall",
+        "proceduralLayerMode": 30,
+        "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
-        "showCurrentEffects": true,
+        "showCurrentEffects": false,
         "showImGuiWindow": false,
         "showProceduralLayer": true
     }

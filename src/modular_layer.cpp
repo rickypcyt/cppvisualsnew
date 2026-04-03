@@ -446,7 +446,7 @@ bool ModularLayer::ensureKaleidoscopeShader() {
     return true;
 }
 
-void ModularLayer::render(const LayerContext& context) {
+void ModularLayer::render(const LayerContext& context, bool clearFramebuffer) {
     if (!initialized_ || (!enabled_ && !debugPreview_)) {
         return;
     }
@@ -471,8 +471,11 @@ void ModularLayer::render(const LayerContext& context) {
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
     glViewport(0, 0, width_, height_);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+
+    if (clearFramebuffer) {
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
 
     GLboolean depthWasEnabled = glIsEnabled(GL_DEPTH_TEST);
     if (depthWasEnabled) {

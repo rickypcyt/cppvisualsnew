@@ -28,7 +28,7 @@ public:
     void shutdown();
     void resize(int width, int height);
 
-    void render(const LayerContext& context);
+    void render(const LayerContext& context, bool clearFramebuffer = true);
     void composite(const LayerContext& context, float opacity);
 
     void setEnabled(bool enabled) { enabled_ = enabled; }
