@@ -153,8 +153,28 @@ vec4 renderFlopine(vec2 st, float time, float tempo, float energy, float bass, f
     vec2 uv = (st * 2.0 - 1.0);
     uv.x *= uResolution.x / max(uResolution.y, 1.0);
 
-    vec3 ro = vec3(uv * 5., -30.);
-    vec3 rd = vec3(0., 0., 1.);
+    // Camera centered in the scene looking outward
+    vec3 ro = vec3(0.0, 0.0, 0.0);
+    
+    // Look direction based on UV with slight rotation over time
+    float rotTime = uTime * 0.2;
+    float cx = cos(rotTime);
+    float sx = sin(rotTime);
+    
+    // Rotate UV coordinates for camera rotation
+    vec2 ruv;
+    ruv.x = uv.x * cx - uv.y * sx;
+    ruv.y = uv.x * sx + uv.y * cx;
+    
+    // Ray direction outward from center
+    float fov = 1.0;
+    vec3 rd = normalize(vec3(ruv * fov, 1.0));
+    
+    // Slight camera movement based on bass
+    ro += vec3(sin(uTime * 0.5) * bass * 0.5, 
+               cos(uTime * 0.3) * bass * 0.3, 
+               sin(uTime * 0.4) * bass * 0.2);
+    
     vec3 p = ro;
     
     // Use black background instead of white

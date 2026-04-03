@@ -50,6 +50,9 @@ public:
 
     void run() {
         while (!visualizer_.shouldClose()) {
+            // Process window events - CRITICAL for Wayland/Hyprland
+            glfwPollEvents();
+            
             // Check for device change
             static int lastDevice = visualizer_.getSelectedDevice();
             if (visualizer_.getSelectedDevice() != lastDevice) {

@@ -39,6 +39,13 @@ public:
     int mode() const { return mode_; }
     void setColorPalette(const float primary[3], const float secondary[3], float blend);
     
+    // Camera control
+    void setCameraZoom(float zoom) { cameraZoom_ = zoom; }
+    float cameraZoom() const { return cameraZoom_; }
+    void setCameraOffset(float x, float y) { cameraOffsetX_ = x; cameraOffsetY_ = y; }
+    float cameraOffsetX() const { return cameraOffsetX_; }
+    float cameraOffsetY() const { return cameraOffsetY_; }
+    
     // Hot-reload methods
     void enableHotReload(bool enabled);
     bool isHotReloadEnabled() const { return hotReloadEnabled_; }
@@ -75,6 +82,11 @@ private:
     float colorPrimary_[3]{1.0f, 1.0f, 1.0f};
     float colorSecondary_[3]{1.0f, 1.0f, 1.0f};
     float colorBlend_{0.0f};
+    
+    // Camera control
+    float cameraZoom_{1.0f};
+    float cameraOffsetX_{0.0f};
+    float cameraOffsetY_{0.0f};
 
     std::unique_ptr<Shader> proceduralShader_;
     std::unique_ptr<Shader> compositeShader_;

@@ -48,6 +48,9 @@ public:
 
     void run() {
         while (!visualizer_.shouldClose()) {
+            // Process window events - CRITICAL for Wayland/Hyprland
+            glfwPollEvents();
+            
             // Process audio if new data is available
             if (audioCapture_.hasNewData()) {
                 auto audioBuffer = audioCapture_.getAudioBuffer();

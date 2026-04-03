@@ -1,5 +1,9 @@
 void main() {
     vec2 st = (vUV - 0.5) * vec2(uResolution.x / uResolution.y, 1.0);
+    
+    // Apply global camera zoom and offset
+    st *= uCameraZoom;
+    st += vec2(uCameraOffsetX, uCameraOffsetY);
 
     vec4 color;
     if (uMode == 0) {

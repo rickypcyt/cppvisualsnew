@@ -14,6 +14,9 @@ uniform int uMode;
 uniform vec3 uPrimaryColor;
 uniform vec3 uSecondaryColor;
 uniform float uColorBlend;
+uniform float uCameraZoom;
+uniform float uCameraOffsetX;
+uniform float uCameraOffsetY;
 
 const float PI = 3.14159265359;
 

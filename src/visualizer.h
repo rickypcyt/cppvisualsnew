@@ -72,6 +72,8 @@ public:
     void shutdownImGui();
     void renderImGui();
     void handleKeyboardInput();
+    static void handleScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+    void handleMouseScroll(double xoffset, double yoffset);
 
 private:
 
@@ -223,6 +225,7 @@ private:
     bool showImGuiColorsWindow_;
     bool showImGuiProceduralWindow_;
     bool showImGuiPostProcessWindow_;
+    bool showImGuiCameraWindow_;
     bool showDeviceSelector_;
     bool showCurrentEffects_ = true; // Current Effects window (independent, controlled by 'I' key)
     bool showDiagnosticInfo_;
@@ -333,6 +336,7 @@ private:
     void renderColorsWindow();
     void renderProceduralWindow();
     void renderPostProcessWindow();
+    void renderCameraWindow();
     void renderDeviceSelectorImGui();
     void renderDiagnosticImGui();
     void renderConsoleImGui();

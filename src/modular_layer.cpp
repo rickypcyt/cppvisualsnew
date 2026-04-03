@@ -511,6 +511,10 @@ void ModularLayer::render(const LayerContext& context, bool clearFramebuffer) {
 
     if (activeShader == proceduralShader_.get()) {
         activeShader->setUniform1i("uMode", mode_);
+        // Camera uniforms
+        activeShader->setUniform1f("uCameraZoom", cameraZoom_);
+        activeShader->setUniform1f("uCameraOffsetX", cameraOffsetX_);
+        activeShader->setUniform1f("uCameraOffsetY", cameraOffsetY_);
     }
 
     glBindVertexArray(quadVAO_);

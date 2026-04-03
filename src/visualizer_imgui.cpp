@@ -166,6 +166,7 @@ bool Visualizer::setupImGui() {
     showImGuiColorsWindow_ = true;
     showImGuiProceduralWindow_ = true;
     showImGuiPostProcessWindow_ = true;
+    showImGuiCameraWindow_ = true;  // Camera window always visible
 
     return true;
 }
@@ -307,6 +308,9 @@ void Visualizer::renderImGui() {
     if (showImGuiPostProcessWindow_) {
         renderPostProcessWindow();
     }
+
+    // Camera control window - always visible
+    renderCameraWindow();
 
     // Current effects display window
     if (showCurrentEffects_) {
@@ -683,13 +687,21 @@ void Visualizer::renderColorsWindow() {
     ImGui::Separator();
     
     bool prevAutoRandomizeRgb = autoRandomizeRgbChannels_;
-    ImGui::Checkbox("Music-based randomization", &autoRandomizeRgbChannels_);
+    ImGui::Checkbox("Auto-randomize", &autoRandomizeRgbChannels_);
     if (prevAutoRandomizeRgb != autoRandomizeRgbChannels_) {
         saveCurrentSettings();
     }
     if (autoRandomizeRgbChannels_) {
         ImGui::SameLine();
-        ImGui::TextDisabled("(changes every 3 onsets)");
+        ImGui::TextDisabled("(every %ds + 3 onsets)", static_cast<int>(rgbRandomInterval_));
+        
+        ImGui::Spacing();
+        ImGui::Text("Interval (seconds):");
+        ImGui::SetNextItemWidth(160.0f);
+        if (ImGui::SliderFloat("##rgb_random_interval", &rgbRandomInterval_, 1.0f, 30.0f, "%.1fs")) {
+            rgbRandomInterval_ = std::max(1.0f, rgbRandomInterval_);
+            saveCurrentSettings();
+        }
     }
     
     ImGui::Spacing();
@@ -1293,4 +1305,78 @@ void Visualizer::renderCurrentEffectsDisplay() {
     }
     
     ImGui::End();
+}
+
+void Visualizer::renderCameraWindow() {
+    // Camera window always visible - no close button
+    ImGui::Begin("Camera Control", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+    ImGui::Text("🎥 Global Camera Settings");
+    ImGui::Separator();
+
+    // Zoom control
+    float zoom = proceduralLayer_.cameraZoom();
+    ImGui::Text("Zoom:");
+    if (ImGui::SliderFloat("##camera_zoom", &zoom, 0.1f, 5.0f, "%.2fx")) {
+        proceduralLayer_.setCameraZoom(zoom);
+        saveCurrentSettings();
+    }
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Global zoom for all procedural effects");
+    }
+
+    ImGui::Spacing();
+
+    // Offset X control
+    float offsetX = proceduralLayer_.cameraOffsetX();
+    ImGui::Text("Offset X:");
+    if (ImGui::SliderFloat("##camera_offset_x", &offsetX, -2.0f, 2.0f, "%.2f")) {
+        proceduralLayer_.setCameraOffset(offsetX, proceduralLayer_.cameraOffsetY());
+        saveCurrentSettings();
+    }
+
+    ImGui::Spacing();
+
+    // Offset Y control
+    float offsetY = proceduralLayer_.cameraOffsetY();
+    ImGui::Text("Offset Y:");
+    if (ImGui::SliderFloat("##camera_offset_y", &offsetY, -2.0f, 2.0f, "%.2f")) {
+        proceduralLayer_.setCameraOffset(proceduralLayer_.cameraOffsetX(), offsetY);
+        saveCurrentSettings();
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // Reset button
+    if (ImGui::Button("Reset to Default")) {
+        proceduralLayer_.setCameraZoom(1.0f);
+        proceduralLayer_.setCameraOffset(0.0f, 0.0f);
+        saveCurrentSettings();
+    }
+
+    ImGui::SameLine();
+
+    // Auto-animated zoom toggle
+    static bool autoZoom = false;
+    ImGui::Checkbox("Auto-Animate", &autoZoom);
+    if (autoZoom) {
+        float animatedZoom = 1.0f + sin(time_ * 0.5f) * 0.15f + audioFeatures_.bassEnergy * 0.2f;
+        proceduralLayer_.setCameraZoom(animatedZoom);
+    }
+
+    ImGui::End();
+}
+
+void Visualizer::handleMouseScroll(double xoffset, double yoffset) {
+    // Zoom with mouse wheel (yoffset)
+    float currentZoom = proceduralLayer_.cameraZoom();
+    float zoomDelta = static_cast<float>(yoffset) * 0.1f;  // 10% per scroll step
+    float newZoom = std::clamp(currentZoom + zoomDelta, 0.1f, 5.0f);
+    
+    if (newZoom != currentZoom) {
+        proceduralLayer_.setCameraZoom(newZoom);
+        saveCurrentSettings();
+    }
 }

@@ -1493,12 +1493,12 @@ void Visualizer::endFrame() {
         lastOnsetActive_ = audioFeatures_.onset > 0.5f;
     }
     
-    // RGB channel randomization based on music
+    // RGB channel randomization based on music (onsets)
     if (autoRandomizeRgbChannels_) {
         bool onsetActive = audioFeatures_.onset > 0.5f;
         if (onsetActive && !lastOnsetActive_) {
             ++lastOnsetCount_;
-            // Randomize RGB channels every 3 onsets (different from color cycling)
+            // Randomize RGB channels every 3 onsets
             if (lastOnsetCount_ >= 3) {
                 lastOnsetCount_ = 0;
                 randomizeRgbChannels();
@@ -1506,6 +1506,13 @@ void Visualizer::endFrame() {
         } else if (!onsetActive) {
             // Reset counter when there's no onset
             lastOnsetCount_ = 0;
+        }
+        
+        // Also randomize by time interval
+        rgbRandomTimer_ += deltaTime;
+        if (rgbRandomTimer_ >= rgbRandomInterval_) {
+            rgbRandomTimer_ = 0.0f;
+            randomizeRgbChannels();
         }
     }
 }
@@ -1840,6 +1847,17 @@ bool Visualizer::setupOpenGL() {
 
     glfwMakeContextCurrent(window_);
     std::cout << "[DEBUG] OpenGL context made current" << std::endl;
+
+    // Set window user pointer for callbacks
+    glfwSetWindowUserPointer(window_, this);
+
+    // Set up scroll callback for mouse wheel zoom
+    glfwSetScrollCallback(window_, [](GLFWwindow* window, double xoffset, double yoffset) {
+        Visualizer* vis = static_cast<Visualizer*>(glfwGetWindowUserPointer(window));
+        if (vis) {
+            vis->handleMouseScroll(xoffset, yoffset);
+        }
+    });
 
     // Initialize GLEW with experimental features
     glewExperimental = GL_TRUE;

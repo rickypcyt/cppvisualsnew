@@ -1,20 +1,21 @@
 {
     "animation": {
-        "autoRandomize": false,
+        "autoRandomize": true,
         "autoRandomizeRgb": false,
-        "onsetColorCycling": false,
-        "randomInterval": 1.0
+        "onsetColorCycling": true,
+        "randomInterval": 1.0,
+        "rgbRandomInterval": 5.0
     },
     "audio": {
         "inputGain": 5.0,
         "manualBPM": 181.0,
         "manualBPMMode": true,
-        "selectedDevice": 4,
-        "visualSensitivity": 1.6100000143051147
+        "selectedDevice": 6,
+        "visualSensitivity": 3.0
     },
     "colors": {
         "blend": 0.6200000047683716,
-        "hueSeed": 0.8295143246650696,
+        "hueSeed": 0.4527631402015686,
         "paletteIndex": 0,
         "primary": [
             0.10000000149011612,
@@ -36,8 +37,8 @@
         "randomInterval": 5.599999904632568,
         "slots": [
             {
-                "enabled": true,
-                "mode": 15,
+                "enabled": false,
+                "mode": 5,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -99,10 +100,10 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Cylinder Repeat",
+                "effectName": "Head",
                 "enabled": true,
-                "mode": 43,
-                "opacity": 0.8999999761581421
+                "mode": 29,
+                "opacity": 1.0
             },
             {
                 "colorAdjust": [
@@ -163,9 +164,9 @@
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Flopine",
-        "proceduralLayerMode": 43,
-        "proceduralLayerOpacity": 0.8999999761581421,
+        "proceduralLayerEffectName": "Head",
+        "proceduralLayerMode": 29,
+        "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": false,
         "showImGuiWindow": true,

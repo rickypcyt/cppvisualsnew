@@ -219,6 +219,7 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (animation.contains("randomInterval")) colorRandomInterval_ = animation["randomInterval"];
             if (animation.contains("onsetColorCycling")) onsetColorCyclingEnabled_ = animation["onsetColorCycling"];
             if (animation.contains("autoRandomizeRgb")) autoRandomizeRgbChannels_ = animation["autoRandomizeRgb"];
+            if (animation.contains("rgbRandomInterval")) rgbRandomInterval_ = animation["rgbRandomInterval"];
         }
 
         // Load RGB channel settings
@@ -327,6 +328,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["animation"]["randomInterval"] = colorRandomInterval_;
         j["animation"]["onsetColorCycling"] = onsetColorCyclingEnabled_;
         j["animation"]["autoRandomizeRgb"] = autoRandomizeRgbChannels_;
+        j["animation"]["rgbRandomInterval"] = rgbRandomInterval_;
         
         // Save RGB channel settings
         j["rgbChannels"] = rgbChannelEnabled_;

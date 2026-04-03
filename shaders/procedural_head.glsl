@@ -34,6 +34,8 @@ https://creativecommons.org/licenses/by-nc/4.0/
 
 #define PI 3.14159265359
 
+// Note: uCameraZoom, uCameraOffsetX, uCameraOffsetY are declared in procedural_main.glsl
+
 void pR(inout vec2 p, float a) {
     p = cos(a)*p + sin(a)*vec2(p.y, -p.x);
 }
@@ -134,11 +136,10 @@ float ellip(vec2 p, vec2 s) {
     return length(p) - r;
 }
 
-bool isEye = false;
-
-
-float mHead(vec3 p) {
-
+// Eye flag - passed by reference-like pattern using a vec2 return
+vec2 mHeadWithEye(vec3 p) {
+    bool isEyeLocal = false;
+    
     pR(p.yz, -.1);
     p.y -= .11;
 
@@ -413,7 +414,7 @@ float mHead(vec3 p) {
     p = pp;
     p += vec3(-.165,.0715,-.346);
     float eyeball = length(p) - .088;
-	isEye = eyeball < d;
+    isEyeLocal = eyeball < d;
     d = min(d, eyeball);
 
     // tear duct
@@ -497,14 +498,19 @@ float mHead(vec3 p) {
     pR(p.yz, -.4);
     d = smin(d, ellip(p, vec3(.01,.03,.015)), .015);
     
-    return d;
+    return vec2(d, isEyeLocal ? 1.0 : 0.0);
+}
+
+// Wrapper for backward compatibility - returns just distance
+float mHead(vec3 p) {
+    return mHeadWithEye(p).x;
 }
 
 float sstep(float t) {
 	return sin(t * PI - PI / 2.) * .5 + .5;
 }
 
-float map(vec3 p) {
+vec2 mapWithEye(vec3 p) {
     
     float scale = 1.;
     float s = .2;
@@ -550,15 +556,21 @@ float map(vec3 p) {
     // Apply assembly threshold
     if (assemblyFactor < zoneThreshold) {
         // Disassembled state - return large distance (invisible)
-        return 1000.0;
+        return vec2(1000.0, 0.0);
     }
     
     // Smooth transition based on how close we are to threshold
     float transition = smoothstep(zoneThreshold - 0.1, zoneThreshold + 0.1, assemblyFactor);
-    float headDistance = mHead(p) * scale;
+    vec2 headResult = mHeadWithEye(p);
+    headResult.x *= scale;
     
     // Blend between assembled and disassembled
-    return mix(1000.0, headDistance, transition);
+    float finalDist = mix(1000.0, headResult.x, transition);
+    return vec2(finalDist, headResult.y);
+}
+
+float map(vec3 p) {
+    return mapWithEye(p).x;
 }
 
 const int NORMAL_STEPS = 6;
@@ -582,33 +594,42 @@ vec4 renderHead(vec2 st, float uTime, float uTempo, float uEnergy, float uBass, 
 }
 
 vec4 renderSingleHead(vec2 st, float uTime, float uTempo, float uEnergy, float uBass, float uMid, float uHigh) {
+    // Apply global camera zoom and offset
+    st *= uCameraZoom;
+    st += vec2(uCameraOffsetX, uCameraOffsetY);
+    
     // Center the head by moving camera back and adjusting view
-    vec3 camPos = vec3(0, 0.1, 3.5);  // Slightly up and back
-    vec3 rayDirection = normalize(vec3(st.x, st.y - 0.1, -4));  // Slightly down
+    // Adjust camera distance based on zoom (closer zoom = move camera closer)
+    float camZ = 3.5 / max(uCameraZoom, 0.1);  // Prevent division by zero
+    vec3 camPos = vec3(0, 0.1, camZ);
+    vec3 rayDirection = normalize(vec3(st.x, st.y - 0.1, -4));
     
     vec3 rayPosition = camPos;
     float rayLength = 0.;
     float dist = 0.;
     bool bg = false;
     vec3 col = vec3(.1);
+    bool hitIsEye = false;
 
     for (int i = 0; i < 150; i++) {
         rayLength += dist;
         rayPosition = camPos + rayDirection * rayLength;
-        dist = map(rayPosition);
+        vec2 mapResult = mapWithEye(rayPosition);
+        dist = mapResult.x;
 
-        if (abs(dist) < .001) {
+        if (abs(dist) < .001 * max(uCameraZoom, 0.1)) {  // Adjust epsilon based on zoom
+            hitIsEye = mapResult.y > 0.5;
         	break;
         }
         
-        if (rayLength > 5.) {
+        if (rayLength > 5. * camZ) {  // Adjust max ray length based on camera distance
             bg = true;
             break;
         }
     }
     
     if ( ! bg) {
-        vec3 albedo = isEye ? vec3(2) : vec3(1);
+        vec3 albedo = hitIsEye ? vec3(2) : vec3(1);
         vec3 n = calcNormal(rayPosition);
         vec3 lp = vec3(-.5,.5,.5);
         float l = max(dot(lp, n), 0.);

@@ -53,28 +53,74 @@ vec4 renderRibbonScanlines(vec2 st, float time, float tempo, float energy, float
     return vec4(color, alpha);
 }
 
+vec3 anaglyphHsv2Rgb(float h) {
+    vec3 k = fract(vec3(h, h + 0.333, h + 0.667)) * 6.0 - 3.0;
+    return clamp(abs(k) - 1.0, 0.0, 1.0);
+}
+
 vec4 renderKaleidoscopeFractal(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
+
     float r = length(st);
     float angle = atan(st.y, st.x);
-    float sectors = 6.0 + floor(mid * 10.0);
+
+    angle += time * (0.15 + tempo * 0.08);
+
+    float sectors = 6.0 + floor(mid * 8.0);
     float sectorAngle = 2.0 * PI / max(sectors, 1.0);
     angle = mod(angle, sectorAngle);
     angle = abs(angle - sectorAngle * 0.5);
+
     vec2 dir = vec2(cos(angle), sin(angle));
     vec2 p = dir * r;
+
     vec2 warp = vec2(
         fbm(p * (3.2 + high * 2.4) + time * 0.35),
-        fbm(p * (2.6 + mid * 1.8) - time * 0.28)
+        fbm(p * (2.6 + mid  * 1.8) - time * 0.28)
     );
-    p += warp * (0.6 + high * 0.7 + energy * 0.4);
-    float n = fbm(p * (2.4 + energy * 1.3) + time * 0.25);
-    float bloom = fbm(p * 5.0 - time * 0.45);
-    vec3 base = mix(uPrimaryColor, uSecondaryColor, clamp(uColorBlend, 0.0, 1.0));
-    vec3 accent = mix(uSecondaryColor, base.bgr, clamp(high * 0.7 + mid * 0.2, 0.0, 1.0));
-    vec3 color = mix(base, accent, n);
-    color += vec3(0.3, 0.15, 0.45) * bloom * (0.4 + high * 0.6);
-    color += vec3(0.12, 0.19, 0.25) * smoothstep(0.0, 1.2, r) * (0.3 + energy * 0.4);
+    p += warp * (0.5 + high * 0.6 + energy * 0.35);
+
+    float n1 = fbm(p * (2.4 + energy * 1.3) + time * 0.25);
+    float n2 = fbm(p * 4.8 - time * 0.4 + vec2(bass * 0.5));
+    float n3 = fbm(p * 9.0 + time * 0.6 + vec2(mid  * 0.3));
+
+    float hShift = time * 0.12 + bass * 0.4;
+    float h1 = fract(n1 * 1.5 + hShift);
+    float h2 = fract(n2 * 1.2 + hShift + 0.33);
+    float h3 = fract(n3 * 0.9 + hShift + 0.66);
+
+    vec3 c1 = anaglyphHsv2Rgb(h1);
+    vec3 c2 = anaglyphHsv2Rgb(h2);
+    vec3 c3 = anaglyphHsv2Rgb(h3);
+
+    float w1 = n1;
+    float w2 = n2 * (0.6 + mid  * 0.5);
+    float w3 = n3 * (0.4 + high * 0.6);
+    float wTotal = w1 + w2 + w3 + 0.001;
+
+    vec3 color = (c1 * w1 + c2 * w2 + c3 * w3) / wTotal;
+
+    vec3 userTint = mix(uPrimaryColor, uSecondaryColor, uColorBlend) * 0.25;
+    color = mix(color, color + userTint, 0.4);
+
+    float radialMask = pow(1.0 - smoothstep(0.0, 1.0, r * 0.85), 1.8);
+    float noiseMask  = smoothstep(0.05, 0.45, n1);
+    float mask       = radialMask * noiseMask;
+
+    color *= mask;
+
+    float edgeDist = abs(angle) / (sectorAngle * 0.5);
+    float edgeLine = exp(-80.0 * pow(1.0 - edgeDist, 2.0)) * (0.4 + high * 0.5);
+    color += c1 * edgeLine * mask;
+
+    float core = exp(-18.0 * r * r) * (0.5 + bass * 0.8);
+    color += mix(c2, vec3(1.0), 0.3) * core;
+
+    float spark = step(0.88, n3) * step(0.85, n2) * high * 0.9;
+    color += c3 * spark * mask;
+
     color = clamp(color, 0.0, 1.0);
-    float alpha = clamp(0.3 + n * 0.6 + bloom * 0.25 + energy * 0.25, 0.0, 1.0);
+
+    float alpha = clamp(mask * (0.6 + n1 * 0.4) + core * 0.8 + spark * 0.5, 0.0, 1.0);
+
     return vec4(color, alpha);
 }

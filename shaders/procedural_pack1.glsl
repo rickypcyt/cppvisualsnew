@@ -72,13 +72,46 @@ vec4 renderGlitchGrid(vec2 st, float time, float tempo, float energy, float bass
 }
 
 vec4 renderChemicalFlow(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
-    vec2 p = rotate(st, time * (0.25 + tempo * 0.2));
-    float flow = fbm(p * (3.0 + energy));
-    float swirl = sin(p.x * 5.0 + time * 1.4) + cos(p.y * 7.0 - time * 1.1);
-    vec3 color = mix(uPrimaryColor * 0.5, uSecondaryColor + vec3(bass * 0.2, mid * 0.15, high * 0.3), flow);
-    color += vec3(0.08, 0.02, 0.12) * swirl * 0.2;
+
+    // Doble rotación: capa lenta + capa rápida reactiva al audio
+    vec2 p1 = rotate(st, time * (0.25 + tempo * 0.2));
+    vec2 p2 = rotate(st, -time * (0.15 + bass * 0.3));
+
+    // FBM en dos capas con escala diferente — más detalle sin coste extra
+    float flow1 = fbm(p1 * (3.0 + energy));
+    float flow2 = fbm(p2 * (5.5 + mid * 1.5) + vec2(time * 0.1));
+    float flow  = mix(flow1, flow2, 0.4 + bass * 0.2);
+
+    // Swirl más orgánico: frecuencias asimétricas y desfase por audio
+    float swirl = sin(p1.x * 5.0 + time * 1.4 + bass * 1.2)
+                * cos(p1.y * 7.0 - time * 1.1 + mid  * 0.8);
+
+    // Venas — líneas finas que pulsan con los agudos
+    float veins = abs(sin(flow * 12.0 + time * 0.3)) * high * 0.4;
+
+    // Brillo central reactivo al bajo
+    float radial  = 1.0 - smoothstep(0.0, 0.8, length(st));
+    float glow    = radial * bass * 0.5;
+
+    // Color base: tres zonas en vez de dos (sombra / medio / luz)
+    vec3 shadow = uPrimaryColor  * 0.2;
+    vec3 midCol = mix(uPrimaryColor, uSecondaryColor, 0.5) + vec3(mid * 0.1, bass * 0.05, 0.0);
+    vec3 light  = uSecondaryColor + vec3(bass * 0.25, mid * 0.2, high * 0.35);
+
+    vec3 color = flow < 0.45
+        ? mix(shadow, midCol, flow / 0.45)
+        : mix(midCol, light,  (flow - 0.45) / 0.55);
+
+    // Capas aditivas
+    color += vec3(0.08, 0.02, 0.12) * swirl * 0.25;   // tinte swirl
+    color += vec3(0.6,  0.3,  0.9)  * veins;           // venas violeta
+    color += vec3(0.3,  0.1,  0.5)  * glow;            // halo central
+
     color = clamp(color, 0.0, 1.0);
-    float alpha = clamp(0.30 + flow * 0.5 + energy * 0.3, 0.0, 1.0);
+
+    // Alpha: respira con el bajo y se abre con la energía
+    float alpha = clamp(0.25 + flow * 0.5 + energy * 0.25 + bass * 0.15, 0.0, 1.0);
+
     return vec4(color, alpha);
 }
 

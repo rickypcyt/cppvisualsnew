@@ -178,68 +178,67 @@ vec4 renderDomainWarpedFractal(vec2 st, float time, float tempo, float energy, f
 }
 
 vec4 renderVolumetricStarfield(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
+    
     float aspect = max(uResolution.x / uResolution.y, 0.0001);
     vec2 uv = vec2(st.x / aspect, st.y / aspect);
-
+    
+    // Fondo negro base
+    vec3 color = vec3(0.0);
+    
     float temporalSpeed = kVolSpeed + tempo * 0.004 + energy * 0.008;
     float twist = sin(time * (12.0 + high * 6.0)) * 0.1 + 1.0;
-
-    vec3 dir = normalize(vec3(uv * (kVolZoom + energy * 0.25), 1.0));
-
-    float paletteBias = clamp(uColorBlend, 0.0, 1.0);
-    vec3 paletteBase = mix(uPrimaryColor, uSecondaryColor, paletteBias);
-    vec3 color = vec3(0.0);
+    
+    // --- ESTRELLAS/FLAKES VISIBLES (luz sobre negro) ---
     for (int layer = 0; layer < kSnowLayers; ++layer) {
         float layerFrac = float(layer) / float(kSnowLayers);
         float d = fract(layerFrac + time * temporalSpeed);
         float s = mix(40.0, 0.5, d);
         float layerFade = d * smoothstep(1.0, 0.8, d);
-
+        
         vec2 snowUV = kSnowOffset + uv - vec2(0.25 * sin(time * 0.2 + layerFrac * 3.14), 0.0);
         vec2 id = floor(snowUV * s + layerFrac * 50.0);
         vec2 p = fract(snowUV * s + layerFrac * 50.0) - 0.5;
-
+        
         float randSeed = hash(id + layerFrac);
         float randPhase = randSeed * 6.28318;
         p += vec2(sin(time + randPhase), cos(time + randPhase)) * 0.3;
-
+        
+        // FORMA VISIBLE: estrella/flake
         float starValue = happyStar(p * 10.0, twist);
-        float flake = smoothstep(1.5, 0.0, starValue);
-
-        float snowMix = clamp(mix(paletteBias, 0.3 + randSeed * 0.7, 0.6), 0.0, 1.0);
-        vec3 snowAccent = mix(uPrimaryColor, uSecondaryColor, snowMix);
+        float flake = smoothstep(0.5, 0.0, starValue); // Ajustado para mejor visibilidad
         
-        // Add more color variation to stars
-        vec3 starColorVariation = vec3(
-            0.8 + sin(time * 0.7 + randSeed * 10.0) * 0.2,
-            0.7 + cos(time * 0.5 + randSeed * 8.0) * 0.3,
-            0.9 + sin(time * 0.3 + randSeed * 12.0) * 0.1
-        );
+        // Color de la estrella - brillante sobre negro
+        float paletteBias = clamp(uColorBlend, 0.0, 1.0);
+        vec3 starColor = mix(uPrimaryColor, uSecondaryColor, randSeed) * 1.5;
         
-        vec3 snowColor = mix(paletteBase, snowAccent * starColorVariation, 0.75);
-        color += snowColor * 0.06 * layerFade * flake;
-        color += clamp(uv.y * -0.08 + uv.y * abs(uv.x * 2.5) * -0.07, 0.0, 1.0) * 0.8;
+        // Variación temporal del brillo
+        float twinkle = 0.7 + 0.3 * sin(time * 3.0 + randSeed * 10.0);
+        
+        // Sumamos luz al fondo negro
+        color += starColor * flake * layerFade * twinkle * 0.8;
     }
-    color *= max(1.0 - dot(uv, uv) * 20.6, 0.0);
-
-    float nebulaMix = clamp(mix(paletteBias, 0.35 + high * 0.4, 0.7), 0.0, 1.0);
-    vec3 baseMix = mix(uPrimaryColor, uSecondaryColor, nebulaMix);
-    vec3 from = baseMix * color;
-
+    
+    // --- NEBULOSA VOLUMÉTRICA OSCURA ---
+    vec3 dir = normalize(vec3(uv * (kVolZoom + energy * 0.25), 1.0));
+    float paletteBias = clamp(uColorBlend, 0.0, 1.0);
+    vec3 nebulaColor = mix(uPrimaryColor, uSecondaryColor, paletteBias) * 0.2;
+    
     float s = 0.1;
     float fade = 1.0;
-    vec3 accum = vec3(0.0);
     vec3 v = vec3(0.0);
+    
     float rotationAngle = time * (0.01 + mid * 0.01);
-    mat2 rot = mat2(cos(rotationAngle), sin(rotationAngle), -sin(rotationAngle), cos(rotationAngle));
-
+    mat2 rot = mat2(cos(rotationAngle), sin(rotationAngle),
+                   -sin(rotationAngle), cos(rotationAngle));
+    
     for (int r = 0; r < kVolSteps; ++r) {
-        vec3 pos = from + s * dir * 0.5;
+        vec3 pos = nebulaColor + s * dir * 0.5;
         pos = abs(vec3(kVolTile) - mod(pos, vec3(kVolTile * 2.0)));
+        
         vec3 pp = pos;
         float pa = 0.0;
         float a = 0.0;
-
+        
         for (int i = 0; i < kVolIterations; ++i) {
             float denom = max(dot(pp, pp), 0.0001);
             pp = abs(pp) / denom - vec3(kVolFormuParam);
@@ -248,39 +247,42 @@ vec4 renderVolumetricStarfield(vec2 st, float time, float tempo, float energy, f
             a += abs(len - pa);
             pa = len;
         }
-
+        
         float dm = max(0.0, kVolDarkMatter - a * a * 0.001);
         a *= a * a;
-
-        if (r > 6) {
-            fade *= 1.5 - dm;
-        }
-
+        
+        if (r > 6) fade *= 1.5 - dm;
+        
         vec3 weight = vec3(s, s * s, s * s * s * s);
-        v += weight * a * (kVolBrightness + energy * 0.0008) * fade;
+        v += weight * a * (kVolBrightness * 0.5) * fade; // Reducido para no saturar
+        
         fade *= kVolDistFading + bass * 0.05;
         s += kVolStepSize;
     }
-
-    v = mix(vec3(length(v) * 0.6), v * 1.2, kVolSaturation + high * 0.05);
     
-    // Add color variation based on audio and position
-    vec3 colorVariation = vec3(
-        sin(time * 0.3 + uv.x * 5.0) * 0.2 + 0.8,
-        cos(time * 0.2 + uv.y * 3.0) * 0.15 + 0.85, 
-        sin(time * 0.4 + bass * 2.0) * 0.25 + 0.75
-    );
+    // Volumen muy oscuro, casi silueta
+    v = mix(vec3(length(v) * 0.3), v * 0.5, kVolSaturation);
+    color += v * 0.002; // Contribución mínima al color
     
-    vec3 result = v * 0.008 * colorVariation + color * 0.15;
+    // --- EFECTOS FINALES ---
     
-    // Add subtle hue shifts based on audio
-    result.r *= 1.0 + bass * 0.3;
-    result.g *= 1.0 + mid * 0.2;
-    result.b *= 1.0 + high * 0.4;
+    // Vignette que oscurece bordes (mantiene centro más visible)
+    float vignette = 1.0 - smoothstep(0.3, 1.2, dot(uv, uv));
+    color *= vignette;
     
-    result = clamp(result, 0.0, 1.0);
-    float alpha = clamp(length(result) * 0.9 + energy * 0.35, 0.0, 1.0);
-    return vec4(result, alpha);
+    // Respuesta al audio - pulso de brillo
+    color *= 1.0 + energy * 0.3;
+    color.r *= 1.0 + bass * 0.2;
+    color.g *= 1.0 + mid * 0.15;
+    color.b *= 1.0 + high * 0.25;
+    
+    // Limitamos para evitar saturación
+    color = clamp(color, 0.0, 1.0);
+    
+    // Alpha
+    float alpha = clamp(length(color) * 1.5, 0.0, 1.0);
+    
+    return vec4(color, alpha);
 }
 
 float fractalInfinitySDF(vec3 p, mat3 m) {
