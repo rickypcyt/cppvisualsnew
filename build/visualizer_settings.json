@@ -1,9 +1,9 @@
 {
     "animation": {
-        "autoRandomize": true,
-        "autoRandomizeRgb": true,
-        "onsetColorCycling": true,
-        "randomInterval": 4.2779998779296875
+        "autoRandomize": false,
+        "autoRandomizeRgb": false,
+        "onsetColorCycling": false,
+        "randomInterval": 1.0
     },
     "audio": {
         "inputGain": 5.0,
@@ -13,18 +13,18 @@
         "visualSensitivity": 1.6100000143051147
     },
     "colors": {
-        "blend": 0.5600000023841858,
+        "blend": 0.6200000047683716,
         "hueSeed": 0.8295143246650696,
-        "paletteIndex": 2,
+        "paletteIndex": 0,
         "primary": [
             0.10000000149011612,
-            0.3199999928474426,
-            0.18000000715255737
+            0.23999999463558197,
+            0.5799999833106995
         ],
         "secondary": [
-            0.30000001192092896,
-            0.8199999928474426,
-            0.5199999809265137
+            0.2800000011920929,
+            0.699999988079071,
+            0.9800000190734863
         ]
     },
     "hotReloadEnabled": false,
@@ -32,12 +32,12 @@
         "tempoScale": 1.0
     },
     "postProcess": {
-        "randomEnabled": true,
+        "randomEnabled": false,
         "randomInterval": 5.599999904632568,
         "slots": [
             {
                 "enabled": true,
-                "mode": 6,
+                "mode": 15,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -56,7 +56,7 @@
                 "strength": 1.0
             },
             {
-                "enabled": true,
+                "enabled": false,
                 "mode": 20,
                 "rgbAdjust": [
                     1.0,
@@ -88,7 +88,7 @@
         ]
     },
     "procedural": {
-        "randomEnabled": true,
+        "randomEnabled": false,
         "randomInterval": 10.0
     },
     "proceduralSlots": {
@@ -99,10 +99,10 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Metal Gyroid Hall",
+                "effectName": "Cylinder Repeat",
                 "enabled": true,
-                "mode": 30,
-                "opacity": 1.0
+                "mode": 43,
+                "opacity": 0.8999999761581421
             },
             {
                 "colorAdjust": [
@@ -147,28 +147,28 @@
         ]
     },
     "random": {
-        "postProcessEnabled": true,
+        "postProcessEnabled": false,
         "postProcessInterval": 5.599999904632568,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
-        "proceduralEnabled": true,
+        "proceduralEnabled": false,
         "proceduralInterval": 10.0,
         "proceduralSlotEnabled": false,
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
-        false,
-        false,
+        true,
+        true,
         true
     ],
     "ui": {
-        "proceduralLayerDebug": true,
-        "proceduralLayerEffectName": "Metal Gyroid Hall",
-        "proceduralLayerMode": 30,
-        "proceduralLayerOpacity": 1.0,
+        "proceduralLayerDebug": false,
+        "proceduralLayerEffectName": "Flopine",
+        "proceduralLayerMode": 43,
+        "proceduralLayerOpacity": 0.8999999761581421,
         "showCornerOrbs": false,
         "showCurrentEffects": false,
-        "showImGuiWindow": false,
+        "showImGuiWindow": true,
         "showProceduralLayer": true
     }
 }

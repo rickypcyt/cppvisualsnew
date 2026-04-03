@@ -262,8 +262,8 @@ build audio_visualizer: CXX_EXECUTABLE_LINKER__audio_visualizer_Debug CMakeFiles
   LINK_FLAGS = -Xlinker --dependency-file=CMakeFiles/audio_visualizer.dir/link.d
   LINK_LIBRARIES = -ldl  /usr/lib/libglfw.so.3.4  /usr/lib/libGLEW.so  -lGL  -lportaudio  -lasound  -lm  -lpthread  -lasound  -lm  -lpthread
   OBJECT_DIR = CMakeFiles/audio_visualizer.dir
-  POST_BUILD = cd /home/ricky/coding/proyects/visuals/build && /usr/bin/cmake -E copy_directory /home/ricky/coding/proyects/visuals/shaders /home/ricky/coding/proyects/visuals/build/shaders
-  PRE_LINK = :
+  POST_BUILD = :
+  PRE_LINK = cd /home/ricky/coding/proyects/visuals/build && /usr/bin/cmake -E copy_directory /home/ricky/coding/proyects/visuals/shaders /home/ricky/coding/proyects/visuals/build/shaders && cd /home/ricky/coding/proyects/visuals/build
   TARGET_FILE = audio_visualizer
   TARGET_PDB = audio_visualizer.dbg
   TARGET_SUPPORT_DIR = CMakeFiles/audio_visualizer.dir

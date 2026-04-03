@@ -16,6 +16,9 @@ namespace {
 
 constexpr int kKaleidoscopeModeIndex = 30;
 
+// Global flag to force shader source reload
+bool g_forceShaderReload = false;
+
 const char* kQuadVertexShader = R"(
 #version 330 core
 layout (location = 0) in vec2 aPos;
@@ -60,15 +63,12 @@ const std::array<const char*, 26> kProceduralShaderFiles = {
 
 // Helper to initialize effect registry from shader files
 void InitializeEffectRegistry() {
-    static bool initialized = false;
-    if (!initialized) {
-        std::vector<std::string> files;
-        for (const auto& f : kProceduralShaderFiles) {
-            files.push_back(f);
-        }
-        GetEffectRegistry().scanShaderFiles(kShaderSearchRoots, files);
-        initialized = true;
+    // Always reload - no static cache
+    std::vector<std::string> files;
+    for (const auto& f : kProceduralShaderFiles) {
+        files.push_back(f);
     }
+    GetEffectRegistry().scanShaderFiles(kShaderSearchRoots, files);
 }
 
 const std::array<const char*, 16> kProceduralPackFiles = {
@@ -178,9 +178,10 @@ const std::string& GetProceduralFragmentShaderSource() {
     const char* debugEnv = std::getenv("PROCEDURAL_DEBUG_PACK");
     const std::string debugKey = debugEnv ? debugEnv : std::string{};
 
-    if (source.empty() || debugKey != lastDebugKey) {
+    if (source.empty() || debugKey != lastDebugKey || g_forceShaderReload) {
         lastDebugKey = debugKey;
         source.clear();
+        g_forceShaderReload = false;  // Reset the flag after reload
 
         if (!debugKey.empty()) {
             std::string packFile;
@@ -217,6 +218,12 @@ const std::string& GetProceduralFragmentShaderSource() {
     }
 
     return source;
+}
+
+// Force reload shader source from disk
+void ForceReloadShaderSource() {
+    g_forceShaderReload = true;
+    std::cout << "Shader source reload requested, will reload from disk on next access" << std::endl;
 }
 
 const char* kCompositeFragmentShader = R"(
@@ -654,8 +661,26 @@ void ModularLayer::reloadShaders() {
     std::cout << "Reloading shaders..." << std::endl;
     
     try {
+        // Copy shaders from source to build directory first
+        namespace fs = std::filesystem;
+        fs::path sourceDir = "../shaders";
+        fs::path buildDir = "./shaders";
+        
+        if (fs::exists(sourceDir)) {
+            std::cout << "Copying updated shaders from source..." << std::endl;
+            if (fs::exists(buildDir)) {
+                fs::remove_all(buildDir);
+            }
+            fs::copy(sourceDir, buildDir, fs::copy_options::recursive);
+            std::cout << "Shaders copied successfully!" << std::endl;
+        }
+        
+        // Force source reload from disk
+        ForceReloadShaderSource();
+        
         // Force shader reload by resetting the shader pointer
         proceduralShader_.reset();
+        kaleidoscopeShader_.reset();
         
         // Recreate shader
         if (!ensureShader()) {

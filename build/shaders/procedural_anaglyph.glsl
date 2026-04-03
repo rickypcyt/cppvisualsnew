@@ -2,15 +2,15 @@
 // Audio-reactive stereoscopic anaglyph inspired by Leon Denise's "Anaglyph Quick Sketch"
 // Adapted to the Cascade procedural pipeline with assembly/disassembly behaviour similar to the head shader.
 
-const int kAnaglyphLayerCount = 5;
-const int kAnaglyphMarchSteps = 96;
+const int kAnaglyphLayerCount = 3;
+const int kAnaglyphMarchSteps = 32;
 const float kAnaglyphRange = 1.0;
 const float kAnaglyphRadius = 0.3;
 const float kAnaglyphBlend = 1.5;
 const float kAnaglyphBalance = 1.5;
 const float kAnaglyphFalloff = 1.9;
-const float kAnaglyphDivergence = 0.1;
-const float kAnaglyphFieldOfView = 1.5;
+const float kAnaglyphDivergence = 0.08;
+const float kAnaglyphFieldOfView = 1.2;
 
 float anaglyphRandom(vec2 p) {
     return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x))));
@@ -27,33 +27,8 @@ float anaglyphSmoothMin(float a, float b, float r) {
     return mix(b, a, h) - r * h * (1.0 - h);
 }
 
-float anaglyphHash(vec3 p) {
-    return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453);
-}
-
-float anaglyphNoise(vec3 p) {
-    vec3 i = floor(p);
-    vec3 f = fract(p);
-    vec3 u = f * f * (3.0 - 2.0 * f);
-
-    float n000 = anaglyphHash(i + vec3(0, 0, 0));
-    float n100 = anaglyphHash(i + vec3(1, 0, 0));
-    float n010 = anaglyphHash(i + vec3(0, 1, 0));
-    float n110 = anaglyphHash(i + vec3(1, 1, 0));
-    float n001 = anaglyphHash(i + vec3(0, 0, 1));
-    float n101 = anaglyphHash(i + vec3(1, 0, 1));
-    float n011 = anaglyphHash(i + vec3(0, 1, 1));
-    float n111 = anaglyphHash(i + vec3(1, 1, 1));
-
-    float nx00 = mix(n000, n100, u.x);
-    float nx10 = mix(n010, n110, u.x);
-    float nx01 = mix(n001, n101, u.x);
-    float nx11 = mix(n011, n111, u.x);
-
-    float nxy0 = mix(nx00, nx10, u.y);
-    float nxy1 = mix(nx01, nx11, u.y);
-
-    return mix(nxy0, nxy1, u.z);
+float anaglyphSimpleNoise(vec3 p) {
+    return fract(sin(dot(p, vec3(12.9898, 78.233, 45.164))) * 43758.5453);
 }
 
 float anaglyphAudioEnergy() {
@@ -88,7 +63,6 @@ float anaglyphCoreGeometry(vec3 pos) {
         float rotSeed = cos(t) * kAnaglyphBalance / a + a * 2.0 + t;
         pos.xy *= anaglyphRot(rotSeed);
         pos.zy *= anaglyphRot(sin(t) * kAnaglyphBalance / a + a * 2.0 + t);
-        pos.zx *= anaglyphRot(sin(t + float(i)) * kAnaglyphBalance / a + a * 2.0 + t);
         pos = abs(pos) - kAnaglyphRange * a * wave;
         scene = anaglyphSmoothMin(scene, length(pos) - kAnaglyphRadius * a, kAnaglyphBlend * a);
         a /= kAnaglyphFalloff;
@@ -99,20 +73,7 @@ float anaglyphCoreGeometry(vec3 pos) {
 
 float anaglyphZoneThreshold(vec3 pos, float assemblyFactor) {
     float normalizedHeight = clamp((pos.y + 2.5) / 5.0, 0.0, 1.0);
-    float threshold;
-    if (normalizedHeight > 0.75) {
-        threshold = 0.45;
-    } else if (normalizedHeight > 0.45) {
-        threshold = 0.32;
-    } else if (normalizedHeight > 0.2) {
-        threshold = 0.2;
-    } else {
-        threshold = 0.08;
-    }
-
-    float n = anaglyphNoise(pos * 2.0 + vec3(0.0, uTime * 0.35, uTime * 0.52));
-    threshold += (n - 0.5) * 0.12 * (1.0 - assemblyFactor);
-
+    float threshold = 0.08 + normalizedHeight * 0.4;
     return threshold;
 }
 
@@ -130,16 +91,13 @@ float anaglyphMap(vec3 pos) {
 }
 
 vec3 anaglyphCalcNormal(vec3 pos) {
-    const float eps = 0.0015;
-    vec3 ex = vec3(eps, 0.0, 0.0);
-    vec3 ey = vec3(0.0, eps, 0.0);
-    vec3 ez = vec3(0.0, 0.0, eps);
-
-    float dx = anaglyphMap(pos + ex) - anaglyphMap(pos - ex);
-    float dy = anaglyphMap(pos + ey) - anaglyphMap(pos - ey);
-    float dz = anaglyphMap(pos + ez) - anaglyphMap(pos - ez);
-
-    return normalize(vec3(dx, dy, dz));
+    const float eps = 0.003;
+    vec4 q = vec4(eps, -eps, -eps, 0.0);
+    return normalize(vec3(
+        anaglyphMap(pos + q.xzz) - anaglyphMap(pos - q.xzz),
+        anaglyphMap(pos + q.zxz) - anaglyphMap(pos - q.zxz),
+        anaglyphMap(pos + q.zzx) - anaglyphMap(pos - q.zzx)
+    ));
 }
 
 vec3 anaglyphLook(vec3 eye, vec3 target, vec2 anchor, float fov) {
@@ -157,31 +115,26 @@ vec4 anaglyphShadeEye(vec3 eye, vec3 ray, vec2 anchor) {
         vec3 pos = eye + ray * travel;
         float dist = anaglyphMap(pos);
 
-        if (dist < 0.0015) {
+        if (dist < 0.005) {
             vec3 normal = anaglyphCalcNormal(pos);
             vec3 lightDir = normalize(vec3(-0.6, 0.8, 0.4));
             float diff = max(dot(normal, lightDir), 0.0);
-            vec3 halfVec = normalize(lightDir - ray);
-            float spec = pow(max(dot(normal, halfVec), 0.0), 32.0);
-            float rim = pow(clamp(1.0 + dot(normal, ray), 0.0, 1.0), 3.0);
 
             float assemblyFactor = anaglyphAssemblyFactor();
             vec3 basePalette = mix(uPrimaryColor, uSecondaryColor, clamp(0.35 + assemblyFactor * 0.5, 0.0, 1.0));
 
-            vec3 color = basePalette * (0.25 + diff * (0.9 + uEnergy * 0.4));
-            color += vec3(0.6, 0.5, 0.9) * spec * (0.35 + uHigh * 0.6);
-            color += basePalette.bgr * rim * (0.25 + uMid * 0.4);
+            vec3 color = basePalette * (0.3 + diff * (0.9 + uEnergy * 0.4));
 
-            float fog = exp(-travel * 0.35);
-            vec3 ambient = mix(uPrimaryColor, uSecondaryColor, 0.5) * 0.08;
+            float fog = exp(-travel * 0.5);
+            vec3 ambient = mix(uPrimaryColor, uSecondaryColor, 0.5) * 0.1;
             color = mix(ambient, color, fog);
 
-            float alpha = clamp(0.4 + diff * 0.4 + spec * 0.2 + assemblyFactor * 0.3, 0.0, 1.0);
+            float alpha = clamp(0.5 + diff * 0.3 + assemblyFactor * 0.3, 0.0, 1.0);
             return vec4(clamp(color, 0.0, 1.0), alpha);
         }
 
-        travel += dist * (0.85 + uBass * 0.05);
-        if (travel > 18.0) {
+        travel += dist * 0.9;
+        if (travel > 12.0) {
             break;
         }
     }

@@ -161,8 +161,8 @@ target_link_libraries(test_layer_integration
 # Compiler flags
 target_compile_options(audio_visualizer PRIVATE ${PORTAUDIO_CFLAGS_OTHER})
 
-# Copy shaders to build directory after build
-add_custom_command(TARGET audio_visualizer POST_BUILD
+# Copy shaders to build directory BEFORE build
+add_custom_command(TARGET audio_visualizer PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:audio_visualizer>/shaders
 )

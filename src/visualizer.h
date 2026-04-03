@@ -336,6 +336,9 @@ private:
     void renderDeviceSelectorImGui();
     void renderDiagnosticImGui();
     void renderConsoleImGui();
+    
+    // Shader reload method
+    void reloadProceduralShaders();
 
     void buildScenePalettes();
     void applyScenePalette(int index);

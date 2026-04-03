@@ -3553,3 +3553,9 @@ const char* Visualizer::getMIDIMappingName(int cc) {
         default: return nullptr;
     }
 }
+
+void Visualizer::reloadProceduralShaders() {
+    std::cout << "Reloading procedural shaders..." << std::endl;
+    proceduralLayer_.reloadShaders();
+    std::cout << "Shaders reloaded successfully!" << std::endl;
+}

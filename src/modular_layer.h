@@ -42,6 +42,7 @@ public:
     // Hot-reload methods
     void enableHotReload(bool enabled);
     bool isHotReloadEnabled() const { return hotReloadEnabled_; }
+    void reloadShaders(); // Public manual reload
 
 private:
     bool createResources(int width, int height);
@@ -52,7 +53,6 @@ private:
     
     // Hot-reload private methods
     void watchShaderFiles();
-    void reloadShaders();
     bool shouldReloadShaders();
     
     // Hot-reload members

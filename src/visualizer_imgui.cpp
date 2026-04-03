@@ -400,6 +400,10 @@ void Visualizer::renderMainImGuiWindow() {
     if (ImGui::Button("🖥️ Console Mode")) {
         showConsoleMode_ = !showConsoleMode_;
     }
+    ImGui::SameLine();
+    if (ImGui::Button("🔄 Reload Shaders")) {
+        reloadProceduralShaders();
+    }
 
     ImGui::Spacing();
     ImGui::Text("🎚️ Visual Sensitivity");
