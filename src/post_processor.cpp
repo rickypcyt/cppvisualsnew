@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 namespace {
 
@@ -52,8 +53,16 @@ std::string stripIncludeDirective(const std::string& source, const std::string& 
     return output.str();
 }
 
-std::string combineShaderSources(const std::string& commonSource, const std::string& effectSource) {
+std::string combineShaderSources(const std::string& commonSource, const std::string& mirrorCommonSource, const std::string& effectSource) {
+    // Remove post_common.glsl include and prepend the actual content
     std::string processedEffect = stripIncludeDirective(effectSource, "post_common.glsl");
+    
+    // If this effect uses mirror_common.glsl, we need to insert it before the effect code
+    if (!mirrorCommonSource.empty() && processedEffect.find("#include \"mirror_common.glsl\"") != std::string::npos) {
+        processedEffect = stripIncludeDirective(processedEffect, "mirror_common.glsl");
+        return commonSource + "\n" + mirrorCommonSource + "\n" + processedEffect;
+    }
+    
     if (!processedEffect.empty()) {
         return commonSource + "\n" + processedEffect;
     }
@@ -88,6 +97,11 @@ bool PostProcessor::initialize(int width, int height) {
 }
 
 void PostProcessor::shutdown() {
+    // Stop hot-reload thread first
+    if (hotReloadEnabled_) {
+        enableHotReload(false);
+    }
+    
     destroyResources();
     shader_.reset();
     initialized_ = false;
@@ -124,7 +138,8 @@ void PostProcessor::beginCapture(int width, int height) {
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
     glViewport(0, 0, width_, height_);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    // Alpha 0 para evitar acumulación en blending
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
@@ -195,7 +210,8 @@ void PostProcessor::applyChain(const std::vector<PostEffectPass> &passes, float 
 
         glBindFramebuffer(GL_FRAMEBUFFER, pingFbos_[pingIndex]);
         glViewport(0, 0, width_, height_);
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        // Alpha 0 para evitar acumulación en blending
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         glBindVertexArray(quadVAO_);
@@ -256,7 +272,9 @@ bool PostProcessor::createResources(int width, int height) {
 
     glGenTextures(1, &colorTexture_);
     glBindTexture(GL_TEXTURE_2D, colorTexture_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    // Inicializar a cero para evitar ghosting de basura de VRAM
+    std::vector<GLubyte> zeroData(width * height * 4, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, zeroData.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -276,8 +294,8 @@ bool PostProcessor::createResources(int width, int height) {
 
         glGenTextures(1, &pingTextures_[i]);
         glBindTexture(GL_TEXTURE_2D, pingTextures_[i]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                     nullptr);
+        // Inicializar a cero para evitar ghosting
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, zeroData.data());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -361,11 +379,17 @@ bool PostProcessor::ensureShader() {
 }
 
 bool PostProcessor::loadEffectShaders() {
-    // Load common shader source
+    // Load common shader sources
     commonShaderSource_ = loadShaderFile("shaders/post_effects/post_common.glsl");
     if (commonShaderSource_.empty()) {
         std::cerr << "PostProcessor: Failed to load common shader source" << std::endl;
         return false;
+    }
+    
+    // Load mirror common shader source
+    std::string mirrorCommonSource = loadShaderFile("shaders/post_effects/mirror_common.glsl");
+    if (mirrorCommonSource.empty()) {
+        std::cerr << "PostProcessor: Failed to load mirror_common.glsl (optional)" << std::endl;
     }
 
     // Define effect file paths in mode order
@@ -392,7 +416,12 @@ bool PostProcessor::loadEffectShaders() {
         "shaders/post_effects/effect_pixel_tiles.glsl",
         "shaders/post_effects/effect_sobel_edge.glsl",
         "shaders/post_effects/effect_kaleidoscope_mirror.glsl",
-        "shaders/post_effects/effect_sobel_advanced.glsl"
+        "shaders/post_effects/effect_sobel_advanced.glsl",
+        "shaders/post_effects/effect_ring_distortion.glsl",
+        "shaders/post_effects/effect_mirror_horizontal.glsl",
+        "shaders/post_effects/effect_mirror_vertical.glsl",
+        "shaders/post_effects/effect_mirror_kaleido.glsl",
+        "shaders/post_effects/effect_mirror_rorschach.glsl"
     };
 
     effectShaders_.resize(effectPaths_.size());
@@ -406,7 +435,7 @@ bool PostProcessor::loadEffectShaders() {
             return false;
         }
 
-        std::string fullSource = combineShaderSources(commonShaderSource_, effectSource);
+        std::string fullSource = combineShaderSources(commonShaderSource_, mirrorCommonSource, effectSource);
         
         auto shader = std::make_unique<Shader>();
         if (!shader->loadFromSource(kPostVertexShader, fullSource.c_str())) {
@@ -434,4 +463,86 @@ Shader* PostProcessor::getEffectShader(int mode) {
         return nullptr;
     }
     return effectShaders_[mode].get();
+}
+
+// Hot-reload implementation
+void PostProcessor::enableHotReload(bool enabled) {
+    if (hotReloadEnabled_ == enabled) return;
+    
+    hotReloadEnabled_ = enabled;
+    
+    if (enabled) {
+        lastShaderModifyTime_ = std::filesystem::file_time_type::min();
+        shouldWatchFiles_ = true;
+        fileWatcherThread_ = std::thread(&PostProcessor::watchShaderFiles, this);
+        std::cout << "Hot-reload enabled for post-processing shaders" << std::endl;
+    } else {
+        shouldWatchFiles_ = false;
+        if (fileWatcherThread_.joinable()) {
+            fileWatcherThread_.join();
+        }
+        std::cout << "Hot-reload disabled for post-processing shaders" << std::endl;
+    }
+}
+
+void PostProcessor::watchShaderFiles() {
+    while (shouldWatchFiles_) {
+        std::this_thread::sleep_for(WATCH_INTERVAL);
+        
+        if (!hotReloadEnabled_ || !initialized_) continue;
+        
+        if (shouldReloadShaders()) {
+            reloadShaders();
+        }
+    }
+}
+
+bool PostProcessor::shouldReloadShaders() {
+    try {
+        std::filesystem::file_time_type latestTime = std::filesystem::file_time_type::min();
+        
+        // Check all post-effect shader files
+        for (const auto& shaderPath : effectPaths_) {
+            if (std::filesystem::exists(shaderPath)) {
+                auto currentTime = std::filesystem::last_write_time(shaderPath);
+                if (currentTime > latestTime) {
+                    latestTime = currentTime;
+                }
+            }
+        }
+        
+        // Also check common shader
+        std::string commonPath = "shaders/post_effects/post_common.glsl";
+        if (std::filesystem::exists(commonPath)) {
+            auto currentTime = std::filesystem::last_write_time(commonPath);
+            if (currentTime > latestTime) {
+                latestTime = currentTime;
+            }
+        }
+        
+        if (latestTime > lastShaderModifyTime_) {
+            lastShaderModifyTime_ = latestTime;
+            return true;
+        }
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Filesystem error watching post-process shaders: " << e.what() << std::endl;
+    }
+    
+    return false;
+}
+
+void PostProcessor::reloadShaders() {
+    std::cout << "Reloading post-processing shaders..." << std::endl;
+    
+    // Clear existing shaders
+    effectShaders_.clear();
+    commonShaderSource_.clear();
+    
+    // Reload all shaders
+    if (!loadEffectShaders()) {
+        std::cerr << "Failed to reload post-processing shaders" << std::endl;
+        return;
+    }
+    
+    std::cout << "Post-processing shaders reloaded successfully" << std::endl;
 }

@@ -122,6 +122,10 @@ const char* const Visualizer::kPostProcessModes[] = {
     "Kaleidoscope Mirror",
     "Advanced Sobel",
     "Ring Distortion",
+    "Mirror Horizontal",
+    "Mirror Vertical", 
+    "Mirror Kaleidoscope",
+    "Mirror Rorschach",
     "Random Cycle"
 };
 
@@ -271,6 +275,17 @@ void Visualizer::handleKeyboardInput() {
         }
     }
 
+    // Check for 'R' key to reload post-processing shaders
+    if (glfwGetKey(window_, GLFW_KEY_R) == GLFW_PRESS) {
+        static double lastPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastPress > 0.5) { // 500ms debounce
+            postProcessor_.reloadShaders();
+            std::cout << "Post-processing shaders reloaded via R key" << std::endl;
+            lastPress = currentTime;
+        }
+    }
+
     // Check for 'K' key to activate kaleidoscope mode
     if (glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS) {
         static double lastPress = 0.0;
@@ -407,6 +422,19 @@ void Visualizer::renderMainImGuiWindow() {
     ImGui::SameLine();
     if (ImGui::Button("🔄 Reload Shaders")) {
         reloadProceduralShaders();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("🔄 Reload Post FX")) {
+        postProcessor_.reloadShaders();
+        std::cout << "Post-processing shaders reloaded via button" << std::endl;
+    }
+    ImGui::SameLine();
+    bool hotReloadPP = postProcessor_.isHotReloadEnabled();
+    if (ImGui::Checkbox("Hot-Reload PP", &hotReloadPP)) {
+        postProcessor_.enableHotReload(hotReloadPP);
+    }
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Auto-reload post-processing shaders when files change");
     }
 
     ImGui::Spacing();
@@ -1286,9 +1314,6 @@ void Visualizer::renderCurrentEffectsDisplay() {
             }
             
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.6f, 0.4f, 1.0f));
-            ImGui::Text("%.0f", 5.0f + midiController_->getControlValue(17) * 195.0f); ImGui::NextColumn();
-            
-            ImGui::SameLine();
             ImGui::Text("%s", postProcessModeName);
             ImGui::PopStyleColor();
             

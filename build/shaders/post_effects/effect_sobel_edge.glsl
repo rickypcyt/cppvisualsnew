@@ -2,7 +2,7 @@
 
 void main() {
     vec4 sceneColor = texture(uScene, vUV);
-    vec3 col;
+    vec3 col = sceneColor.rgb;
     
     /*** Sobel kernels ***/
     // Note: GLSL's mat3 is COLUMN-major ->  mat3[col][row]
@@ -22,24 +22,18 @@ void main() {
     {
         for(int j = -1; j <= 1; j++)
         {
-            // texture coordinates should be between 0.0 and 1.0
             float x = (fragCoord.x + float(i))/uResolution.x;	
     		float y =  (fragCoord.y + float(j))/uResolution.y;
             
-            // Convolve kernels with image
             sumX += length(texture( uScene, vec2(x, y) ).xyz) * float(sobelX[1+i][1+j]);
             sumY += length(texture( uScene, vec2(x, y) ).xyz) * float(sobelY[1+i][1+j]);
         }
     }
     
     float g = abs(sumX) + abs(sumY);
-    //g = sqrt((sumX*sumX) + (sumY*sumY));
     
-    if(g > 1.0)
-        col = vec3(1.0,1.0,1.0);
-    else
-        col = col * 0.0;
+    vec3 edgeColor = (g > 1.0) ? vec3(1.0) : vec3(0.0);
     
-    vec3 result = mix(sceneColor.rgb, col, uStrength);
+    vec3 result = mix(sceneColor.rgb, edgeColor, uStrength);
     FragColor = vec4(result, sceneColor.a);
 }

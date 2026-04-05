@@ -4,6 +4,9 @@
 #include <memory>
 #include <array>
 #include <vector>
+#include <thread>
+#include <atomic>
+#include <filesystem>
 
 #include "shader.h"
 
@@ -29,6 +32,12 @@ public:
 
     bool isInitialized() const { return initialized_; }
 
+    // Hot-reload methods
+    void enableHotReload(bool enabled);
+    bool isHotReloadEnabled() const { return hotReloadEnabled_; }
+    void reloadShaders();
+    bool shouldReloadShaders();
+
 private:
     bool createResources(int width, int height);
     void destroyResources();
@@ -52,6 +61,15 @@ private:
     std::string commonShaderSource_;
     std::vector<std::unique_ptr<Shader>> effectShaders_;
     std::vector<std::string> effectPaths_;
+
+    // Hot-reload state
+    std::atomic<bool> hotReloadEnabled_{false};
+    std::atomic<bool> shouldWatchFiles_{false};
+    std::thread fileWatcherThread_;
+    std::filesystem::file_time_type lastShaderModifyTime_;
+    static constexpr auto WATCH_INTERVAL = std::chrono::milliseconds(500);
+
+    void watchShaderFiles();
 
     bool loadEffectShaders();
     Shader* getEffectShader(int mode);
