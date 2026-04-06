@@ -95,7 +95,8 @@ const char* const Visualizer::kProceduralModes[] = {
     "Head", "Metal Gyroid Hall", "Hex Kaleidoscope", "HSV Color Shift",
     "Crypt Roots", "Breathing", "Evolution Noise", "Phi Fields",
     "Fractal Infinity", "Walker", "Weird Creature", "Anaglyph Assembly",
-    "Message Tunnel", "Pouet Grid", "Cylinder Repeat", "Power Particle", "Flopine"
+    "Message Tunnel", "Pouet Grid", "Cylinder Repeat", "Power Particle", "Flopine",
+    "Eiyeron Deform"
 };
 
 const char* const Visualizer::kPostProcessModes[] = {
@@ -843,12 +844,22 @@ void Visualizer::renderProceduralWindow() {
                         for (int i = 0; i < static_cast<int>(effectList.size()); ++i) {
                             bool selected = (uiIndex == i);
                             if (ImGui::Selectable(effectList.ptrs[i], selected)) {
-                                slot.mode = effectList.getModeIndex(i);
+                                int newMode = effectList.getModeIndex(i);
+                                std::cout << "[UI DEBUG] Selected effect '" << effectList.ptrs[i] 
+                                          << "' -> mode=" << newMode << " (uiIndex=" << i << ")" << std::endl;
+                                std::cout << "[UI DEBUG] Before: slot.mode=" << slot.mode 
+                                          << " proceduralSlots_[0].mode=" << proceduralSlots_[0].mode << std::endl;
+                                slot.mode = newMode;
+                                std::cout << "[UI DEBUG] After: slot.mode=" << slot.mode 
+                                          << " proceduralSlots_[0].mode=" << proceduralSlots_[0].mode << std::endl;
                                 if (slotIndex == 0) {
-                                    proceduralLayer_.setMode(slot.mode);
-                                    proceduralLayerMode_ = slot.mode;
-                                    slot.enabled = true;
+                                    // Explicitly update proceduralSlots_[0] since slot reference may not work in ImGui lambda
+                                    proceduralSlots_[0].mode = newMode;
+                                    proceduralSlots_[0].enabled = true;
+                                    proceduralLayer_.setMode(newMode);
+                                    proceduralLayerMode_ = newMode;
                                     showProceduralLayer_ = true;
+                                    std::cout << "[UI DEBUG] Updated proceduralSlots_[0].mode=" << proceduralSlots_[0].mode << std::endl;
                                 }
                                 saveCurrentSettings();
                             }

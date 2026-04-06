@@ -3,29 +3,29 @@
         "autoRandomize": false,
         "autoRandomizeRgb": false,
         "onsetColorCycling": false,
-        "randomInterval": 1.0,
+        "randomInterval": 0.5,
         "rgbRandomInterval": 5.0
     },
     "audio": {
-        "inputGain": 5.0,
-        "manualBPM": 140.0,
-        "manualBPMMode": true,
-        "selectedDevice": 4,
-        "visualSensitivity": 1.7300000190734863
+        "inputGain": 1.0,
+        "manualBPM": 120.0,
+        "manualBPMMode": false,
+        "selectedDevice": -1,
+        "visualSensitivity": 1.0
     },
     "colors": {
-        "blend": 0.47999998927116394,
-        "hueSeed": 0.4296993017196655,
-        "paletteIndex": 1,
+        "blend": 0.6200000047683716,
+        "hueSeed": 0.16709424555301666,
+        "paletteIndex": 0,
         "primary": [
-            0.5799999833106995,
-            0.11999999731779099,
-            0.1599999964237213
+            0.10000000149011612,
+            0.23999999463558197,
+            0.5799999833106995
         ],
         "secondary": [
-            0.9399999976158142,
-            0.36000001430511475,
-            0.30000001192092896
+            0.2800000011920929,
+            0.699999988079071,
+            0.9800000190734863
         ]
     },
     "hotReloadEnabled": false,
@@ -34,11 +34,11 @@
     },
     "postProcess": {
         "randomEnabled": false,
-        "randomInterval": 1.0,
+        "randomInterval": 5.0,
         "slots": [
             {
                 "enabled": true,
-                "mode": 22,
+                "mode": 0,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -47,8 +47,8 @@
                 "strength": 1.0
             },
             {
-                "enabled": false,
-                "mode": 7,
+                "enabled": true,
+                "mode": 0,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -57,8 +57,8 @@
                 "strength": 1.0
             },
             {
-                "enabled": false,
-                "mode": 20,
+                "enabled": true,
+                "mode": 0,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -67,8 +67,8 @@
                 "strength": 1.0
             },
             {
-                "enabled": false,
-                "mode": 6,
+                "enabled": true,
+                "mode": 0,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -77,8 +77,8 @@
                 "strength": 1.0
             },
             {
-                "enabled": false,
-                "mode": 16,
+                "enabled": true,
+                "mode": 0,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -90,7 +90,7 @@
     },
     "procedural": {
         "randomEnabled": false,
-        "randomInterval": 3.4000000953674316
+        "randomInterval": 8.0
     },
     "proceduralSlots": {
         "slots": [
@@ -100,9 +100,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Voxel Path Tracer",
+                "effectName": "Flopine",
                 "enabled": true,
-                "mode": 22,
+                "mode": 45,
                 "opacity": 1.0
             },
             {
@@ -111,7 +111,7 @@
                     1.0,
                     1.0
                 ],
-                "enabled": true,
+                "enabled": false,
                 "mode": 0,
                 "opacity": 1.0
             },
@@ -149,23 +149,23 @@
     },
     "random": {
         "postProcessEnabled": false,
-        "postProcessInterval": 1.0,
+        "postProcessInterval": 5.0,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
         "proceduralEnabled": false,
-        "proceduralInterval": 3.4000000953674316,
+        "proceduralInterval": 8.0,
         "proceduralSlotEnabled": false,
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
-        false,
-        false,
+        true,
+        true,
         true
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Voxel Path Tracer",
-        "proceduralLayerMode": 22,
+        "proceduralLayerEffectName": "Flopine",
+        "proceduralLayerMode": 45,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,

@@ -21,7 +21,7 @@ SettingsManager::SettingsManager() {
     showProceduralLayer_ = true;
     proceduralLayerDebug_ = false;
     proceduralLayerOpacity_ = 0.85f;
-    proceduralLayerMode_ = 1; // ASCII Ocean (safe default within 0-31 range)
+    proceduralLayerMode_ = 1; // ASCII Ocean (safe default within 0-46 range)
 
     // RGB channels always enabled by default
     rgbChannelEnabled_ = {true, true, true};
@@ -61,8 +61,8 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (ui.contains("proceduralLayerOpacity")) proceduralLayerOpacity_ = ui["proceduralLayerOpacity"];
             if (ui.contains("proceduralLayerMode")) {
                 int loadedMode = ui["proceduralLayerMode"];
-                // Clamp to valid range (0-43 for 44 modes)
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 43);
+                // Clamp to valid range (0-46 for all modes)
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 46);
             }
         }
 
@@ -111,13 +111,13 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                             // Fallback: try to load by index for backwards compatibility
                             if (slot.contains("mode")) {
                                 int loadedMode = slot["mode"];
-                                proceduralSlots_[i].mode = std::clamp(loadedMode, 0, 45);
+                                proceduralSlots_[i].mode = std::clamp(loadedMode, 0, 46);
                             }
                         }
                     } else if (slot.contains("mode")) {
                         // Legacy: load by index
                         int loadedMode = slot["mode"];
-                        proceduralSlots_[i].mode = std::clamp(loadedMode, 0, 45);
+                        proceduralSlots_[i].mode = std::clamp(loadedMode, 0, 46);
                     }
                     
                     if (slot.contains("opacity")) proceduralSlots_[i].opacity = slot["opacity"];
@@ -144,12 +144,12 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                 } else {
                     // Fallback to index
                     int loadedMode = j["ui"]["proceduralLayerMode"];
-                    proceduralLayerMode_ = std::clamp(loadedMode, 0, 45);
+                    proceduralLayerMode_ = std::clamp(loadedMode, 0, 46);
                 }
             } else {
                 // Legacy: load by index
                 int loadedMode = j["ui"]["proceduralLayerMode"];
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 45);
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 46);
             }
         }
 
@@ -257,7 +257,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["ui"]["showCurrentEffects"] = showCurrentEffects_;
         j["ui"]["proceduralLayerDebug"] = proceduralLayerDebug_;
         j["ui"]["proceduralLayerOpacity"] = proceduralLayerOpacity_;
-        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 45);
+        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 46);
         // Also save effect name for robustness
         std::string mainEffectName = GetEffectRegistry().getEffectNameByIndex(proceduralLayerMode_);
         if (!mainEffectName.empty()) {
@@ -280,7 +280,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
             json slot;
             slot["enabled"] = proceduralSlots_[i].enabled;
             // Save both index (for compatibility) and name (for robustness)
-            int modeIndex = std::clamp(proceduralSlots_[i].mode, 0, 45);
+            int modeIndex = std::clamp(proceduralSlots_[i].mode, 0, 46);
             slot["mode"] = modeIndex;
             std::string effectName = GetEffectRegistry().getEffectNameByIndex(modeIndex);
             if (!effectName.empty()) {

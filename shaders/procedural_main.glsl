@@ -99,6 +99,8 @@ void main() {
         color = renderPowerParticle(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 45) {
         color = renderFlopine(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 46) {
+        color = renderEiyeronDeform(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else {
         color = renderDomainWarpedFractal(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }

@@ -32,7 +32,7 @@ void main() {
 }
 )";
 
-const std::array<const char*, 26> kProceduralShaderFiles = {
+const std::array<const char*, 27> kProceduralShaderFiles = {
     "procedural_header.glsl",
     "procedural_helpers.glsl",
     "procedural_shadertoy_bridge.glsl",
@@ -58,6 +58,7 @@ const std::array<const char*, 26> kProceduralShaderFiles = {
     "procedural_head.glsl",
     "procedural_power_particle.glsl",
     "procedural_flopine.glsl",
+    "procedural_eiyeron.glsl",
     "procedural_main.glsl"
 };
 
@@ -456,6 +457,22 @@ bool ModularLayer::ensureKaleidoscopeShader() {
 void ModularLayer::render(const LayerContext& context, bool clearFramebuffer) {
     if (!initialized_ || (!enabled_ && !debugPreview_)) {
         return;
+    }
+
+    // DEBUG: Log mode being rendered (only every 60 frames to avoid spam)
+    static int frameCount = 0;
+    static int lastLoggedMode = -1;
+    frameCount++;
+    if (frameCount % 60 == 0 || mode_ != lastLoggedMode) {
+        const char* modeName = "Unknown";
+        switch(mode_) {
+            case 0: modeName = "None"; break;
+            case 45: modeName = "Flopine"; break;
+            case 46: modeName = "Eiyeron Deform"; break;
+            default: modeName = "Other"; break;
+        }
+        std::cout << "[LAYER] Mode=" << mode_ << " (" << modeName << ")" << std::endl;
+        lastLoggedMode = mode_;
     }
 
     Shader* activeShader = nullptr;

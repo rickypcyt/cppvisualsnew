@@ -2855,9 +2855,12 @@ void Visualizer::selectRandomProcedural() {
 void Visualizer::syncProceduralLayerWithSlot1() {
     if (kMaxProceduralSlots > 0 && proceduralSlots_[0].enabled) {
         // Sync procedural layer with Slot 1
+        std::cout << "[SYNC DEBUG] Before sync: proceduralSlots_[0].mode=" << proceduralSlots_[0].mode 
+                  << " proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
         proceduralLayerMode_ = proceduralSlots_[0].mode;
         proceduralLayerOpacity_ = proceduralSlots_[0].opacity;
         proceduralLayer_.setMode(proceduralLayerMode_);
+        std::cout << "[SYNC DEBUG] After sync: proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
         showProceduralLayer_ = true;
     } else {
         // Fallback to global values if Slot 1 is disabled
@@ -2871,7 +2874,9 @@ void Visualizer::updateRandomProcedural(float deltaTime) {
     randomProceduralTimer_ += deltaTime;
     
     if (randomProceduralTimer_ >= randomProceduralInterval_) {
+        std::cout << "[RANDOM DEBUG] Selecting random procedural (current=" << currentRandomProcedural_ << ")" << std::endl;
         selectRandomProcedural();
+        std::cout << "[RANDOM DEBUG] New random mode=" << currentRandomProcedural_ << std::endl;
         randomProceduralTimer_ = 0.0f;
     }
 }
