@@ -7,10 +7,10 @@
         "rgbRandomInterval": 5.0
     },
     "audio": {
-        "inputGain": 1.0,
+        "inputGain": 5.0,
         "manualBPM": 120.0,
         "manualBPMMode": false,
-        "selectedDevice": -1,
+        "selectedDevice": 7,
         "visualSensitivity": 1.0
     },
     "colors": {
@@ -100,9 +100,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Flopine",
+                "effectName": "Eiyeron Deform",
                 "enabled": true,
-                "mode": 45,
+                "mode": 46,
                 "opacity": 1.0
             },
             {
@@ -164,8 +164,8 @@
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Flopine",
-        "proceduralLayerMode": 45,
+        "proceduralLayerEffectName": "Eiyeron Deform",
+        "proceduralLayerMode": 46,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,
