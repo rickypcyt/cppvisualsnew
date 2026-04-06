@@ -17,6 +17,7 @@ struct EffectMetadata {
     int modeIndex;              // uMode value passed to shader
     std::string description;    // Optional description
     std::string author;         // Optional author
+    bool enabled = true;        // Whether this effect is enabled for randomization and UI
     
     bool isValid() const { return !name.empty() && modeIndex >= 0; }
 };

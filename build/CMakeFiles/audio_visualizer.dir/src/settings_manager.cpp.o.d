@@ -155,6 +155,13 @@ CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o: \
  /usr/include/c++/15.2.1/bits/atomic_lockfree_defines.h \
  /usr/include/c++/15.2.1/backward/auto_ptr.h \
  /usr/include/c++/15.2.1/pstl/glue_memory_defs.h \
+ /usr/include/c++/15.2.1/unordered_map \
+ /usr/include/c++/15.2.1/bits/unordered_map.h \
+ /usr/include/c++/15.2.1/bits/hashtable.h \
+ /usr/include/c++/15.2.1/bits/hashtable_policy.h \
+ /usr/include/c++/15.2.1/bits/enable_special_members.h \
+ /usr/include/c++/15.2.1/bits/node_handle.h \
+ /usr/include/c++/15.2.1/bits/erase_if.h \
  /home/ricky/coding/proyects/visuals/src/visualizer.h \
  /usr/include/GL/glew.h /usr/include/c++/15.2.1/cstdint \
  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stdint.h \
@@ -235,14 +242,7 @@ CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o: \
  /home/ricky/coding/proyects/visuals/src/midi_controller.h \
  /usr/include/c++/15.2.1/functional \
  /usr/include/c++/15.2.1/bits/std_function.h \
- /usr/include/c++/15.2.1/unordered_map \
- /usr/include/c++/15.2.1/bits/unordered_map.h \
- /usr/include/c++/15.2.1/bits/hashtable.h \
- /usr/include/c++/15.2.1/bits/hashtable_policy.h \
- /usr/include/c++/15.2.1/bits/enable_special_members.h \
- /usr/include/c++/15.2.1/bits/node_handle.h \
- /usr/include/c++/15.2.1/bits/erase_if.h /usr/include/c++/15.2.1/mutex \
- /usr/include/c++/15.2.1/bits/std_mutex.h \
+ /usr/include/c++/15.2.1/mutex /usr/include/c++/15.2.1/bits/std_mutex.h \
  /usr/include/c++/15.2.1/bits/unique_lock.h \
  /home/ricky/coding/proyects/visuals/src/shader_loader.h \
  /usr/include/c++/15.2.1/fstream \

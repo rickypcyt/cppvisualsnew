@@ -21,7 +21,7 @@ SettingsManager::SettingsManager() {
     showProceduralLayer_ = true;
     proceduralLayerDebug_ = false;
     proceduralLayerOpacity_ = 0.85f;
-    proceduralLayerMode_ = 1; // ASCII Ocean (safe default within 0-46 range)
+    proceduralLayerMode_ = 0; // Default to None (0) - user must select a shader
 
     // RGB channels always enabled by default
     rgbChannelEnabled_ = {true, true, true};
@@ -232,6 +232,30 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             }
         }
 
+        // Load per-shader enabled states
+        if (j.contains("proceduralShaderEnabled")) {
+            const auto& shaderStates = j["proceduralShaderEnabled"];
+            proceduralShaderEnabled_.clear();
+            for (auto& [key, value] : shaderStates.items()) {
+                int modeIndex = std::stoi(key);
+                proceduralShaderEnabled_[modeIndex] = value.get<bool>();
+            }
+        }
+
+        // Validate loaded mode - if current mode is disabled, switch to None or next enabled
+        if (proceduralLayerMode_ != 0) {
+            auto it = proceduralShaderEnabled_.find(proceduralLayerMode_);
+            if (it != proceduralShaderEnabled_.end() && !it->second) {
+                // Current mode is disabled, switch to None
+                std::cout << "[SETTINGS] Loaded mode " << proceduralLayerMode_ << " is disabled, switching to None" << std::endl;
+                proceduralLayerMode_ = 0;
+                // Also update slot 0
+                if (!proceduralSlots_.empty()) {
+                    proceduralSlots_[0].mode = 0;
+                }
+            }
+        }
+
         std::cout << "Settings loaded successfully from: " << filename << std::endl;
         return true;
 
@@ -333,6 +357,13 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         // Save RGB channel settings
         j["rgbChannels"] = rgbChannelEnabled_;
         
+        // Save per-shader enabled states
+        json shaderStates;
+        for (const auto& [modeIndex, enabled] : proceduralShaderEnabled_) {
+            shaderStates[std::to_string(modeIndex)] = enabled;
+        }
+        j["proceduralShaderEnabled"] = shaderStates;
+        
         j["midi"]["tempoScale"] = midiTempoScale_;
 
         std::ofstream file(filename);
@@ -370,6 +401,26 @@ void SettingsManager::setPostProcessSlots(const std::array<PostProcessSlot, 5>& 
 
 void SettingsManager::setProceduralSlots(const std::array<ProceduralSlot, 5>& slots) {
     proceduralSlots_ = slots;
+}
+
+bool SettingsManager::getProceduralShaderEnabled(int modeIndex) const {
+    auto it = proceduralShaderEnabled_.find(modeIndex);
+    if (it != proceduralShaderEnabled_.end()) {
+        return it->second;
+    }
+    return true; // Default to enabled if not explicitly set
+}
+
+void SettingsManager::setProceduralShaderEnabled(int modeIndex, bool enabled) {
+    proceduralShaderEnabled_[modeIndex] = enabled;
+}
+
+std::unordered_map<int, bool> SettingsManager::getAllProceduralShaderEnabled() const {
+    return proceduralShaderEnabled_;
+}
+
+void SettingsManager::setAllProceduralShaderEnabled(const std::unordered_map<int, bool>& states) {
+    proceduralShaderEnabled_ = states;
 }
 
 void SettingsManager::updateFromVisualizerState() {

@@ -1,8 +1,7 @@
 // Funciones comunes para efectos de espejo
 // Incluir este archivo en los shaders de mirror específicos
 
-uniform float uIntensity;    // 0.0 - 1.0
-uniform float uTime;
+// Note: uStrength, uTime, uScene are already declared in post_common.glsl
 
 // Espejo horizontal: mitad derecha refleja izquierda
 vec2 horizontalMirror(vec2 uv) {
@@ -58,7 +57,7 @@ vec2 rorschachMirror(vec2 uv, float time) {
 }
 
 // Función genérica para aplicar mirror según modo
-vec4 applyMirrorEffect(vec2 uv, int mode, float intensity, float time) {
+vec4 applyMirrorEffect(vec2 uv, int mode, float strength, float time) {
     vec2 mirroredUV = uv;
     
     if (mode == 0) {
@@ -74,7 +73,7 @@ vec4 applyMirrorEffect(vec2 uv, int mode, float intensity, float time) {
     vec4 mirrored = texture(uScene, mirroredUV);
     vec4 original = texture(uScene, uv);
     
-    vec4 result = mix(original, mirrored, intensity);
+    vec4 result = mix(original, mirrored, strength);
     
     // Línea divisoria para modos 0 y 1
     if (mode <= 1) {

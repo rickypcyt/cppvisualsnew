@@ -1012,6 +1012,9 @@ bool Visualizer::initialize(int width, int height) {
     for (int i = 0; i < 3; ++i) {
         rgbChannelEnabled_[i] = settingsManager_->getRgbChannelEnabled(i);
     }
+    
+    // Apply per-shader enabled states
+    proceduralShaderEnabled_ = settingsManager_->getAllProceduralShaderEnabled();
 
     if (!setupOpenGL()) {
         return false;
@@ -1368,23 +1371,31 @@ void Visualizer::beginFrame() {
             static double lastPostProcessToggle = 0.0;
             if ((now - lastModeToggle) > 0.15) {
                 if (glfwGetKey(window_, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-                    // Change Slot 1 mode
+                    // Change Slot 1 mode - skip disabled shaders
                     if (kMaxProceduralSlots > 0) {
-                        proceduralSlots_[0].mode = (proceduralSlots_[0].mode + 1) % kProceduralModeCount;
-                        proceduralLayerMode_ = proceduralSlots_[0].mode;
-                        proceduralLayer_.setMode(proceduralLayerMode_);
-                        proceduralSlots_[0].enabled = true; // Always ensure Slot 1 is enabled
-                        showProceduralLayer_ = true;
+                        int currentMode = proceduralSlots_[0].mode;
+                        int newMode = findNextEnabledMode(currentMode, true); // forward
+                        if (newMode != currentMode) {
+                            proceduralSlots_[0].mode = newMode;
+                            proceduralLayerMode_ = newMode;
+                            proceduralLayer_.setMode(proceduralLayerMode_);
+                            proceduralSlots_[0].enabled = true;
+                            showProceduralLayer_ = true;
+                        }
                     }
                     lastModeToggle = now;
                 } else if (glfwGetKey(window_, GLFW_KEY_LEFT) == GLFW_PRESS) {
-                    // Change Slot 1 mode
+                    // Change Slot 1 mode - skip disabled shaders
                     if (kMaxProceduralSlots > 0) {
-                        proceduralSlots_[0].mode = (proceduralSlots_[0].mode + kProceduralModeCount - 1) % kProceduralModeCount;
-                        proceduralLayerMode_ = proceduralSlots_[0].mode;
-                        proceduralLayer_.setMode(proceduralLayerMode_);
-                        proceduralSlots_[0].enabled = true; // Always ensure Slot 1 is enabled
-                        showProceduralLayer_ = true;
+                        int currentMode = proceduralSlots_[0].mode;
+                        int newMode = findNextEnabledMode(currentMode, false); // backward
+                        if (newMode != currentMode) {
+                            proceduralSlots_[0].mode = newMode;
+                            proceduralLayerMode_ = newMode;
+                            proceduralLayer_.setMode(proceduralLayerMode_);
+                            proceduralSlots_[0].enabled = true;
+                            showProceduralLayer_ = true;
+                        }
                     }
                     lastModeToggle = now;
                 }
@@ -1811,6 +1822,11 @@ void Visualizer::updateSettingsFromCurrentState() {
     // Update RGB channels
     for (int i = 0; i < 3; ++i) {
         settingsManager_->setRgbChannelEnabled(i, rgbChannelEnabled_[i]);
+    }
+    
+    // Update per-shader enabled states
+    for (const auto& [modeIndex, enabled] : proceduralShaderEnabled_) {
+        settingsManager_->setProceduralShaderEnabled(modeIndex, enabled);
     }
 }
 
@@ -2808,10 +2824,15 @@ void Visualizer::updateRandomPostProcess(float deltaTime) {
 
 // Random Procedural Layer Methods
 void Visualizer::initializeRandomProcedural() {
-    // Initialize available procedural modes (exclude "None")
+    // Initialize available procedural modes (exclude "None" and disabled shaders)
     availableProceduralModes_.clear();
     for (int i = 1; i < kProceduralModeCount; ++i) { // Skip "None"(0)
-        availableProceduralModes_.push_back(i);
+        // Check if shader is enabled (default to true if not in map)
+        auto it = proceduralShaderEnabled_.find(i);
+        bool enabled = (it == proceduralShaderEnabled_.end()) ? true : it->second;
+        if (enabled) {
+            availableProceduralModes_.push_back(i);
+        }
     }
     
     randomProceduralTimer_ = 0.0f;
@@ -3581,4 +3602,65 @@ void Visualizer::reloadProceduralShaders() {
     std::cout << "Reloading procedural shaders..." << std::endl;
     proceduralLayer_.reloadShaders();
     std::cout << "Shaders reloaded successfully!" << std::endl;
+}
+
+bool Visualizer::isProceduralShaderEnabled(int modeIndex) const {
+    auto it = proceduralShaderEnabled_.find(modeIndex);
+    if (it != proceduralShaderEnabled_.end()) {
+        return it->second;
+    }
+    return true; // Default to enabled if not explicitly set
+}
+
+void Visualizer::setProceduralShaderEnabled(int modeIndex, bool enabled) {
+    proceduralShaderEnabled_[modeIndex] = enabled;
+    
+    // If disabling the current mode, check if we need to switch to None
+    if (!enabled) {
+        int currentMode = proceduralSlots_[0].mode;
+        if (currentMode == modeIndex) {
+            // Current mode is being disabled, switch to None (0)
+            proceduralSlots_[0].mode = 0;
+            proceduralSlots_[0].enabled = true;
+            proceduralLayerMode_ = 0;
+            proceduralLayer_.setMode(0);
+            showProceduralLayer_ = true;
+            std::cout << "[SHADER] Current mode " << modeIndex << " disabled, switching to None" << std::endl;
+        }
+    }
+}
+
+int Visualizer::findNextEnabledMode(int currentMode, bool forward) const {
+    // If no shaders are enabled, return None (0)
+    bool anyEnabled = false;
+    for (int i = 1; i < kProceduralModeCount; ++i) {
+        if (isProceduralShaderEnabled(i)) {
+            anyEnabled = true;
+            break;
+        }
+    }
+    if (!anyEnabled) {
+        return 0; // None
+    }
+    
+    int step = forward ? 1 : -1;
+    int newMode = currentMode;
+    
+    // Search for next enabled mode
+    for (int attempts = 0; attempts < kProceduralModeCount; ++attempts) {
+        newMode = (newMode + step + kProceduralModeCount) % kProceduralModeCount;
+        
+        // Mode 0 (None) is always valid
+        if (newMode == 0) {
+            return 0;
+        }
+        
+        // Check if this mode is enabled
+        if (isProceduralShaderEnabled(newMode)) {
+            return newMode;
+        }
+    }
+    
+    // Fallback to None if no enabled shader found
+    return 0;
 }

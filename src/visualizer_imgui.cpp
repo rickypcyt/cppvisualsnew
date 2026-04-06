@@ -18,31 +18,47 @@
 
 #include "shader_loader.h"
 
+// Forward declaration for shader enabled check
+class Visualizer;
+
 // Structure to hold effect info for ImGui with proper index mapping
 struct EffectListForImGui {
     std::vector<std::string> names;      // Display names for ImGui
     std::vector<int> modeIndices;        // Actual mode indices (can be sparse)
     std::vector<const char*> ptrs;       // Pointers for ImGui
+    std::vector<bool> enabledStates;     // Enabled state for each effect
     
-    void rebuild() {
+    void rebuild(const Visualizer* visualizer = nullptr) {
         auto& registry = GetEffectRegistry();
         names.clear();
         modeIndices.clear();
         ptrs.clear();
+        enabledStates.clear();
         
         // Always add "None" at index 0 with mode 0
         names.push_back("None");
         modeIndices.push_back(0);
+        enabledStates.push_back(true);
         
         if (!registry.empty()) {
             auto effects = registry.getAllEffects();
             for (const auto& effect : effects) {
-                names.push_back(effect.name);
-                modeIndices.push_back(effect.modeIndex);
+                // Check if this shader is enabled (default to true)
+                bool enabled = true;
+                if (visualizer && effect.modeIndex > 0) {
+                    enabled = visualizer->isProceduralShaderEnabled(effect.modeIndex);
+                }
+                // Only add enabled shaders to the list
+                if (enabled) {
+                    names.push_back(effect.name);
+                    modeIndices.push_back(effect.modeIndex);
+                    enabledStates.push_back(enabled);
+                }
             }
         }
         
         // Build pointer array
+        ptrs.clear();
         for (const auto& name : names) {
             ptrs.push_back(name.c_str());
         }
@@ -76,8 +92,21 @@ static EffectListForImGui& GetEffectListForImGui() {
     
     auto& registry = GetEffectRegistry();
     if (!initialized || (registry.empty() == false && list.size() <= 1)) {
-        list.rebuild();
+        // Pass nullptr on first init; will be rebuilt later with visualizer
+        list.rebuild(nullptr);
         initialized = true;
+    }
+    
+    return list;
+}
+
+// Helper to get effect list filtered by enabled state
+static EffectListForImGui& GetEffectListForImGui(const Visualizer* visualizer) {
+    static EffectListForImGui list;
+    
+    auto& registry = GetEffectRegistry();
+    if (!registry.empty()) {
+        list.rebuild(visualizer);
     }
     
     return list;
@@ -836,7 +865,7 @@ void Visualizer::renderProceduralWindow() {
                 if (slot.enabled) {
                     // Mode Selection with proper index mapping
                     ImGui::Text("Effect Mode:");
-                    auto& effectList = GetEffectListForImGui();
+                    auto& effectList = GetEffectListForImGui(this);
                     int currentMode = slot.mode;
                     int uiIndex = effectList.findUiIndex(currentMode);
                     
@@ -936,7 +965,7 @@ void Visualizer::renderProceduralWindow() {
             
             ImGui::Spacing();
             
-            auto& effectList = GetEffectListForImGui();
+            auto& effectList = GetEffectListForImGui(this);
             int uiIdx = effectList.findUiIndex(currentRandomProcedural_);
             if (uiIdx >= 0 && uiIdx < static_cast<int>(effectList.size())) {
                 ImGui::Text("Current Effect: %s", effectList.ptrs[uiIdx]);
@@ -947,6 +976,99 @@ void Visualizer::renderProceduralWindow() {
                 selectRandomProcedural();
                 saveCurrentSettings();
             }
+        }
+        
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        
+        // Shader Enable/Disable Section
+        ImGui::Text("🎭 Shader Availability");
+        ImGui::TextDisabled("Enable/disable shaders for UI and randomization");
+        
+        ImGui::Spacing();
+        
+        if (ImGui::CollapsingHeader("Manage Shaders")) {
+            ImGui::Indent();
+            
+            // Get all effects from registry (including disabled ones)
+            auto& registry = GetEffectRegistry();
+            auto effects = registry.getAllEffects();
+            
+            bool anyChanged = false;
+            
+            // Two column layout for shader list
+            ImGui::Columns(2, "shader_columns", false);
+            
+            int colIndex = 0;
+            for (const auto& effect : effects) {
+                if (effect.modeIndex == 0) continue; // Skip "None"
+                
+                bool enabled = isProceduralShaderEnabled(effect.modeIndex);
+                std::string label = effect.name + "##" + std::to_string(effect.modeIndex);
+                
+                if (ImGui::Checkbox(label.c_str(), &enabled)) {
+                    setProceduralShaderEnabled(effect.modeIndex, enabled);
+                    anyChanged = true;
+                }
+                
+                // Show tooltip with shader info
+                if (ImGui::IsItemHovered()) {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("Mode: %d", effect.modeIndex);
+                    if (!effect.description.empty()) {
+                        ImGui::Text("%s", effect.description.c_str());
+                    }
+                    if (!effect.author.empty()) {
+                        ImGui::Text("Author: %s", effect.author.c_str());
+                    }
+                    ImGui::Text("File: %s", effect.shaderFile.c_str());
+                    ImGui::EndTooltip();
+                }
+                
+                // Move to next column every other item
+                colIndex++;
+                if (colIndex % 2 == 0) {
+                    ImGui::NextColumn();
+                }
+            }
+            
+            ImGui::Columns(1); // Reset to single column
+            
+            if (anyChanged) {
+                saveCurrentSettings();
+                // Rebuild the random pool and ImGui list
+                initializeRandomProcedural();
+            }
+            
+            ImGui::Spacing();
+            
+            // Quick enable/disable all buttons (stacked vertically)
+            if (ImGui::Button("Enable All")) {
+                for (const auto& effect : effects) {
+                    if (effect.modeIndex == 0) continue;
+                    setProceduralShaderEnabled(effect.modeIndex, true);
+                }
+                saveCurrentSettings();
+                initializeRandomProcedural();
+            }
+            ImGui::Spacing();
+            if (ImGui::Button("Disable All")) {
+                for (const auto& effect : effects) {
+                    if (effect.modeIndex == 0) continue;
+                    setProceduralShaderEnabled(effect.modeIndex, false);
+                }
+                // Also set current mode to None since all shaders are now disabled
+                proceduralSlots_[0].mode = 0;
+                proceduralSlots_[0].enabled = true;
+                proceduralLayerMode_ = 0;
+                proceduralLayer_.setMode(0);
+                showProceduralLayer_ = true;
+                saveCurrentSettings();
+                initializeRandomProcedural();
+            }
+            
+            ImGui::Unindent();
         }
     } else {
         ImGui::TextDisabled("Modern Pipeline disabled");
@@ -1262,7 +1384,7 @@ void Visualizer::renderCurrentEffectsDisplay() {
         }
 
         anyProceduralActive = true;
-        auto& effectList = GetEffectListForImGui();
+        auto& effectList = GetEffectListForImGui(this);
         int uiIdx = effectList.findUiIndex(slot.mode);
         const char* modeName = (uiIdx >= 0 && uiIdx < static_cast<int>(effectList.size())) 
                                 ? effectList.ptrs[uiIdx] 
@@ -1285,7 +1407,7 @@ void Visualizer::renderCurrentEffectsDisplay() {
 
     if (!anyProceduralActive) {
         if (showProceduralLayer_) {
-            auto& effectList = GetEffectListForImGui();
+            auto& effectList = GetEffectListForImGui(this);
             int uiIdx = effectList.findUiIndex(proceduralLayerMode_);
             const char* modeName = (uiIdx >= 0 && uiIdx < static_cast<int>(effectList.size())) 
                                     ? effectList.ptrs[uiIdx] 

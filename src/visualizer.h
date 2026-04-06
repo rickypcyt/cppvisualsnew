@@ -75,7 +75,13 @@ public:
     static void handleScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
     void handleMouseScroll(double xoffset, double yoffset);
 
+    // Per-shader enable/disable methods (must be public for EffectListForImGui access)
+    bool isProceduralShaderEnabled(int modeIndex) const;
+    void setProceduralShaderEnabled(int modeIndex, bool enabled);
+
 private:
+    // Helper to find next enabled shader mode (skips disabled shaders)
+    int findNextEnabledMode(int currentMode, bool forward) const;
 
     struct ScenePalette {
         std::string name;
@@ -200,6 +206,9 @@ private:
     float randomProceduralTimer_ = 0.0f;
     int currentRandomProcedural_ = 0;
     std::vector<int> availableProceduralModes_;
+    
+    // Per-shader enabled states (mode index -> enabled)
+    std::unordered_map<int, bool> proceduralShaderEnabled_;
     
     // Audio features (copied from analyzer each frame)
     AudioAnalyzer::AudioFeatures audioFeatures_;

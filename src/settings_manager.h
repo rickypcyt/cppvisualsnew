@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <memory>
+#include <unordered_map>
 
 struct PostProcessSlot {
     bool enabled = false;
@@ -105,6 +106,12 @@ public:
     bool getRgbChannelEnabled(int channel) const;
     void setRgbChannelEnabled(int channel, bool enabled);
 
+    // Per-shader enabled states
+    bool getProceduralShaderEnabled(int modeIndex) const;
+    void setProceduralShaderEnabled(int modeIndex, bool enabled);
+    std::unordered_map<int, bool> getAllProceduralShaderEnabled() const;
+    void setAllProceduralShaderEnabled(const std::unordered_map<int, bool>& states);
+
     // Random settings getters/setters
     bool getRandomPostProcessEnabled() const { return randomPostProcessEnabled_; }
     void setRandomPostProcessEnabled(bool enabled) { randomPostProcessEnabled_ = enabled; }
@@ -186,6 +193,9 @@ private:
 
     // RGB channel settings
     std::array<bool, 3> rgbChannelEnabled_{true, true, true};
+    
+    // Per-shader enabled states (mode index -> enabled)
+    std::unordered_map<int, bool> proceduralShaderEnabled_;
 };
 
 #endif // SETTINGS_MANAGER_H
