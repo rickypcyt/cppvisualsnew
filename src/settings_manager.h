@@ -112,6 +112,31 @@ public:
     std::unordered_map<int, bool> getAllProceduralShaderEnabled() const;
     void setAllProceduralShaderEnabled(const std::unordered_map<int, bool>& states);
 
+    // Per-post-processing-effect enabled states
+    bool getPostProcessEffectEnabled(int modeIndex) const;
+    void setPostProcessEffectEnabled(int modeIndex, bool enabled);
+    std::unordered_map<int, bool> getAllPostProcessEffectEnabled() const;
+    void setAllPostProcessEffectEnabled(const std::unordered_map<int, bool>& states);
+
+    // Preset management for shader enable/disable configurations
+    struct ShaderPreset {
+        std::string name;
+        std::unordered_map<int, bool> shaderStates;
+        int activeMode = 0; // Which shader mode is currently active (0 = None)
+        std::string timestamp;
+    };
+    
+    // Save current shader states as a preset
+    bool saveShaderPreset(const std::string& presetName, int currentMode);
+    // Load shader preset by name
+    bool loadShaderPreset(const std::string& presetName, std::unordered_map<int, bool>& outStates, int& outActiveMode);
+    // Get list of all saved preset names
+    std::vector<std::string> listShaderPresets() const;
+    // Delete a preset
+    bool deleteShaderPreset(const std::string& presetName);
+    // Get preset directory path
+    static std::string getPresetsDirectory();
+
     // Random settings getters/setters
     bool getRandomPostProcessEnabled() const { return randomPostProcessEnabled_; }
     void setRandomPostProcessEnabled(bool enabled) { randomPostProcessEnabled_ = enabled; }
@@ -196,6 +221,9 @@ private:
     
     // Per-shader enabled states (mode index -> enabled)
     std::unordered_map<int, bool> proceduralShaderEnabled_;
+    
+    // Per-post-processing-effect enabled states (mode index -> enabled)
+    std::unordered_map<int, bool> postProcessEffectEnabled_;
 };
 
 #endif // SETTINGS_MANAGER_H

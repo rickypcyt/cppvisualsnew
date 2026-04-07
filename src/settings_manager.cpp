@@ -4,6 +4,10 @@
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <filesystem>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
 using json = nlohmann::json;
 
@@ -242,6 +246,16 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             }
         }
 
+        // Load per-post-processing-effect enabled states
+        if (j.contains("postProcessEffectEnabled")) {
+            const auto& effectStates = j["postProcessEffectEnabled"];
+            postProcessEffectEnabled_.clear();
+            for (auto& [key, value] : effectStates.items()) {
+                int modeIndex = std::stoi(key);
+                postProcessEffectEnabled_[modeIndex] = value.get<bool>();
+            }
+        }
+
         // Validate loaded mode - if current mode is disabled, switch to None or next enabled
         if (proceduralLayerMode_ != 0) {
             auto it = proceduralShaderEnabled_.find(proceduralLayerMode_);
@@ -364,6 +378,13 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         }
         j["proceduralShaderEnabled"] = shaderStates;
         
+        // Save per-post-processing-effect enabled states
+        json postProcessEffectStates;
+        for (const auto& [modeIndex, enabled] : postProcessEffectEnabled_) {
+            postProcessEffectStates[std::to_string(modeIndex)] = enabled;
+        }
+        j["postProcessEffectEnabled"] = postProcessEffectStates;
+        
         j["midi"]["tempoScale"] = midiTempoScale_;
 
         std::ofstream file(filename);
@@ -421,6 +442,159 @@ std::unordered_map<int, bool> SettingsManager::getAllProceduralShaderEnabled() c
 
 void SettingsManager::setAllProceduralShaderEnabled(const std::unordered_map<int, bool>& states) {
     proceduralShaderEnabled_ = states;
+}
+
+// Post-processing effect enabled methods
+bool SettingsManager::getPostProcessEffectEnabled(int modeIndex) const {
+    auto it = postProcessEffectEnabled_.find(modeIndex);
+    if (it != postProcessEffectEnabled_.end()) {
+        return it->second;
+    }
+    return true; // Default to enabled if not explicitly set
+}
+
+void SettingsManager::setPostProcessEffectEnabled(int modeIndex, bool enabled) {
+    postProcessEffectEnabled_[modeIndex] = enabled;
+}
+
+std::unordered_map<int, bool> SettingsManager::getAllPostProcessEffectEnabled() const {
+    return postProcessEffectEnabled_;
+}
+
+void SettingsManager::setAllPostProcessEffectEnabled(const std::unordered_map<int, bool>& states) {
+    postProcessEffectEnabled_ = states;
+}
+
+std::string SettingsManager::getPresetsDirectory() {
+    return "presets/";
+}
+
+bool SettingsManager::saveShaderPreset(const std::string& presetName, int currentMode) {
+    try {
+        // Ensure presets directory exists
+        std::string dir = getPresetsDirectory();
+        std::filesystem::create_directories(dir);
+        
+        json j;
+        j["name"] = presetName;
+        j["activeMode"] = currentMode;
+        
+        // Get current timestamp
+        auto now = std::chrono::system_clock::now();
+        auto time_t = std::chrono::system_clock::to_time_t(now);
+        std::stringstream ss;
+        ss << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S");
+        j["timestamp"] = ss.str();
+        
+        // Save shader states
+        json shaderStates;
+        for (const auto& [modeIndex, enabled] : proceduralShaderEnabled_) {
+            shaderStates[std::to_string(modeIndex)] = enabled;
+        }
+        j["shaderStates"] = shaderStates;
+        
+        // Write to file
+        std::string filename = dir + presetName + ".json";
+        std::ofstream file(filename);
+        if (!file.is_open()) {
+            std::cerr << "[PRESET] Failed to open file for writing: " << filename << std::endl;
+            return false;
+        }
+        
+        file << j.dump(4);
+        std::cout << "[PRESET] Saved preset: " << presetName << std::endl;
+        return true;
+        
+    } catch (const std::exception& e) {
+        std::cerr << "[PRESET] Error saving preset: " << e.what() << std::endl;
+        return false;
+    }
+}
+
+bool SettingsManager::loadShaderPreset(const std::string& presetName, 
+                                          std::unordered_map<int, bool>& outStates,
+                                          int& outActiveMode) {
+    try {
+        std::string filename = getPresetsDirectory() + presetName + ".json";
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            std::cerr << "[PRESET] Failed to open file for reading: " << filename << std::endl;
+            return false;
+        }
+        
+        json j;
+        file >> j;
+        
+        // Load active mode
+        if (j.contains("activeMode")) {
+            outActiveMode = j["activeMode"];
+        } else {
+            outActiveMode = 0;
+        }
+        
+        // Load shader states
+        outStates.clear();
+        if (j.contains("shaderStates")) {
+            const auto& shaderStates = j["shaderStates"];
+            for (auto& [key, value] : shaderStates.items()) {
+                int modeIndex = std::stoi(key);
+                outStates[modeIndex] = value.get<bool>();
+            }
+        }
+        
+        std::cout << "[PRESET] Loaded preset: " << presetName << std::endl;
+        return true;
+        
+    } catch (const std::exception& e) {
+        std::cerr << "[PRESET] Error loading preset: " << e.what() << std::endl;
+        return false;
+    }
+}
+
+std::vector<std::string> SettingsManager::listShaderPresets() const {
+    std::vector<std::string> presets;
+    
+    try {
+        std::string dir = getPresetsDirectory();
+        if (!std::filesystem::exists(dir)) {
+            return presets; // Empty list
+        }
+        
+        for (const auto& entry : std::filesystem::directory_iterator(dir)) {
+            if (entry.is_regular_file() && entry.path().extension() == ".json") {
+                // Remove .json extension
+                std::string name = entry.path().stem().string();
+                presets.push_back(name);
+            }
+        }
+        
+        // Sort alphabetically
+        std::sort(presets.begin(), presets.end());
+        
+    } catch (const std::exception& e) {
+        std::cerr << "[PRESET] Error listing presets: " << e.what() << std::endl;
+    }
+    
+    return presets;
+}
+
+bool SettingsManager::deleteShaderPreset(const std::string& presetName) {
+    try {
+        std::string filename = getPresetsDirectory() + presetName + ".json";
+        
+        if (!std::filesystem::exists(filename)) {
+            std::cerr << "[PRESET] Preset not found: " << presetName << std::endl;
+            return false;
+        }
+        
+        std::filesystem::remove(filename);
+        std::cout << "[PRESET] Deleted preset: " << presetName << std::endl;
+        return true;
+        
+    } catch (const std::exception& e) {
+        std::cerr << "[PRESET] Error deleting preset: " << e.what() << std::endl;
+        return false;
+    }
 }
 
 void SettingsManager::updateFromVisualizerState() {

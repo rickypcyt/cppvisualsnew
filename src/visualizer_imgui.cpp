@@ -380,6 +380,9 @@ void Visualizer::renderImGui() {
         renderConsoleImGui();
     }
 
+    // Shader Presets window
+    renderShaderPresetsWindow();
+
     // Render ImGui
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -449,7 +452,7 @@ void Visualizer::renderMainImGuiWindow() {
     if (ImGui::Button("🖥️ Console Mode")) {
         showConsoleMode_ = !showConsoleMode_;
     }
-    ImGui::SameLine();
+    
     if (ImGui::Button("🔄 Reload Shaders")) {
         reloadProceduralShaders();
     }
@@ -937,8 +940,8 @@ void Visualizer::renderProceduralWindow() {
         ImGui::Separator();
         ImGui::Spacing();
         
-        ImGui::Text("🎲 Random Cycle - CAPAS PROCEDURALES");
-        ImGui::TextDisabled("Cambia automáticamente los efectos de CAPAS cada cierto tiempo");
+        ImGui::Text(" Random Cycle - CAPAS PROCEDURALES");
+        ImGui::TextDisabled("Cambia automticamente los efectos de CAPAS cada cierto tiempo");
         
         ImGui::Spacing();
         
@@ -1201,6 +1204,120 @@ void Visualizer::renderPostProcessWindow() {
         }
     }
 
+    ImGui::End();
+}
+
+void Visualizer::renderShaderPresetsWindow() {
+    ImGui::Begin("Shader Presets", &showShaderPresetsWindow_, ImGuiWindowFlags_AlwaysAutoResize);
+    
+    ImGui::Text("🎨 Shader Presets");
+    ImGui::TextDisabled("Save and load shader enable/disable configurations");
+    
+    ImGui::Spacing();
+    
+    // Get list of presets
+    static std::vector<std::string> presetList;
+    static bool presetListNeedsRefresh = true;
+    static int selectedPresetIndex = -1;
+    
+    if (presetListNeedsRefresh) {
+        presetList = settingsManager_->listShaderPresets();
+        presetListNeedsRefresh = false;
+        selectedPresetIndex = -1;
+    }
+    
+    // Preset list
+    ImGui::Text("Saved Presets:");
+    ImGui::SetNextItemWidth(250.0f);
+    if (ImGui::BeginListBox("##preset_list")) {
+        for (int i = 0; i < static_cast<int>(presetList.size()); ++i) {
+            bool isSelected = (selectedPresetIndex == i);
+            if (ImGui::Selectable(presetList[i].c_str(), isSelected)) {
+                selectedPresetIndex = i;
+            }
+            if (isSelected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndListBox();
+    }
+    
+    ImGui::Spacing();
+    
+    // Load button
+    if (selectedPresetIndex >= 0 && selectedPresetIndex < static_cast<int>(presetList.size())) {
+        if (ImGui::Button("Load Preset")) {
+            const std::string& presetName = presetList[selectedPresetIndex];
+            std::unordered_map<int, bool> loadedStates;
+            int loadedMode = 0;
+            if (settingsManager_->loadShaderPreset(presetName, loadedStates, loadedMode)) {
+                // Apply the loaded states
+                for (const auto& [modeIndex, enabled] : loadedStates) {
+                    setProceduralShaderEnabled(modeIndex, enabled);
+                }
+                // Apply the loaded mode
+                if (loadedMode != 0) {
+                    // Check if the loaded mode is enabled
+                    if (isProceduralShaderEnabled(loadedMode)) {
+                        proceduralSlots_[0].mode = loadedMode;
+                        proceduralSlots_[0].enabled = true;
+                        proceduralLayerMode_ = loadedMode;
+                        proceduralLayer_.setMode(loadedMode);
+                        showProceduralLayer_ = true;
+                    } else {
+                        // Mode is disabled, switch to None
+                        proceduralSlots_[0].mode = 0;
+                        proceduralSlots_[0].enabled = true;
+                        proceduralLayerMode_ = 0;
+                        proceduralLayer_.setMode(0);
+                        showProceduralLayer_ = true;
+                    }
+                } else {
+                    // Loaded mode is None
+                    proceduralSlots_[0].mode = 0;
+                    proceduralSlots_[0].enabled = true;
+                    proceduralLayerMode_ = 0;
+                    proceduralLayer_.setMode(0);
+                    showProceduralLayer_ = true;
+                }
+                saveCurrentSettings();
+                initializeRandomProcedural();
+                std::cout << "[PRESET] Loaded preset: " << presetName << std::endl;
+            }
+        }
+        ImGui::SameLine();
+        
+        // Delete button
+        if (ImGui::Button("Delete")) {
+            const std::string& presetName = presetList[selectedPresetIndex];
+            if (settingsManager_->deleteShaderPreset(presetName)) {
+                presetListNeedsRefresh = true;
+                selectedPresetIndex = -1;
+            }
+        }
+    }
+    
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+    
+    // Save new preset
+    static char presetNameBuffer[64] = "";
+    ImGui::Text("Save Current Configuration:");
+    ImGui::SetNextItemWidth(200.0f);
+    ImGui::InputText("##preset_name", presetNameBuffer, sizeof(presetNameBuffer));
+    ImGui::SameLine();
+    if (ImGui::Button("Save")) {
+        if (presetNameBuffer[0] != '\0') {
+            std::string newPresetName(presetNameBuffer);
+            int currentMode = proceduralSlots_[0].mode;
+            if (settingsManager_->saveShaderPreset(newPresetName, currentMode)) {
+                presetListNeedsRefresh = true;
+                presetNameBuffer[0] = '\0'; // Clear input
+            }
+        }
+    }
+    
     ImGui::End();
 }
 

@@ -928,9 +928,6 @@ Visualizer::Visualizer()
     // Initialize random post process
     initializeRandomPostProcess();
     
-    // Initialize random procedural layer
-    initializeRandomProcedural();
-    
     // Ensure Slot 1 is always enabled by default
     if (kMaxProceduralSlots > 0) {
         proceduralSlots_[0].enabled = true;
@@ -1015,6 +1012,12 @@ bool Visualizer::initialize(int width, int height) {
     
     // Apply per-shader enabled states
     proceduralShaderEnabled_ = settingsManager_->getAllProceduralShaderEnabled();
+    
+    // Apply per-post-processing-effect enabled states
+    postProcessEffectEnabled_ = settingsManager_->getAllPostProcessEffectEnabled();
+
+    // Initialize random procedural layer AFTER loading shader enabled states
+    initializeRandomProcedural();
 
     if (!setupOpenGL()) {
         return false;
@@ -1827,6 +1830,11 @@ void Visualizer::updateSettingsFromCurrentState() {
     // Update per-shader enabled states
     for (const auto& [modeIndex, enabled] : proceduralShaderEnabled_) {
         settingsManager_->setProceduralShaderEnabled(modeIndex, enabled);
+    }
+    
+    // Update per-post-processing-effect enabled states
+    for (const auto& [modeIndex, enabled] : postProcessEffectEnabled_) {
+        settingsManager_->setPostProcessEffectEnabled(modeIndex, enabled);
     }
 }
 
@@ -2768,10 +2776,13 @@ void Visualizer::renderLife(float animatedTime) const {
 
 // Random Post Process Methods
 void Visualizer::initializeRandomPostProcess() {
-    // Initialize available post process modes (exclude "None" and "Random Cycle")
+    // Initialize available post process modes (exclude "None" and "Random Cycle", and disabled effects)
     availablePostProcessModes_.clear();
     for (int i = 1; i < kPostProcessModeCount - 1; ++i) { // Skip "None"(0) and "Random Cycle"(last)
-        availablePostProcessModes_.push_back(i);
+        // Only add enabled effects
+        if (isPostProcessEffectEnabled(i)) {
+            availablePostProcessModes_.push_back(i);
+        }
     }
     
     randomPostProcessTimer_ = 0.0f;
@@ -2784,8 +2795,9 @@ void Visualizer::initializeRandomPostProcess() {
     }
     
     if (!availablePostProcessModes_.empty() && 
-        (currentRandomPostProcess_ == 0 || currentRandomPostProcess_ >= kPostProcessModeCount - 1)) {
-        // If current mode is invalid, select a random one
+        (currentRandomPostProcess_ == 0 || currentRandomPostProcess_ >= kPostProcessModeCount - 1 ||
+         !isPostProcessEffectEnabled(currentRandomPostProcess_))) {
+        // If current mode is invalid or disabled, select a random one
         std::uniform_int_distribution<int> dist(0, availablePostProcessModes_.size() - 1);
         currentRandomPostProcess_ = availablePostProcessModes_[dist(rng_)];
     }
@@ -3663,4 +3675,27 @@ int Visualizer::findNextEnabledMode(int currentMode, bool forward) const {
     
     // Fallback to None if no enabled shader found
     return 0;
+}
+
+// Post-processing effect enable/disable methods
+bool Visualizer::isPostProcessEffectEnabled(int modeIndex) const {
+    // Check local state first, fall back to settings manager
+    auto it = postProcessEffectEnabled_.find(modeIndex);
+    if (it != postProcessEffectEnabled_.end()) {
+        return it->second;
+    }
+    // Default to enabled if not in map
+    return true;
+}
+
+void Visualizer::setPostProcessEffectEnabled(int modeIndex, bool enabled) {
+    postProcessEffectEnabled_[modeIndex] = enabled;
+    
+    // If disabling the current mode in slot 0, switch to None
+    if (!enabled) {
+        if (postProcessSlots_[0].mode == modeIndex) {
+            postProcessSlots_[0].mode = 0;
+            saveCurrentSettings();
+        }
+    }
 }

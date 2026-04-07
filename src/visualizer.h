@@ -79,6 +79,10 @@ public:
     bool isProceduralShaderEnabled(int modeIndex) const;
     void setProceduralShaderEnabled(int modeIndex, bool enabled);
 
+    // Per-post-processing-effect enable/disable methods
+    bool isPostProcessEffectEnabled(int modeIndex) const;
+    void setPostProcessEffectEnabled(int modeIndex, bool enabled);
+
 private:
     // Helper to find next enabled shader mode (skips disabled shaders)
     int findNextEnabledMode(int currentMode, bool forward) const;
@@ -210,6 +214,9 @@ private:
     // Per-shader enabled states (mode index -> enabled)
     std::unordered_map<int, bool> proceduralShaderEnabled_;
     
+    // Per-post-processing-effect enabled states (mode index -> enabled)
+    std::unordered_map<int, bool> postProcessEffectEnabled_;
+    
     // Audio features (copied from analyzer each frame)
     AudioAnalyzer::AudioFeatures audioFeatures_;
     AudioAnalyzer* audioAnalyzer_ = nullptr;
@@ -235,6 +242,7 @@ private:
     bool showImGuiProceduralWindow_;
     bool showImGuiPostProcessWindow_;
     bool showImGuiCameraWindow_;
+    bool showShaderPresetsWindow_ = false;
     bool showDeviceSelector_;
     bool showCurrentEffects_ = true; // Current Effects window (independent, controlled by 'I' key)
     bool showDiagnosticInfo_;
@@ -349,6 +357,7 @@ private:
     void renderDeviceSelectorImGui();
     void renderDiagnosticImGui();
     void renderConsoleImGui();
+    void renderShaderPresetsWindow();
     
     // Shader reload method
     void reloadProceduralShaders();
