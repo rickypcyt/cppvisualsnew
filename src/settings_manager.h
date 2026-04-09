@@ -143,6 +143,8 @@ public:
 
     float getRandomPostProcessInterval() const { return randomPostProcessInterval_; }
     void setRandomPostProcessInterval(float interval) { randomPostProcessInterval_ = interval; }
+    int getRandomPostProcessSlotCount() const { return randomPostProcessSlotCount_; }
+    void setRandomPostProcessSlotCount(int count) { randomPostProcessSlotCount_ = std::clamp(count, 1, 5); }
 
     bool getRandomProceduralEnabled() const { return randomProceduralEnabled_; }
     void setRandomProceduralEnabled(bool enabled) { randomProceduralEnabled_ = enabled; }
@@ -183,6 +185,7 @@ private:
     // Random settings
     bool randomPostProcessEnabled_ = false;
     float randomPostProcessInterval_ = 5.0f;
+    int randomPostProcessSlotCount_ = 1; // Number of slots to randomize (1-5)
     bool randomProceduralEnabled_ = false;
     float randomProceduralInterval_ = 8.0f;
     bool randomPostProcessSlotEnabled_ = false;

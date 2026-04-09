@@ -1184,6 +1184,20 @@ void Visualizer::renderPostProcessWindow() {
     if (randomPostProcessEnabled_) {
         ImGui::Spacing();
         
+        // Slot count slider
+        ImGui::Text("Slots to Randomize:");
+        ImGui::SetNextItemWidth(200.0f);
+        int slotCount = randomPostProcessSlotCount_;
+        if (ImGui::SliderInt("##post_random_slots", &slotCount, 1, kMaxPostProcessSlots, "%d slots")) {
+            randomPostProcessSlotCount_ = std::clamp(slotCount, 1, kMaxPostProcessSlots);
+            saveCurrentSettings();
+        }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Number of post-process slots to randomize (1-%d)", kMaxPostProcessSlots);
+        }
+        
+        ImGui::Spacing();
+        
         ImGui::Text("Change Interval:");
         ImGui::SetNextItemWidth(200.0f);
         if (ImGui::SliderFloat("##post_random_interval", &randomPostProcessInterval_, 1.0f, 30.0f, "%.1f seconds")) {

@@ -162,6 +162,7 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             const auto& random = j["random"];
             if (random.contains("postProcessEnabled")) randomPostProcessEnabled_ = random["postProcessEnabled"];
             if (random.contains("postProcessInterval")) randomPostProcessInterval_ = random["postProcessInterval"];
+            if (random.contains("postProcessSlotCount")) randomPostProcessSlotCount_ = std::clamp(random["postProcessSlotCount"].get<int>(), 1, 5);
             if (random.contains("proceduralEnabled")) randomProceduralEnabled_ = random["proceduralEnabled"];
             if (random.contains("proceduralInterval")) randomProceduralInterval_ = random["proceduralInterval"];
             if (random.contains("postProcessSlotEnabled")) randomPostProcessSlotEnabled_ = random["postProcessSlotEnabled"];
@@ -332,6 +333,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         // Save random settings
         j["random"]["postProcessEnabled"] = randomPostProcessEnabled_;
         j["random"]["postProcessInterval"] = randomPostProcessInterval_;
+        j["random"]["postProcessSlotCount"] = randomPostProcessSlotCount_;
         j["random"]["proceduralEnabled"] = randomProceduralEnabled_;
         j["random"]["proceduralInterval"] = randomProceduralInterval_;
         j["random"]["postProcessSlotEnabled"] = randomPostProcessSlotEnabled_;

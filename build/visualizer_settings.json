@@ -38,7 +38,7 @@
         "slots": [
             {
                 "enabled": true,
-                "mode": 5,
+                "mode": 20,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -149,9 +149,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Evolution Noise",
+                "effectName": "Pulsar Tunnel",
                 "enabled": true,
-                "mode": 35,
+                "mode": 8,
                 "opacity": 1.0
             },
             {
@@ -199,6 +199,7 @@
     "random": {
         "postProcessEnabled": true,
         "postProcessInterval": 5.0,
+        "postProcessSlotCount": 1,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
         "proceduralEnabled": true,
@@ -213,8 +214,8 @@
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Evolution Noise",
-        "proceduralLayerMode": 35,
+        "proceduralLayerEffectName": "Pulsar Tunnel",
+        "proceduralLayerMode": 8,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,

@@ -984,6 +984,7 @@ bool Visualizer::initialize(int width, int height) {
     // Apply random settings
     randomPostProcessEnabled_ = settingsManager_->getRandomPostProcessEnabled();
     randomPostProcessInterval_ = settingsManager_->getRandomPostProcessInterval();
+    randomPostProcessSlotCount_ = settingsManager_->getRandomPostProcessSlotCount();
     randomProceduralEnabled_ = settingsManager_->getRandomProceduralEnabled();
     randomProceduralInterval_ = settingsManager_->getRandomProceduralInterval();
     
@@ -1801,6 +1802,7 @@ void Visualizer::updateSettingsFromCurrentState() {
     // Update random settings
     settingsManager_->setRandomPostProcessEnabled(randomPostProcessEnabled_);
     settingsManager_->setRandomPostProcessInterval(randomPostProcessInterval_);
+    settingsManager_->setRandomPostProcessSlotCount(randomPostProcessSlotCount_);
     settingsManager_->setRandomProceduralEnabled(randomProceduralEnabled_);
     settingsManager_->setRandomProceduralInterval(randomProceduralInterval_);
     
@@ -2807,19 +2809,32 @@ void Visualizer::selectRandomPostProcess() {
     if (availablePostProcessModes_.empty()) return;
     
     std::uniform_int_distribution<int> dist(0, availablePostProcessModes_.size() - 1);
-    int newIndex = availablePostProcessModes_[dist(rng_)];
     
-    // Avoid selecting the same mode twice in a row
-    while (availablePostProcessModes_.size() > 1 && newIndex == currentRandomPostProcess_) {
-        newIndex = availablePostProcessModes_[dist(rng_)];
-    }
+    // Randomize the specified number of slots
+    int slotsToRandomize = std::clamp(randomPostProcessSlotCount_, 1, kMaxPostProcessSlots);
     
-    currentRandomPostProcess_ = newIndex;
-    
-    // Update Slot 1 (main post process slot) instead of global mode
-    if (kMaxPostProcessSlots > 0) {
-        postProcessSlots_[0].mode = currentRandomPostProcess_;
-        postProcessSlots_[0].enabled = true; // Ensure slot is enabled
+    for (int slotIndex = 0; slotIndex < slotsToRandomize && slotIndex < kMaxPostProcessSlots; ++slotIndex) {
+        int newIndex = availablePostProcessModes_[dist(rng_)];
+        
+        // Avoid selecting the same mode twice in a row for the same slot
+        // (compare with current mode in that slot, or global if slot 0)
+        int currentMode = (slotIndex == 0) ? currentRandomPostProcess_ : 
+                         ((slotIndex < kMaxPostProcessSlots) ? postProcessSlots_[slotIndex].mode : 0);
+        
+        int attempts = 0;
+        while (availablePostProcessModes_.size() > 1 && newIndex == currentMode && attempts < 10) {
+            newIndex = availablePostProcessModes_[dist(rng_)];
+            ++attempts;
+        }
+        
+        // Update the slot
+        postProcessSlots_[slotIndex].mode = newIndex;
+        postProcessSlots_[slotIndex].enabled = true; // Ensure slot is enabled
+        
+        // Update the tracking variable for slot 0
+        if (slotIndex == 0) {
+            currentRandomPostProcess_ = newIndex;
+        }
     }
 }
 

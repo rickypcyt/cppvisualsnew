@@ -201,6 +201,7 @@ private:
     bool randomPostProcessEnabled_ = false;
     float randomPostProcessInterval_ = 5.0f; // seconds
     float randomPostProcessTimer_ = 0.0f;
+    int randomPostProcessSlotCount_ = 1; // Number of slots to randomize (1-5)
     int currentRandomPostProcess_ = 0;
     std::vector<int> availablePostProcessModes_;
     
