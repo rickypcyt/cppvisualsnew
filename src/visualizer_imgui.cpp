@@ -45,12 +45,9 @@ struct EffectListForImGui {
                 if (visualizer && effect.modeIndex > 0) {
                     enabled = visualizer->isProceduralShaderEnabled(effect.modeIndex);
                 }
-                // Only add enabled shaders to the list
-                if (enabled) {
-                    names.push_back(effect.name);
-                    modeIndices.push_back(effect.modeIndex);
-                    enabledStates.push_back(enabled);
-                }
+                names.push_back(effect.name);
+                modeIndices.push_back(effect.modeIndex);
+                enabledStates.push_back(enabled);
             }
         }
         
@@ -109,21 +106,7 @@ static EffectListForImGui& GetEffectListForImGui(const Visualizer* visualizer) {
     return list;
 }
 
-// Static mode name arrays - kept for compatibility but not the source of truth
-const char* const Visualizer::kProceduralModes[] = {
-    "None", "ASCII Ocean", "Sacred Geometry", "Glitch Grid", "Chemical Flow",
-    "Crystal Lattice", "Phantom Fractals", "Fractal Object", "Pulsar Tunnel",
-    "Aurora Bloom", "Ribbon Scanlines", "Nebula", "Kaleidoscope Fractal",
-    "Voronoi Cells", "Raymarched Object", "Reaction Diffusion", "Liquid Refraction",
-    "Starfield Warp", "Plasma Classic", "Domain Warped Fractal", "Fractal Tunnel",
-    "Volumetric Starfield", "Voxel Path Tracer", "Etienne Pulse", "Fractal Runway",
-    "Volumetric Tunnel", "Chromatic Swirl", "Hyper Pulse", "Gyroid Reflections",
-    "Head", "Metal Gyroid Hall", "Hex Kaleidoscope", "HSV Color Shift",
-    "Crypt Roots", "Breathing", "Evolution Noise", "Phi Fields",
-    "Fractal Infinity", "Walker", "Weird Creature", "Anaglyph Assembly",
-    "Message Tunnel", "Pouet Grid", "Cylinder Repeat", "Power Particle", "Flopine",
-    "Eiyeron Deform"
-};
+
 
 const char* const Visualizer::kPostProcessModes[] = {
     "None",
@@ -325,11 +308,7 @@ void Visualizer::handleKeyboardInput() {
         static double lastPress = 0.0;
         double currentTime = glfwGetTime();
         if (currentTime - lastPress > 0.5) { // 500ms debounce
-            proceduralLayerMode_ = 29; // kKaleidoscopeModeIndex
-            proceduralLayer_.setMode(proceduralLayerMode_);
-            // Apply zoom for kaleidoscope mode (saved or default)
-            float zoom = getZoomForShaderMode(proceduralLayerMode_);
-            proceduralLayer_.setCameraZoom(zoom);
+            applyMainProceduralMode(29); // kKaleidoscopeModeIndex
             std::cout << "Kaleidoscope mode activated via K key" << std::endl;
             lastPress = currentTime;
         }
@@ -995,32 +974,47 @@ void Visualizer::renderProceduralWindow() {
                     // Mode Selection with proper index mapping
                     ImGui::Text("Effect Mode:");
                     auto& effectList = GetEffectListForImGui(this);
-                    int currentMode = slot.mode;
+                    int currentMode = (slotIndex == 0) ? proceduralLayerMode_ : slot.mode;
                     int uiIndex = effectList.findUiIndex(currentMode);
+                    std::string currentEffectName = GetEffectRegistry().getEffectNameByIndex(currentMode);
+                    const char* comboPreview = !currentEffectName.empty()
+                        ? currentEffectName.c_str()
+                        : ((uiIndex >= 0 && uiIndex < static_cast<int>(effectList.size()))
+                               ? effectList.ptrs[uiIndex]
+                               : "None");
+
+                    if (slotIndex == 0) {
+                        std::string slotEffectName = GetEffectRegistry().getEffectNameByIndex(proceduralSlots_[0].mode);
+                        const char* slotEffect = !slotEffectName.empty() ? slotEffectName.c_str() : "Unknown";
+                        std::string currentEffect = !currentEffectName.empty() ? currentEffectName : "Unknown";
+                        ImGui::TextDisabled("Current mode: %d (%s)", proceduralLayerMode_, currentEffect.c_str());
+                        ImGui::TextDisabled("Slot 0 mode: %d (%s)", proceduralSlots_[0].mode, slotEffect);
+                        ImGui::TextDisabled("Last trigger: %s | requested=%d | applied=%d",
+                                            lastProceduralModeSource_.c_str(),
+                                            lastProceduralModeRequested_,
+                                            lastProceduralModeApplied_);
+                        if (proceduralSlots_[0].mode != proceduralLayerMode_) {
+                            ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.2f, 1.0f),
+                                               "DESYNC: current mode != slot 0");
+                        }
+                    }
                     
-                    if (ImGui::BeginCombo("##proc_mode", effectList.ptrs[uiIndex])) {
+                    if (ImGui::BeginCombo("##proc_mode", comboPreview)) {
                         for (int i = 0; i < static_cast<int>(effectList.size()); ++i) {
                             bool selected = (uiIndex == i);
                             if (ImGui::Selectable(effectList.ptrs[i], selected)) {
                                 int newMode = effectList.getModeIndex(i);
                                 std::cout << "[UI DEBUG] Selected effect '" << effectList.ptrs[i] 
                                           << "' -> mode=" << newMode << " (uiIndex=" << i << ")" << std::endl;
-                                std::cout << "[UI DEBUG] Before: slot.mode=" << slot.mode 
-                                          << " proceduralSlots_[0].mode=" << proceduralSlots_[0].mode << std::endl;
-                                slot.mode = newMode;
-                                std::cout << "[UI DEBUG] After: slot.mode=" << slot.mode 
-                                          << " proceduralSlots_[0].mode=" << proceduralSlots_[0].mode << std::endl;
+                                std::cout << "[UI DEBUG] Before apply: currentMode=" << proceduralLayerMode_
+                                          << " slot.mode=" << slot.mode
+                                          << " slot0.mode=" << proceduralSlots_[0].mode
+                                          << " trigger=ui-proc-mode-combo" << std::endl;
                                 if (slotIndex == 0) {
-                                    // Explicitly update proceduralSlots_[0] since slot reference may not work in ImGui lambda
-                                    proceduralSlots_[0].mode = newMode;
-                                    proceduralSlots_[0].enabled = true;
-                                    proceduralLayer_.setMode(newMode);
-                                    proceduralLayerMode_ = newMode;
-                                    showProceduralLayer_ = true;
-                                    // Apply zoom for this effect (saved or default)
-                                    float zoom = getZoomForShaderMode(newMode);
-                                    proceduralLayer_.setCameraZoom(zoom);
-                                    std::cout << "[UI DEBUG] Updated proceduralSlots_[0].mode=" << proceduralSlots_[0].mode << std::endl;
+                                    applyMainProceduralMode(newMode, "ui-proc-mode-combo");
+                                    std::cout << "[UI DEBUG] After apply: currentMode=" << proceduralLayerMode_
+                                              << " slot0.mode=" << proceduralSlots_[0].mode
+                                              << " lastTrigger=" << lastProceduralModeSource_ << std::endl;
                                 }
                                 saveCurrentSettings();
                             }
@@ -1204,11 +1198,7 @@ void Visualizer::renderProceduralWindow() {
                     setProceduralShaderEnabled(effect.modeIndex, false);
                 }
                 // Also set current mode to None since all shaders are now disabled
-                proceduralSlots_[0].mode = 0;
-                proceduralSlots_[0].enabled = true;
-                proceduralLayerMode_ = 0;
-                proceduralLayer_.setMode(0);
-                showProceduralLayer_ = true;
+                applyMainProceduralMode(0);
                 saveCurrentSettings();
                 initializeRandomProcedural();
             }
@@ -1516,31 +1506,14 @@ void Visualizer::renderShaderPresetsWindow() {
                 if (loadedMode != 0) {
                     // Check if the loaded mode is enabled
                     if (isProceduralShaderEnabled(loadedMode)) {
-                        proceduralSlots_[0].mode = loadedMode;
-                        proceduralSlots_[0].enabled = true;
-                        proceduralLayerMode_ = loadedMode;
-                        proceduralLayer_.setMode(loadedMode);
-                        // Apply zoom for the loaded mode (saved or default)
-                        float zoom = getZoomForShaderMode(loadedMode);
-                        proceduralLayer_.setCameraZoom(zoom);
-                        showProceduralLayer_ = true;
+                        applyMainProceduralMode(loadedMode);
                     } else {
                         // Mode is disabled, switch to None
-                        proceduralSlots_[0].mode = 0;
-                        proceduralSlots_[0].enabled = true;
-                        proceduralLayerMode_ = 0;
-                        proceduralLayer_.setMode(0);
-                        proceduralLayer_.setCameraZoom(1.0f);
-                        showProceduralLayer_ = true;
+                        applyMainProceduralMode(0);
                     }
                 } else {
                     // Loaded mode is None
-                    proceduralSlots_[0].mode = 0;
-                    proceduralSlots_[0].enabled = true;
-                    proceduralLayerMode_ = 0;
-                    proceduralLayer_.setMode(0);
-                    proceduralLayer_.setCameraZoom(1.0f);
-                    showProceduralLayer_ = true;
+                    applyMainProceduralMode(0);
                 }
                 saveCurrentSettings();
                 initializeRandomProcedural();
@@ -1765,9 +1738,12 @@ void Visualizer::renderCurrentEffectsDisplay() {
         anyProceduralActive = true;
         auto& effectList = GetEffectListForImGui(this);
         int uiIdx = effectList.findUiIndex(slot.mode);
-        const char* modeName = (uiIdx >= 0 && uiIdx < static_cast<int>(effectList.size())) 
-                                ? effectList.ptrs[uiIdx] 
-                                : "Unknown";
+        std::string modeNameString = GetEffectRegistry().getEffectNameByIndex(slot.mode);
+        const char* modeName = !modeNameString.empty()
+                                ? modeNameString.c_str()
+                                : ((uiIdx >= 0 && uiIdx < static_cast<int>(effectList.size())) 
+                                       ? effectList.ptrs[uiIdx] 
+                                       : "Unknown");
 
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(activeColor[0], activeColor[1], activeColor[2], activeColor[3]));
         ImGui::Text("Slot %d%s: %s", slotIndex + 1, slotIndex == 0 ? " (base)" : "", modeName);
@@ -1788,9 +1764,12 @@ void Visualizer::renderCurrentEffectsDisplay() {
         if (showProceduralLayer_) {
             auto& effectList = GetEffectListForImGui(this);
             int uiIdx = effectList.findUiIndex(proceduralLayerMode_);
-            const char* modeName = (uiIdx >= 0 && uiIdx < static_cast<int>(effectList.size())) 
-                                    ? effectList.ptrs[uiIdx] 
-                                    : "Unknown";
+            std::string modeNameString = GetEffectRegistry().getEffectNameByIndex(proceduralLayerMode_);
+            const char* modeName = !modeNameString.empty()
+                                    ? modeNameString.c_str()
+                                    : ((uiIdx >= 0 && uiIdx < static_cast<int>(effectList.size())) 
+                                           ? effectList.ptrs[uiIdx] 
+                                           : "Unknown");
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(activeColor[0], activeColor[1], activeColor[2], activeColor[3]));
             ImGui::Text("Global: %s", modeName);
             ImGui::PopStyleColor();

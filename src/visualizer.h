@@ -106,6 +106,8 @@ public:
     float getZoomForShaderMode(int modeIndex) const;
 
 private:
+    void applyMainProceduralMode(int mode, const char* source = "unspecified", bool ensureVisible = true, bool updateZoom = true);
+
     // Helper to find next enabled shader mode (skips disabled shaders)
     int findNextEnabledMode(int currentMode, bool forward) const;
 
@@ -157,7 +159,7 @@ private:
     static constexpr int kMaxProceduralSlots = 5;
     
     // Procedural layer constants
-    static constexpr int kProceduralModeCount = 47;
+    static constexpr int kProceduralModeCount = 50;
     
     // Post-process constants
     static constexpr int kPostProcessModeCount = 28;
@@ -347,6 +349,9 @@ private:
     bool proceduralLayerDebug_;
     float proceduralLayerOpacity_;
     int proceduralLayerMode_;
+    std::string lastProceduralModeSource_ = "init";
+    int lastProceduralModeRequested_ = 0;
+    int lastProceduralModeApplied_ = 0;
 
     // Multi-monitor support
     std::vector<GLFWmonitor*> monitors_;

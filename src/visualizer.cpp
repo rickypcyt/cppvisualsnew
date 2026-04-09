@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace {
-constexpr int kProceduralModeCount = 47;
+constexpr int kProceduralModeCount = 50;
 constexpr int kPostProcessModeCount = 22;
 constexpr int kKaleidoscopeModeIndex = 29;
 constexpr int kPostProcessKaleidoscopeModeIndex = 7;
@@ -929,8 +929,7 @@ Visualizer::Visualizer()
     idleState_ = 0.0f;
     idlePhase_ = 0.0f;
     
-    // Initialize random post process
-    initializeRandomPostProcess();
+    // Note: initializeRandomPostProcess() is called later in initialize() after loading enabled states
     
     // Ensure Slot 1 is always enabled by default
     if (kMaxProceduralSlots > 0) {
@@ -1020,6 +1019,9 @@ bool Visualizer::initialize(int width, int height) {
     
     // Apply per-post-processing-effect enabled states
     postProcessEffectEnabled_ = settingsManager_->getAllPostProcessEffectEnabled();
+    
+    // Initialize random post process AFTER loading enabled states
+    initializeRandomPostProcess();
 
     // Initialize random procedural layer AFTER loading shader enabled states
     initializeRandomProcedural();
@@ -1042,11 +1044,7 @@ bool Visualizer::initialize(int width, int height) {
         // showProceduralLayer_ = false;  // Commented out to preserve saved UI state
         proceduralLayerDebug_ = false;
     } else {
-        proceduralLayerMode_ = std::clamp(proceduralLayerMode_, 0, kProceduralModeCount - 1);
-        proceduralLayer_.setMode(proceduralLayerMode_);
-        // Apply zoom for the initial mode (saved or default)
-        float zoom = getZoomForShaderMode(proceduralLayerMode_);
-        proceduralLayer_.setCameraZoom(zoom);
+        applyMainProceduralMode(std::clamp(proceduralLayerMode_, 0, kProceduralModeCount - 1), "initialize");
     }
     
     // Initialize hot-reload if enabled
@@ -1114,7 +1112,7 @@ bool Visualizer::initialize(int width, int height) {
 
     std::cout << "[DEBUG] Saving initial settings..." << std::endl;
     // Save initial settings
-    settingsManager_->saveSettings();
+    saveCurrentSettings();
     std::cout << "[DEBUG] Initialization complete!" << std::endl;
 
     return true;
@@ -1403,11 +1401,7 @@ void Visualizer::beginFrame() {
                         int currentMode = proceduralSlots_[0].mode;
                         int newMode = findNextEnabledMode(currentMode, true); // forward
                         if (newMode != currentMode) {
-                            proceduralSlots_[0].mode = newMode;
-                            proceduralLayerMode_ = newMode;
-                            proceduralLayer_.setMode(proceduralLayerMode_);
-                            proceduralSlots_[0].enabled = true;
-                            showProceduralLayer_ = true;
+                            applyMainProceduralMode(newMode, "keyboard-right");
                         }
                     }
                     lastModeToggle = now;
@@ -1417,11 +1411,7 @@ void Visualizer::beginFrame() {
                         int currentMode = proceduralSlots_[0].mode;
                         int newMode = findNextEnabledMode(currentMode, false); // backward
                         if (newMode != currentMode) {
-                            proceduralSlots_[0].mode = newMode;
-                            proceduralLayerMode_ = newMode;
-                            proceduralLayer_.setMode(proceduralLayerMode_);
-                            proceduralSlots_[0].enabled = true;
-                            showProceduralLayer_ = true;
+                            applyMainProceduralMode(newMode);
                         }
                     }
                     lastModeToggle = now;
@@ -1627,11 +1617,12 @@ void Visualizer::render() {
     // Update random post process
     updateRandomPostProcess(dt);
     
-    // Sync procedural layer with Slot 1 state
-    syncProceduralLayerWithSlot1();
-    
-    // Update random procedural layer
+    // Update random procedural layer first, then sync Slot 1 so the render uses
+    // the latest procedural mode for this frame.
     updateRandomProcedural(dt);
+    
+    // Sync procedural layer with Slot 1 state after any automatic updates
+    syncProceduralLayerWithSlot1();
     
     // Update random corner orbs
     updateRandomCornerOrbs(dt);
@@ -1794,8 +1785,8 @@ void Visualizer::handleVisualizationShortcuts() {
 
     // Post-processing effects are handled in render() to avoid conflicts
 
-    processToggle(kaleidoKeyDown, kaleidoWasDown, lastKaleidoToggle, [this, &togglePostProcessEffect]() {
-        togglePostProcessEffect(kPostProcessKaleidoscopeModeIndex, 1.0f);
+    processToggle(kaleidoKeyDown, kaleidoWasDown, lastKaleidoToggle, [this]() {
+        applyMainProceduralMode(kKaleidoscopeModeIndex, "keyboard-k-toggle");
     });
 
     // RGB channel toggles
@@ -1815,6 +1806,19 @@ void Visualizer::handleVisualizationShortcuts() {
 
 void Visualizer::updateSettingsFromCurrentState() {
     if (!settingsManager_) return;
+
+    std::cout << "[SAVE DEBUG] Syncing Visualizer -> SettingsManager"
+              << " proceduralLayerMode_=" << proceduralLayerMode_
+              << " slot0.mode=" << (kMaxProceduralSlots > 0 ? proceduralSlots_[0].mode : -1)
+              << " slot0.enabled=" << (kMaxProceduralSlots > 0 ? proceduralSlots_[0].enabled : false)
+              << " slot0.opacity=" << (kMaxProceduralSlots > 0 ? proceduralSlots_[0].opacity : 0.0f)
+              << std::endl;
+
+    if (kMaxProceduralSlots > 0 && proceduralSlots_[0].mode != proceduralLayerMode_) {
+        std::cout << "[SAVE DEBUG] Forcing slot0.mode to match proceduralLayerMode_ before save: "
+                  << proceduralSlots_[0].mode << " -> " << proceduralLayerMode_ << std::endl;
+        proceduralSlots_[0].mode = proceduralLayerMode_;
+    }
     
     // Update settings manager with current visualizer state
     settingsManager_->setSelectedDevice(selectedDevice_);
@@ -1873,11 +1877,18 @@ void Visualizer::updateSettingsFromCurrentState() {
     for (const auto& [modeIndex, enabled] : postProcessEffectEnabled_) {
         settingsManager_->setPostProcessEffectEnabled(modeIndex, enabled);
     }
+
+    std::cout << "[SAVE DEBUG] SettingsManager updated"
+              << " proceduralLayerMode=" << settingsManager_->getProceduralLayerMode()
+              << " slot0.mode=" << (settingsManager_->getProceduralSlots().empty() ? -1 : settingsManager_->getProceduralSlots()[0].mode)
+              << std::endl;
 }
 
 void Visualizer::saveCurrentSettings() {
+    std::cout << "[SAVE DEBUG] saveCurrentSettings() called" << std::endl;
     updateSettingsFromCurrentState();
     if (settingsManager_) {
+        std::cout << "[SAVE DEBUG] Persisting settings to disk" << std::endl;
         settingsManager_->saveSettings();
     }
 }
@@ -2669,8 +2680,15 @@ void Visualizer::renderProceduralLayer() {
     if (!proceduralSlots_.empty()) {
         const auto& baseSlot = proceduralSlots_[0];
         if (baseSlot.enabled && baseSlot.opacity > 0.001f) {
-            int baseMode = std::clamp(baseSlot.mode, 0, kProceduralModeCount - 1);
-            proceduralLayerMode_ = baseMode;
+            int baseMode = std::clamp(proceduralLayerMode_, 0, kProceduralModeCount - 1);
+            std::cout << "[PROC RENDER] Base slot mode=" << baseMode
+                      << " opacity=" << baseSlot.opacity << std::endl;
+            if (proceduralSlots_[0].mode != baseMode) {
+                std::cout << "[PROC RENDER] Divergence detected: slot0.mode="
+                          << proceduralSlots_[0].mode << " but proceduralLayerMode_="
+                          << proceduralLayerMode_ << " -> mirroring global into slot0" << std::endl;
+                proceduralSlots_[0].mode = baseMode;
+            }
             proceduralLayerOpacity_ = baseSlot.opacity;
             renderSlot(baseMode, baseSlot.opacity, baseSlot.colorAdjust);
             baseRendered = true;
@@ -2679,6 +2697,8 @@ void Visualizer::renderProceduralLayer() {
 
     if (!baseRendered) {
         std::array<float, 3> neutralAdjust{1.0f, 1.0f, 1.0f};
+        std::cout << "[PROC RENDER] No active base slot, falling back to proceduralLayerMode_="
+                  << proceduralLayerMode_ << " opacity=" << proceduralLayerOpacity_ << std::endl;
         renderSlot(proceduralLayerMode_, proceduralLayerOpacity_, neutralAdjust);
     }
 
@@ -2687,6 +2707,9 @@ void Visualizer::renderProceduralLayer() {
         if (!slot.enabled || slot.opacity <= 0.001f) {
             continue;
         }
+        std::cout << "[PROC RENDER] Secondary slot " << i
+                  << " mode=" << slot.mode
+                  << " opacity=" << slot.opacity << std::endl;
         // Slots secundarios no limpian el framebuffer para acumular sobre el slot anterior
         renderSlot(slot.mode, slot.opacity, slot.colorAdjust, false);
     }
@@ -2927,12 +2950,17 @@ void Visualizer::updateRandomPostProcess(float deltaTime) {
 void Visualizer::initializeRandomProcedural() {
     // Initialize available procedural modes (exclude "None" and disabled shaders)
     availableProceduralModes_.clear();
-    for (int i = 1; i < kProceduralModeCount; ++i) { // Skip "None"(0)
+    auto effects = GetEffectRegistry().getAllEffects();
+    for (const auto& effect : effects) {
+        if (effect.modeIndex <= 0) {
+            continue;
+        }
+
         // Check if shader is enabled (default to true if not in map)
-        auto it = proceduralShaderEnabled_.find(i);
+        auto it = proceduralShaderEnabled_.find(effect.modeIndex);
         bool enabled = (it == proceduralShaderEnabled_.end()) ? true : it->second;
         if (enabled) {
-            availableProceduralModes_.push_back(i);
+            availableProceduralModes_.push_back(effect.modeIndex);
         }
     }
     
@@ -2967,13 +2995,7 @@ void Visualizer::selectRandomProcedural() {
 
     // Update Slot 1 (main procedural slot) instead of global mode
     if (kMaxProceduralSlots > 0) {
-        proceduralSlots_[0].mode = currentRandomProcedural_;
-        proceduralSlots_[0].enabled = true; // Always ensure Slot 1 is enabled
-        proceduralLayer_.setMode(currentRandomProcedural_); // Update the actual layer
-        // Apply zoom for the selected mode (saved or default)
-        float zoom = getZoomForShaderMode(currentRandomProcedural_);
-        proceduralLayer_.setCameraZoom(zoom);
-        showProceduralLayer_ = true; // Ensure procedural layer is shown
+        applyMainProceduralMode(currentRandomProcedural_, "random-procedural");
     }
 }
 
@@ -2982,14 +3004,17 @@ void Visualizer::syncProceduralLayerWithSlot1() {
         // Sync procedural layer with Slot 1
         std::cout << "[SYNC DEBUG] Before sync: proceduralSlots_[0].mode=" << proceduralSlots_[0].mode
                   << " proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
-        proceduralLayerMode_ = proceduralSlots_[0].mode;
         proceduralLayerOpacity_ = proceduralSlots_[0].opacity;
+        if (proceduralLayerMode_ != proceduralSlots_[0].mode) {
+            std::cout << "[SYNC DEBUG] Divergence detected: slot0.mode=" << proceduralSlots_[0].mode
+                      << " but proceduralLayerMode_=" << proceduralLayerMode_
+                      << " -> mirroring global into slot0" << std::endl;
+            proceduralSlots_[0].mode = proceduralLayerMode_;
+        }
         proceduralLayer_.setMode(proceduralLayerMode_);
-        // Apply zoom for the synced mode (saved or default)
-        float zoom = getZoomForShaderMode(proceduralLayerMode_);
-        proceduralLayer_.setCameraZoom(zoom);
-        std::cout << "[SYNC DEBUG] After sync: proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
+        proceduralLayer_.setCameraZoom(getZoomForShaderMode(proceduralLayerMode_));
         showProceduralLayer_ = true;
+        std::cout << "[SYNC DEBUG] After sync: proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
     } else {
         // Fallback to global values if Slot 1 is disabled
         proceduralLayer_.setMode(proceduralLayerMode_);
@@ -3724,6 +3749,47 @@ void Visualizer::reloadProceduralShaders() {
     std::cout << "Shaders reloaded successfully!" << std::endl;
 }
 
+void Visualizer::applyMainProceduralMode(int mode, const char* source, bool ensureVisible, bool updateZoom) {
+    const int clampedMode = std::clamp(mode, 0, kProceduralModeCount - 1);
+    const char* origin = (source && source[0] != '\0') ? source : "unspecified";
+
+    lastProceduralModeSource_ = origin;
+    lastProceduralModeRequested_ = mode;
+    lastProceduralModeApplied_ = clampedMode;
+
+    const int previousSlotMode = (kMaxProceduralSlots > 0) ? proceduralSlots_[0].mode : -1;
+    const int previousLayerMode = proceduralLayerMode_;
+
+    std::cout << "[PROC MODE APPLY] source=" << origin
+              << " requested=" << mode
+              << " clamped=" << clampedMode
+              << " previousSlot0=" << previousSlotMode
+              << " previousLayer=" << previousLayerMode << std::endl;
+
+    if (kMaxProceduralSlots > 0) {
+        proceduralSlots_[0].mode = clampedMode;
+        proceduralSlots_[0].enabled = true;
+    }
+
+    proceduralLayerMode_ = clampedMode;
+    proceduralLayer_.setMode(clampedMode);
+
+    if (updateZoom) {
+        float zoom = getZoomForShaderMode(clampedMode);
+        proceduralLayer_.setCameraZoom(zoom);
+    }
+
+    if (ensureVisible) {
+        showProceduralLayer_ = true;
+    }
+
+    std::cout << "[PROC MODE APPLY] source=" << origin
+              << " appliedSlot0=" << ((kMaxProceduralSlots > 0) ? proceduralSlots_[0].mode : -1)
+              << " appliedLayer=" << proceduralLayerMode_
+              << " visible=" << showProceduralLayer_
+              << " zoom=" << (updateZoom ? "updated" : "unchanged") << std::endl;
+}
+
 bool Visualizer::isProceduralShaderEnabled(int modeIndex) const {
     auto it = proceduralShaderEnabled_.find(modeIndex);
     if (it != proceduralShaderEnabled_.end()) {
@@ -3740,47 +3806,42 @@ void Visualizer::setProceduralShaderEnabled(int modeIndex, bool enabled) {
         int currentMode = proceduralSlots_[0].mode;
         if (currentMode == modeIndex) {
             // Current mode is being disabled, switch to None (0)
-            proceduralSlots_[0].mode = 0;
-            proceduralSlots_[0].enabled = true;
-            proceduralLayerMode_ = 0;
-            proceduralLayer_.setMode(0);
-            showProceduralLayer_ = true;
+            applyMainProceduralMode(0, "disable-current-procedural-shader");
             std::cout << "[SHADER] Current mode " << modeIndex << " disabled, switching to None" << std::endl;
         }
     }
 }
 
 int Visualizer::findNextEnabledMode(int currentMode, bool forward) const {
-    // If no shaders are enabled, return None (0)
-    bool anyEnabled = false;
-    for (int i = 1; i < kProceduralModeCount; ++i) {
-        if (isProceduralShaderEnabled(i)) {
-            anyEnabled = true;
-            break;
+    std::vector<int> enabledModes;
+    auto effects = GetEffectRegistry().getAllEffects();
+    for (const auto& effect : effects) {
+        if (effect.modeIndex <= 0) {
+            continue;
+        }
+        if (isProceduralShaderEnabled(effect.modeIndex)) {
+            enabledModes.push_back(effect.modeIndex);
         }
     }
-    if (!anyEnabled) {
+
+    if (enabledModes.empty()) {
         return 0; // None
     }
-    
-    int step = forward ? 1 : -1;
-    int newMode = currentMode;
-    
-    // Search for next enabled mode
-    for (int attempts = 0; attempts < kProceduralModeCount; ++attempts) {
-        newMode = (newMode + step + kProceduralModeCount) % kProceduralModeCount;
-        
-        // Mode 0 (None) is always valid
-        if (newMode == 0) {
-            return 0;
-        }
-        
-        // Check if this mode is enabled
-        if (isProceduralShaderEnabled(newMode)) {
-            return newMode;
-        }
+
+    auto it = std::find(enabledModes.begin(), enabledModes.end(), currentMode);
+    if (it == enabledModes.end()) {
+        return forward ? enabledModes.front() : enabledModes.back();
     }
-    
+
+    size_t index = static_cast<size_t>(std::distance(enabledModes.begin(), it));
+    if (forward) {
+        index = (index + 1) % enabledModes.size();
+    } else {
+        index = (index + enabledModes.size() - 1) % enabledModes.size();
+    }
+
+    return enabledModes[index];
+
     // Fallback to None if no enabled shader found
     return 0;
 }

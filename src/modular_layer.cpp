@@ -32,7 +32,7 @@ void main() {
 }
 )";
 
-const std::array<const char*, 28> kProceduralShaderFiles = {
+const std::array<const char*, 30> kProceduralShaderFiles = {
     "procedural_header.glsl",
     "procedural_helpers.glsl",
     "procedural_shadertoy_bridge.glsl",
@@ -60,6 +60,8 @@ const std::array<const char*, 28> kProceduralShaderFiles = {
     "procedural_flopine.glsl",
     "procedural_eiyeron.glsl",
     "procedural_pack22.glsl",
+    "procedural_pack23.glsl",
+    "procedural_pack24.glsl",
     "procedural_main.glsl"
 };
 
@@ -73,7 +75,7 @@ void InitializeEffectRegistry() {
     GetEffectRegistry().scanShaderFiles(kShaderSearchRoots, files);
 }
 
-const std::array<const char*, 17> kProceduralPackFiles = {
+const std::array<const char*, 19> kProceduralPackFiles = {
     "procedural_pack1.glsl",
     "procedural_pack2.glsl",
     "procedural_pack3.glsl",
@@ -89,7 +91,9 @@ const std::array<const char*, 17> kProceduralPackFiles = {
     "procedural_pack14.glsl",
     "procedural_pack15.glsl",
     "procedural_pack16.glsl",
-    "procedural_pack22.glsl"
+    "procedural_pack22.glsl",
+    "procedural_pack23.glsl",
+    "procedural_pack24.glsl"
 };
 
 const char* kProceduralDebugMain = R"(
@@ -185,6 +189,7 @@ const std::string& GetProceduralFragmentShaderSource() {
         lastDebugKey = debugKey;
         source.clear();
         g_forceShaderReload = false;  // Reset the flag after reload
+        std::cout << "[SHADER RELOAD] Reloading procedural shader source..." << std::endl;
 
         if (!debugKey.empty()) {
             std::string packFile;
@@ -414,11 +419,13 @@ bool ModularLayer::ensureShader() {
     }
 
     proceduralShader_ = std::make_unique<Shader>();
+    std::cout << "[SHADER DEBUG] Compiling procedural shader with " << fragmentSource.size() << " bytes" << std::endl;
     if (!proceduralShader_->loadFromSource(kQuadVertexShader, fragmentSource)) {
         std::cerr << "ModularLayer: failed to compile procedural shader" << std::endl;
         proceduralShader_.reset();
         return false;
     }
+    std::cout << "[SHADER DEBUG] Procedural shader compiled successfully" << std::endl;
     return true;
 }
 
@@ -529,6 +536,11 @@ void ModularLayer::render(const LayerContext& context, bool clearFramebuffer) {
     activeShader->setUniform1f("uColorBlend", colorBlend_);
 
     if (activeShader == proceduralShader_.get()) {
+        static int lastModeLogged = -1;
+        if (mode_ != lastModeLogged) {
+            std::cout << "[SHADER DEBUG] Setting uMode=" << mode_ << std::endl;
+            lastModeLogged = mode_;
+        }
         activeShader->setUniform1i("uMode", mode_);
         // Camera uniforms
         activeShader->setUniform1f("uCameraZoom", cameraZoom_);

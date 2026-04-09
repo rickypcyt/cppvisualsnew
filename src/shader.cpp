@@ -96,9 +96,10 @@ GLuint Shader::compileShader(const std::string& source, GLenum type) {
     GLint success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
-        char infoLog[512];
-        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cerr << "Shader compilation error: " << infoLog << std::endl;
+        char infoLog[1024];
+        glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
+        std::cerr << "[SHADER COMPILATION ERROR] " << infoLog << std::endl;
+        std::cerr << "[SHADER COMPILATION ERROR] Source size: " << source.size() << " bytes" << std::endl;
         glDeleteShader(shader);
         return 0;
     }

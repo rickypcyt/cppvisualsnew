@@ -7,7 +7,7 @@
         "rgbRandomInterval": 5.0
     },
     "audio": {
-        "inputGain": 2.069999933242798,
+        "inputGain": 1.0099999904632568,
         "manualBPM": 135.0,
         "manualBPMMode": true,
         "selectedDevice": 4,
@@ -15,7 +15,7 @@
     },
     "colors": {
         "blend": 0.6200000047683716,
-        "hueSeed": 0.8344981670379639,
+        "hueSeed": 0.6082277297973633,
         "paletteIndex": 0,
         "primary": [
             0.10000000149011612,
@@ -33,12 +33,12 @@
         "tempoScale": 1.0
     },
     "postProcess": {
-        "randomEnabled": true,
+        "randomEnabled": false,
         "randomInterval": 2.0999999046325684,
         "slots": [
             {
-                "enabled": true,
-                "mode": 0,
+                "enabled": false,
+                "mode": 19,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -47,8 +47,8 @@
                 "strength": 1.0
             },
             {
-                "enabled": true,
-                "mode": 3,
+                "enabled": false,
+                "mode": 11,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -57,7 +57,7 @@
                 "strength": 1.0
             },
             {
-                "enabled": true,
+                "enabled": false,
                 "mode": 0,
                 "rgbAdjust": [
                     1.0,
@@ -93,7 +93,7 @@
         "10": true,
         "11": true,
         "12": true,
-        "13": true,
+        "13": false,
         "14": false,
         "15": false,
         "16": true,
@@ -118,7 +118,7 @@
     },
     "procedural": {
         "randomEnabled": false,
-        "randomInterval": 6.0
+        "randomInterval": 8.0
     },
     "proceduralShaderEnabled": {
         "1": false,
@@ -156,12 +156,14 @@
         "39": true,
         "4": false,
         "40": true,
-        "41": true,
+        "41": false,
         "42": true,
         "43": true,
         "44": true,
         "45": true,
         "46": true,
+        "47": true,
+        "48": true,
         "5": true,
         "6": true,
         "7": true,
@@ -176,9 +178,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Raymarched Object",
+                "effectName": "Fractal Rotation Field",
                 "enabled": true,
-                "mode": 14,
+                "mode": 47,
                 "opacity": 1.0
             },
             {
@@ -187,9 +189,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Head",
+                "effectName": "Eiyeron Deform",
                 "enabled": false,
-                "mode": 29,
+                "mode": 46,
                 "opacity": 1.0
             },
             {
@@ -225,30 +227,31 @@
         ]
     },
     "proceduralZoomValues": {
-        "14": 2.049999952316284
+        "14": 2.049999952316284,
+        "46": 4.849999904632568
     },
     "random": {
-        "postProcessEnabled": true,
+        "postProcessEnabled": false,
         "postProcessInterval": 2.0999999046325684,
         "postProcessSlotCount": 2,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
         "proceduralEnabled": false,
-        "proceduralInterval": 6.0,
+        "proceduralInterval": 8.0,
         "proceduralSlotEnabled": false,
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
-        false,
+        true,
         false,
         true
     ],
     "ui": {
         "proceduralLayerDebug": true,
-        "proceduralLayerEffectName": "Raymarched Object",
-        "proceduralLayerMode": 14,
+        "proceduralLayerEffectName": "Fractal Rotation Field",
+        "proceduralLayerMode": 47,
         "proceduralLayerOpacity": 1.0,
-        "showCornerOrbs": true,
+        "showCornerOrbs": false,
         "showCurrentEffects": true,
         "showImGuiWindow": true,
         "showProceduralLayer": true

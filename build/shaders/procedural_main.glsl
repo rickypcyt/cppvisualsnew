@@ -103,9 +103,12 @@ void main() {
         color = renderEiyeronDeform(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 47) {
         color = renderFractalRotation(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
-    } else {
-        color = renderDomainWarpedFractal(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 48) {
+        color = renderKaleidoscopicFlow(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 49) {
+        color = renderReactiveTwistField(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
+    // Invalid modes will show black/pink error color
 
     FragColor = color;
 }

@@ -44,6 +44,8 @@ bool SettingsManager::loadSettings(const std::string& filename) {
         json j;
         file >> j;
 
+        bool loadedMainModeFromUi = false;
+
         // Load audio settings
         if (j.contains("audio")) {
             const auto& audio = j["audio"];
@@ -65,9 +67,15 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (ui.contains("proceduralLayerOpacity")) proceduralLayerOpacity_ = ui["proceduralLayerOpacity"];
             if (ui.contains("proceduralLayerMode")) {
                 int loadedMode = ui["proceduralLayerMode"];
-                // Clamp to valid range (0-46 for all modes)
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 46);
+                // Clamp to valid range (0-49 for all modes)
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 49);
+                loadedMainModeFromUi = true;
             }
+            std::cout << "[SETTINGS LOAD] UI layer mode=" << proceduralLayerMode_;
+            if (ui.contains("proceduralLayerEffectName")) {
+                std::cout << " effectName=" << ui["proceduralLayerEffectName"].get<std::string>();
+            }
+            std::cout << std::endl;
         }
 
         // Load post-processing settings
@@ -115,13 +123,13 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                             // Fallback: try to load by index for backwards compatibility
                             if (slot.contains("mode")) {
                                 int loadedMode = slot["mode"];
-                                proceduralSlots_[i].mode = std::clamp(loadedMode, 0, 46);
+                                proceduralSlots_[i].mode = std::clamp(loadedMode, 0, 49);
                             }
                         }
                     } else if (slot.contains("mode")) {
                         // Legacy: load by index
                         int loadedMode = slot["mode"];
-                        proceduralSlots_[i].mode = std::clamp(loadedMode, 0, 46);
+                        proceduralSlots_[i].mode = std::clamp(loadedMode, 0, 49);
                     }
                     
                     if (slot.contains("opacity")) proceduralSlots_[i].opacity = slot["opacity"];
@@ -137,6 +145,12 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             }
         }
 
+        if (!proceduralSlots_.empty()) {
+            std::cout << "[SETTINGS LOAD] Slot0 after file parse: enabled=" << proceduralSlots_[0].enabled
+                      << " mode=" << proceduralSlots_[0].mode
+                      << " opacity=" << proceduralSlots_[0].opacity << std::endl;
+        }
+
         // Load main procedural layer mode (with name support)
         if (j.contains("ui") && j["ui"].contains("proceduralLayerMode")) {
             // Try new format first: effect name
@@ -148,18 +162,50 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                 } else {
                     // Fallback to index
                     int loadedMode = j["ui"]["proceduralLayerMode"];
-                    proceduralLayerMode_ = std::clamp(loadedMode, 0, 46);
+                    proceduralLayerMode_ = std::clamp(loadedMode, 0, 49);
                 }
             } else {
                 // Legacy: load by index
                 int loadedMode = j["ui"]["proceduralLayerMode"];
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 46);
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 49);
             }
         }
 
+        std::cout << "[SETTINGS LOAD] Pre-reconcile: proceduralLayerMode_=" << proceduralLayerMode_;
+        if (!proceduralSlots_.empty()) {
+            std::cout << " slot0.mode=" << proceduralSlots_[0].mode << " slot0.enabled=" << proceduralSlots_[0].enabled;
+        }
+        std::cout << std::endl;
+
+        if (!proceduralSlots_.empty()) {
+            if (loadedMainModeFromUi) {
+                if (proceduralSlots_[0].mode != proceduralLayerMode_) {
+                    std::cout << "[SETTINGS LOAD] UI mode wins over slot0: slot0.mode "
+                              << proceduralSlots_[0].mode << " -> " << proceduralLayerMode_ << std::endl;
+                }
+                proceduralSlots_[0].mode = proceduralLayerMode_;
+                if (proceduralLayerMode_ > 0) {
+                    proceduralSlots_[0].enabled = true;
+                }
+            } else if (proceduralSlots_[0].enabled && proceduralSlots_[0].mode > 0) {
+                std::cout << "[SETTINGS LOAD] Legacy slot0 mode used as main mode: "
+                          << proceduralSlots_[0].mode << std::endl;
+                proceduralLayerMode_ = proceduralSlots_[0].mode;
+            }
+        }
+
+        std::cout << "[SETTINGS LOAD] Final main mode=" << proceduralLayerMode_;
+        if (!proceduralSlots_.empty()) {
+            std::cout << " finalSlot0.mode=" << proceduralSlots_[0].mode
+                      << " finalSlot0.enabled=" << proceduralSlots_[0].enabled;
+        }
+        std::cout << std::endl;
+
+        std::cout << "[SETTINGS LOAD] Loaded procedural mode: " << proceduralLayerMode_ << std::endl;
+
         // Load random settings
         if (j.contains("random")) {
-            const auto& random = j["random"];
+            const auto& random = j["random"]; 
             if (random.contains("postProcessEnabled")) randomPostProcessEnabled_ = random["postProcessEnabled"];
             if (random.contains("postProcessInterval")) randomPostProcessInterval_ = random["postProcessInterval"];
             if (random.contains("postProcessSlotCount")) randomPostProcessSlotCount_ = std::clamp(random["postProcessSlotCount"].get<int>(), 1, 5);
@@ -267,6 +313,17 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             }
         }
 
+        // Reconcile the main procedural mode with Slot 0 when it is enabled.
+        // This keeps the UI state aligned with the actual main procedural slot.
+        if (!proceduralSlots_.empty() && proceduralSlots_[0].enabled && proceduralSlots_[0].mode > 0) {
+            if (proceduralLayerMode_ != proceduralSlots_[0].mode) {
+                std::cout << "[SETTINGS] Reconciling proceduralLayerMode_ "
+                          << proceduralLayerMode_ << " -> Slot 0 mode "
+                          << proceduralSlots_[0].mode << std::endl;
+            }
+            proceduralLayerMode_ = proceduralSlots_[0].mode;
+        }
+
         // Validate loaded mode - if current mode is disabled, switch to None or next enabled
         if (proceduralLayerMode_ != 0) {
             auto it = proceduralShaderEnabled_.find(proceduralLayerMode_);
@@ -294,6 +351,11 @@ bool SettingsManager::saveSettings(const std::string& filename) {
     try {
         json j;
 
+        std::cout << "[SETTINGS SAVE] proceduralLayerMode=" << proceduralLayerMode_
+                  << " slot0.mode=" << (proceduralSlots_.empty() ? -1 : proceduralSlots_[0].mode)
+                  << " slot0.enabled=" << (proceduralSlots_.empty() ? false : proceduralSlots_[0].enabled)
+                  << std::endl;
+
         // Save audio settings
         j["audio"]["selectedDevice"] = selectedDevice_;
         j["audio"]["inputGain"] = audioInputGain_;
@@ -306,7 +368,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["ui"]["showCurrentEffects"] = showCurrentEffects_;
         j["ui"]["proceduralLayerDebug"] = proceduralLayerDebug_;
         j["ui"]["proceduralLayerOpacity"] = proceduralLayerOpacity_;
-        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 46);
+        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 49);
         // Also save effect name for robustness
         std::string mainEffectName = GetEffectRegistry().getEffectNameByIndex(proceduralLayerMode_);
         if (!mainEffectName.empty()) {
@@ -329,7 +391,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
             json slot;
             slot["enabled"] = proceduralSlots_[i].enabled;
             // Save both index (for compatibility) and name (for robustness)
-            int modeIndex = std::clamp(proceduralSlots_[i].mode, 0, 46);
+            int modeIndex = std::clamp(proceduralSlots_[i].mode, 0, 49);
             slot["mode"] = modeIndex;
             std::string effectName = GetEffectRegistry().getEffectNameByIndex(modeIndex);
             if (!effectName.empty()) {
