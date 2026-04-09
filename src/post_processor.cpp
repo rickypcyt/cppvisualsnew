@@ -126,6 +126,31 @@ void PostProcessor::resize(int width, int height) {
     height_ = height;
 }
 
+void PostProcessor::clearAccumulation() {
+    if (!initialized_) {
+        return;
+    }
+
+    // Clear both ping-pong framebuffers to remove ghosting/burn-in
+    for (int i = 0; i < 2; ++i) {
+        if (pingFbos_[i] != 0) {
+            glBindFramebuffer(GL_FRAMEBUFFER, pingFbos_[i]);
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+    }
+
+    // Also clear the main color texture
+    if (fbo_ != 0) {
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    std::cout << "PostProcessor: Accumulation buffers cleared (ghosting reset)" << std::endl;
+}
+
 void PostProcessor::beginCapture(int width, int height) {
     if (!initialized_) {
         initialize(width, height);

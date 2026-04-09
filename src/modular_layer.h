@@ -46,6 +46,11 @@ public:
     float cameraOffsetX() const { return cameraOffsetX_; }
     float cameraOffsetY() const { return cameraOffsetY_; }
     
+    // Auto-zoom range control
+    void setAutoZoomRange(float minZoom, float maxZoom) { autoZoomMin_ = minZoom; autoZoomMax_ = maxZoom; }
+    float autoZoomMin() const { return autoZoomMin_; }
+    float autoZoomMax() const { return autoZoomMax_; }
+    
     // Hot-reload methods
     void enableHotReload(bool enabled);
     bool isHotReloadEnabled() const { return hotReloadEnabled_; }
@@ -87,6 +92,8 @@ private:
     float cameraZoom_{1.0f};
     float cameraOffsetX_{0.0f};
     float cameraOffsetY_{0.0f};
+    float autoZoomMin_{0.8f};
+    float autoZoomMax_{1.3f};
 
     std::unique_ptr<Shader> proceduralShader_;
     std::unique_ptr<Shader> compositeShader_;

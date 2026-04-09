@@ -102,6 +102,9 @@ public:
     bool isPostProcessEffectEnabled(int modeIndex) const;
     void setPostProcessEffectEnabled(int modeIndex, bool enabled);
 
+    // Get zoom for shader mode (checks saved zoom first, falls back to shader default)
+    float getZoomForShaderMode(int modeIndex) const;
+
 private:
     // Helper to find next enabled shader mode (skips disabled shaders)
     int findNextEnabledMode(int currentMode, bool forward) const;

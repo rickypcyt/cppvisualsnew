@@ -1,4 +1,4 @@
-// @EFFECT name="Fractal Rotation Field" index=47 desc="Fractal rotation field with accumulated transforms" author="Shadertoy"
+// @EFFECT name="Fractal Rotation Field" index=47 desc="Fractal rotation field with accumulated transforms" author="Shadertoy" zoom=0.8
 
 mat2 rotate2D_fractal(float t) {
     return mat2(cos(t), sin(t), -sin(t), cos(t));

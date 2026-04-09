@@ -257,6 +257,16 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             }
         }
 
+        // Load per-shader zoom values
+        if (j.contains("proceduralZoomValues")) {
+            const auto& zoomValues = j["proceduralZoomValues"];
+            proceduralZoomValues_.clear();
+            for (auto& [key, value] : zoomValues.items()) {
+                int modeIndex = std::stoi(key);
+                proceduralZoomValues_[modeIndex] = value.get<float>();
+            }
+        }
+
         // Validate loaded mode - if current mode is disabled, switch to None or next enabled
         if (proceduralLayerMode_ != 0) {
             auto it = proceduralShaderEnabled_.find(proceduralLayerMode_);
@@ -386,7 +396,14 @@ bool SettingsManager::saveSettings(const std::string& filename) {
             postProcessEffectStates[std::to_string(modeIndex)] = enabled;
         }
         j["postProcessEffectEnabled"] = postProcessEffectStates;
-        
+
+        // Save per-shader zoom values
+        json zoomValues;
+        for (const auto& [modeIndex, zoom] : proceduralZoomValues_) {
+            zoomValues[std::to_string(modeIndex)] = zoom;
+        }
+        j["proceduralZoomValues"] = zoomValues;
+
         j["midi"]["tempoScale"] = midiTempoScale_;
 
         std::ofstream file(filename);
@@ -444,6 +461,27 @@ std::unordered_map<int, bool> SettingsManager::getAllProceduralShaderEnabled() c
 
 void SettingsManager::setAllProceduralShaderEnabled(const std::unordered_map<int, bool>& states) {
     proceduralShaderEnabled_ = states;
+}
+
+// Per-shader zoom methods
+float SettingsManager::getProceduralZoom(int modeIndex) const {
+    auto it = proceduralZoomValues_.find(modeIndex);
+    if (it != proceduralZoomValues_.end()) {
+        return it->second;
+    }
+    return 0.0f; // Return 0 to indicate no saved zoom (use default from shader)
+}
+
+void SettingsManager::setProceduralZoom(int modeIndex, float zoom) {
+    proceduralZoomValues_[modeIndex] = zoom;
+}
+
+std::unordered_map<int, float> SettingsManager::getAllProceduralZooms() const {
+    return proceduralZoomValues_;
+}
+
+void SettingsManager::setAllProceduralZooms(const std::unordered_map<int, float>& zooms) {
+    proceduralZoomValues_ = zooms;
 }
 
 // Post-processing effect enabled methods

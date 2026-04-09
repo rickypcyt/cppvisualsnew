@@ -37,7 +37,7 @@ void EffectRegistry::parseShaderFile(const std::filesystem::path& path,
 }
 
 // Parse one @EFFECT line
-// Format: // @EFFECT name="Effect Name" index=N [desc="..."] [author="..."]
+// Format: // @EFFECT name="Effect Name" index=N [desc="..."] [author="..."] [zoom=F]
 std::optional<EffectMetadata> EffectRegistry::parseEffectLine(const std::string& line,
                                                                const std::string& shaderFile) {
     // Check if line contains @EFFECT
@@ -82,6 +82,13 @@ std::optional<EffectMetadata> EffectRegistry::parseEffectLine(const std::string&
     std::smatch authorMatch;
     if (std::regex_search(line, authorMatch, authorRegex)) {
         metadata.author = authorMatch[1].str();
+    }
+
+    // Extract optional zoom=F (default camera zoom for this effect)
+    std::regex zoomRegex(R"xx(zoom\s*=\s*([+-]?\d*\.?\d+))xx");
+    std::smatch zoomMatch;
+    if (std::regex_search(line, zoomMatch, zoomRegex)) {
+        metadata.defaultZoom = std::stof(zoomMatch[1].str());
     }
 
     if (metadata.isValid()) {

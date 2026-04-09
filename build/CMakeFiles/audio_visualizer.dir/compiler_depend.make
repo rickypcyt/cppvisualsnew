@@ -4316,6 +4316,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /home/ricky/coding/proyects/visuals/src/post_processor.h \
   /home/ricky/coding/proyects/visuals/src/settings_manager.h \
   /home/ricky/coding/proyects/visuals/src/shader.h \
+  /home/ricky/coding/proyects/visuals/src/shader_loader.h \
   /home/ricky/coding/proyects/visuals/src/visualizer.h \
   /usr/include/GL/gl.h \
   /usr/include/GL/glew.h \
@@ -4440,6 +4441,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/bits/fs_fwd.h \
   /usr/include/c++/15.2.1/bits/fs_ops.h \
   /usr/include/c++/15.2.1/bits/fs_path.h \
+  /usr/include/c++/15.2.1/bits/fstream.tcc \
   /usr/include/c++/15.2.1/bits/functexcept.h \
   /usr/include/c++/15.2.1/bits/functional_hash.h \
   /usr/include/c++/15.2.1/bits/hash_bytes.h \
@@ -4474,6 +4476,18 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/bits/random.tcc \
   /usr/include/c++/15.2.1/bits/range_access.h \
   /usr/include/c++/15.2.1/bits/refwrap.h \
+  /usr/include/c++/15.2.1/bits/regex.h \
+  /usr/include/c++/15.2.1/bits/regex.tcc \
+  /usr/include/c++/15.2.1/bits/regex_automaton.h \
+  /usr/include/c++/15.2.1/bits/regex_automaton.tcc \
+  /usr/include/c++/15.2.1/bits/regex_compiler.h \
+  /usr/include/c++/15.2.1/bits/regex_compiler.tcc \
+  /usr/include/c++/15.2.1/bits/regex_constants.h \
+  /usr/include/c++/15.2.1/bits/regex_error.h \
+  /usr/include/c++/15.2.1/bits/regex_executor.h \
+  /usr/include/c++/15.2.1/bits/regex_executor.tcc \
+  /usr/include/c++/15.2.1/bits/regex_scanner.h \
+  /usr/include/c++/15.2.1/bits/regex_scanner.tcc \
   /usr/include/c++/15.2.1/bits/requires_hosted.h \
   /usr/include/c++/15.2.1/bits/shared_ptr.h \
   /usr/include/c++/15.2.1/bits/shared_ptr_atomic.h \
@@ -4494,11 +4508,13 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/bits/stl_iterator.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_funcs.h \
   /usr/include/c++/15.2.1/bits/stl_iterator_base_types.h \
+  /usr/include/c++/15.2.1/bits/stl_map.h \
   /usr/include/c++/15.2.1/bits/stl_multiset.h \
   /usr/include/c++/15.2.1/bits/stl_numeric.h \
   /usr/include/c++/15.2.1/bits/stl_pair.h \
   /usr/include/c++/15.2.1/bits/stl_raw_storage_iter.h \
   /usr/include/c++/15.2.1/bits/stl_set.h \
+  /usr/include/c++/15.2.1/bits/stl_stack.h \
   /usr/include/c++/15.2.1/bits/stl_tempbuf.h \
   /usr/include/c++/15.2.1/bits/stl_tree.h \
   /usr/include/c++/15.2.1/bits/stl_uninitialized.h \
@@ -4517,6 +4533,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/bits/utility.h \
   /usr/include/c++/15.2.1/bits/vector.tcc \
   /usr/include/c++/15.2.1/bits/version.h \
+  /usr/include/c++/15.2.1/bitset \
   /usr/include/c++/15.2.1/cctype \
   /usr/include/c++/15.2.1/cerrno \
   /usr/include/c++/15.2.1/chrono \
@@ -4545,6 +4562,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/ext/string_conversions.h \
   /usr/include/c++/15.2.1/ext/type_traits.h \
   /usr/include/c++/15.2.1/filesystem \
+  /usr/include/c++/15.2.1/fstream \
   /usr/include/c++/15.2.1/functional \
   /usr/include/c++/15.2.1/initializer_list \
   /usr/include/c++/15.2.1/iomanip \
@@ -4558,6 +4576,7 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/mutex \
   /usr/include/c++/15.2.1/new \
   /usr/include/c++/15.2.1/numeric \
+  /usr/include/c++/15.2.1/optional \
   /usr/include/c++/15.2.1/ostream \
   /usr/include/c++/15.2.1/pstl/execution_defs.h \
   /usr/include/c++/15.2.1/pstl/glue_algorithm_defs.h \
@@ -4566,8 +4585,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/pstl/pstl_config.h \
   /usr/include/c++/15.2.1/random \
   /usr/include/c++/15.2.1/ratio \
+  /usr/include/c++/15.2.1/regex \
   /usr/include/c++/15.2.1/set \
   /usr/include/c++/15.2.1/sstream \
+  /usr/include/c++/15.2.1/stack \
   /usr/include/c++/15.2.1/stdexcept \
   /usr/include/c++/15.2.1/streambuf \
   /usr/include/c++/15.2.1/string \
@@ -4592,8 +4613,10 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: /home/ricky/coding/proyect
   /usr/include/c++/15.2.1/unordered_map \
   /usr/include/c++/15.2.1/vector \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/atomic_word.h \
+  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/basic_file.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/c++allocator.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/c++config.h \
+  /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/c++io.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/c++locale.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/cpu_defines.h \
   /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/ctype_base.h \

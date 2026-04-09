@@ -1,4 +1,4 @@
-// @EFFECT name="Eiyeron Deform" index=46 desc="DEMOS AND COLORS plane deformation by Eiyeron" author="Eiyeron"
+// @EFFECT name="Eiyeron Deform" index=46 desc="DEMOS AND COLORS plane deformation by Eiyeron" author="Eiyeron" zoom=1.2
 
 /**
 DEMOS AND COLORS

@@ -1,6 +1,7 @@
 #include "visualizer.h"
 #include "imgui.h"
 #include "audio_capture.h"
+#include "shader_loader.h"
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -1043,6 +1044,9 @@ bool Visualizer::initialize(int width, int height) {
     } else {
         proceduralLayerMode_ = std::clamp(proceduralLayerMode_, 0, kProceduralModeCount - 1);
         proceduralLayer_.setMode(proceduralLayerMode_);
+        // Apply zoom for the initial mode (saved or default)
+        float zoom = getZoomForShaderMode(proceduralLayerMode_);
+        proceduralLayer_.setCameraZoom(zoom);
     }
     
     // Initialize hot-reload if enabled
@@ -2950,22 +2954,25 @@ void Visualizer::initializeRandomProcedural() {
 
 void Visualizer::selectRandomProcedural() {
     if (availableProceduralModes_.empty()) return;
-    
+
     std::uniform_int_distribution<int> dist(0, availableProceduralModes_.size() - 1);
     int newIndex = availableProceduralModes_[dist(rng_)];
-    
+
     // Avoid selecting the same mode twice in a row
     while (availableProceduralModes_.size() > 1 && newIndex == currentRandomProcedural_) {
         newIndex = availableProceduralModes_[dist(rng_)];
     }
-    
+
     currentRandomProcedural_ = newIndex;
-    
+
     // Update Slot 1 (main procedural slot) instead of global mode
     if (kMaxProceduralSlots > 0) {
         proceduralSlots_[0].mode = currentRandomProcedural_;
         proceduralSlots_[0].enabled = true; // Always ensure Slot 1 is enabled
         proceduralLayer_.setMode(currentRandomProcedural_); // Update the actual layer
+        // Apply zoom for the selected mode (saved or default)
+        float zoom = getZoomForShaderMode(currentRandomProcedural_);
+        proceduralLayer_.setCameraZoom(zoom);
         showProceduralLayer_ = true; // Ensure procedural layer is shown
     }
 }
@@ -2973,11 +2980,14 @@ void Visualizer::selectRandomProcedural() {
 void Visualizer::syncProceduralLayerWithSlot1() {
     if (kMaxProceduralSlots > 0 && proceduralSlots_[0].enabled) {
         // Sync procedural layer with Slot 1
-        std::cout << "[SYNC DEBUG] Before sync: proceduralSlots_[0].mode=" << proceduralSlots_[0].mode 
+        std::cout << "[SYNC DEBUG] Before sync: proceduralSlots_[0].mode=" << proceduralSlots_[0].mode
                   << " proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
         proceduralLayerMode_ = proceduralSlots_[0].mode;
         proceduralLayerOpacity_ = proceduralSlots_[0].opacity;
         proceduralLayer_.setMode(proceduralLayerMode_);
+        // Apply zoom for the synced mode (saved or default)
+        float zoom = getZoomForShaderMode(proceduralLayerMode_);
+        proceduralLayer_.setCameraZoom(zoom);
         std::cout << "[SYNC DEBUG] After sync: proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
         showProceduralLayer_ = true;
     } else {
@@ -4097,4 +4107,25 @@ void Visualizer::toggleBothWindowsFullscreen() {
         toggleMainWindowFullscreen();
         toggleImGuiWindowFullscreen();
     }
+}
+
+// Get zoom for shader mode (checks saved zoom first, falls back to shader default)
+float Visualizer::getZoomForShaderMode(int modeIndex) const {
+    if (modeIndex <= 0) return 1.0f;
+    
+    // First check if there's a saved zoom value in settings
+    if (settingsManager_) {
+        float savedZoom = settingsManager_->getProceduralZoom(modeIndex);
+        if (savedZoom > 0.0f) {
+            return savedZoom;
+        }
+    }
+    
+    // Fall back to shader's default zoom
+    auto effectMeta = GetEffectRegistry().getEffectByMode(modeIndex);
+    if (effectMeta) {
+        return effectMeta->defaultZoom;
+    }
+    
+    return 1.0f;
 }

@@ -38,6 +38,9 @@ public:
     void reloadShaders();
     bool shouldReloadShaders();
 
+    // Clear accumulation buffers to remove ghosting/burn-in
+    void clearAccumulation();
+
 private:
     bool createResources(int width, int height);
     void destroyResources();

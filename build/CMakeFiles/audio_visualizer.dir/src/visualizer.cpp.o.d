@@ -245,7 +245,29 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: \
  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/float.h \
  /usr/include/string.h /usr/include/strings.h /usr/include/assert.h \
  /home/ricky/coding/proyects/visuals/src/audio_capture.h \
- /usr/local/include/portaudio.h /usr/include/c++/15.2.1/iostream \
- /usr/include/c++/15.2.1/set /usr/include/c++/15.2.1/bits/stl_tree.h \
+ /usr/local/include/portaudio.h \
+ /home/ricky/coding/proyects/visuals/src/shader_loader.h \
+ /usr/include/c++/15.2.1/fstream \
+ /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/basic_file.h \
+ /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/c++io.h \
+ /usr/include/c++/15.2.1/bits/fstream.tcc \
+ /usr/include/c++/15.2.1/optional /usr/include/c++/15.2.1/regex \
+ /usr/include/c++/15.2.1/bitset /usr/include/c++/15.2.1/stack \
+ /usr/include/c++/15.2.1/bits/stl_stack.h \
+ /usr/include/c++/15.2.1/bits/stl_tree.h \
+ /usr/include/c++/15.2.1/bits/stl_map.h \
+ /usr/include/c++/15.2.1/bits/regex_constants.h \
+ /usr/include/c++/15.2.1/bits/regex_error.h \
+ /usr/include/c++/15.2.1/bits/regex_automaton.h \
+ /usr/include/c++/15.2.1/bits/regex_automaton.tcc \
+ /usr/include/c++/15.2.1/bits/regex_scanner.h \
+ /usr/include/c++/15.2.1/bits/regex_scanner.tcc \
+ /usr/include/c++/15.2.1/bits/regex_compiler.h \
+ /usr/include/c++/15.2.1/bits/regex_compiler.tcc \
+ /usr/include/c++/15.2.1/bits/regex.h \
+ /usr/include/c++/15.2.1/bits/regex.tcc \
+ /usr/include/c++/15.2.1/bits/regex_executor.h \
+ /usr/include/c++/15.2.1/bits/regex_executor.tcc \
+ /usr/include/c++/15.2.1/iostream /usr/include/c++/15.2.1/set \
  /usr/include/c++/15.2.1/bits/stl_set.h \
  /usr/include/c++/15.2.1/bits/stl_multiset.h

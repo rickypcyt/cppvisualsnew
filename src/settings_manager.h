@@ -118,6 +118,12 @@ public:
     std::unordered_map<int, bool> getAllPostProcessEffectEnabled() const;
     void setAllPostProcessEffectEnabled(const std::unordered_map<int, bool>& states);
 
+    // Per-shader zoom values (persist user adjustments)
+    float getProceduralZoom(int modeIndex) const;
+    void setProceduralZoom(int modeIndex, float zoom);
+    std::unordered_map<int, float> getAllProceduralZooms() const;
+    void setAllProceduralZooms(const std::unordered_map<int, float>& zooms);
+
     // Preset management for shader enable/disable configurations
     struct ShaderPreset {
         std::string name;
@@ -227,6 +233,9 @@ private:
     
     // Per-post-processing-effect enabled states (mode index -> enabled)
     std::unordered_map<int, bool> postProcessEffectEnabled_;
+
+    // Per-shader zoom values (mode index -> zoom)
+    std::unordered_map<int, float> proceduralZoomValues_;
 };
 
 #endif // SETTINGS_MANAGER_H

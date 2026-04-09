@@ -7,25 +7,25 @@
         "rgbRandomInterval": 5.0
     },
     "audio": {
-        "inputGain": 5.0,
+        "inputGain": 2.069999933242798,
         "manualBPM": 135.0,
         "manualBPMMode": true,
-        "selectedDevice": 7,
+        "selectedDevice": 4,
         "visualSensitivity": 3.0
     },
     "colors": {
-        "blend": 0.47999998927116394,
-        "hueSeed": 0.950870931148529,
-        "paletteIndex": 1,
+        "blend": 0.6200000047683716,
+        "hueSeed": 0.8344981670379639,
+        "paletteIndex": 0,
         "primary": [
-            0.5799999833106995,
-            0.11999999731779099,
-            0.1599999964237213
+            0.10000000149011612,
+            0.23999999463558197,
+            0.5799999833106995
         ],
         "secondary": [
-            0.9399999976158142,
-            0.36000001430511475,
-            0.30000001192092896
+            0.2800000011920929,
+            0.699999988079071,
+            0.9800000190734863
         ]
     },
     "hotReloadEnabled": false,
@@ -34,7 +34,7 @@
     },
     "postProcess": {
         "randomEnabled": true,
-        "randomInterval": 1.0,
+        "randomInterval": 2.0999999046325684,
         "slots": [
             {
                 "enabled": true,
@@ -48,7 +48,7 @@
             },
             {
                 "enabled": true,
-                "mode": 0,
+                "mode": 3,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -57,8 +57,8 @@
                 "strength": 1.0
             },
             {
-                "enabled": false,
-                "mode": 12,
+                "enabled": true,
+                "mode": 0,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -100,12 +100,12 @@
         "17": false,
         "18": false,
         "19": true,
-        "2": true,
+        "2": false,
         "20": true,
         "21": false,
         "22": true,
         "23": false,
-        "24": true,
+        "24": false,
         "25": false,
         "26": false,
         "3": true,
@@ -118,7 +118,7 @@
     },
     "procedural": {
         "randomEnabled": false,
-        "randomInterval": 5.300000190734863
+        "randomInterval": 6.0
     },
     "proceduralShaderEnabled": {
         "1": false,
@@ -131,7 +131,7 @@
         "16": true,
         "17": true,
         "18": true,
-        "19": true,
+        "19": false,
         "2": true,
         "20": false,
         "21": false,
@@ -148,7 +148,7 @@
         "31": true,
         "32": true,
         "33": true,
-        "34": true,
+        "34": false,
         "35": true,
         "36": true,
         "37": true,
@@ -176,9 +176,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Nebula",
+                "effectName": "Raymarched Object",
                 "enabled": true,
-                "mode": 11,
+                "mode": 14,
                 "opacity": 1.0
             },
             {
@@ -224,14 +224,17 @@
             }
         ]
     },
+    "proceduralZoomValues": {
+        "14": 2.049999952316284
+    },
     "random": {
         "postProcessEnabled": true,
-        "postProcessInterval": 1.0,
-        "postProcessSlotCount": 1,
+        "postProcessInterval": 2.0999999046325684,
+        "postProcessSlotCount": 2,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
         "proceduralEnabled": false,
-        "proceduralInterval": 5.300000190734863,
+        "proceduralInterval": 6.0,
         "proceduralSlotEnabled": false,
         "proceduralSlotIndex": 0
     },
@@ -242,10 +245,10 @@
     ],
     "ui": {
         "proceduralLayerDebug": true,
-        "proceduralLayerEffectName": "Nebula",
-        "proceduralLayerMode": 11,
+        "proceduralLayerEffectName": "Raymarched Object",
+        "proceduralLayerMode": 14,
         "proceduralLayerOpacity": 1.0,
-        "showCornerOrbs": false,
+        "showCornerOrbs": true,
         "showCurrentEffects": true,
         "showImGuiWindow": true,
         "showProceduralLayer": true

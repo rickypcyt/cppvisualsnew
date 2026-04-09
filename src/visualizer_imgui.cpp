@@ -18,9 +18,6 @@
 
 #include "shader_loader.h"
 
-// Forward declaration for shader enabled check
-class Visualizer;
-
 // Structure to hold effect info for ImGui with proper index mapping
 struct EffectListForImGui {
     std::vector<std::string> names;      // Display names for ImGui
@@ -330,6 +327,9 @@ void Visualizer::handleKeyboardInput() {
         if (currentTime - lastPress > 0.5) { // 500ms debounce
             proceduralLayerMode_ = 29; // kKaleidoscopeModeIndex
             proceduralLayer_.setMode(proceduralLayerMode_);
+            // Apply zoom for kaleidoscope mode (saved or default)
+            float zoom = getZoomForShaderMode(proceduralLayerMode_);
+            proceduralLayer_.setCameraZoom(zoom);
             std::cout << "Kaleidoscope mode activated via K key" << std::endl;
             lastPress = currentTime;
         }
@@ -1017,6 +1017,9 @@ void Visualizer::renderProceduralWindow() {
                                     proceduralLayer_.setMode(newMode);
                                     proceduralLayerMode_ = newMode;
                                     showProceduralLayer_ = true;
+                                    // Apply zoom for this effect (saved or default)
+                                    float zoom = getZoomForShaderMode(newMode);
+                                    proceduralLayer_.setCameraZoom(zoom);
                                     std::cout << "[UI DEBUG] Updated proceduralSlots_[0].mode=" << proceduralSlots_[0].mode << std::endl;
                                 }
                                 saveCurrentSettings();
@@ -1224,6 +1227,13 @@ void Visualizer::renderPostProcessWindow() {
 
     // Post Processing Slots
     ImGui::Text("🎨 Post Processing");
+    ImGui::SameLine();
+    if (ImGui::Button("🧹 Clear Ghosting")) {
+        postProcessor_.clearAccumulation();
+    }
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Clear accumulation buffers to remove burn-in/ghosting artifacts");
+    }
     ImGui::Separator();
     
     const int postModeCount = static_cast<int>(std::size(kPostProcessModes));
@@ -1510,6 +1520,9 @@ void Visualizer::renderShaderPresetsWindow() {
                         proceduralSlots_[0].enabled = true;
                         proceduralLayerMode_ = loadedMode;
                         proceduralLayer_.setMode(loadedMode);
+                        // Apply zoom for the loaded mode (saved or default)
+                        float zoom = getZoomForShaderMode(loadedMode);
+                        proceduralLayer_.setCameraZoom(zoom);
                         showProceduralLayer_ = true;
                     } else {
                         // Mode is disabled, switch to None
@@ -1517,6 +1530,7 @@ void Visualizer::renderShaderPresetsWindow() {
                         proceduralSlots_[0].enabled = true;
                         proceduralLayerMode_ = 0;
                         proceduralLayer_.setMode(0);
+                        proceduralLayer_.setCameraZoom(1.0f);
                         showProceduralLayer_ = true;
                     }
                 } else {
@@ -1525,6 +1539,7 @@ void Visualizer::renderShaderPresetsWindow() {
                     proceduralSlots_[0].enabled = true;
                     proceduralLayerMode_ = 0;
                     proceduralLayer_.setMode(0);
+                    proceduralLayer_.setCameraZoom(1.0f);
                     showProceduralLayer_ = true;
                 }
                 saveCurrentSettings();
@@ -1836,15 +1851,20 @@ void Visualizer::renderCameraWindow() {
     ImGui::Text("🎥 Global Camera Settings");
     ImGui::Separator();
 
-    // Zoom control
+    // Zoom control - saves per shader mode
     float zoom = proceduralLayer_.cameraZoom();
     ImGui::Text("Zoom:");
     if (ImGui::SliderFloat("##camera_zoom", &zoom, 0.1f, 5.0f, "%.2fx")) {
         proceduralLayer_.setCameraZoom(zoom);
+        // Save zoom for current shader mode
+        int currentMode = proceduralLayerMode_;
+        if (currentMode > 0 && settingsManager_) {
+            settingsManager_->setProceduralZoom(currentMode, zoom);
+        }
         saveCurrentSettings();
     }
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Global zoom for all procedural effects");
+        ImGui::SetTooltip("Global zoom for all procedural effects (saved per shader)");
     }
 
     ImGui::Spacing();
@@ -1871,10 +1891,15 @@ void Visualizer::renderCameraWindow() {
     ImGui::Separator();
     ImGui::Spacing();
 
-    // Reset button
+    // Reset button - resets to shader default zoom
     if (ImGui::Button("Reset to Default")) {
-        proceduralLayer_.setCameraZoom(1.0f);
+        float defaultZoom = getZoomForShaderMode(proceduralLayerMode_);
+        proceduralLayer_.setCameraZoom(defaultZoom);
         proceduralLayer_.setCameraOffset(0.0f, 0.0f);
+        // Clear saved zoom for current mode to use shader default
+        if (proceduralLayerMode_ > 0 && settingsManager_) {
+            settingsManager_->setProceduralZoom(proceduralLayerMode_, 0.0f); // 0 = use shader default
+        }
         saveCurrentSettings();
     }
 
@@ -1884,7 +1909,28 @@ void Visualizer::renderCameraWindow() {
     static bool autoZoom = false;
     ImGui::Checkbox("Auto-Animate", &autoZoom);
     if (autoZoom) {
-        float animatedZoom = 1.0f + sin(time_ * 0.5f) * 0.15f + audioFeatures_.bassEnergy * 0.2f;
+        // Get current range settings
+        float zoomMin = proceduralLayer_.autoZoomMin();
+        float zoomMax = proceduralLayer_.autoZoomMax();
+        
+        // Range controls
+        ImGui::Text("Zoom Range:");
+        bool rangeChanged = false;
+        if (ImGui::SliderFloat("Min##auto_zoom_min", &zoomMin, 0.1f, zoomMax - 0.05f, "%.2fx")) {
+            rangeChanged = true;
+        }
+        if (ImGui::SliderFloat("Max##auto_zoom_max", &zoomMax, zoomMin + 0.05f, 5.0f, "%.2fx")) {
+            rangeChanged = true;
+        }
+        if (rangeChanged) {
+            proceduralLayer_.setAutoZoomRange(zoomMin, zoomMax);
+        }
+        
+        // Calculate animated zoom within the range
+        float range = zoomMax - zoomMin;
+        float mid = (zoomMax + zoomMin) / 2.0f;
+        float animatedZoom = mid + sin(time_ * 0.5f) * (range * 0.5f) + audioFeatures_.bassEnergy * (range * 0.3f);
+        animatedZoom = std::clamp(animatedZoom, zoomMin, zoomMax);
         proceduralLayer_.setCameraZoom(animatedZoom);
     }
 
@@ -1896,9 +1942,14 @@ void Visualizer::handleMouseScroll(double xoffset, double yoffset) {
     float currentZoom = proceduralLayer_.cameraZoom();
     float zoomDelta = static_cast<float>(yoffset) * 0.1f;  // 10% per scroll step
     float newZoom = std::clamp(currentZoom + zoomDelta, 0.1f, 5.0f);
-    
+
     if (newZoom != currentZoom) {
         proceduralLayer_.setCameraZoom(newZoom);
+        // Save zoom for current shader mode
+        int currentMode = proceduralLayerMode_;
+        if (currentMode > 0 && settingsManager_) {
+            settingsManager_->setProceduralZoom(currentMode, newZoom);
+        }
         saveCurrentSettings();
     }
 }
