@@ -74,6 +74,22 @@ public:
     void handleKeyboardInput();
     static void handleScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
     void handleMouseScroll(double xoffset, double yoffset);
+    bool isKeyPressed(int key) const;
+
+    // Multi-monitor support
+    void detectMonitors();
+    void moveToMonitor(int monitorIndex);
+    void toggleMultiMonitorMode();
+    void renderMonitorSelector();
+    int getMonitorCount() const { return static_cast<int>(monitors_.size()); }
+    int getCurrentMonitor() const { return currentMonitorIndex_; }
+
+    // Fullscreen support
+    void toggleMainWindowFullscreen();
+    void toggleImGuiWindowFullscreen();
+    void toggleBothWindowsFullscreen(); // F11 toggles both windows
+    bool isMainWindowFullscreen() const;
+    bool isImGuiWindowFullscreen() const;
 
     // Per-shader enable/disable methods (must be public for EffectListForImGui access)
     bool isProceduralShaderEnabled(int modeIndex) const;
@@ -162,6 +178,17 @@ private:
     int windowHeight_;
     int imguiWindowWidth_ = 500;   // ImGui window default width
     int imguiWindowHeight_ = 800;  // ImGui window default height
+    
+    // Windowed mode state for fullscreen toggle
+    int windowedPosX_ = 100;
+    int windowedPosY_ = 100;
+    int windowedWidth_ = 1280;
+    int windowedHeight_ = 720;
+    int imguiWindowedPosX_ = 150;
+    int imguiWindowedPosY_ = 100;
+    int imguiWindowedWidth_ = 500;
+    int imguiWindowedHeight_ = 800;
+    
     float time_;
 
     // OpenGL objects
@@ -252,6 +279,7 @@ private:
     bool showDiagnosticInfo_;
     bool showConsoleMode_;
     bool imguiInitialized_;
+    bool imguiWindowNeedsFocus_ = false;
     bool autoRandomizeColors_;
     float colorRandomInterval_;
     float colorRandomTimer_;
@@ -303,6 +331,12 @@ private:
     bool proceduralLayerDebug_;
     float proceduralLayerOpacity_;
     int proceduralLayerMode_;
+
+    // Multi-monitor support
+    std::vector<GLFWmonitor*> monitors_;
+    std::vector<std::string> monitorNames_;
+    int currentMonitorIndex_ = 0;
+    bool multiMonitorMode_ = false;  // true = render on external, controls on laptop
 
     CoreState core_;
     std::vector<GearNode> gears_;

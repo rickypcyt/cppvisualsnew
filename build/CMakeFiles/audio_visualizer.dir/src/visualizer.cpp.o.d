@@ -240,13 +240,12 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o: \
  /usr/include/c++/15.2.1/bits/std_function.h \
  /usr/include/c++/15.2.1/mutex /usr/include/c++/15.2.1/bits/std_mutex.h \
  /usr/include/c++/15.2.1/bits/unique_lock.h \
- /home/ricky/coding/proyects/visuals/src/audio_capture.h \
- /usr/local/include/portaudio.h \
  /home/ricky/coding/proyects/visuals/imgui/imgui.h \
  /home/ricky/coding/proyects/visuals/imgui/imconfig.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/float.h \
  /usr/include/string.h /usr/include/strings.h /usr/include/assert.h \
- /usr/include/c++/15.2.1/iostream /usr/include/c++/15.2.1/set \
- /usr/include/c++/15.2.1/bits/stl_tree.h \
+ /home/ricky/coding/proyects/visuals/src/audio_capture.h \
+ /usr/local/include/portaudio.h /usr/include/c++/15.2.1/iostream \
+ /usr/include/c++/15.2.1/set /usr/include/c++/15.2.1/bits/stl_tree.h \
  /usr/include/c++/15.2.1/bits/stl_set.h \
  /usr/include/c++/15.2.1/bits/stl_multiset.h

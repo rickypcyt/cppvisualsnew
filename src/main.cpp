@@ -13,23 +13,38 @@ public:
     ~AudioVisualizerApp() = default;
 
     bool initialize(int deviceIndex = -1) {
-        // Initialize audio capture with specified device
-        if (deviceIndex >= 0) {
-            if (!audioCapture_.initialize(deviceIndex)) {
-                std::cerr << "Failed to initialize audio capture with device " << deviceIndex << std::endl;
-                return false;
-            }
-        } else {
-            if (!audioCapture_.initialize()) {
-                std::cerr << "Failed to initialize audio capture" << std::endl;
-                return false;
-            }
-        }
-
-        // Initialize visualizer
+        // Initialize visualizer first so persisted settings (like input device) are loaded
         if (!visualizer_.initialize(1280, 720)) {
             std::cerr << "Failed to initialize visualizer" << std::endl;
             return false;
+        }
+
+        int desiredDevice = deviceIndex;
+        if (desiredDevice < 0) {
+            desiredDevice = visualizer_.getSelectedDevice();
+        }
+
+        auto initWithDevice = [&](int devIndex) -> bool {
+            if (devIndex < 0) {
+                return audioCapture_.initialize();
+            }
+            if (audioCapture_.initialize(devIndex)) {
+                visualizer_.setSelectedDevice(devIndex);
+                return true;
+            }
+            return false;
+        };
+
+        bool captureInitialized = initWithDevice(desiredDevice);
+        if (!captureInitialized) {
+            if (desiredDevice >= 0) {
+                std::cerr << "Failed to initialize audio capture with device " << desiredDevice
+                          << ", falling back to system default" << std::endl;
+            }
+            if (!initWithDevice(-1)) {
+                std::cerr << "Failed to initialize audio capture" << std::endl;
+                return false;
+            }
         }
 
         // Start audio capture
@@ -54,8 +69,12 @@ public:
             glfwPollEvents();
             
             // Check for device change
-            static int lastDevice = visualizer_.getSelectedDevice();
-            if (visualizer_.getSelectedDevice() != lastDevice) {
+            static int lastDevice = -2; // sentinel to force first-run sync
+            int currentDevice = visualizer_.getSelectedDevice();
+            if (lastDevice == -2) {
+                lastDevice = currentDevice;
+            }
+            if (currentDevice != lastDevice) {
                 std::cout << "Changing audio device to: " << visualizer_.getSelectedDevice() << std::endl;
                 
                 // Restart audio with new device

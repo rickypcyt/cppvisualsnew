@@ -160,6 +160,8 @@ vec4 renderFractalRunway(vec2 st, float time, float tempo, float energy, float b
     vec2 fragCoord = (st / aspect + 0.5) * uResolution.xy;
     runway_fragCoord = fragCoord;
 
+    vec2 uv = (fragCoord - 0.5 * uResolution.xy) / max(uResolution.y, 1.0);
+
     float pixelCount = max(1.0, uResolution.x * uResolution.y);
     runway_resolutionPressure = clamp(pixelCount / runway_referencePixels, 1.0, 4.0);
     float highResFactor = clamp((runway_resolutionPressure - 1.0) / 3.0, 0.0, 1.0);
@@ -170,13 +172,21 @@ vec4 renderFractalRunway(vec2 st, float time, float tempo, float energy, float b
     runway_colorAccum = vec3(0.0);
     runway_lightDir = normalize(vec3(0.0, -1.0, -1.0 + high * 0.4));
 
+    bool allowAccumulation = highResFactor < 0.98;
+    runway_accumulateColor = allowAccumulation;
+    vec3 fallbackFractal = vec3(0.0);
+    if (!allowAccumulation) {
+        // Sample a lightweight fractal preview so we still get color at ultra high resolution
+        vec2 fallbackPos = uv * 1.5 + vec2(time * 0.3, time * 0.17);
+        fallbackFractal = abs(runway_fractal(fallbackPos)) * 0.25;
+    }
+
     float tempoInfluence = clamp(tempo * 0.2 + bass * 0.3, 0.0, 1.0);
     float resolutionStepBoost = mix(1.0, 2.2, highResFactor);
     float baseStep = runway_defaultStep * mix(1.2, 0.6, clamp(energy + tempoInfluence, 0.0, 1.0)) * resolutionStepBoost;
     float maxDist = runway_defaultMaxDist * mix(1.0, 1.5, clamp(energy * 0.6, 0.0, 1.0));
     maxDist *= mix(1.0, 0.85, highResFactor);
 
-    vec2 uv = (fragCoord - 0.5 * uResolution.xy) / max(uResolution.y, 1.0);
     float travelTime = time * 0.2;
     vec3 from = runway_path(travelTime);
     vec3 dir = normalize(vec3(uv, 0.7));
@@ -184,15 +194,17 @@ vec4 renderFractalRunway(vec2 st, float time, float tempo, float energy, float b
     vec3 up = vec3(advance.x * 0.1, 1.0, 0.0);
     dir = runway_lookat(advance + vec3(0.0, -0.2 - (1.0 + sin(travelTime * 2.0)), 0.0), up) * dir;
 
-    runway_accumulateColor = highResFactor < 0.85;
     vec3 coreColor = runway_march(from, dir, baseStep, maxDist) * 1.5;
 
     vec3 paletteBase = mix(uPrimaryColor, uSecondaryColor, clamp(uColorBlend, 0.0, 1.0));
     float energyMix = clamp(0.45 + energy * 0.4 + uIntensity * 0.3, 0.0, 1.0);
+    vec3 motionGlow = (runway_colorAccum + fallbackFractal) * 0.28;
+    vec3 vignette = paletteBase * pow(max(0.0, 1.0 - length(uv) * 0.85), 3.0) * 0.2;
+
     vec3 finalColor = mix(paletteBase, coreColor, energyMix);
-    finalColor += runway_colorAccum * 0.2;
+    finalColor += motionGlow + vignette;
     finalColor = clamp(finalColor, 0.0, 1.0);
 
-    float alpha = clamp(0.25 + energyMix * 0.6, 0.0, 1.0);
+    float alpha = clamp(0.3 + energyMix * 0.55, 0.0, 1.0);
     return vec4(finalColor, alpha);
 }

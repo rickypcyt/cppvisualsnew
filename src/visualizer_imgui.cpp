@@ -173,6 +173,10 @@ bool Visualizer::setupImGui() {
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    
+    // Multi-window cursor handling for Wayland/Hyprland
+    io.ConfigWindowsMoveFromTitleBarOnly = true;
+    io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 
     ImGui::StyleColorsDark();
 
@@ -219,7 +223,7 @@ void Visualizer::shutdownImGui() {
 
 void Visualizer::handleKeyboardInput() {
     // Check for 'D' key toggle
-    if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) {
+    if (isKeyPressed(GLFW_KEY_D)) {
         static double lastPress = 0.0;
         double currentTime = glfwGetTime();
         if (currentTime - lastPress > 0.5) { // 500ms debounce
@@ -231,7 +235,7 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'I' key toggle for diagnostic mode
-    if (glfwGetKey(window_, GLFW_KEY_I) == GLFW_PRESS) {
+    if (isKeyPressed(GLFW_KEY_I)) {
         static double lastPress = 0.0;
         double currentTime = glfwGetTime();
         if (currentTime - lastPress > 0.5) { // 500ms debounce
@@ -243,7 +247,7 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'C' key toggle for console mode
-    if (glfwGetKey(window_, GLFW_KEY_C) == GLFW_PRESS) {
+    if (isKeyPressed(GLFW_KEY_C)) {
         static double lastPress = 0.0;
         double currentTime = glfwGetTime();
         if (currentTime - lastPress > 0.5) { // 500ms debounce
@@ -255,7 +259,7 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'O' key for post-processing effects when device menu is closed
-    bool oKeyPressed = glfwGetKey(window_, GLFW_KEY_O) == GLFW_PRESS;
+    bool oKeyPressed = isKeyPressed(GLFW_KEY_O);
     bool deviceMenuOpen = showDeviceMenu_;
     
     // Debug: Show device menu state and O key detection
@@ -286,7 +290,7 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'X' key toggle for corner orbs when device menu is closed
-    bool xKeyPressed = (glfwGetKey(window_, GLFW_KEY_X) == GLFW_PRESS);
+    bool xKeyPressed = isKeyPressed(GLFW_KEY_X);
     
     // Debug: Show X key detection
     static bool lastXKeyState = false;
@@ -309,7 +313,7 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'R' key to reload post-processing shaders
-    if (glfwGetKey(window_, GLFW_KEY_R) == GLFW_PRESS) {
+    if (isKeyPressed(GLFW_KEY_R)) {
         static double lastPress = 0.0;
         double currentTime = glfwGetTime();
         if (currentTime - lastPress > 0.5) { // 500ms debounce
@@ -320,7 +324,7 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'K' key to activate kaleidoscope mode
-    if (glfwGetKey(window_, GLFW_KEY_K) == GLFW_PRESS) {
+    if (isKeyPressed(GLFW_KEY_K)) {
         static double lastPress = 0.0;
         double currentTime = glfwGetTime();
         if (currentTime - lastPress > 0.5) { // 500ms debounce
@@ -330,12 +334,82 @@ void Visualizer::handleKeyboardInput() {
             lastPress = currentTime;
         }
     }
+
+    // Check for 'M' key to toggle multi-monitor mode
+    if (isKeyPressed(GLFW_KEY_M)) {
+        static double lastPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastPress > 0.5) { // 500ms debounce
+            toggleMultiMonitorMode();
+            std::cout << "Multi-monitor mode toggled via M key" << std::endl;
+            lastPress = currentTime;
+        }
+    }
+
+    // Check for F11 to toggle fullscreen on BOTH windows simultaneously
+    if (isKeyPressed(GLFW_KEY_F11)) {
+        static double lastF11Press = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastF11Press > 0.5) { // 500ms debounce
+            toggleBothWindowsFullscreen();
+            lastF11Press = currentTime;
+        }
+    }
+
+    // Check for F10 to toggle ImGui window fullscreen
+    if (isKeyPressed(GLFW_KEY_F10)) {
+        static double lastF10Press = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastF10Press > 0.5) { // 500ms debounce
+            toggleImGuiWindowFullscreen();
+            lastF10Press = currentTime;
+        }
+    }
 }
 
 void Visualizer::renderImGui() {
-    // If we have a separate ImGui window, switch to it
-    if (imguiWindow_) {
+    // Detect fullscreen mode on main window
+    bool mainWindowFullscreen = false;
+    if (window_) {
+        GLFWmonitor* monitor = glfwGetWindowMonitor(window_);
+        mainWindowFullscreen = (monitor != nullptr);
+    }
+
+    // Allow controls window even while main window is fullscreen if we are in multi-monitor mode
+    // OR if user manually toggled fullscreen (we detect this by checking if imgui window is also fullscreen)
+    bool imguiFullscreen = isImGuiWindowFullscreen();
+    bool allowControlsDuringFullscreen = multiMonitorMode_ || monitors_.size() >= 2 || imguiFullscreen;
+
+    // If main window is fullscreen, hide ImGui controls window to avoid Hyprland bugs
+    // But only do this in multi-monitor mode - for manual fullscreen, keep both windows visible
+    bool shouldHideControls = imguiWindow_ && mainWindowFullscreen && !allowControlsDuringFullscreen && multiMonitorMode_;
+    if (shouldHideControls) {
+        if (glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE)) {
+            glfwHideWindow(imguiWindow_);
+            imguiWindowNeedsFocus_ = true; // Focus next time we show it
+        }
+    } else if (imguiWindow_) {
+        if (!glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE)) {
+            glfwShowWindow(imguiWindow_);
+            imguiWindowNeedsFocus_ = true;
+        }
+    }
+
+    const bool controlsVisible = imguiWindow_ && glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE);
+    bool renderControlsWindow = controlsVisible && (!mainWindowFullscreen || allowControlsDuringFullscreen);
+
+    // If we have a separate ImGui window and are allowed to render it, switch to it
+    if (renderControlsWindow) {
         glfwMakeContextCurrent(imguiWindow_);
+
+        // Only force focus when the window was previously hidden or flagged
+        if (imguiWindowNeedsFocus_) {
+            glfwFocusWindow(imguiWindow_);
+            imguiWindowNeedsFocus_ = false;
+        }
+
+        // Ensure cursor mode remains free (Hyprland can latch to hidden windows)
+        glfwSetInputMode(imguiWindow_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
         // Get framebuffer size for the ImGui window
         int fbWidth, fbHeight;
@@ -347,10 +421,21 @@ void Visualizer::renderImGui() {
         glClear(GL_COLOR_BUFFER_BIT);
     }
 
+    // Always keep main window cursor unlocked as well
+    if (window_) {
+        glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+    
+    // Ensure cursor is properly updated
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) {
+        io.ConfigFlags &= ~ImGuiConfigFlags_NoMouseCursorChange;
+    }
 
     // Handle keyboard input
     handleKeyboardInput();
@@ -404,11 +489,15 @@ void Visualizer::renderImGui() {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    // Swap buffers for ImGui window if it exists
-    if (imguiWindow_) {
+    // Swap buffers for ImGui window if it exists and not fullscreen
+    // (when fullscreen, we render ImGui as overlay on main window)
+    if (renderControlsWindow) {
         glfwSwapBuffers(imguiWindow_);
 
         // Return context to main window
+        glfwMakeContextCurrent(window_);
+    } else if (window_) {
+        // Ensure we leave context on main window when controls window is hidden/offscreen
         glfwMakeContextCurrent(window_);
     }
 }
@@ -477,6 +566,45 @@ void Visualizer::renderMainImGuiWindow() {
     if (ImGui::Button("🖥️ Console Mode")) {
         showConsoleMode_ = !showConsoleMode_;
     }
+
+    // Fullscreen controls
+    ImGui::Spacing();
+    bool mainFs = isMainWindowFullscreen();
+    bool imguiFs = isImGuiWindowFullscreen();
+    
+    if (mainFs) {
+        if (ImGui::Button("🗗 Exit Fullscreen (F11)")) {
+            toggleMainWindowFullscreen();
+        }
+    } else {
+        if (ImGui::Button("⛶ Main Fullscreen (F11)")) {
+            toggleMainWindowFullscreen();
+        }
+    }
+    
+    ImGui::SameLine();
+    
+    if (imguiFs) {
+        if (ImGui::Button("🗗 Exit ImGui FS (F10)")) {
+            toggleImGuiWindowFullscreen();
+        }
+    } else {
+        if (ImGui::Button("⛶ ImGui Fullscreen (F10)")) {
+            toggleImGuiWindowFullscreen();
+        }
+    }
+    
+    // Multi-monitor setup section
+    ImGui::Spacing();
+    
+    // Refresh monitors button
+    if (ImGui::Button("🔄 Refresh Monitors")) {
+        detectMonitors();
+        std::cout << "[MONITOR] Monitors refreshed manually" << std::endl;
+    }
+    
+    ImGui::Spacing();
+    renderMonitorSelector();
     
     if (ImGui::Button("🔄 Reload Shaders")) {
         reloadProceduralShaders();
@@ -863,6 +991,19 @@ void Visualizer::renderProceduralWindow() {
         if (prevCornerOrbs != showCornerOrbs_) {
             saveCurrentSettings();
         }
+        
+        ImGui::SameLine();
+        
+        // Randomize orbs button
+        if (ImGui::Button("🎲 Randomize Orbs")) {
+            // Randomize corner orbs state
+            showCornerOrbs_ = (rand() % 2) == 1;
+            saveCurrentSettings();
+            std::cout << "[RANDOM] Corner Orbs: " << (showCornerOrbs_ ? "ENABLED" : "DISABLED") << std::endl;
+        }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Randomly enable/disable corner orbs");
+        }
 
         ImGui::Spacing();
         ImGui::Separator();
@@ -1112,6 +1253,24 @@ void Visualizer::renderPostProcessWindow() {
     ImGui::Text("🎨 Post Processing");
     ImGui::Separator();
     
+    const int postModeCount = static_cast<int>(std::size(kPostProcessModes));
+    const int randomCycleIndex = postModeCount > 0 ? postModeCount - 1 : 0;
+
+    auto buildSelectablePostModes = [&](std::vector<int>& outModes) {
+        outModes.clear();
+        outModes.push_back(0); // Always allow "None"
+        for (int i = 1; i < postModeCount; ++i) {
+            bool isRandomCycle = (i == randomCycleIndex);
+            if (!isRandomCycle && !isPostProcessEffectEnabled(i)) {
+                continue;
+            }
+            outModes.push_back(i);
+        }
+    };
+
+    std::vector<int> selectableModes;
+    selectableModes.reserve(postModeCount);
+
     bool anySlotEnabled = false;
     for (int slotIndex = 0; slotIndex < kMaxPostProcessSlots; ++slotIndex) {
         auto& slot = postProcessSlots_[slotIndex];
@@ -1134,16 +1293,27 @@ void Visualizer::renderPostProcessWindow() {
 
             if (slot.enabled) {
                 int currentMode = slot.mode;
-                if (currentMode < 0 || currentMode >= static_cast<int>(std::size(kPostProcessModes))) {
+                if (currentMode < 0 || currentMode >= postModeCount) {
                     currentMode = 0;
                 }
 
+                bool modeAllowed = (currentMode == 0 || currentMode == randomCycleIndex);
+                if (!modeAllowed) {
+                    modeAllowed = isPostProcessEffectEnabled(currentMode);
+                }
+                if (!modeAllowed) {
+                    currentMode = 0;
+                    slot.mode = 0;
+                }
+
+                buildSelectablePostModes(selectableModes);
+
                 ImGui::Text("Effect Mode:");
                 if (ImGui::BeginCombo("##post_mode", kPostProcessModes[currentMode])) {
-                    for (int i = 0; i < static_cast<int>(std::size(kPostProcessModes)); ++i) {
-                        bool selected = (slot.mode == i);
-                        if (ImGui::Selectable(kPostProcessModes[i], selected)) {
-                            slot.mode = i;
+                    for (int mode : selectableModes) {
+                        bool selected = (slot.mode == mode);
+                        if (ImGui::Selectable(kPostProcessModes[mode], selected)) {
+                            slot.mode = mode;
                             saveCurrentSettings();
                         }
                         if (selected) {
@@ -1241,6 +1411,71 @@ void Visualizer::renderPostProcessWindow() {
             selectRandomPostProcess();
             saveCurrentSettings();
         }
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    ImGui::Text("🎭 Disponibilidad de Post FX");
+    ImGui::TextDisabled("Activa o desactiva efectos disponibles para slots y ciclo aleatorio");
+
+    if (ImGui::CollapsingHeader("Gestionar Post FX")) {
+        ImGui::Indent();
+        bool anyChanged = false;
+        ImGui::Columns(2, "post_fx_columns", false);
+        int columnIndex = 0;
+
+        for (int mode = 1; mode < postModeCount - 1; ++mode) {
+            bool enabled = isPostProcessEffectEnabled(mode);
+            std::string label = std::string(kPostProcessModes[mode]) + "##postfx_" + std::to_string(mode);
+            if (ImGui::Checkbox(label.c_str(), &enabled)) {
+                setPostProcessEffectEnabled(mode, enabled);
+                anyChanged = true;
+            }
+
+            if (++columnIndex % 2 == 0) {
+                ImGui::NextColumn();
+            }
+        }
+
+        ImGui::Columns(1);
+
+        if (anyChanged) {
+            initializeRandomPostProcess();
+            saveCurrentSettings();
+        }
+
+        ImGui::Spacing();
+        if (ImGui::Button("Enable All Post FX")) {
+            for (int mode = 1; mode < postModeCount - 1; ++mode) {
+                setPostProcessEffectEnabled(mode, true);
+            }
+            initializeRandomPostProcess();
+            saveCurrentSettings();
+        }
+        ImGui::Spacing();
+        if (ImGui::Button("Invert Selection")) {
+            for (int mode = 1; mode < postModeCount - 1; ++mode) {
+                bool current = isPostProcessEffectEnabled(mode);
+                setPostProcessEffectEnabled(mode, !current);
+            }
+            initializeRandomPostProcess();
+            saveCurrentSettings();
+        }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Invertir: activados → desactivados, desactivados → activados");
+        }
+        ImGui::Spacing();
+        if (ImGui::Button("Disable All Post FX")) {
+            for (int mode = 1; mode < postModeCount - 1; ++mode) {
+                setPostProcessEffectEnabled(mode, false);
+            }
+            initializeRandomPostProcess();
+            saveCurrentSettings();
+        }
+
+        ImGui::Unindent();
     }
 
     ImGui::End();
