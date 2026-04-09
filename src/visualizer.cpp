@@ -891,7 +891,7 @@ void Visualizer::renderCore() {
 }
 
 Visualizer::Visualizer()
-    : window_(nullptr), windowWidth_(800), windowHeight_(600), time_(0.0f), quadVAO_(0),
+    : window_(nullptr), imguiWindow_(nullptr), windowWidth_(800), windowHeight_(600), time_(0.0f), quadVAO_(0),
       quadVBO_(0), waveformVAO_(0), waveformVBO_(0), coreVAO_(0), coreVBO_(0), coreVertexCount_(0),
       sparkVAO_(0), sparkVBO_(0), sparkVertexCount_(0), cornerVAO_(0), cornerVBO_(0),
       cornerVertexCount_(0), audioFeatures_{}, selectedDevice_(-1), showDeviceMenu_(false),
@@ -1325,6 +1325,12 @@ void Visualizer::shutdown() {
     coreShader_.reset();
     sparkShader_.reset();
 
+    // Destroy ImGui window first (if it exists)
+    if (imguiWindow_) {
+        glfwDestroyWindow(imguiWindow_);
+        imguiWindow_ = nullptr;
+    }
+
     if (window_) {
         glfwDestroyWindow(window_);
         window_ = nullptr;
@@ -1332,7 +1338,17 @@ void Visualizer::shutdown() {
     glfwTerminate();
 }
 
-bool Visualizer::shouldClose() { return window_ ? glfwWindowShouldClose(window_) : true; }
+bool Visualizer::shouldClose() {
+    // Close if main visuals window is closed
+    if (window_ && glfwWindowShouldClose(window_)) {
+        return true;
+    }
+    // Also close if ImGui controls window is closed (if it exists)
+    if (imguiWindow_ && glfwWindowShouldClose(imguiWindow_)) {
+        return true;
+    }
+    return false;
+}
 
 void Visualizer::beginFrame() {
     glfwPollEvents();
@@ -1849,7 +1865,7 @@ void Visualizer::saveCurrentSettings() {
 
 bool Visualizer::setupOpenGL() {
     std::cout << "[DEBUG] Initializing OpenGL..." << std::endl;
-    
+
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return false;
@@ -1863,16 +1879,17 @@ bool Visualizer::setupOpenGL() {
     // Try with OpenGL ES if desktop OpenGL fails
     bool useGLES = false;
 
-    std::cout << "[DEBUG] Creating window (" << windowWidth_ << "x" << windowHeight_ << ")..." << std::endl;
-    window_ = glfwCreateWindow(windowWidth_, windowHeight_, "Audio Visualizer", nullptr, nullptr);
+    // === CREATE MAIN VISUALS WINDOW ===
+    std::cout << "[DEBUG] Creating main visuals window (" << windowWidth_ << "x" << windowHeight_ << ")..." << std::endl;
+    window_ = glfwCreateWindow(windowWidth_, windowHeight_, "Audio Visualizer - Visuals", nullptr, nullptr);
     if (!window_) {
-        std::cerr << "Failed to create GLFW window" << std::endl;
+        std::cerr << "Failed to create main GLFW window" << std::endl;
         return false;
     }
-    std::cout << "[DEBUG] Window created successfully" << std::endl;
+    std::cout << "[DEBUG] Main visuals window created successfully" << std::endl;
 
     glfwMakeContextCurrent(window_);
-    std::cout << "[DEBUG] OpenGL context made current" << std::endl;
+    std::cout << "[DEBUG] OpenGL context made current on main window" << std::endl;
 
     // Set window user pointer for callbacks
     glfwSetWindowUserPointer(window_, this);
@@ -1898,6 +1915,25 @@ bool Visualizer::setupOpenGL() {
     glGetError();
 
     glViewport(0, 0, windowWidth_, windowHeight_);
+
+    // === CREATE SEPARATE IMGUI CONTROLS WINDOW ===
+    // The second window shares the context with the first window
+    std::cout << "[DEBUG] Creating ImGui controls window (" << imguiWindowWidth_ << "x" << imguiWindowHeight_ << ")..." << std::endl;
+    imguiWindow_ = glfwCreateWindow(imguiWindowWidth_, imguiWindowHeight_, "Audio Visualizer - Controls", nullptr, window_);
+    if (!imguiWindow_) {
+        std::cerr << "Failed to create ImGui GLFW window, continuing without controls window" << std::endl;
+        // Continue without the controls window - non-critical
+    } else {
+        std::cout << "[DEBUG] ImGui controls window created successfully" << std::endl;
+
+        // Position ImGui window to the right of the main window
+        int mainX, mainY;
+        glfwGetWindowPos(window_, &mainX, &mainY);
+        glfwSetWindowPos(imguiWindow_, mainX + windowWidth_ + 50, mainY);
+    }
+
+    // Make main window current again
+    glfwMakeContextCurrent(window_);
 
     std::cout << "OpenGL setup successful!" << std::endl;
     return true;

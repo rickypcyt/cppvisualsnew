@@ -38,7 +38,7 @@
         "slots": [
             {
                 "enabled": true,
-                "mode": 20,
+                "mode": 6,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -149,9 +149,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Pulsar Tunnel",
+                "effectName": "Kaleidoscope Fractal",
                 "enabled": true,
-                "mode": 8,
+                "mode": 12,
                 "opacity": 1.0
             },
             {
@@ -214,8 +214,8 @@
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Pulsar Tunnel",
-        "proceduralLayerMode": 8,
+        "proceduralLayerEffectName": "Kaleidoscope Fractal",
+        "proceduralLayerMode": 12,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,

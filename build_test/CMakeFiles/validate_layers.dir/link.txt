@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/validate_layers.dir/link.d CMakeFiles/validate_layers.dir/src/validate_layers.cpp.o CMakeFiles/validate_layers.dir/src/layer_validator.cpp.o CMakeFiles/validate_layers.dir/src/shader_loader.cpp.o -o validate_layers  -lm -lpthread

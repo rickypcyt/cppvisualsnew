@@ -1,0 +1,40 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/test_layer_integration.dir/link.d"
+  "CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_glfw.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_glfw.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/imgui/backends/imgui_impl_opengl3.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/imgui/imgui.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/imgui/imgui.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/imgui/imgui_demo.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/imgui/imgui_demo.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/imgui/imgui_draw.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/imgui/imgui_draw.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/imgui/imgui_tables.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/imgui/imgui_tables.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/imgui/imgui_widgets.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/imgui/imgui_widgets.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/src/audio_analyzer.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/src/audio_analyzer.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/src/layer_validator.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/src/layer_validator.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/src/modular_layer.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/src/modular_layer.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/src/post_processor.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/src/post_processor.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/src/shader.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/src/shader.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/src/shader_loader.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/src/shader_loader.cpp.o.d"
+  "CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o"
+  "CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o.d"
+  "test_layer_integration"
+  "test_layer_integration.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/test_layer_integration.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

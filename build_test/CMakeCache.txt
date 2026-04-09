@@ -14,6 +14,15 @@
 # EXTERNAL cache entries
 ########################
 
+//Value Computed by CMake
+AudioVisualizer_BINARY_DIR:STATIC=/home/ricky/coding/proyects/visuals/build_test
+
+//Value Computed by CMake
+AudioVisualizer_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+AudioVisualizer_SOURCE_DIR:STATIC=/home/ricky/coding/proyects/visuals
+
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
 
@@ -22,7 +31,7 @@ CMAKE_AR:FILEPATH=/usr/bin/ar
 
 //Choose the type of build, options are: None Debug Release RelWithDebInfo
 // MinSizeRel ...
-CMAKE_BUILD_TYPE:STRING=
+CMAKE_BUILD_TYPE:STRING=Release
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
@@ -151,7 +160,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=OpenGLTriangleTest
+CMAKE_PROJECT_NAME:STATIC=AudioVisualizer
 
 //Value Computed by CMake
 CMAKE_PROJECT_SPDX_LICENSE:STATIC=
@@ -227,65 +236,73 @@ GLEW_INCLUDE_DIRS:PATH=/usr/include
 //Path to a library.
 GLEW_LIBRARIES:FILEPATH=/usr/lib/libGLEW.so
 
-//Path to a file.
-OPENGL_EGL_INCLUDE_DIR:PATH=/usr/include
+//Arguments to supply to pkg-config
+PKG_CONFIG_ARGN:STRING=
 
-//Path to a file.
-OPENGL_GLES2_INCLUDE_DIR:PATH=/usr/include
-
-//Path to a file.
-OPENGL_GLES3_INCLUDE_DIR:PATH=/usr/include
-
-//Path to a file.
-OPENGL_GLU_INCLUDE_DIR:PATH=/usr/include
-
-//Path to a file.
-OPENGL_GLX_INCLUDE_DIR:PATH=/usr/include
-
-//Path to a file.
-OPENGL_INCLUDE_DIR:PATH=/usr/include
-
-//Path to a library.
-OPENGL_egl_LIBRARY:FILEPATH=/usr/lib/libEGL.so
-
-//Path to a library.
-OPENGL_gl_LIBRARY:FILEPATH=/usr/lib/libGL.so
-
-//Path to a library.
-OPENGL_gles2_LIBRARY:FILEPATH=/usr/lib/libGLESv2.so
-
-//Path to a library.
-OPENGL_gles3_LIBRARY:FILEPATH=/usr/lib/libGLESv2.so
-
-//Path to a library.
-OPENGL_glu_LIBRARY:FILEPATH=/usr/lib/libGLU.so
-
-//Path to a library.
-OPENGL_glx_LIBRARY:FILEPATH=/usr/lib/libGLX.so
-
-//Path to a library.
-OPENGL_opengl_LIBRARY:FILEPATH=/usr/lib/libOpenGL.so
-
-//Path to a file.
-OPENGL_xmesa_INCLUDE_DIR:PATH=OPENGL_xmesa_INCLUDE_DIR-NOTFOUND
-
-//Value Computed by CMake
-OpenGLTriangleTest_BINARY_DIR:STATIC=/home/ricky/coding/proyects/visuals/build_test
-
-//Value Computed by CMake
-OpenGLTriangleTest_IS_TOP_LEVEL:STATIC=ON
-
-//Value Computed by CMake
-OpenGLTriangleTest_SOURCE_DIR:STATIC=/home/ricky/coding/proyects/visuals/build_test
+//pkg-config executable
+PKG_CONFIG_EXECUTABLE:FILEPATH=/usr/bin/pkg-config
 
 //The directory containing a CMake configuration file for glfw3.
 glfw3_DIR:PATH=/usr/lib/cmake/glfw3
+
+//The directory containing a CMake configuration file for nlohmann_json.
+nlohmann_json_DIR:PATH=/usr/share/cmake/nlohmann_json
+
+//Path to a library.
+pkgcfg_lib_ALSA_asound:FILEPATH=/usr/lib/libasound.so
+
+//Path to a library.
+pkgcfg_lib_PORTAUDIO_asound:FILEPATH=/usr/lib/libasound.so
+
+//Path to a library.
+pkgcfg_lib_PORTAUDIO_m:FILEPATH=/usr/lib/libm.so
+
+//Path to a library.
+pkgcfg_lib_PORTAUDIO_portaudio:FILEPATH=/usr/lib/libportaudio.so
+
+//Path to a library.
+pkgcfg_lib_PORTAUDIO_pthread:FILEPATH=/usr/lib/libpthread.a
 
 
 ########################
 # INTERNAL cache entries
 ########################
 
+ALSA_CFLAGS:INTERNAL=-I/usr/include
+ALSA_CFLAGS_I:INTERNAL=
+ALSA_CFLAGS_OTHER:INTERNAL=
+ALSA_FOUND:INTERNAL=1
+ALSA_INCLUDEDIR:INTERNAL=/usr/include
+ALSA_INCLUDE_DIRS:INTERNAL=/usr/include
+ALSA_LDFLAGS:INTERNAL=-L/usr/lib;-lasound
+ALSA_LDFLAGS_OTHER:INTERNAL=
+ALSA_LIBDIR:INTERNAL=/usr/lib
+ALSA_LIBRARIES:INTERNAL=asound
+ALSA_LIBRARY_DIRS:INTERNAL=/usr/lib
+ALSA_LIBS:INTERNAL=
+ALSA_LIBS_L:INTERNAL=
+ALSA_LIBS_OTHER:INTERNAL=
+ALSA_LIBS_PATHS:INTERNAL=
+ALSA_MODULE_NAME:INTERNAL=alsa
+ALSA_PREFIX:INTERNAL=/usr
+ALSA_STATIC_CFLAGS:INTERNAL=-I/usr/include
+ALSA_STATIC_CFLAGS_I:INTERNAL=
+ALSA_STATIC_CFLAGS_OTHER:INTERNAL=
+ALSA_STATIC_INCLUDE_DIRS:INTERNAL=/usr/include
+ALSA_STATIC_LDFLAGS:INTERNAL=-L/usr/lib;-lasound;-lm;-lpthread;-lrt
+ALSA_STATIC_LDFLAGS_OTHER:INTERNAL=
+ALSA_STATIC_LIBDIR:INTERNAL=
+ALSA_STATIC_LIBRARIES:INTERNAL=asound;m;pthread;rt
+ALSA_STATIC_LIBRARY_DIRS:INTERNAL=/usr/lib
+ALSA_STATIC_LIBS:INTERNAL=
+ALSA_STATIC_LIBS_L:INTERNAL=
+ALSA_STATIC_LIBS_OTHER:INTERNAL=
+ALSA_STATIC_LIBS_PATHS:INTERNAL=
+ALSA_VERSION:INTERNAL=1.2.15.3
+ALSA_alsa_INCLUDEDIR:INTERNAL=
+ALSA_alsa_LIBDIR:INTERNAL=
+ALSA_alsa_PREFIX:INTERNAL=
+ALSA_alsa_VERSION:INTERNAL=
 //ADVANCED property for variable: CMAKE_ADDR2LINE
 CMAKE_ADDR2LINE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_AR
@@ -295,9 +312,9 @@ CMAKE_CACHEFILE_DIR:INTERNAL=/home/ricky/coding/proyects/visuals/build_test
 //Major version of cmake used to create the current loaded cache
 CMAKE_CACHE_MAJOR_VERSION:INTERNAL=4
 //Minor version of cmake used to create the current loaded cache
-CMAKE_CACHE_MINOR_VERSION:INTERNAL=2
+CMAKE_CACHE_MINOR_VERSION:INTERNAL=3
 //Patch version of cmake used to create the current loaded cache
-CMAKE_CACHE_PATCH_VERSION:INTERNAL=3
+CMAKE_CACHE_PATCH_VERSION:INTERNAL=0
 //ADVANCED property for variable: CMAKE_COLOR_MAKEFILE
 CMAKE_COLOR_MAKEFILE-ADVANCED:INTERNAL=1
 //Path to CMake executable.
@@ -370,7 +387,7 @@ CMAKE_GENERATOR_TOOLSET:INTERNAL=
 CMAKE_HAVE_LIBC_PTHREAD:INTERNAL=1
 //Source directory with the top level CMakeLists.txt file for this
 // project
-CMAKE_HOME_DIRECTORY:INTERNAL=/home/ricky/coding/proyects/visuals/build_test
+CMAKE_HOME_DIRECTORY:INTERNAL=/home/ricky/coding/proyects/visuals
 //Install .so files without execute permission.
 CMAKE_INSTALL_SO_NO_EXE:INTERNAL=0
 //ADVANCED property for variable: CMAKE_LINKER
@@ -437,36 +454,62 @@ CMAKE_TAPI-ADVANCED:INTERNAL=1
 CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
-//Details about finding OpenGL
-FIND_PACKAGE_MESSAGE_DETAILS_OpenGL:INTERNAL=[/usr/lib/libOpenGL.so][/usr/lib/libGLX.so][/usr/include][ ][v()]
+//Details about finding PkgConfig
+FIND_PACKAGE_MESSAGE_DETAILS_PkgConfig:INTERNAL=[/usr/bin/pkg-config][v2.5.1()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
-//ADVANCED property for variable: OPENGL_EGL_INCLUDE_DIR
-OPENGL_EGL_INCLUDE_DIR-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_GLES2_INCLUDE_DIR
-OPENGL_GLES2_INCLUDE_DIR-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_GLES3_INCLUDE_DIR
-OPENGL_GLES3_INCLUDE_DIR-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_GLU_INCLUDE_DIR
-OPENGL_GLU_INCLUDE_DIR-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_GLX_INCLUDE_DIR
-OPENGL_GLX_INCLUDE_DIR-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_INCLUDE_DIR
-OPENGL_INCLUDE_DIR-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_egl_LIBRARY
-OPENGL_egl_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_gl_LIBRARY
-OPENGL_gl_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_gles2_LIBRARY
-OPENGL_gles2_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_gles3_LIBRARY
-OPENGL_gles3_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_glu_LIBRARY
-OPENGL_glu_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_glx_LIBRARY
-OPENGL_glx_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_opengl_LIBRARY
-OPENGL_opengl_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_xmesa_INCLUDE_DIR
-OPENGL_xmesa_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: PKG_CONFIG_ARGN
+PKG_CONFIG_ARGN-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: PKG_CONFIG_EXECUTABLE
+PKG_CONFIG_EXECUTABLE-ADVANCED:INTERNAL=1
+PORTAUDIO_CFLAGS:INTERNAL=-I/usr/include;-pthread
+PORTAUDIO_CFLAGS_I:INTERNAL=
+PORTAUDIO_CFLAGS_OTHER:INTERNAL=-pthread
+PORTAUDIO_FOUND:INTERNAL=1
+PORTAUDIO_INCLUDEDIR:INTERNAL=/usr/include
+PORTAUDIO_INCLUDE_DIRS:INTERNAL=/usr/include
+PORTAUDIO_LDFLAGS:INTERNAL=-L/usr/lib;-lportaudio;-lasound;-lm;-lpthread
+PORTAUDIO_LDFLAGS_OTHER:INTERNAL=
+PORTAUDIO_LIBDIR:INTERNAL=/usr/lib
+PORTAUDIO_LIBRARIES:INTERNAL=portaudio;asound;m;pthread
+PORTAUDIO_LIBRARY_DIRS:INTERNAL=/usr/lib
+PORTAUDIO_LIBS:INTERNAL=
+PORTAUDIO_LIBS_L:INTERNAL=
+PORTAUDIO_LIBS_OTHER:INTERNAL=
+PORTAUDIO_LIBS_PATHS:INTERNAL=
+PORTAUDIO_MODULE_NAME:INTERNAL=portaudio-2.0
+PORTAUDIO_PREFIX:INTERNAL=/usr
+PORTAUDIO_STATIC_CFLAGS:INTERNAL=-I/usr/include;-pthread
+PORTAUDIO_STATIC_CFLAGS_I:INTERNAL=
+PORTAUDIO_STATIC_CFLAGS_OTHER:INTERNAL=-pthread
+PORTAUDIO_STATIC_INCLUDE_DIRS:INTERNAL=/usr/include
+PORTAUDIO_STATIC_LDFLAGS:INTERNAL=-L/usr/lib;-lportaudio;-lasound;-lm;-lpthread
+PORTAUDIO_STATIC_LDFLAGS_OTHER:INTERNAL=
+PORTAUDIO_STATIC_LIBDIR:INTERNAL=
+PORTAUDIO_STATIC_LIBRARIES:INTERNAL=portaudio;asound;m;pthread
+PORTAUDIO_STATIC_LIBRARY_DIRS:INTERNAL=/usr/lib
+PORTAUDIO_STATIC_LIBS:INTERNAL=
+PORTAUDIO_STATIC_LIBS_L:INTERNAL=
+PORTAUDIO_STATIC_LIBS_OTHER:INTERNAL=
+PORTAUDIO_STATIC_LIBS_PATHS:INTERNAL=
+PORTAUDIO_VERSION:INTERNAL=19
+PORTAUDIO_portaudio-2.0_INCLUDEDIR:INTERNAL=
+PORTAUDIO_portaudio-2.0_LIBDIR:INTERNAL=
+PORTAUDIO_portaudio-2.0_PREFIX:INTERNAL=
+PORTAUDIO_portaudio-2.0_VERSION:INTERNAL=
+__pkg_config_arguments_ALSA:INTERNAL=REQUIRED;alsa
+__pkg_config_arguments_PORTAUDIO:INTERNAL=REQUIRED;portaudio-2.0
+__pkg_config_checked_ALSA:INTERNAL=1
+__pkg_config_checked_PORTAUDIO:INTERNAL=1
+//ADVANCED property for variable: pkgcfg_lib_ALSA_asound
+pkgcfg_lib_ALSA_asound-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: pkgcfg_lib_PORTAUDIO_asound
+pkgcfg_lib_PORTAUDIO_asound-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: pkgcfg_lib_PORTAUDIO_m
+pkgcfg_lib_PORTAUDIO_m-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: pkgcfg_lib_PORTAUDIO_portaudio
+pkgcfg_lib_PORTAUDIO_portaudio-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: pkgcfg_lib_PORTAUDIO_pthread
+pkgcfg_lib_PORTAUDIO_pthread-ADVANCED:INTERNAL=1
+prefix_result:INTERNAL=/usr/lib
 

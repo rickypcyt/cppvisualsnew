@@ -156,9 +156,12 @@ private:
         std::array<uint8_t, WIDTH * HEIGHT> next{};
     };
 
-    GLFWwindow* window_;
+    GLFWwindow* window_;           // Main visuals window
+    GLFWwindow* imguiWindow_;      // Separate ImGui controls window
     int windowWidth_;
     int windowHeight_;
+    int imguiWindowWidth_ = 500;   // ImGui window default width
+    int imguiWindowHeight_ = 800;  // ImGui window default height
     float time_;
 
     // OpenGL objects

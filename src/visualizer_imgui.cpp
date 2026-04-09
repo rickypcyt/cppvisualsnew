@@ -160,8 +160,11 @@ const char* const Visualizer::kPostProcessModes[] = {
 };
 
 bool Visualizer::setupImGui() {
-    if (!window_) {
-        std::cerr << "ImGui initialization failed: window not created" << std::endl;
+    // Use the separate ImGui controls window if available, otherwise fall back to main window
+    GLFWwindow* imguiTargetWindow = imguiWindow_ ? imguiWindow_ : window_;
+
+    if (!imguiTargetWindow) {
+        std::cerr << "ImGui initialization failed: no window available" << std::endl;
         return false;
     }
 
@@ -179,7 +182,7 @@ bool Visualizer::setupImGui() {
     style.GrabRounding = 4.0f;
     style.Alpha = 0.9f;
 
-    if (!ImGui_ImplGlfw_InitForOpenGL(window_, true)) {
+    if (!ImGui_ImplGlfw_InitForOpenGL(imguiTargetWindow, true)) {
         std::cerr << "ImGui initialization failed: ImGui_ImplGlfw_InitForOpenGL" << std::endl;
         ImGui::DestroyContext();
         return false;
@@ -330,6 +333,20 @@ void Visualizer::handleKeyboardInput() {
 }
 
 void Visualizer::renderImGui() {
+    // If we have a separate ImGui window, switch to it
+    if (imguiWindow_) {
+        glfwMakeContextCurrent(imguiWindow_);
+
+        // Get framebuffer size for the ImGui window
+        int fbWidth, fbHeight;
+        glfwGetFramebufferSize(imguiWindow_, &fbWidth, &fbHeight);
+
+        // Set viewport and clear
+        glViewport(0, 0, fbWidth, fbHeight);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);  // Dark background for controls window
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -361,7 +378,7 @@ void Visualizer::renderImGui() {
     if (showCurrentEffects_) {
         renderCurrentEffectsDisplay();
     }
-    
+
     // Render MIDI controls
     renderMIDIControls();
 
@@ -386,6 +403,14 @@ void Visualizer::renderImGui() {
     // Render ImGui
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    // Swap buffers for ImGui window if it exists
+    if (imguiWindow_) {
+        glfwSwapBuffers(imguiWindow_);
+
+        // Return context to main window
+        glfwMakeContextCurrent(window_);
+    }
 }
 
 void Visualizer::renderMainImGuiWindow() {
