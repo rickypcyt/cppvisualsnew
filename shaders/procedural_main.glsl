@@ -107,6 +107,10 @@ void main() {
         color = renderKaleidoscopicFlow(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 49) {
         color = renderReactiveTwistField(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 50) {
+        color = renderCollapsedTransit(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 51) {
+        color = renderCelestialRibbonBloom(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
     // Invalid modes will show black/pink error color
 

@@ -15,17 +15,17 @@
     },
     "colors": {
         "blend": 0.6200000047683716,
-        "hueSeed": 0.6082277297973633,
-        "paletteIndex": 0,
+        "hueSeed": 0.3870598375797272,
+        "paletteIndex": -1,
         "primary": [
-            0.10000000149011612,
-            0.23999999463558197,
-            0.5799999833106995
+            0.20900005102157593,
+            0.949999988079071,
+            0.44786810874938965
         ],
         "secondary": [
-            0.2800000011920929,
-            0.699999988079071,
-            0.9800000190734863
+            0.30800002813339233,
+            0.3409706950187683,
+            0.8799999952316284
         ]
     },
     "hotReloadEnabled": false,
@@ -178,9 +178,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Reactive Twist Field",
+                "effectName": "Celestial Ribbon Bloom",
                 "enabled": true,
-                "mode": 49,
+                "mode": 51,
                 "opacity": 1.0
             },
             {
@@ -228,7 +228,9 @@
     },
     "proceduralZoomValues": {
         "14": 2.049999952316284,
-        "46": 4.849999904632568
+        "46": 4.849999904632568,
+        "50": 0.9266406893730164,
+        "51": 1.7806246280670166
     },
     "random": {
         "postProcessEnabled": false,
@@ -247,9 +249,9 @@
         true
     ],
     "ui": {
-        "proceduralLayerDebug": true,
-        "proceduralLayerEffectName": "Reactive Twist Field",
-        "proceduralLayerMode": 49,
+        "proceduralLayerDebug": false,
+        "proceduralLayerEffectName": "Celestial Ribbon Bloom",
+        "proceduralLayerMode": 51,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,
