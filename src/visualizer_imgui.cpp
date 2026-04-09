@@ -344,6 +344,16 @@ void Visualizer::handleKeyboardInput() {
             lastF10Press = currentTime;
         }
     }
+
+    // Check for F9 to toggle only the main rendering window fullscreen
+    if (isKeyPressed(GLFW_KEY_F9)) {
+        static double lastF9Press = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastF9Press > 0.5) { // 500ms debounce
+            toggleMainWindowFullscreen();
+            lastF9Press = currentTime;
+        }
+    }
 }
 
 void Visualizer::renderImGui() {
@@ -359,9 +369,10 @@ void Visualizer::renderImGui() {
     bool imguiFullscreen = isImGuiWindowFullscreen();
     bool allowControlsDuringFullscreen = multiMonitorMode_ || monitors_.size() >= 2 || imguiFullscreen;
 
-    // If main window is fullscreen, hide ImGui controls window to avoid Hyprland bugs
-    // But only do this in multi-monitor mode - for manual fullscreen, keep both windows visible
-    bool shouldHideControls = imguiWindow_ && mainWindowFullscreen && !allowControlsDuringFullscreen && multiMonitorMode_;
+    const bool blockControlsForFullscreen = mainWindowFullscreen && !allowControlsDuringFullscreen;
+
+    // If main window is fullscreen and we are not explicitly allowed to show controls, hide the ImGui window
+    bool shouldHideControls = imguiWindow_ && blockControlsForFullscreen;
     if (shouldHideControls) {
         if (glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE)) {
             glfwHideWindow(imguiWindow_);
@@ -375,7 +386,7 @@ void Visualizer::renderImGui() {
     }
 
     const bool controlsVisible = imguiWindow_ && glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE);
-    bool renderControlsWindow = controlsVisible && (!mainWindowFullscreen || allowControlsDuringFullscreen);
+    bool renderControlsWindow = controlsVisible && (!blockControlsForFullscreen);
 
     // If we have a separate ImGui window and are allowed to render it, switch to it
     if (renderControlsWindow) {
@@ -419,58 +430,63 @@ void Visualizer::renderImGui() {
     // Handle keyboard input
     handleKeyboardInput();
 
-    // Main control window
-    if (showImGuiWindow_) {
-        renderMainImGuiWindow();
+    if (!blockControlsForFullscreen) {
+        // Main control window
+        if (showImGuiWindow_) {
+            renderMainImGuiWindow();
+        }
+
+        // Separate Visual control windows
+        if (showImGuiColorsWindow_) {
+            renderColorsWindow();
+        }
+        if (showImGuiProceduralWindow_) {
+            renderProceduralWindow();
+        }
+        if (showImGuiPostProcessWindow_) {
+            renderPostProcessWindow();
+        }
+
+        // Camera control window - always visible
+        renderCameraWindow();
+
+        // Current effects display window
+        if (showCurrentEffects_) {
+            renderCurrentEffectsDisplay();
+        }
+
+        // Render MIDI controls
+        renderMIDIControls();
+
+        // Device selector window
+        if (showDeviceSelector_) {
+            renderDeviceSelectorImGui();
+        }
+
+        // Diagnostic info window
+        if (showDiagnosticInfo_) {
+            renderDiagnosticImGui();
+        }
+
+        // Console mode window
+        if (showConsoleMode_) {
+            renderConsoleImGui();
+        }
+
+        // Shader Presets window
+        renderShaderPresetsWindow();
+
+        // Render ImGui
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    } else {
+        // Skip drawing overlays entirely so fullscreen stays clean
+        ImGui::EndFrame();
     }
-
-    // Separate Visual control windows
-    if (showImGuiColorsWindow_) {
-        renderColorsWindow();
-    }
-    if (showImGuiProceduralWindow_) {
-        renderProceduralWindow();
-    }
-    if (showImGuiPostProcessWindow_) {
-        renderPostProcessWindow();
-    }
-
-    // Camera control window - always visible
-    renderCameraWindow();
-
-    // Current effects display window
-    if (showCurrentEffects_) {
-        renderCurrentEffectsDisplay();
-    }
-
-    // Render MIDI controls
-    renderMIDIControls();
-
-    // Device selector window
-    if (showDeviceSelector_) {
-        renderDeviceSelectorImGui();
-    }
-
-    // Diagnostic info window
-    if (showDiagnosticInfo_) {
-        renderDiagnosticImGui();
-    }
-
-    // Console mode window
-    if (showConsoleMode_) {
-        renderConsoleImGui();
-    }
-
-    // Shader Presets window
-    renderShaderPresetsWindow();
-
-    // Render ImGui
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     // Swap buffers for ImGui window if it exists and not fullscreen
     // (when fullscreen, we render ImGui as overlay on main window)
-    if (renderControlsWindow) {
+    if (!blockControlsForFullscreen && renderControlsWindow) {
         glfwSwapBuffers(imguiWindow_);
 
         // Return context to main window

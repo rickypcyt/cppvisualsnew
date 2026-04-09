@@ -178,9 +178,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Fractal Rotation Field",
+                "effectName": "Reactive Twist Field",
                 "enabled": true,
-                "mode": 47,
+                "mode": 49,
                 "opacity": 1.0
             },
             {
@@ -248,12 +248,12 @@
     ],
     "ui": {
         "proceduralLayerDebug": true,
-        "proceduralLayerEffectName": "Fractal Rotation Field",
-        "proceduralLayerMode": 47,
+        "proceduralLayerEffectName": "Reactive Twist Field",
+        "proceduralLayerMode": 49,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,
-        "showImGuiWindow": true,
+        "showImGuiWindow": false,
         "showProceduralLayer": true
     }
 }
