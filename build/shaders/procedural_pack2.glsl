@@ -99,28 +99,35 @@ vec4 renderKaleidoscopeFractal(vec2 st, float time, float tempo, float energy, f
 
     vec3 color = (c1 * w1 + c2 * w2 + c3 * w3) / wTotal;
 
-    vec3 userTint = mix(uPrimaryColor, uSecondaryColor, uColorBlend) * 0.25;
-    color = mix(color, color + userTint, 0.4);
+    // Darken the overall color palette - make it less colorful
+    color *= 0.35; // Reduce brightness significantly
+    color = pow(color, vec3(1.4)); // Increase contrast, darkens mid-tones
+
+    vec3 userTint = mix(uPrimaryColor, uSecondaryColor, uColorBlend) * 0.12;
+    color = mix(color, color + userTint, 0.25);
 
     float radialMask = pow(1.0 - smoothstep(0.0, 1.0, r * 0.85), 1.8);
-    float noiseMask  = smoothstep(0.05, 0.45, n1);
+    float noiseMask  = smoothstep(0.02, 0.35, n1); // Sharper threshold for more black areas
     float mask       = radialMask * noiseMask;
 
-    color *= mask;
+    // Create dark hollows where there's no pattern
+    float darkness = 1.0 - smoothstep(0.0, 0.5, n1 * n2);
+    color *= mask * (0.4 + 0.6 * darkness); // More darkness in empty areas
 
     float edgeDist = abs(angle) / (sectorAngle * 0.5);
-    float edgeLine = exp(-80.0 * pow(1.0 - edgeDist, 2.0)) * (0.4 + high * 0.5);
-    color += c1 * edgeLine * mask;
+    float edgeLine = exp(-80.0 * pow(1.0 - edgeDist, 2.0)) * (0.25 + high * 0.3);
+    color += c1 * edgeLine * mask * 0.6; // Dimmer edges
 
-    float core = exp(-18.0 * r * r) * (0.5 + bass * 0.8);
-    color += mix(c2, vec3(1.0), 0.3) * core;
+    float core = exp(-18.0 * r * r) * (0.25 + bass * 0.4);
+    color += mix(c2, vec3(0.7), 0.5) * core * 0.5; // Less bright core
 
-    float spark = step(0.88, n3) * step(0.85, n2) * high * 0.9;
-    color += c3 * spark * mask;
+    float spark = step(0.92, n3) * step(0.9, n2) * high * 0.5; // Rare, dim sparks
+    color += c3 * spark * mask * 0.7;
 
     color = clamp(color, 0.0, 1.0);
 
-    float alpha = clamp(mask * (0.6 + n1 * 0.4) + core * 0.8 + spark * 0.5, 0.0, 1.0);
+    // Lower alpha for more transparency in dark areas
+    float alpha = clamp(mask * (0.35 + n1 * 0.25) + core * 0.5 + spark * 0.3, 0.0, 0.85);
 
     return vec4(color, alpha);
 }

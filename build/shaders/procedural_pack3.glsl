@@ -518,7 +518,7 @@ vec4 renderVoxelPathTracer(vec2 st, float time, float tempo, float energy, float
 }
 
 vec4 renderFractalTunnel(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
-    vec2 uv = st * (1.1 + energy * 0.25);
+    vec2 uv = st * (0.55 + energy * 0.15);
     float twist = sin(time * 0.3) * 0.4 + mid * 0.6;
     uv = rotate(uv, twist);
     vec3 dir = normalize(vec3(uv, 1.5));

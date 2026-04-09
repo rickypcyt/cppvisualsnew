@@ -118,8 +118,18 @@ public:
             visualizer_.render();
             visualizer_.endFrame();
 
-            // Small delay to prevent excessive CPU usage
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            // Frame rate limiter: cap at ~60 FPS to prevent excessive CPU/GPU usage
+            // This is especially important with vsync disabled (glfwSwapInterval(0))
+            static auto lastFrameTime = std::chrono::high_resolution_clock::now();
+            auto currentFrameTime = std::chrono::high_resolution_clock::now();
+            auto frameDuration = std::chrono::duration<float, std::milli>(currentFrameTime - lastFrameTime).count();
+            
+            constexpr float targetFrameTime = 1000.0f / 60.0f; // ~16.67ms for 60 FPS
+            if (frameDuration < targetFrameTime) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(
+                    static_cast<int>(targetFrameTime - frameDuration)));
+            }
+            lastFrameTime = std::chrono::high_resolution_clock::now();
         }
     }
 

@@ -64,6 +64,9 @@ public:
     void initializeRandomProcedural();
     void selectRandomProcedural();
     void syncProceduralLayerWithSlot1(); // Sync procedural layer with Slot 1 state
+    
+    // Random corner orbs methods
+    void updateRandomCornerOrbs(float deltaTime);
     void renderNoImGuiLoop();
     
     // ImGui methods
@@ -190,6 +193,11 @@ private:
     int imguiWindowedHeight_ = 800;
     
     float time_;
+    
+    // FPS tracking
+    float currentFPS_ = 0.0f;
+    float fpsUpdateTimer_ = 0.0f;
+    int frameCount_ = 0;
 
     // OpenGL objects
     GLuint quadVAO_;
@@ -241,6 +249,11 @@ private:
     float randomProceduralTimer_ = 0.0f;
     int currentRandomProcedural_ = 0;
     std::vector<int> availableProceduralModes_;
+    
+    // Random corner orbs cycle
+    bool randomCornerOrbsEnabled_ = false;
+    float randomCornerOrbsInterval_ = 5.0f; // seconds
+    float randomCornerOrbsTimer_ = 0.0f;
     
     // Per-shader enabled states (mode index -> enabled)
     std::unordered_map<int, bool> proceduralShaderEnabled_;

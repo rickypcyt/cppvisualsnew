@@ -546,54 +546,6 @@ void Visualizer::renderMainImGuiWindow() {
         ImGui::EndCombo();
     }
 
-    ImGui::TextWrapped("Select an internal device (Loopback/Monitor) to capture system audio, for example browser output. On Windows look for 'WASAPI (loopback)' entries, on Linux 'Monitor', on macOS 'Loopback'.");
-
-    ImGui::Spacing();
-    ImGui::Text("🖥️ GPU Renderer:");
-    ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "%s", rendererName_.c_str());
-    ImGui::Text("OpenGL version:");
-    ImGui::TextColored(ImVec4(0.7f, 0.9f, 0.6f, 1.0f), "%s", openglVersion_.c_str());
-
-    ImGui::Spacing();
-    if (ImGui::Button("🔧 Select Device")) {
-        showDeviceSelector_ = !showDeviceSelector_;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("📊 Diagnostics")) {
-        showDiagnosticInfo_ = !showDiagnosticInfo_;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("🖥️ Console Mode")) {
-        showConsoleMode_ = !showConsoleMode_;
-    }
-
-    // Fullscreen controls
-    ImGui::Spacing();
-    bool mainFs = isMainWindowFullscreen();
-    bool imguiFs = isImGuiWindowFullscreen();
-    
-    if (mainFs) {
-        if (ImGui::Button("🗗 Exit Fullscreen (F11)")) {
-            toggleMainWindowFullscreen();
-        }
-    } else {
-        if (ImGui::Button("⛶ Main Fullscreen (F11)")) {
-            toggleMainWindowFullscreen();
-        }
-    }
-    
-    ImGui::SameLine();
-    
-    if (imguiFs) {
-        if (ImGui::Button("🗗 Exit ImGui FS (F10)")) {
-            toggleImGuiWindowFullscreen();
-        }
-    } else {
-        if (ImGui::Button("⛶ ImGui Fullscreen (F10)")) {
-            toggleImGuiWindowFullscreen();
-        }
-    }
-    
     // Multi-monitor setup section
     ImGui::Spacing();
     
@@ -992,17 +944,25 @@ void Visualizer::renderProceduralWindow() {
             saveCurrentSettings();
         }
         
+        // Random Corner Orbs section
+        ImGui::Spacing();
+        bool prevRandomOrbs = randomCornerOrbsEnabled_;
+        ImGui::Checkbox("##random_orbs_enable", &randomCornerOrbsEnabled_);
         ImGui::SameLine();
-        
-        // Randomize orbs button
-        if (ImGui::Button("🎲 Randomize Orbs")) {
-            // Randomize corner orbs state
-            showCornerOrbs_ = (rand() % 2) == 1;
+        ImGui::Text("Auto-randomize Orbs");
+        if (prevRandomOrbs != randomCornerOrbsEnabled_) {
             saveCurrentSettings();
-            std::cout << "[RANDOM] Corner Orbs: " << (showCornerOrbs_ ? "ENABLED" : "DISABLED") << std::endl;
         }
-        if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Randomly enable/disable corner orbs");
+        
+        if (randomCornerOrbsEnabled_) {
+            ImGui::Indent();
+            ImGui::Text("Interval:");
+            ImGui::SetNextItemWidth(200.0f);
+            if (ImGui::SliderFloat("##random_orbs_interval", &randomCornerOrbsInterval_, 1.0f, 30.0f, "%.1f sec")) {
+                randomCornerOrbsInterval_ = std::max(1.0f, randomCornerOrbsInterval_);
+                saveCurrentSettings();
+            }
+            ImGui::Unindent();
         }
 
         ImGui::Spacing();
@@ -1220,6 +1180,19 @@ void Visualizer::renderProceduralWindow() {
                 }
                 saveCurrentSettings();
                 initializeRandomProcedural();
+            }
+            ImGui::Spacing();
+            if (ImGui::Button("Invert Selection")) {
+                for (const auto& effect : effects) {
+                    if (effect.modeIndex == 0) continue;
+                    bool current = isProceduralShaderEnabled(effect.modeIndex);
+                    setProceduralShaderEnabled(effect.modeIndex, !current);
+                }
+                saveCurrentSettings();
+                initializeRandomProcedural();
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Invertir: activados → desactivados, desactivados → activados");
             }
             ImGui::Spacing();
             if (ImGui::Button("Disable All")) {

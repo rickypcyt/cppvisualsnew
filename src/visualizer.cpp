@@ -332,7 +332,6 @@ void main() {
 const char *cornerFragmentShaderSource = R"(
 #version 330 core
 #define time uTime*1.25
-#define p0 0.5, 0.5, 0.5,  0.5, 0.5, 0.5,  1.0, 1.0, 1.0,  0.0, 0.33, 0.67	
 
 in float vSize;
 in float vAngle;
@@ -352,21 +351,25 @@ uniform float uPulse;
 uniform float uKick;
 uniform float uTime;
 uniform float uTempo;
+uniform vec3 uScenePrimary;
+uniform vec3 uSceneSecondary;
+uniform float uSceneBlend;
 
 const float numParticles = 25.;
 const float numRings = 5.;
 const float offsetMult = 30.;
 const float tau = 6.23813;
 
-vec3 palette( in float t, in float a0, in float a1, in float a2, in float b0, in float b1, in float b2,
-              in float c0, in float c1, in float c2,in float d0, in float d1, in float d2)
+// Use scene palette instead of hardcoded colors
+vec3 getSceneColor(float t)
 {
-    return vec3(a0,a1,a2) + vec3(b0,b1,b2)*cos( tau*(vec3(c0,c1,c2)*t+vec3(d0,d1,d2)) );
+    return mix(uScenePrimary, uSceneSecondary, clamp(t + uSceneBlend, 0.0, 1.0));
 }
 
 vec3 particleColor(vec2 uv, float radius, float offset, float periodOffset)
 {
-    vec3 color = palette(.4 + offset / 4., p0);
+    // Use scene colors with variation based on offset
+    vec3 color = getSceneColor(0.3 + offset * 0.4);
     uv /= pow(periodOffset, .75) * sin(periodOffset * uTime) + sin(periodOffset + uTime);
     vec2 pos = vec2(cos(offset * offsetMult + time + periodOffset),
         		sin(offset * offsetMult + time * 5. + periodOffset * tau));
@@ -1497,6 +1500,15 @@ void Visualizer::endFrame() {
     lastTime = currentTime;
     time_ += deltaTime;
     deltaTime_ = deltaTime;
+    
+    // Update FPS counter
+    frameCount_++;
+    fpsUpdateTimer_ += deltaTime;
+    if (fpsUpdateTimer_ >= 0.5f) { // Update every 0.5 seconds
+        currentFPS_ = frameCount_ / fpsUpdateTimer_;
+        frameCount_ = 0;
+        fpsUpdateTimer_ = 0.0f;
+    }
 
     if (autoRandomizeColors_) {
         if (colorRandomInterval_ < 0.5f) {
@@ -1616,6 +1628,9 @@ void Visualizer::render() {
     
     // Update random procedural layer
     updateRandomProcedural(dt);
+    
+    // Update random corner orbs
+    updateRandomCornerOrbs(dt);
     
     float rise = 1.0f - std::pow(0.04f, dt * tempoMultiplier_);
     float decayBase = std::pow(0.18f, dt * tempoMultiplier_);
@@ -2981,6 +2996,19 @@ void Visualizer::updateRandomProcedural(float deltaTime) {
         selectRandomProcedural();
         std::cout << "[RANDOM DEBUG] New random mode=" << currentRandomProcedural_ << std::endl;
         randomProceduralTimer_ = 0.0f;
+    }
+}
+
+void Visualizer::updateRandomCornerOrbs(float deltaTime) {
+    if (!randomCornerOrbsEnabled_) return;
+    
+    randomCornerOrbsTimer_ += deltaTime;
+    
+    if (randomCornerOrbsTimer_ >= randomCornerOrbsInterval_) {
+        showCornerOrbs_ = (rand() % 2) == 1;
+        saveCurrentSettings();
+        std::cout << "[RANDOM] Corner Orbs: " << (showCornerOrbs_ ? "ENABLED" : "DISABLED") << std::endl;
+        randomCornerOrbsTimer_ = 0.0f;
     }
 }
 

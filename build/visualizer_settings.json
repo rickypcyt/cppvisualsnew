@@ -11,21 +11,21 @@
         "manualBPM": 135.0,
         "manualBPMMode": true,
         "selectedDevice": 7,
-        "visualSensitivity": 0.9100000262260437
+        "visualSensitivity": 3.0
     },
     "colors": {
-        "blend": 0.6200000047683716,
-        "hueSeed": 0.16709424555301666,
-        "paletteIndex": 0,
+        "blend": 0.47999998927116394,
+        "hueSeed": 0.950870931148529,
+        "paletteIndex": 1,
         "primary": [
-            0.10000000149011612,
-            0.23999999463558197,
-            0.5799999833106995
+            0.5799999833106995,
+            0.11999999731779099,
+            0.1599999964237213
         ],
         "secondary": [
-            0.2800000011920929,
-            0.699999988079071,
-            0.9800000190734863
+            0.9399999976158142,
+            0.36000001430511475,
+            0.30000001192092896
         ]
     },
     "hotReloadEnabled": false,
@@ -34,7 +34,7 @@
     },
     "postProcess": {
         "randomEnabled": true,
-        "randomInterval": 5.300000190734863,
+        "randomInterval": 1.0,
         "slots": [
             {
                 "enabled": true,
@@ -48,7 +48,17 @@
             },
             {
                 "enabled": true,
-                "mode": 22,
+                "mode": 0,
+                "rgbAdjust": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "strength": 1.0
+            },
+            {
+                "enabled": false,
+                "mode": 12,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -60,16 +70,6 @@
                 "enabled": false,
                 "mode": 20,
                 "rgbAdjust": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "strength": 1.0
-            },
-            {
-                "enabled": false,
-                "mode": 0,
-                "rgbAdjust": [
                     1.5,
                     1.5,
                     1.5
@@ -78,7 +78,7 @@
             },
             {
                 "enabled": false,
-                "mode": 3,
+                "mode": 22,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -89,7 +89,7 @@
         ]
     },
     "postProcessEffectEnabled": {
-        "1": true,
+        "1": false,
         "10": true,
         "11": true,
         "12": true,
@@ -105,7 +105,7 @@
         "21": false,
         "22": true,
         "23": false,
-        "24": false,
+        "24": true,
         "25": false,
         "26": false,
         "3": true,
@@ -117,15 +117,15 @@
         "9": true
     },
     "procedural": {
-        "randomEnabled": true,
-        "randomInterval": 8.699999809265137
+        "randomEnabled": false,
+        "randomInterval": 5.300000190734863
     },
     "proceduralShaderEnabled": {
-        "1": true,
+        "1": false,
         "10": true,
         "11": true,
         "12": true,
-        "13": true,
+        "13": false,
         "14": true,
         "15": true,
         "16": true,
@@ -133,8 +133,8 @@
         "18": true,
         "19": true,
         "2": true,
-        "20": true,
-        "21": true,
+        "20": false,
+        "21": false,
         "22": true,
         "23": true,
         "24": true,
@@ -144,7 +144,7 @@
         "28": true,
         "29": true,
         "3": true,
-        "30": true,
+        "30": false,
         "31": true,
         "32": true,
         "33": true,
@@ -154,7 +154,7 @@
         "37": true,
         "38": true,
         "39": true,
-        "4": true,
+        "4": false,
         "40": true,
         "41": true,
         "42": true,
@@ -176,9 +176,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Voxel Path Tracer",
+                "effectName": "Nebula",
                 "enabled": true,
-                "mode": 22,
+                "mode": 11,
                 "opacity": 1.0
             },
             {
@@ -226,12 +226,12 @@
     },
     "random": {
         "postProcessEnabled": true,
-        "postProcessInterval": 5.300000190734863,
-        "postProcessSlotCount": 2,
+        "postProcessInterval": 1.0,
+        "postProcessSlotCount": 1,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
-        "proceduralEnabled": true,
-        "proceduralInterval": 8.699999809265137,
+        "proceduralEnabled": false,
+        "proceduralInterval": 5.300000190734863,
         "proceduralSlotEnabled": false,
         "proceduralSlotIndex": 0
     },
@@ -242,10 +242,10 @@
     ],
     "ui": {
         "proceduralLayerDebug": true,
-        "proceduralLayerEffectName": "Voxel Path Tracer",
-        "proceduralLayerMode": 22,
+        "proceduralLayerEffectName": "Nebula",
+        "proceduralLayerMode": 11,
         "proceduralLayerOpacity": 1.0,
-        "showCornerOrbs": true,
+        "showCornerOrbs": false,
         "showCurrentEffects": true,
         "showImGuiWindow": true,
         "showProceduralLayer": true
