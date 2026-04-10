@@ -111,6 +111,10 @@ void main() {
         color = renderCollapsedTransit(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 51) {
         color = renderCelestialRibbonBloom(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 52) {
+        color = renderMandelbulbFlux(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 53) {
+        color = renderIridescentEye(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
     // Invalid modes will show black/pink error color
 

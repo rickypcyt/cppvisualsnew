@@ -7,24 +7,24 @@
         "rgbRandomInterval": 5.0
     },
     "audio": {
-        "inputGain": 1.0099999904632568,
+        "inputGain": 1.7000000476837158,
         "manualBPM": 135.0,
         "manualBPMMode": true,
-        "selectedDevice": 4,
+        "selectedDevice": 13,
         "visualSensitivity": 3.0
     },
     "colors": {
-        "blend": 0.6200000047683716,
-        "hueSeed": 0.3870598375797272,
+        "blend": 0.47999998927116394,
+        "hueSeed": 0.3194418251514435,
         "paletteIndex": -1,
         "primary": [
-            0.20900005102157593,
+            0.270761638879776,
             0.949999988079071,
-            0.44786810874938965
+            0.20900005102157593
         ],
         "secondary": [
             0.30800002813339233,
-            0.3409706950187683,
+            0.5730355978012085,
             0.8799999952316284
         ]
     },
@@ -151,7 +151,7 @@
         "34": false,
         "35": true,
         "36": true,
-        "37": true,
+        "37": false,
         "38": true,
         "39": true,
         "4": false,
@@ -178,9 +178,8 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Celestial Ribbon Bloom",
                 "enabled": true,
-                "mode": 51,
+                "mode": 0,
                 "opacity": 1.0
             },
             {
@@ -227,10 +226,33 @@
         ]
     },
     "proceduralZoomValues": {
-        "14": 2.049999952316284,
-        "46": 4.849999904632568,
-        "50": 0.9266406893730164,
-        "51": 1.7806246280670166
+        "10": 1.6999982595443726,
+        "12": 0.10000000149011612,
+        "14": 1.1500000953674316,
+        "15": 2.2999982833862305,
+        "16": 5.0,
+        "18": 5.0,
+        "2": 1.4499999284744263,
+        "22": 5.0,
+        "24": 5.0,
+        "29": 0.8500000238418579,
+        "3": 1.8499982357025146,
+        "39": 0.5500000715255737,
+        "40": 0.2500000596046448,
+        "42": 1.4499998092651367,
+        "45": 1.899999737739563,
+        "46": 5.0,
+        "47": 0.8500001430511475,
+        "48": 5.0,
+        "5": 3.799999237060547,
+        "50": 1.600000023841858,
+        "51": 1.3306246995925903,
+        "52": 0.2500000596046448,
+        "53": 0.4000001847743988,
+        "6": 1.0999983549118042,
+        "7": 5.0,
+        "8": 1.1500000953674316,
+        "9": 3.4999990463256836
     },
     "random": {
         "postProcessEnabled": false,
@@ -244,18 +266,17 @@
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
-        true,
+        false,
         false,
         true
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Celestial Ribbon Bloom",
-        "proceduralLayerMode": 51,
+        "proceduralLayerMode": 0,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,
-        "showImGuiWindow": false,
+        "showImGuiWindow": true,
         "showProceduralLayer": true
     }
 }

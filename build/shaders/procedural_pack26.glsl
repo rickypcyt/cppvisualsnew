@@ -54,10 +54,14 @@ vec4 renderCelestialRibbonBloom(vec2 st, float time, float tempo, float energy, 
 
     vec3 palette = mix(uPrimaryColor, uSecondaryColor,
                        clamp(0.45 + 0.35 * sin(mid * 2.0 + time * 0.5), 0.0, 1.0));
-    vec3 color = layer.rgb * palette;
-    color *= 0.6 + energy * 0.5;
-    color += uSecondaryColor * (bass * 0.15 + high * 0.1);
-    color = clamp(color, 0.0, 1.0);
+    vec3 ribbon = layer.rgb * palette;
+    ribbon *= 0.6 + energy * 0.5;
+    ribbon += uSecondaryColor * (bass * 0.15 + high * 0.1);
+    ribbon = clamp(ribbon, 0.0, 1.0);
+
+    float glowMask = clamp(length(layer.rgb) * 0.9, 0.0, 1.0);
+    vec3 background = vec3(0.015, 0.02, 0.04);
+    vec3 color = mix(background, ribbon, glowMask);
 
     return vec4(color, 1.0);
 }

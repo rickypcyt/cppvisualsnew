@@ -27,7 +27,8 @@ vec4 renderFractalRotation(vec2 st, float time, float tempo, float energy, float
     o -= o * dot(p, p) * 0.7;
     
     vec3 paletteMix = mix(uPrimaryColor, uSecondaryColor, clamp(uColorBlend + mid * 0.2, 0.0, 1.0));
-    o.rgb *= paletteMix;
+    float paletteInfluence = clamp(0.45 + uColorBlend * 0.4 + high * 0.25, 0.0, 1.0);
+    o.rgb = mix(o.rgb, paletteMix, paletteInfluence);
     
     float intensity = 1.0 + energy * 0.5;
     o.rgb *= intensity;
