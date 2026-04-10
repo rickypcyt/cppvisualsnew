@@ -117,6 +117,8 @@ void main() {
         color = renderIridescentEye(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 54) {
         color = renderVoronoiGateStream(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 55) {
+        color = renderRecursiveCubeBloom(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
     // Invalid modes will show black/pink error color
 

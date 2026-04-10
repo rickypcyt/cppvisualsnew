@@ -2681,8 +2681,16 @@ void Visualizer::renderProceduralLayer() {
         const auto& baseSlot = proceduralSlots_[0];
         if (baseSlot.enabled && baseSlot.opacity > 0.001f) {
             int baseMode = std::clamp(proceduralLayerMode_, 0, kProceduralModeCount - 1);
-            std::cout << "[PROC RENDER] Base slot mode=" << baseMode
-                      << " opacity=" << baseSlot.opacity << std::endl;
+            const bool alreadyLogged = lastRenderLoggedBaseActive_
+                && lastRenderLoggedMode_ == baseMode
+                && std::abs(lastRenderLoggedOpacity_ - baseSlot.opacity) < 1e-4f;
+            if (!alreadyLogged) {
+                std::cout << "[PROC RENDER] Base slot mode=" << baseMode
+                          << " opacity=" << baseSlot.opacity << std::endl;
+                lastRenderLoggedBaseActive_ = true;
+                lastRenderLoggedMode_ = baseMode;
+                lastRenderLoggedOpacity_ = baseSlot.opacity;
+            }
             if (proceduralSlots_[0].mode != baseMode) {
                 std::cout << "[PROC RENDER] Divergence detected: slot0.mode="
                           << proceduralSlots_[0].mode << " but proceduralLayerMode_="
@@ -2696,6 +2704,7 @@ void Visualizer::renderProceduralLayer() {
     }
 
     if (!baseRendered) {
+        lastRenderLoggedBaseActive_ = false;
         std::array<float, 3> neutralAdjust{1.0f, 1.0f, 1.0f};
         std::cout << "[PROC RENDER] No active base slot, falling back to proceduralLayerMode_="
                   << proceduralLayerMode_ << " opacity=" << proceduralLayerOpacity_ << std::endl;

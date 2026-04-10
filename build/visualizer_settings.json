@@ -7,25 +7,25 @@
         "rgbRandomInterval": 5.0
     },
     "audio": {
-        "inputGain": 1.7000000476837158,
+        "inputGain": 1.7599999904632568,
         "manualBPM": 135.0,
         "manualBPMMode": true,
         "selectedDevice": 13,
-        "visualSensitivity": 3.0
+        "visualSensitivity": 1.75
     },
     "colors": {
         "blend": 0.47999998927116394,
-        "hueSeed": 0.11767055094242096,
+        "hueSeed": 0.3236919045448303,
         "paletteIndex": -1,
         "primary": [
+            0.25186583399772644,
             0.949999988079071,
-            0.7321633100509644,
             0.20900005102157593
         ],
         "secondary": [
             0.30800002813339233,
-            0.8799999952316284,
-            0.4944854974746704
+            0.5584492683410645,
+            0.8799999952316284
         ]
     },
     "hotReloadEnabled": false,
@@ -178,9 +178,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Collapsed Transit Grid",
+                "effectName": "Recursive Cube Bloom",
                 "enabled": true,
-                "mode": 50,
+                "mode": 55,
                 "opacity": 1.0
             },
             {
@@ -258,6 +258,7 @@
         "51": 1.3306246995925903,
         "52": 0.2500000596046448,
         "53": 0.10000000149011612,
+        "55": 1.4500000476837158,
         "6": 1.0999983549118042,
         "7": 4.849999904632568,
         "8": 1.1500000953674316,
@@ -281,8 +282,8 @@
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Collapsed Transit Grid",
-        "proceduralLayerMode": 50,
+        "proceduralLayerEffectName": "Recursive Cube Bloom",
+        "proceduralLayerMode": 55,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,
