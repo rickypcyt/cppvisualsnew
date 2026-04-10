@@ -1093,6 +1093,19 @@ bool Visualizer::initialize(int width, int height) {
     }
     std::cout << "[DEBUG] ImGui setup complete" << std::endl;
 
+    // Set up scroll callback for mouse wheel zoom AFTER ImGui init
+    // Only zoom when mouse is over the ImGui window, not the main visualizer window
+    glfwSetScrollCallback(window_, [](GLFWwindow* window, double xoffset, double yoffset) {
+        Visualizer* vis = static_cast<Visualizer*>(glfwGetWindowUserPointer(window));
+        if (vis) {
+            // Only process zoom if ImGui wants to capture mouse (meaning mouse is over ImGui window)
+            ImGuiIO& io = ImGui::GetIO();
+            if (io.WantCaptureMouse) {
+                vis->handleMouseScroll(xoffset, yoffset);
+            }
+        }
+    });
+
     std::cout << "[DEBUG] Initializing MIDI controller..." << std::endl;
     initializeMIDI();
     std::cout << "[DEBUG] MIDI controller initialized" << std::endl;
@@ -1923,14 +1936,6 @@ bool Visualizer::setupOpenGL() {
 
     // Set window user pointer for callbacks
     glfwSetWindowUserPointer(window_, this);
-
-    // Set up scroll callback for mouse wheel zoom
-    glfwSetScrollCallback(window_, [](GLFWwindow* window, double xoffset, double yoffset) {
-        Visualizer* vis = static_cast<Visualizer*>(glfwGetWindowUserPointer(window));
-        if (vis) {
-            vis->handleMouseScroll(xoffset, yoffset);
-        }
-    });
 
     // Initialize GLEW with experimental features
     glewExperimental = GL_TRUE;
@@ -2959,6 +2964,7 @@ void Visualizer::initializeRandomProcedural() {
     // Initialize available procedural modes (exclude "None" and disabled shaders)
     availableProceduralModes_.clear();
     auto effects = GetEffectRegistry().getAllEffects();
+    std::cout << "[RANDOM INIT] Total effects from registry: " << effects.size() << std::endl;
     for (const auto& effect : effects) {
         if (effect.modeIndex <= 0) {
             continue;
@@ -2967,10 +2973,13 @@ void Visualizer::initializeRandomProcedural() {
         // Check if shader is enabled (default to true if not in map)
         auto it = proceduralShaderEnabled_.find(effect.modeIndex);
         bool enabled = (it == proceduralShaderEnabled_.end()) ? true : it->second;
+        std::cout << "[RANDOM INIT] Mode " << effect.modeIndex << " (" << effect.name << "): " << (enabled ? "enabled" : "disabled") << std::endl;
         if (enabled) {
             availableProceduralModes_.push_back(effect.modeIndex);
         }
     }
+    
+    std::cout << "[RANDOM INIT] Available modes count: " << availableProceduralModes_.size() << std::endl;
     
     randomProceduralTimer_ = 0.0f;
     
@@ -2981,29 +2990,41 @@ void Visualizer::initializeRandomProcedural() {
         currentRandomProcedural_ = proceduralLayerMode_;
     }
     
+    std::cout << "[RANDOM INIT] Current mode: " << currentRandomProcedural_ << std::endl;
+    
     if (!availableProceduralModes_.empty() && currentRandomProcedural_ == 0) {
         // If current mode is invalid, select a random one
         std::uniform_int_distribution<int> dist(0, availableProceduralModes_.size() - 1);
         currentRandomProcedural_ = availableProceduralModes_[dist(rng_)];
+        std::cout << "[RANDOM INIT] Selected initial random mode: " << currentRandomProcedural_ << std::endl;
     }
 }
 
 void Visualizer::selectRandomProcedural() {
-    if (availableProceduralModes_.empty()) return;
+    std::cout << "[RANDOM SELECT] Called. Available modes: " << availableProceduralModes_.size() << std::endl;
+    if (availableProceduralModes_.empty()) {
+        std::cout << "[RANDOM SELECT] ERROR: No available modes!" << std::endl;
+        return;
+    }
 
     std::uniform_int_distribution<int> dist(0, availableProceduralModes_.size() - 1);
     int newIndex = availableProceduralModes_[dist(rng_)];
 
     // Avoid selecting the same mode twice in a row
-    while (availableProceduralModes_.size() > 1 && newIndex == currentRandomProcedural_) {
+    int attempts = 0;
+    while (availableProceduralModes_.size() > 1 && newIndex == currentRandomProcedural_ && attempts < 10) {
         newIndex = availableProceduralModes_[dist(rng_)];
+        attempts++;
     }
 
     currentRandomProcedural_ = newIndex;
+    std::cout << "[RANDOM SELECT] Selected mode: " << currentRandomProcedural_ << std::endl;
 
     // Update Slot 1 (main procedural slot) instead of global mode
     if (kMaxProceduralSlots > 0) {
         applyMainProceduralMode(currentRandomProcedural_, "random-procedural");
+    } else {
+        std::cout << "[RANDOM SELECT] ERROR: No procedural slots available!" << std::endl;
     }
 }
 
@@ -3033,6 +3054,12 @@ void Visualizer::syncProceduralLayerWithSlot1() {
         }
         proceduralLayer_.setMode(proceduralLayerMode_);
         proceduralLayer_.setCameraZoom(getZoomForShaderMode(proceduralLayerMode_));
+        // Set custom offset for text marquee modes (58-61), reset for others
+        if (proceduralLayerMode_ >= 58 && proceduralLayerMode_ <= 61) {
+            proceduralLayer_.setCameraOffset(0.0f, 1.80f);
+        } else {
+            proceduralLayer_.setCameraOffset(0.0f, 0.0f);
+        }
         showProceduralLayer_ = true;
         std::cout << "[SYNC DEBUG] After sync: proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
     } else {
@@ -3044,6 +3071,11 @@ void Visualizer::syncProceduralLayerWithSlot1() {
 
 void Visualizer::updateRandomProcedural(float deltaTime) {
     if (!randomProceduralEnabled_) return;
+    
+    // Ensure modes are initialized (in case registry wasn't ready at startup)
+    if (availableProceduralModes_.empty()) {
+        initializeRandomProcedural();
+    }
     
     randomProceduralTimer_ += deltaTime;
     
@@ -3798,6 +3830,12 @@ void Visualizer::applyMainProceduralMode(int mode, const char* source, bool ensu
     if (updateZoom) {
         float zoom = getZoomForShaderMode(clampedMode);
         proceduralLayer_.setCameraZoom(zoom);
+    }
+    // Set custom offset for text marquee modes (58-61), reset for others
+    if (clampedMode >= 58 && clampedMode <= 61) {
+        proceduralLayer_.setCameraOffset(0.0f, 1.80f);
+    } else {
+        proceduralLayer_.setCameraOffset(0.0f, 0.0f);
     }
 
     if (ensureVisible) {

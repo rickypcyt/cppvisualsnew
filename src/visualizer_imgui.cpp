@@ -166,6 +166,7 @@ bool Visualizer::setupImGui() {
     style.GrabRounding = 4.0f;
     style.Alpha = 0.9f;
 
+    // Initialize ImGui with callbacks - we'll chain our scroll handling
     if (!ImGui_ImplGlfw_InitForOpenGL(imguiTargetWindow, true)) {
         std::cerr << "ImGui initialization failed: ImGui_ImplGlfw_InitForOpenGL" << std::endl;
         ImGui::DestroyContext();
@@ -1933,7 +1934,8 @@ void Visualizer::renderCameraWindow() {
 }
 
 void Visualizer::handleMouseScroll(double xoffset, double yoffset) {
-    // Zoom with mouse wheel (yoffset)
+    // Always process zoom with mouse wheel, even when ImGui has focus
+    // This allows zooming from the ImGui window
     float currentZoom = proceduralLayer_.cameraZoom();
     float zoomDelta = static_cast<float>(yoffset) * 0.1f;  // 10% per scroll step
     float newZoom = std::clamp(currentZoom + zoomDelta, 0.1f, 5.0f);

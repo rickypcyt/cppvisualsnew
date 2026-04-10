@@ -7,25 +7,25 @@
         "rgbRandomInterval": 5.0
     },
     "audio": {
-        "inputGain": 1.7599999904632568,
-        "manualBPM": 135.0,
+        "inputGain": 1.2300000190734863,
+        "manualBPM": 131.0,
         "manualBPMMode": true,
         "selectedDevice": 13,
-        "visualSensitivity": 1.75
+        "visualSensitivity": 3.0
     },
     "colors": {
         "blend": 0.47999998927116394,
-        "hueSeed": 0.011116709560155869,
-        "paletteIndex": -1,
+        "hueSeed": 0.6362218260765076,
+        "paletteIndex": 1,
         "primary": [
-            0.949999988079071,
-            0.25842493772506714,
-            0.20900005102157593
+            0.5799999833106995,
+            0.11999999731779099,
+            0.1599999964237213
         ],
         "secondary": [
-            0.48720741271972656,
-            0.8799999952316284,
-            0.30800002813339233
+            0.9399999976158142,
+            0.36000001430511475,
+            0.30000001192092896
         ]
     },
     "hotReloadEnabled": false,
@@ -33,12 +33,12 @@
         "tempoScale": 1.0
     },
     "postProcess": {
-        "randomEnabled": false,
+        "randomEnabled": true,
         "randomInterval": 2.0999999046325684,
         "slots": [
             {
-                "enabled": false,
-                "mode": 19,
+                "enabled": true,
+                "mode": 3,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -47,8 +47,8 @@
                 "strength": 1.0
             },
             {
-                "enabled": false,
-                "mode": 11,
+                "enabled": true,
+                "mode": 16,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -112,13 +112,13 @@
         "4": true,
         "5": false,
         "6": false,
-        "7": true,
+        "7": false,
         "8": true,
         "9": true
     },
     "procedural": {
-        "randomEnabled": false,
-        "randomInterval": 4.599999904632568
+        "randomEnabled": true,
+        "randomInterval": 1.0
     },
     "proceduralShaderEnabled": {
         "1": false,
@@ -157,14 +157,16 @@
         "4": false,
         "40": true,
         "41": false,
-        "42": true,
+        "42": false,
         "43": true,
-        "44": true,
+        "44": false,
         "45": true,
         "46": true,
         "47": true,
         "48": true,
         "5": true,
+        "56": false,
+        "57": false,
         "6": true,
         "7": true,
         "8": true,
@@ -178,10 +180,10 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Eiyeron Deform",
+                "effectName": "Fractal Object",
                 "enabled": true,
-                "mode": 46,
-                "opacity": 1.0
+                "mode": 7,
+                "opacity": 0.949999988079071
             },
             {
                 "colorAdjust": [
@@ -227,17 +229,17 @@
         ]
     },
     "proceduralZoomValues": {
-        "10": 1.6999982595443726,
+        "10": 1.5499982833862305,
         "12": 0.10000000149011612,
         "14": 1.1500000953674316,
         "15": 2.2999982833862305,
         "16": 5.0,
         "17": 5.0,
         "18": 5.0,
-        "2": 1.4499999284744263,
+        "2": 1.1500000953674316,
         "22": 5.0,
         "24": 5.0,
-        "25": 1.0,
+        "25": 1.0000001192092896,
         "26": 0.10000000149011612,
         "27": 0.7000000476837158,
         "28": 1.9999982118606567,
@@ -247,45 +249,50 @@
         "35": 5.0,
         "36": 0.9499983787536621,
         "39": 0.5500000715255737,
-        "40": 0.2500000596046448,
+        "40": 0.40000006556510925,
         "42": 1.4499998092651367,
-        "44": 0.5500000715255737,
+        "44": 0.7000001668930054,
         "45": 1.899999737739563,
-        "46": 0.5500000715255737,
+        "46": 0.40000006556510925,
         "47": 0.8500001430511475,
         "48": 5.0,
         "5": 3.799999237060547,
         "50": 0.5500001907348633,
         "51": 1.3306246995925903,
-        "52": 0.2500000596046448,
-        "53": 0.10000000149011612,
+        "52": 0.5500000715255737,
+        "53": 0.7000000476837158,
         "55": 1.4500000476837158,
+        "56": 2.7499985694885254,
+        "57": 5.0,
+        "58": 3.799999237060547,
+        "59": 3.9499993324279785,
         "6": 1.0999983549118042,
-        "7": 4.849999904632568,
-        "8": 1.1500000953674316,
+        "60": 3.880000352859497,
+        "7": 0.349998414516449,
+        "8": 0.2500001788139343,
         "9": 3.4999990463256836
     },
     "random": {
-        "postProcessEnabled": false,
+        "postProcessEnabled": true,
         "postProcessInterval": 2.0999999046325684,
         "postProcessSlotCount": 2,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
-        "proceduralEnabled": false,
-        "proceduralInterval": 4.599999904632568,
+        "proceduralEnabled": true,
+        "proceduralInterval": 1.0,
         "proceduralSlotEnabled": false,
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
-        true,
         false,
+        true,
         true
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Eiyeron Deform",
-        "proceduralLayerMode": 46,
-        "proceduralLayerOpacity": 1.0,
+        "proceduralLayerEffectName": "Fractal Object",
+        "proceduralLayerMode": 7,
+        "proceduralLayerOpacity": 0.949999988079071,
         "showCornerOrbs": false,
         "showCurrentEffects": true,
         "showImGuiWindow": false,

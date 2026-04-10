@@ -119,6 +119,18 @@ void main() {
         color = renderVoronoiGateStream(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 55) {
         color = renderRecursiveCubeBloom(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 56) {
+        color = renderHelloWorldGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 57) {
+        color = renderDailyFlowLines(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 58) {
+        color = renderLitnGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 59) {
+        color = renderHannahAdamsGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 60) {
+        color = renderAnotherCodeGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 61) {
+        color = renderLuperfutGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
     // Invalid modes will show black/pink error color
 
