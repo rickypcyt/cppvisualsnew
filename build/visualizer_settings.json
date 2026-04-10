@@ -15,17 +15,17 @@
     },
     "colors": {
         "blend": 0.47999998927116394,
-        "hueSeed": 0.3194418251514435,
+        "hueSeed": 0.11767055094242096,
         "paletteIndex": -1,
         "primary": [
-            0.270761638879776,
             0.949999988079071,
+            0.7321633100509644,
             0.20900005102157593
         ],
         "secondary": [
             0.30800002813339233,
-            0.5730355978012085,
-            0.8799999952316284
+            0.8799999952316284,
+            0.4944854974746704
         ]
     },
     "hotReloadEnabled": false,
@@ -118,7 +118,7 @@
     },
     "procedural": {
         "randomEnabled": false,
-        "randomInterval": 8.0
+        "randomInterval": 4.599999904632568
     },
     "proceduralShaderEnabled": {
         "1": false,
@@ -178,8 +178,9 @@
                     1.0,
                     1.0
                 ],
+                "effectName": "Collapsed Transit Grid",
                 "enabled": true,
-                "mode": 0,
+                "mode": 50,
                 "opacity": 1.0
             },
             {
@@ -231,12 +232,20 @@
         "14": 1.1500000953674316,
         "15": 2.2999982833862305,
         "16": 5.0,
+        "17": 5.0,
         "18": 5.0,
         "2": 1.4499999284744263,
         "22": 5.0,
         "24": 5.0,
-        "29": 0.8500000238418579,
+        "25": 1.0,
+        "26": 0.10000000149011612,
+        "27": 0.7000000476837158,
+        "28": 1.9999982118606567,
+        "29": 1.4500000476837158,
         "3": 1.8499982357025146,
+        "33": 0.49999842047691345,
+        "35": 5.0,
+        "36": 0.9499983787536621,
         "39": 0.5500000715255737,
         "40": 0.2500000596046448,
         "42": 1.4499998092651367,
@@ -245,12 +254,12 @@
         "47": 0.8500001430511475,
         "48": 5.0,
         "5": 3.799999237060547,
-        "50": 1.600000023841858,
+        "50": 0.5500001907348633,
         "51": 1.3306246995925903,
         "52": 0.2500000596046448,
-        "53": 0.4000001847743988,
+        "53": 0.10000000149011612,
         "6": 1.0999983549118042,
-        "7": 5.0,
+        "7": 4.849999904632568,
         "8": 1.1500000953674316,
         "9": 3.4999990463256836
     },
@@ -261,18 +270,19 @@
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
         "proceduralEnabled": false,
-        "proceduralInterval": 8.0,
+        "proceduralInterval": 4.599999904632568,
         "proceduralSlotEnabled": false,
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
         false,
-        false,
+        true,
         true
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerMode": 0,
+        "proceduralLayerEffectName": "Collapsed Transit Grid",
+        "proceduralLayerMode": 50,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,

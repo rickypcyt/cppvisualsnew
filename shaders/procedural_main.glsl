@@ -115,6 +115,8 @@ void main() {
         color = renderMandelbulbFlux(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 53) {
         color = renderIridescentEye(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 54) {
+        color = renderVoronoiGateStream(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
     // Invalid modes will show black/pink error color
 

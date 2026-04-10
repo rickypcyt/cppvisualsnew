@@ -3001,10 +3001,22 @@ void Visualizer::selectRandomProcedural() {
 
 void Visualizer::syncProceduralLayerWithSlot1() {
     if (kMaxProceduralSlots > 0 && proceduralSlots_[0].enabled) {
-        // Sync procedural layer with Slot 1
+        // Skip work if nothing changed since the last sync to avoid redundant loops/logs.
+        const float opacity = proceduralSlots_[0].opacity;
+        const bool alreadySynced = lastSyncedSlot0Enabled_
+            && lastSyncedSlot0Mode_ == proceduralLayerMode_
+            && std::abs(lastSyncedSlot0Opacity_ - opacity) < 1e-4f;
+        if (alreadySynced) {
+            return;
+        }
+
+        lastSyncedSlot0Enabled_ = true;
+        lastSyncedSlot0Mode_ = proceduralLayerMode_;
+        lastSyncedSlot0Opacity_ = opacity;
+
         std::cout << "[SYNC DEBUG] Before sync: proceduralSlots_[0].mode=" << proceduralSlots_[0].mode
                   << " proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
-        proceduralLayerOpacity_ = proceduralSlots_[0].opacity;
+        proceduralLayerOpacity_ = opacity;
         if (proceduralLayerMode_ != proceduralSlots_[0].mode) {
             std::cout << "[SYNC DEBUG] Divergence detected: slot0.mode=" << proceduralSlots_[0].mode
                       << " but proceduralLayerMode_=" << proceduralLayerMode_
@@ -3016,6 +3028,7 @@ void Visualizer::syncProceduralLayerWithSlot1() {
         showProceduralLayer_ = true;
         std::cout << "[SYNC DEBUG] After sync: proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
     } else {
+        lastSyncedSlot0Enabled_ = false;
         // Fallback to global values if Slot 1 is disabled
         proceduralLayer_.setMode(proceduralLayerMode_);
     }

@@ -159,7 +159,7 @@ private:
     static constexpr int kMaxProceduralSlots = 5;
     
     // Procedural layer constants
-    static constexpr int kProceduralModeCount = 54;
+    static constexpr int kProceduralModeCount = 55;
     
     // Post-process constants
     static constexpr int kPostProcessModeCount = 28;
@@ -349,6 +349,9 @@ private:
     bool proceduralLayerDebug_;
     float proceduralLayerOpacity_;
     int proceduralLayerMode_;
+    bool lastSyncedSlot0Enabled_ = false;
+    int lastSyncedSlot0Mode_ = -1;
+    float lastSyncedSlot0Opacity_ = -1.0f;
     std::string lastProceduralModeSource_ = "init";
     int lastProceduralModeRequested_ = 0;
     int lastProceduralModeApplied_ = 0;
