@@ -15,17 +15,17 @@
     },
     "colors": {
         "blend": 0.47999998927116394,
-        "hueSeed": 0.3236919045448303,
+        "hueSeed": 0.011116709560155869,
         "paletteIndex": -1,
         "primary": [
-            0.25186583399772644,
             0.949999988079071,
+            0.25842493772506714,
             0.20900005102157593
         ],
         "secondary": [
-            0.30800002813339233,
-            0.5584492683410645,
-            0.8799999952316284
+            0.48720741271972656,
+            0.8799999952316284,
+            0.30800002813339233
         ]
     },
     "hotReloadEnabled": false,
@@ -178,9 +178,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Recursive Cube Bloom",
+                "effectName": "Eiyeron Deform",
                 "enabled": true,
-                "mode": 55,
+                "mode": 46,
                 "opacity": 1.0
             },
             {
@@ -249,8 +249,9 @@
         "39": 0.5500000715255737,
         "40": 0.2500000596046448,
         "42": 1.4499998092651367,
+        "44": 0.5500000715255737,
         "45": 1.899999737739563,
-        "46": 5.0,
+        "46": 0.5500000715255737,
         "47": 0.8500001430511475,
         "48": 5.0,
         "5": 3.799999237060547,
@@ -276,18 +277,18 @@
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
-        false,
         true,
+        false,
         true
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Recursive Cube Bloom",
-        "proceduralLayerMode": 55,
+        "proceduralLayerEffectName": "Eiyeron Deform",
+        "proceduralLayerMode": 46,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,
-        "showImGuiWindow": true,
+        "showImGuiWindow": false,
         "showProceduralLayer": true
     }
 }

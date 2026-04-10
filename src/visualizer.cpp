@@ -12,7 +12,6 @@
 #include <vector>
 
 namespace {
-constexpr int kProceduralModeCount = 50;
 constexpr int kPostProcessModeCount = 22;
 constexpr int kKaleidoscopeModeIndex = 29;
 constexpr int kPostProcessKaleidoscopeModeIndex = 7;
