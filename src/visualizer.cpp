@@ -1966,6 +1966,14 @@ bool Visualizer::setupOpenGL() {
         int mainX, mainY;
         glfwGetWindowPos(window_, &mainX, &mainY);
         glfwSetWindowPos(imguiWindow_, mainX + windowWidth_ + 50, mainY);
+
+        // Set up scroll callback for mouse wheel zoom in ImGui window
+        glfwSetScrollCallback(imguiWindow_, [](GLFWwindow* window, double xoffset, double yoffset) {
+            Visualizer* vis = static_cast<Visualizer*>(glfwGetWindowUserPointer(window));
+            if (vis) {
+                vis->handleMouseScroll(xoffset, yoffset);
+            }
+        });
     }
 
     // Make main window current again

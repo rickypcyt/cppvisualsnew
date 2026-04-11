@@ -133,6 +133,30 @@ void main() {
         color = renderLuperfutGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 62) {
         color = renderGlassRefractionField(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 63) {
+        color = renderMatrixDigitalRain(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 64) {
+        color = renderIkedaDigits(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 65) {
+        color = renderIkedaGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 66) {
+        color = renderIChingHexagrams(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 67) {
+        color = renderReflectedTurbulence(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 68) {
+        color = renderIkedaDataStream(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 69) {
+        color = renderLoopNoiseSDF(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 70) {
+        color = renderLoopNoiseRays(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 71) {
+        color = renderCellRings(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 72) {
+        color = renderCoronaVirus(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 73) {
+        color = renderSphereRaytrace(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 74) {
+        color = renderTilesNumbers(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
     // Invalid modes will show black/pink error color
 

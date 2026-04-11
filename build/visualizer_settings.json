@@ -7,25 +7,25 @@
         "rgbRandomInterval": 5.0
     },
     "audio": {
-        "inputGain": 0.10000000149011612,
+        "inputGain": 3.549999952316284,
         "manualBPM": 120.0,
         "manualBPMMode": true,
-        "selectedDevice": 9,
-        "visualSensitivity": 1.850000023841858
+        "selectedDevice": 6,
+        "visualSensitivity": 2.2100000381469727
     },
     "colors": {
-        "blend": 0.47999998927116394,
+        "blend": 0.5600000023841858,
         "hueSeed": 0.622036874294281,
-        "paletteIndex": 1,
+        "paletteIndex": 2,
         "primary": [
-            0.5799999833106995,
-            0.11999999731779099,
-            0.1599999964237213
+            0.10000000149011612,
+            0.3199999928474426,
+            0.18000000715255737
         ],
         "secondary": [
-            0.9399999976158142,
-            0.36000001430511475,
-            0.30000001192092896
+            0.30000001192092896,
+            0.8199999928474426,
+            0.5199999809265137
         ]
     },
     "hotReloadEnabled": false,
@@ -33,12 +33,12 @@
         "tempoScale": 1.0
     },
     "postProcess": {
-        "randomEnabled": false,
-        "randomInterval": 10.100000381469727,
+        "randomEnabled": true,
+        "randomInterval": 1.0,
         "slots": [
             {
                 "enabled": true,
-                "mode": 29,
+                "mode": 13,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -179,6 +179,7 @@
         "6": true,
         "60": false,
         "61": false,
+        "69": false,
         "7": true,
         "8": true,
         "9": true
@@ -191,9 +192,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "LUPERFUT Grid",
+                "effectName": "Tiles and Numbers",
                 "enabled": true,
-                "mode": 61,
+                "mode": 74,
                 "opacity": 1.0
             },
             {
@@ -281,13 +282,14 @@
         "59": 3.9499993324279785,
         "6": 1.0999983549118042,
         "60": 3.880000352859497,
+        "69": 5.0,
         "7": 0.349998414516449,
         "8": 0.2500001788139343,
         "9": 3.569999933242798
     },
     "random": {
-        "postProcessEnabled": false,
-        "postProcessInterval": 10.100000381469727,
+        "postProcessEnabled": true,
+        "postProcessInterval": 1.0,
         "postProcessSlotCount": 1,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
@@ -297,18 +299,18 @@
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
-        true,
-        true,
-        false
+        false,
+        false,
+        true
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Glass Refraction Field",
-        "proceduralLayerMode": 61,
+        "proceduralLayerEffectName": "Tiles and Numbers",
+        "proceduralLayerMode": 73,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,
-        "showImGuiWindow": true,
+        "showImGuiWindow": false,
         "showProceduralLayer": true
     }
 }

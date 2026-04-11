@@ -1,7 +1,5 @@
 #include "post_common.glsl"
 
-const float PI = 3.14159265359;
-
 void main() {
     // Center coordinates
     vec2 center = vUV - 0.5;
