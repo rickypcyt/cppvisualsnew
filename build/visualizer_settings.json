@@ -7,25 +7,25 @@
         "rgbRandomInterval": 5.0
     },
     "audio": {
-        "inputGain": 5.0,
+        "inputGain": 0.10000000149011612,
         "manualBPM": 120.0,
         "manualBPMMode": true,
         "selectedDevice": 9,
-        "visualSensitivity": 0.8899999856948853
+        "visualSensitivity": 1.850000023841858
     },
     "colors": {
-        "blend": 0.6200000047683716,
+        "blend": 0.47999998927116394,
         "hueSeed": 0.622036874294281,
-        "paletteIndex": 0,
+        "paletteIndex": 1,
         "primary": [
-            0.10000000149011612,
-            0.23999999463558197,
-            0.5799999833106995
+            0.5799999833106995,
+            0.11999999731779099,
+            0.1599999964237213
         ],
         "secondary": [
-            0.2800000011920929,
-            0.699999988079071,
-            0.9800000190734863
+            0.9399999976158142,
+            0.36000001430511475,
+            0.30000001192092896
         ]
     },
     "hotReloadEnabled": false,
@@ -38,7 +38,7 @@
         "slots": [
             {
                 "enabled": true,
-                "mode": 31,
+                "mode": 29,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -117,7 +117,7 @@
         "9": false
     },
     "procedural": {
-        "randomEnabled": true,
+        "randomEnabled": false,
         "randomInterval": 4.199999809265137
     },
     "proceduralShaderEnabled": {
@@ -191,9 +191,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Cylinder Repeat",
+                "effectName": "LUPERFUT Grid",
                 "enabled": true,
-                "mode": 43,
+                "mode": 61,
                 "opacity": 1.0
             },
             {
@@ -203,7 +203,7 @@
                     1.0
                 ],
                 "effectName": "LITN Grid",
-                "enabled": true,
+                "enabled": false,
                 "mode": 58,
                 "opacity": 1.0
             },
@@ -291,24 +291,24 @@
         "postProcessSlotCount": 1,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
-        "proceduralEnabled": true,
+        "proceduralEnabled": false,
         "proceduralInterval": 4.199999809265137,
         "proceduralSlotEnabled": false,
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
         true,
-        false,
-        true
+        true,
+        false
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Cylinder Repeat",
-        "proceduralLayerMode": 43,
+        "proceduralLayerEffectName": "Glass Refraction Field",
+        "proceduralLayerMode": 61,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,
-        "showImGuiWindow": false,
+        "showImGuiWindow": true,
         "showProceduralLayer": true
     }
 }

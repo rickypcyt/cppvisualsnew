@@ -32,7 +32,7 @@ void main() {
 }
 )";
 
-const std::array<const char*, 41> kProceduralShaderFiles = {
+const std::array<const char*, 42> kProceduralShaderFiles = {
     "procedural_header.glsl",
     "procedural_helpers.glsl",
     "procedural_shadertoy_bridge.glsl",
@@ -73,6 +73,7 @@ const std::array<const char*, 41> kProceduralShaderFiles = {
     "procedural_pack33.glsl",
     "procedural_pack34.glsl",
     "procedural_pack35.glsl",
+    "procedural_pack36.glsl",
     "procedural_main.glsl"
 };
 

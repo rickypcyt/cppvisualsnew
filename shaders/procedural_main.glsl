@@ -131,6 +131,8 @@ void main() {
         color = renderAnotherCodeGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 61) {
         color = renderLuperfutGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 62) {
+        color = renderGlassRefractionField(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
     // Invalid modes will show black/pink error color
 
