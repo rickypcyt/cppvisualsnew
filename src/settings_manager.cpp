@@ -391,7 +391,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
             json slot;
             slot["enabled"] = proceduralSlots_[i].enabled;
             // Save both index (for compatibility) and name (for robustness)
-            int modeIndex = std::clamp(proceduralSlots_[i].mode, 0, 74);
+            int modeIndex = std::clamp(proceduralSlots_[i].mode, 0, 75);
             slot["mode"] = modeIndex;
             std::string effectName = GetEffectRegistry().getEffectNameByIndex(modeIndex);
             if (!effectName.empty()) {

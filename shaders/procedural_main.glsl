@@ -157,6 +157,8 @@ void main() {
         color = renderSphereRaytrace(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 74) {
         color = renderTilesNumbers(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 75) {
+        color = renderAudioEQ(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
     // Invalid modes will show black/pink error color
 
