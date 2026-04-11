@@ -33,12 +33,12 @@
         "tempoScale": 1.0
     },
     "postProcess": {
-        "randomEnabled": true,
+        "randomEnabled": false,
         "randomInterval": 10.100000381469727,
         "slots": [
             {
                 "enabled": true,
-                "mode": 20,
+                "mode": 31,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -286,7 +286,7 @@
         "9": 3.569999933242798
     },
     "random": {
-        "postProcessEnabled": true,
+        "postProcessEnabled": false,
         "postProcessInterval": 10.100000381469727,
         "postProcessSlotCount": 1,
         "postProcessSlotEnabled": false,
@@ -297,9 +297,9 @@
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
-        false,
         true,
-        false
+        false,
+        true
     ],
     "ui": {
         "proceduralLayerDebug": false,
@@ -308,7 +308,7 @@
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,
-        "showImGuiWindow": true,
+        "showImGuiWindow": false,
         "showProceduralLayer": true
     }
 }

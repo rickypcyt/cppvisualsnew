@@ -123,8 +123,9 @@ const char* const Visualizer::kPostProcessModes[] = {
     "Pixelate 192px",
     "Pixelate 256px",
     "Lens Distortion",
+    "Rotating Lens",
     "Plasma Overlay",
-    "RGB Split",
+    "RGB Shift",
     "Recursive Energy",
     "Bloom + ACES",
     "Pixel Tiles",
@@ -136,7 +137,10 @@ const char* const Visualizer::kPostProcessModes[] = {
     "Mirror Vertical", 
     "Mirror Kaleidoscope",
     "Mirror Rorschach",
-    "Random Cycle"
+    "Posterize + Edge",
+    "Little Planet",
+    "Recursive Feedback",
+    "Threshold Levels"
 };
 
 bool Visualizer::setupImGui() {

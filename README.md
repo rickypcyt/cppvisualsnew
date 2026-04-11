@@ -1,32 +1,39 @@
 # Audio Visualizer en Tiempo Real
 
-Visualizador de música en tiempo real en C++ reactivo al audio del micrófono, orientado a música electrónica.
+Visualizador de música en tiempo real en C++ reactivo al audio, optimizado para música electrónica. Sistema de doble ventana con controles en ImGui y renderizado independiente.
 
 ## Arquitectura
 
-El sistema se divide en cuatro subsistemas principales:
+El sistema se divide en cinco subsistemas principales:
 
-1. **Captura de Audio** - PortAudio para baja latencia
-2. **Análisis de Señal** - FFT y extracción de features
-3. **Motor Visual** - OpenGL con shaders reactivos
-4. **Sincronización** - Pipeline DSP + render
+1. **Captura de Audio** - PortAudio para baja latencia (~10ms)
+2. **Análisis de Señal** - FFT 1024 puntos con extracción de features musicales
+3. **Capa Procedural** - Shaders de fondo reactivos (50 modos)
+4. **Motor Visual** - Raymarching SDF con OpenGL
+5. **Post-Procesamiento** - Efectos de imagen en cascada (30 efectos)
 
 ## Características
 
-- Captura de audio en tiempo real desde el micrófono
-- Análisis FFT con extracción de bandas de frecuencia (bass, mid, high)
-- Detección de onsets y beats
-- Visualización con raymarching SDF reactivo al audio
-- Shaders psicodélicos para música electrónica
-- Smoothing de features para visualización fluida
+- **Doble Ventana**: Ventana principal (visuals) + ventana de controles (ImGui)
+- **Audio en Tiempo Real**: Captura desde micrófono o entrada de línea
+- **Análisis Avanzado**: FFT, bandas de frecuencia (bass/mid/high), detección de beats/onsets
+- **50 Shaders Procedurales**: Fondos psicodélicos con nombres descriptivos
+- **30 Post-Effects**: Grayscale, CRT, Bloom, Kaleidoscope, Sobel Edge, etc.
+- **Paleta de Colores Dinámica**: HSV seed + presets clásicos
+- **Auto-Randomización**: Cambio automático de efectos por tiempo o onset
+- **Soporte MIDI**: Controladores externos (opcional)
+- **Persistencia de Config**: Guarda settings en JSON
 
 ## Dependencias
 
-- **PortAudio** - Captura de audio
-- **OpenGL** - Renderizado gráfico  
+- **PortAudio** - Captura de audio de baja latencia
+- **OpenGL** - Renderizado gráfico acelerado por GPU
 - **GLFW** - Ventana y contexto OpenGL
-- **GLEW** - Carga de funciones OpenGL
-- **CMake** - Sistema de construcción
+- **GLEW** - Carga de extensiones OpenGL
+- **ImGui** - Interfaz de usuario inmediata (submódulo)
+- **nlohmann/json** - Serialización de configuración
+- **CMake** - Sistema de construcción (>=3.10)
+- ** ALSA** - Backend de audio Linux
 
 ## Compilación
 

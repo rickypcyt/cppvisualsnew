@@ -417,36 +417,40 @@ bool PostProcessor::loadEffectShaders() {
         std::cerr << "PostProcessor: Failed to load mirror_common.glsl (optional)" << std::endl;
     }
 
-    // Define effect file paths in mode order
+    // Define effect file paths in mode order (must match kPostProcessModes in visualizer_imgui.cpp)
     effectPaths_ = {
-        "shaders/post_effects/effect_passthrough.glsl",
-        "shaders/post_effects/effect_grayscale.glsl",
-        "shaders/post_effects/effect_filmic.glsl",
-        "shaders/post_effects/effect_crt.glsl",
-        "shaders/post_effects/effect_chromatic_pulse.glsl",
-        "shaders/post_effects/effect_bass_threshold.glsl",
-        "shaders/post_effects/effect_radial_blur.glsl",
-        "shaders/post_effects/effect_kaleidoscope.glsl",
-        "shaders/post_effects/effect_digital_glitch.glsl",
-        "shaders/post_effects/effect_pixelate_64.glsl",
-        "shaders/post_effects/effect_pixelate_128.glsl",
-        "shaders/post_effects/effect_pixelate_192.glsl",
-        "shaders/post_effects/effect_pixelate_256.glsl",
-        "shaders/post_effects/effect_lens_distort.glsl",
-        "shaders/post_effects/effect_rotating_lens.glsl",
-        "shaders/post_effects/effect_plasma_overlay.glsl",
-        "shaders/post_effects/effect_rgb_shift.glsl",
-        "shaders/post_effects/effect_recursive_energy.glsl",
-        "shaders/post_effects/effect_bloom_aces.glsl",
-        "shaders/post_effects/effect_pixel_tiles.glsl",
-        "shaders/post_effects/effect_sobel_edge.glsl",
-        "shaders/post_effects/effect_kaleidoscope_mirror.glsl",
-        "shaders/post_effects/effect_sobel_advanced.glsl",
-        "shaders/post_effects/effect_ring_distortion.glsl",
-        "shaders/post_effects/effect_mirror_horizontal.glsl",
-        "shaders/post_effects/effect_mirror_vertical.glsl",
-        "shaders/post_effects/effect_mirror_kaleido.glsl",
-        "shaders/post_effects/effect_mirror_rorschach.glsl"
+        "shaders/post_effects/effect_passthrough.glsl",    // 0: None
+        "shaders/post_effects/effect_grayscale.glsl",    // 1: Grayscale
+        "shaders/post_effects/effect_filmic.glsl",        // 2: Filmic + Vignette
+        "shaders/post_effects/effect_crt.glsl",           // 3: CRT Monitor
+        "shaders/post_effects/effect_chromatic_pulse.glsl", // 4: Chromatic Pulse
+        "shaders/post_effects/effect_bass_threshold.glsl",  // 5: Bass Threshold
+        "shaders/post_effects/effect_radial_blur.glsl",   // 6: Radial Blur
+        "shaders/post_effects/effect_kaleidoscope.glsl",  // 7: Kaleidoscope
+        "shaders/post_effects/effect_digital_glitch.glsl", // 8: Digital Glitch
+        "shaders/post_effects/effect_pixelate_64.glsl",   // 9: Pixelate 64px
+        "shaders/post_effects/effect_pixelate_128.glsl",  // 10: Pixelate 128px
+        "shaders/post_effects/effect_pixelate_192.glsl",  // 11: Pixelate 192px
+        "shaders/post_effects/effect_pixelate_256.glsl",  // 12: Pixelate 256px
+        "shaders/post_effects/effect_lens_distort.glsl",  // 13: Lens Distortion
+        "shaders/post_effects/effect_rotating_lens.glsl", // 14: Rotating Lens (was Plasma Overlay in UI - mismatched!)
+        "shaders/post_effects/effect_plasma_overlay.glsl", // 15: Plasma Overlay
+        "shaders/post_effects/effect_rgb_shift.glsl",      // 16: RGB Split
+        "shaders/post_effects/effect_recursive_energy.glsl", // 17: Recursive Energy
+        "shaders/post_effects/effect_bloom_aces.glsl",    // 18: Bloom + ACES
+        "shaders/post_effects/effect_pixel_tiles.glsl",   // 19: Pixel Tiles
+        "shaders/post_effects/effect_sobel_edge.glsl",    // 20: Sobel Edge Detection
+        "shaders/post_effects/effect_kaleidoscope_mirror.glsl", // 21: Kaleidoscope Mirror
+        "shaders/post_effects/effect_sobel_advanced.glsl", // 22: Advanced Sobel
+        "shaders/post_effects/effect_ring_distortion.glsl", // 23: Ring Distortion
+        "shaders/post_effects/effect_mirror_horizontal.glsl", // 24: Mirror Horizontal
+        "shaders/post_effects/effect_mirror_vertical.glsl",   // 25: Mirror Vertical
+        "shaders/post_effects/effect_mirror_kaleido.glsl",    // 26: Mirror Kaleidoscope
+        "shaders/post_effects/effect_mirror_rorschach.glsl",  // 27: Mirror Rorschach
+        "shaders/post_effects/effect_posterize_edge.glsl",    // 28: Posterize + Edge
+        "shaders/post_effects/effect_little_planet.glsl",      // 29: Little Planet
+        "shaders/post_effects/effect_recursive_feedback.glsl",  // 30: Recursive Feedback
+        "shaders/post_effects/effect_threshold_levels.glsl"       // 31: Threshold Levels
     };
 
     effectShaders_.resize(effectPaths_.size());
