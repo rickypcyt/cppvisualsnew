@@ -1032,6 +1032,10 @@ void Visualizer::renderProceduralWindow() {
                                     std::cout << "[UI DEBUG] After apply: currentMode=" << proceduralLayerMode_
                                               << " slot0.mode=" << proceduralSlots_[0].mode
                                               << " lastTrigger=" << lastProceduralModeSource_ << std::endl;
+                                } else {
+                                    // For secondary slots, directly update the slot mode
+                                    slot.mode = newMode;
+                                    std::cout << "[UI DEBUG] Secondary slot " << slotIndex << " mode set to " << newMode << std::endl;
                                 }
                                 saveCurrentSettings();
                             }

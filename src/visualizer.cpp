@@ -2673,6 +2673,18 @@ void Visualizer::renderProceduralLayer() {
             adjustedSecondary[i] = std::clamp(sceneSecondaryColor_[i] * colorAdjust[i], 0.0f, 1.0f);
         }
 
+        // Set camera zoom and offset specific to this slot's mode
+        float zoom = getZoomForShaderMode(mode);
+        proceduralLayer_.setCameraZoom(zoom);
+        // Set custom offset for text marquee modes (58-61), reset for others
+        // LUPERFUT (61) has slightly higher offset to move it up
+        if (mode >= 58 && mode <= 61) {
+            float yOffset = (mode == 61) ? 1.60f : 1.80f;
+            proceduralLayer_.setCameraOffset(0.0f, yOffset);
+        } else {
+            proceduralLayer_.setCameraOffset(0.0f, 0.0f);
+        }
+
         proceduralLayer_.setMode(std::clamp(mode, 0, kProceduralModeCount - 1));
         proceduralLayer_.setColorPalette(adjustedPrimary, adjustedSecondary, scenePaletteBlend_);
         proceduralLayer_.render(context, clearFramebuffer);
@@ -3007,12 +3019,26 @@ void Visualizer::selectRandomProcedural() {
         return;
     }
 
+    // Get slot 2 mode to exclude from randomization
+    int slot2Mode = 0;
+    if (kMaxProceduralSlots > 1 && proceduralSlots_[1].enabled) {
+        slot2Mode = proceduralSlots_[1].mode;
+        std::cout << "[RANDOM SELECT] Slot 2 has mode " << slot2Mode << ", excluding from random pool" << std::endl;
+    }
+
     std::uniform_int_distribution<int> dist(0, availableProceduralModes_.size() - 1);
     int newIndex = availableProceduralModes_[dist(rng_)];
 
-    // Avoid selecting the same mode twice in a row
+    // Avoid selecting the same mode twice in a row, and avoid slot 2's mode
     int attempts = 0;
-    while (availableProceduralModes_.size() > 1 && newIndex == currentRandomProcedural_ && attempts < 10) {
+    while (availableProceduralModes_.size() > 1 && attempts < 20) {
+        bool isSameAsCurrent = (newIndex == currentRandomProcedural_);
+        bool isSlot2Mode = (slot2Mode > 0 && newIndex == slot2Mode);
+        
+        if (!isSameAsCurrent && !isSlot2Mode) {
+            break; // Found a valid mode
+        }
+        
         newIndex = availableProceduralModes_[dist(rng_)];
         attempts++;
     }

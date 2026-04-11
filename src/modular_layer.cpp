@@ -527,9 +527,18 @@ void ModularLayer::render(const LayerContext& context, bool clearFramebuffer) {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
     glViewport(0, 0, width_, height_);
 
+    GLboolean blendWasEnabled = glIsEnabled(GL_BLEND);
+
     if (clearFramebuffer) {
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+    } else {
+        // For accumulated rendering (secondary slots), enable additive blending
+        // so the new shader blends with existing content instead of replacing it
+        if (!blendWasEnabled) {
+            glEnable(GL_BLEND);
+        }
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     GLboolean depthWasEnabled = glIsEnabled(GL_DEPTH_TEST);
@@ -578,6 +587,11 @@ void ModularLayer::render(const LayerContext& context, bool clearFramebuffer) {
 
     if (depthWasEnabled) {
         glEnable(GL_DEPTH_TEST);
+    }
+
+    // Restore blend state
+    if (!clearFramebuffer && !blendWasEnabled) {
+        glDisable(GL_BLEND);
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, previousFbo);
