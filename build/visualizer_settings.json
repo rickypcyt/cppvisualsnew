@@ -192,9 +192,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Audio Spectrum EQ",
+                "effectName": "Ikeda Grid",
                 "enabled": true,
-                "mode": 75,
+                "mode": 65,
                 "opacity": 1.0
             },
             {
@@ -300,13 +300,13 @@
     },
     "rgbChannels": [
         false,
-        true,
+        false,
         true
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Audio Spectrum EQ",
-        "proceduralLayerMode": 73,
+        "proceduralLayerEffectName": "Ikeda Grid",
+        "proceduralLayerMode": 65,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": false,
         "showCurrentEffects": true,

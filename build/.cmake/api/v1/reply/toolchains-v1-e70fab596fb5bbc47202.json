@@ -33,7 +33,7 @@
 					]
 				},
 				"path" : "/usr/bin/clang",
-				"version" : "22.1.1"
+				"version" : "22.1.3"
 			},
 			"language" : "C",
 			"sourceFileExtensions" : 
@@ -78,7 +78,7 @@
 					]
 				},
 				"path" : "/usr/bin/clang++",
-				"version" : "22.1.1"
+				"version" : "22.1.3"
 			},
 			"language" : "CXX",
 			"sourceFileExtensions" : 
