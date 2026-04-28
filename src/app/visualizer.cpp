@@ -1625,6 +1625,9 @@ void Visualizer::render() {
     // FASE 0.1: Frame timing CPU
     auto frameStart = std::chrono::high_resolution_clock::now();
 
+    // GPU profiler: Begin frame
+    GPUProfiler::getInstance().beginFrame();
+
     // Reset performance counters
     drawCallsPerFrame_ = 0;
     uniformCallsPerFrame_ = 0;
@@ -1740,6 +1743,9 @@ void Visualizer::render() {
 
     handleKeyboardInput();
     handleVisualizationShortcuts();
+
+    // GPU profiler: Main render end
+    GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_MAIN_RENDER);
 
     if (imguiInitialized_ && showImGuiWindow_) {
         PROFILE_SCOPE("render_imgui");
@@ -2046,6 +2052,9 @@ bool Visualizer::setupOpenGL() {
 
     // Detect available monitors for multi-monitor support
     detectMonitors();
+
+    // Initialize GPU profiler (after GL context is ready)
+    GPUProfiler::getInstance().initialize();
 
     std::cout << "OpenGL setup successful!" << std::endl;
     return true;
@@ -4368,6 +4377,5 @@ float Visualizer::getZoomForShaderMode(int modeIndex) const {
     if (effectMeta) {
         return effectMeta->defaultZoom;
     }
-    
     return 1.0f;
 }

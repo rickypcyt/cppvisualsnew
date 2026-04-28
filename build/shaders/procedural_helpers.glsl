@@ -3,8 +3,8 @@ const float kVoxelHeightRangeBase = 5.0;
 const float kVoxelBumpFactorBase = 2.0;
 const float kVoxelFovDegrees = 60.0;
 const float kVoxelBpm = 114.0;
-const int kVoxelSamples = 6;
-const int kVoxelMaxDepth = 5;
+const int kVoxelSamples = 3;
+const int kVoxelMaxDepth = 3;
 
 float hash13(vec3 p) {
     return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453);
@@ -142,7 +142,7 @@ vec3 voxelPathTrace(vec3 ro, vec3 rd, float time, float fallSpeed, float heightR
     vec3 pos;
     float seed;
 
-    float t = voxelCastRay(ro, rd, 80, ro, time, fallSpeed, heightRange, ID, normal, pos, seed);
+    float t = voxelCastRay(ro, rd, 60, ro, time, fallSpeed, heightRange, ID, normal, pos, seed);
     if (t < 0.0) {
         return vec3(0.0);
     }
@@ -166,7 +166,7 @@ vec3 voxelPathTrace(vec3 ro, vec3 rd, float time, float fallSpeed, float heightR
             float ur = voxelRandom(pathSeed);
             rd = voxelJitter(n, voxelRandom(pathSeed) * kTwoPI, sqrt(1.0 - ur), sqrt(ur));
 
-            t = voxelCastRay(ro, rd, 20, ro, time, fallSpeed, heightRange, ID, normal, pos, seed);
+            t = voxelCastRay(ro, rd, 15, ro, time, fallSpeed, heightRange, ID, normal, pos, seed);
             if (t < 0.0) {
                 break;
             }
@@ -174,7 +174,6 @@ vec3 voxelPathTrace(vec3 ro, vec3 rd, float time, float fallSpeed, float heightR
 
             f = ro - pos - 0.5;
             n = normalize(f * pow(abs(f), vec3(8.0)) + 0.0001);
-            n = normalize(n + voxelBumpMap(ro, normal, seed, bumpFactor));
 
             float emissionBoost = 1.0 + bass * 1.2 + high * 0.8;
             acc += mask * voxelEmission(seed) * emissionBoost;

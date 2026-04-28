@@ -3,7 +3,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "libcore_engine.a"
+			"path" : "libshader_system.a"
 		}
 	],
 	"backtrace" : 1,
@@ -27,19 +27,19 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 10,
+				"line" : 76,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 223,
+				"line" : 89,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 19,
+				"line" : 85,
 				"parent" : 0
 			}
 		]
@@ -53,7 +53,7 @@
 	[
 		{
 			"backtrace" : 2,
-			"id" : "Threads::Threads::@6890427a1f51a3e7e1df"
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
 	"compileGroups" : 
@@ -86,75 +86,41 @@
 				0,
 				1,
 				2,
-				3,
 				4
 			]
 		}
 	],
-	"id" : "core_engine::@6890427a1f51a3e7e1df",
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 2,
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "shader_system::@6890427a1f51a3e7e1df",
 	"interfaceCompileDependencies" : 
 	[
 		{
 			"backtrace" : 2,
-			"id" : "Threads::Threads::@6890427a1f51a3e7e1df"
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
 	"interfaceLinkLibraries" : 
 	[
 		{
 			"backtrace" : 2,
-			"fragment" : "portaudio"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "asound"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "m"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "pthread"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "asound"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "Threads::Threads::@6890427a1f51a3e7e1df"
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
 	"linkLibraries" : 
 	[
 		{
 			"backtrace" : 2,
-			"fragment" : "portaudio"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "asound"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "m"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "pthread"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "asound"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "Threads::Threads::@6890427a1f51a3e7e1df"
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
-	"name" : "core_engine",
-	"nameOnDisk" : "libcore_engine.a",
+	"name" : "shader_system",
+	"nameOnDisk" : "libshader_system.a",
 	"paths" : 
 	{
 		"build" : ".",
@@ -169,7 +135,6 @@
 				0,
 				1,
 				2,
-				3,
 				4
 			]
 		},
@@ -177,6 +142,7 @@
 			"name" : "Header Files",
 			"sourceIndexes" : 
 			[
+				3,
 				5
 			]
 		}
@@ -186,36 +152,35 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/audio_engine.cpp",
+			"path" : "src/shader.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/audio_capture.cpp",
+			"path" : "src/shader_loader.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/audio_analyzer.cpp",
+			"path" : "src/layer_validator.cpp",
 			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/render_command.h",
+			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/settings_manager.cpp",
+			"path" : "src/render_queue.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "src/midi_controller.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"path" : "src/profiler.h",
+			"path" : "src/render_queue.h",
 			"sourceGroupIndex" : 1
 		}
 	],

@@ -598,6 +598,16 @@ vec4 renderSingleHead(vec2 st, float uTime, float uTempo, float uEnergy, float u
     st *= uCameraZoom;
     st += vec2(uCameraOffsetX, uCameraOffsetY);
     
+    // Dynamic resolution scaling for performance
+    float pixelCount = uResolution.x * uResolution.y;
+    float resolutionScale = 1.0;
+    if (pixelCount > 1920.0 * 1080.0) {
+        resolutionScale = 0.5;
+    } else if (pixelCount > 1280.0 * 720.0) {
+        resolutionScale = 0.7;
+    }
+    st *= resolutionScale;
+    
     // Center the head by moving camera back and adjusting view
     // Adjust camera distance based on zoom (closer zoom = move camera closer)
     float camZ = 3.5 / max(uCameraZoom, 0.1);  // Prevent division by zero
@@ -611,7 +621,7 @@ vec4 renderSingleHead(vec2 st, float uTime, float uTempo, float uEnergy, float u
     vec3 col = vec3(.1);
     bool hitIsEye = false;
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 50; i++) {
         rayLength += dist;
         rayPosition = camPos + rayDirection * rayLength;
         vec2 mapResult = mapWithEye(rayPosition);

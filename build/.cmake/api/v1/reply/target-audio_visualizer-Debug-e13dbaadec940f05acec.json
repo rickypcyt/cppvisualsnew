@@ -28,55 +28,55 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 257,
+				"line" : 258,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 261,
+				"line" : 262,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 271,
+				"line" : 272,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 140,
+				"line" : 141,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 223,
+				"line" : 224,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 235,
+				"line" : 236,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 317,
+				"line" : 318,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 310,
+				"line" : 311,
 				"parent" : 7
 			},
 			{
 				"command" : 4,
 				"file" : 0,
-				"line" : 302,
+				"line" : 303,
 				"parent" : 0
 			}
 		]
@@ -160,15 +160,11 @@
 	[
 		{
 			"backtrace" : 2,
-			"id" : "core_engine::@6890427a1f51a3e7e1df"
+			"id" : "shader_system::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
-			"id" : "gl_backend::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "imgui::@6890427a1f51a3e7e1df"
+			"id" : "post_processing::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
@@ -180,11 +176,7 @@
 		},
 		{
 			"backtrace" : 2,
-			"id" : "shader_system::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "post_processing::@6890427a1f51a3e7e1df"
+			"id" : "imgui::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
@@ -193,6 +185,14 @@
 		{
 			"backtrace" : 2,
 			"id" : "imgui_opengl3::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "core_engine::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "audio_visualizer::@6890427a1f51a3e7e1df",

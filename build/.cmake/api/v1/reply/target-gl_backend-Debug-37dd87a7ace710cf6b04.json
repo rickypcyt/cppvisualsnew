@@ -3,7 +3,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "libpost_processing.a"
+			"path" : "libgl_backend.a"
 		}
 	],
 	"backtrace" : 1,
@@ -27,19 +27,19 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 95,
+				"line" : 155,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 103,
+				"line" : 236,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 99,
+				"line" : 161,
 				"parent" : 0
 			}
 		]
@@ -53,11 +53,7 @@
 	[
 		{
 			"backtrace" : 2,
-			"id" : "shader_system::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+			"id" : "glfw::@6890427a1f51a3e7e1df"
 		}
 	],
 	"compileGroups" : 
@@ -87,57 +83,60 @@
 			},
 			"sourceIndexes" : 
 			[
-				0
+				0,
+				1,
+				2
 			]
 		}
 	],
-	"dependencies" : 
-	[
-		{
-			"backtrace" : 2,
-			"id" : "gl_backend::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "shader_system::@6890427a1f51a3e7e1df"
-		}
-	],
-	"id" : "post_processing::@6890427a1f51a3e7e1df",
+	"id" : "gl_backend::@6890427a1f51a3e7e1df",
 	"interfaceCompileDependencies" : 
 	[
 		{
 			"backtrace" : 2,
-			"id" : "shader_system::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+			"id" : "glfw::@6890427a1f51a3e7e1df"
 		}
 	],
 	"interfaceLinkLibraries" : 
 	[
 		{
 			"backtrace" : 2,
-			"id" : "shader_system::@6890427a1f51a3e7e1df"
+			"fragment" : "dl"
 		},
 		{
 			"backtrace" : 2,
-			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+			"id" : "glfw::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "/usr/lib/libGLEW.so"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "-lGL"
 		}
 	],
 	"linkLibraries" : 
 	[
 		{
 			"backtrace" : 2,
-			"id" : "shader_system::@6890427a1f51a3e7e1df"
+			"fragment" : "dl"
 		},
 		{
 			"backtrace" : 2,
-			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+			"id" : "glfw::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "/usr/lib/libGLEW.so"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "-lGL"
 		}
 	],
-	"name" : "post_processing",
-	"nameOnDisk" : "libpost_processing.a",
+	"name" : "gl_backend",
+	"nameOnDisk" : "libgl_backend.a",
 	"paths" : 
 	{
 		"build" : ".",
@@ -149,7 +148,9 @@
 			"name" : "Source Files",
 			"sourceIndexes" : 
 			[
-				0
+				0,
+				1,
+				2
 			]
 		}
 	],
@@ -158,7 +159,19 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/post_processor.cpp",
+			"path" : "src/gl_renderer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/gl_shader_compiler.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/gl_command_executor.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

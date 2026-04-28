@@ -11,8 +11,8 @@ vec3 runway_colorAccum = vec3(0.0);
 vec2 runway_fragCoord = vec2(0.0);
 bool runway_accumulateColor = true;
 float runway_resolutionPressure = 1.0;
-float runway_fractalIterationLimit = 8.0;
-float runway_marchIterationLimit = 200.0;
+float runway_fractalIterationLimit = 6.0;
+float runway_marchIterationLimit = 120.0;
 
 mat2 runway_rot(float a) {
     float s = sin(a);
@@ -27,7 +27,7 @@ vec3 runway_fractal(vec2 p) {
     vec2 mc = vec2(100.0);
     p = abs(fract(p * 0.1) - 0.5);
     vec2 c = p;
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 7; ++i) {
         if (float(i) >= runway_fractalIterationLimit) {
             break;
         }
@@ -89,7 +89,7 @@ vec3 runway_bsearch(vec3 from, vec3 dir, float td, inout float step, out vec2 hi
     float previous = 1.0;
     step *= -0.5;
     td += step;
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 12; ++i) {
         pos = from + td * dir;
         hitInfo = runway_hit(pos);
         if (abs(hitInfo.x - previous) > 0.001) {
@@ -161,12 +161,21 @@ vec4 renderFractalRunway(vec2 st, float time, float tempo, float energy, float b
     runway_fragCoord = fragCoord;
 
     vec2 uv = (fragCoord - 0.5 * uResolution.xy) / max(uResolution.y, 1.0);
+    
+    // Dynamic resolution scaling for performance
+    float pixelCount = uResolution.x * uResolution.y;
+    float resolutionScale = 1.0;
+    if (pixelCount > 1920.0 * 1080.0) {
+        resolutionScale = 0.5;
+    } else if (pixelCount > 1280.0 * 720.0) {
+        resolutionScale = 0.7;
+    }
+    uv *= resolutionScale;
 
-    float pixelCount = max(1.0, uResolution.x * uResolution.y);
     runway_resolutionPressure = clamp(pixelCount / runway_referencePixels, 1.0, 4.0);
     float highResFactor = clamp((runway_resolutionPressure - 1.0) / 3.0, 0.0, 1.0);
-    runway_fractalIterationLimit = mix(8.0, 5.0, highResFactor);
-    runway_marchIterationLimit = mix(200.0, 90.0, highResFactor);
+    runway_fractalIterationLimit = mix(6.0, 4.0, highResFactor);
+    runway_marchIterationLimit = mix(120.0, 80.0, highResFactor);
 
     runway_time = time;
     runway_colorAccum = vec3(0.0);

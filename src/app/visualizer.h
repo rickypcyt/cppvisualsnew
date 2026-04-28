@@ -14,6 +14,7 @@
 #include "../post_processor.h"
 #include "../settings_manager.h"
 #include "../midi_controller.h"
+#include "../gpu_profiler.h"
 
 // Forward declarations for ImGui
 struct ImGuiIO;

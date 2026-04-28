@@ -56,7 +56,7 @@ float gyroidMap(vec3 p) {
     vec2 dq = mix(vec2(-0.2), vec2(0.27, 0.1), gyroidSqWave(gyroidBeatTime * 0.15));
     float scale = 1.0;
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 4; ++i) {
         vec3 v = q;
         v.zx = abs(v.zx);
         if (v.z > v.x) {
@@ -109,7 +109,7 @@ vec3 gyroidMarch(inout vec3 rayPos, inout vec3 rayDir, inout vec3 attenuation, o
     hitSomething = false;
     float t = 0.0;
 
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 70; ++i) {
         float dist = gyroidMap(rayPos + rayDir * t);
         if (abs(dist) < 0.0001) {
             hitSomething = true;
@@ -157,9 +157,20 @@ vec3 gyroidMarch(inout vec3 rayPos, inout vec3 rayDir, inout vec3 attenuation, o
 vec4 renderGyroidReflections(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
     vec2 aspect = vec2(uResolution.x / max(uResolution.y, 1.0), 1.0);
     vec2 fragCoord = (st / aspect + 0.5) * uResolution.xy;
+    
+    // Dynamic resolution scaling for performance
+    float pixelCount = uResolution.x * uResolution.y;
+    float resolutionScale = 1.0;
+    if (pixelCount > 1920.0 * 1080.0) {
+        resolutionScale = 0.5; // 2x resolution reduction for 4K+
+    } else if (pixelCount > 1280.0 * 720.0) {
+        resolutionScale = 0.7; // Moderate reduction for 1080p+
+    }
+    
     vec2 uv = vec2(fragCoord.x / uResolution.x, fragCoord.y / uResolution.y);
     uv -= 0.5;
     uv /= vec2(uResolution.y / max(uResolution.x, 1.0), 1.0) * 0.5;
+    uv *= resolutionScale; // Scale down sampling resolution
 
     gyroidTimeValue = time;
     float bpmMod = kGyroidBpm * clamp(tempo * 0.9 + 0.3, 0.6, 1.4);
@@ -180,9 +191,6 @@ vec4 renderGyroidReflections(vec2 st, float time, float tempo, float energy, flo
     bool hit = false;
 
     color += gyroidMarch(rayOrigin, rayDir, attenuation, hit);
-    if (hit) {
-        color += gyroidMarch(rayOrigin, rayDir, attenuation, hit);
-    }
     if (hit) {
         color += gyroidMarch(rayOrigin, rayDir, attenuation, hit);
     }

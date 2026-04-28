@@ -40,7 +40,7 @@
         "slots": [
             {
                 "enabled": true,
-                "mode": 27,
+                "mode": 24,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -104,9 +104,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Voxel Path Tracer",
+                "effectName": "Hex Kaleidoscope",
                 "enabled": true,
-                "mode": 22,
+                "mode": 31,
                 "opacity": 1.0
             },
             {
@@ -164,14 +164,14 @@
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
-        false,
+        true,
         true,
         true
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Voxel Path Tracer",
-        "proceduralLayerMode": 22,
+        "proceduralLayerEffectName": "Hex Kaleidoscope",
+        "proceduralLayerMode": 31,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": true,
         "showCurrentEffects": true,

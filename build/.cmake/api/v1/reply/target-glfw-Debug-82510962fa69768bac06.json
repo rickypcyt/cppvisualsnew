@@ -1,5 +1,11 @@
 {
 	"abstract" : true,
+	"artifacts" : 
+	[
+		{
+			"path" : "/usr/lib/libglfw.so.3.4"
+		}
+	],
 	"backtrace" : 5,
 	"backtraceGraph" : 
 	{
@@ -11,8 +17,8 @@
 		],
 		"files" : 
 		[
-			"/usr/share/cmake/nlohmann_json/nlohmann_jsonTargets.cmake",
-			"/usr/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake",
+			"/usr/lib/cmake/glfw3/glfw3Targets.cmake",
+			"/usr/lib/cmake/glfw3/glfw3Config.cmake",
 			"CMakeLists.txt"
 		],
 		"nodes" : 
@@ -23,7 +29,7 @@
 			{
 				"command" : 2,
 				"file" : 2,
-				"line" : 193,
+				"line" : 179,
 				"parent" : 0
 			},
 			{
@@ -33,7 +39,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 6,
+				"line" : 3,
 				"parent" : 2
 			},
 			{
@@ -43,7 +49,7 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 59,
+				"line" : 68,
 				"parent" : 4
 			}
 		]
@@ -53,15 +59,16 @@
 		"major" : 2,
 		"minor" : 10
 	},
-	"id" : "nlohmann_json::nlohmann_json::@6890427a1f51a3e7e1df",
+	"id" : "glfw::@6890427a1f51a3e7e1df",
 	"imported" : true,
 	"local" : true,
-	"name" : "nlohmann_json::nlohmann_json",
+	"name" : "glfw",
+	"nameOnDisk" : "libglfw.so.3.4",
 	"paths" : 
 	{
 		"build" : ".",
 		"source" : "."
 	},
 	"sources" : [],
-	"type" : "INTERFACE_LIBRARY"
+	"type" : "SHARED_LIBRARY"
 }

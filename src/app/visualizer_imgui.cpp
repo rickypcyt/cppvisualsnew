@@ -1,6 +1,7 @@
 #include "visualizer.h"
 #include "imgui.h"
-#include "profiler.h"
+#include "../profiler.h"
+#include "../gpu_profiler.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -540,7 +541,9 @@ void Visualizer::renderImGui() {
         }
         {
             PROFILE_SCOPE("imgui_render_to_fbo");
+            GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_IMGUI_RENDER);
             renderImGuiToFBO();
+            GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_IMGUI_RENDER);
         }
     } else {
         // Skip drawing overlays entirely so fullscreen stays clean
@@ -2038,6 +2041,63 @@ void Visualizer::renderPerformanceImGui() {
     ImGui::Text("  CPU: %.2f ms", frameTimeCPU_);
     ImGui::Text("  FPS: %.1f", fps_);
 
+    // GPU Profiler Display
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Text("GPU Profiler (Engine-Level)");
+
+    if (GPUProfiler::getInstance().isAvailable()) {
+        auto metrics = GPUProfiler::getInstance().getCurrentFrameMetrics();
+
+        if (metrics.valid) {
+            ImGui::Text("GPU Timings:");
+            ImGui::Text("  Main render: %.2f ms", metrics.gpu_main_render);
+            ImGui::Text("  ImGui render: %.2f ms", metrics.gpu_imgui_render);
+            ImGui::Text("  Blit: %.2f ms", metrics.gpu_blit);
+            ImGui::Text("  Total GPU: %.2f ms", metrics.gpu_total);
+
+            ImGui::Spacing();
+            ImGui::Text("Present Latency:");
+            ImGui::Text("  Swap time: %.2f ms", metrics.present_latency);
+
+            ImGui::Spacing();
+            ImGui::Text("Context Switches:");
+            ImGui::Text("  Count: %d", metrics.context_switches);
+            ImGui::Text("  CPU time: %.2f ms", metrics.context_switch_time);
+
+            // Performance analysis
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Text("Performance Analysis:");
+
+            if (metrics.gpu_total > 10.0f) {
+                ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "GPU BOUND: GPU is slow (>10ms)");
+            } else if (metrics.present_latency > 16.0f) {
+                ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "PRESENT BOUND: Swap latency high (>16ms)");
+            } else if (metrics.context_switches > 2 && metrics.context_switch_time > 1.0f) {
+                ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "CONTEXT SWITCH BOUND: Too many switches");
+            } else {
+                ImGui::TextColored(ImVec4(0.3f, 1.0f, 0.3f, 1.0f), "HEALTHY: No bottlenecks detected");
+            }
+        } else {
+            int frames = GPUProfiler::getInstance().getFramesSinceInit();
+            if (frames < 4) {
+                ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Warming up GPU queries... (%d/4 frames)", frames);
+            } else {
+                ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Waiting for GPU data...");
+            }
+        }
+    } else {
+        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "GPU profiler not available");
+        ImGui::Text("GL_TIMESTAMP not supported");
+    }
+    
+    ImGui::Spacing();
+    ImGui::Separator();
+    if (ImGui::Button("Reset GPU Profiler Stats")) {
+        GPUProfiler::getInstance().resetStats();
+    }
+
     ImGui::Spacing();
     ImGui::Text("API Calls:");
     ImGui::Text("  Draw calls: %d", drawCallsPerFrame_);
@@ -2186,25 +2246,34 @@ void Visualizer::blitImGuiFBOToWindow() {
     }
     
     // Switch to ImGui window context
+    GPUProfiler::getInstance().beforeContextSwitch();
     glfwMakeContextCurrent(imguiWindow_);
+    GPUProfiler::getInstance().afterContextSwitch();
     
     // Blit FBO to imgui window's default framebuffer
     glBindFramebuffer(GL_READ_FRAMEBUFFER, imguiFBO_);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glViewport(0, 0, fbWidth, fbHeight);
     
+    // GPU profiler: Blit start
+    GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_BLIT);
+
     // Blit FBO to window - use NEAREST for speed
     glBlitFramebuffer(0, 0, imguiFBOWidth_, imguiFBOHeight_,
                       0, 0, fbWidth, fbHeight,
                       GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+    // GPU profiler: Blit end
+    GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_BLIT);
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
-    // Swap imgui window buffers (no vsync, should not block)
+    GPUProfiler::getInstance().beforeSwap();
     glfwSwapBuffers(imguiWindow_);
+    GPUProfiler::getInstance().afterSwap();
     imguiDirty_ = false;
-    
-    // Switch back to main window context
-    glfwMakeContextCurrent(window_);
-}
 
+    // Switch back to main window context
+    GPUProfiler::getInstance().beforeContextSwitch();
+    glfwMakeContextCurrent(window_);
+    GPUProfiler::getInstance().afterContextSwitch();
+}

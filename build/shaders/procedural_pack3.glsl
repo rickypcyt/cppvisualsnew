@@ -486,6 +486,16 @@ vec4 renderWalker(vec2 st, float time, float tempo, float energy, float bass, fl
 
 vec4 renderVoxelPathTracer(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
     vec2 uv = st;
+    
+    // Dynamic resolution scaling for performance
+    float pixelCount = uResolution.x * uResolution.y;
+    float resolutionScale = 1.0;
+    if (pixelCount > 1920.0 * 1080.0) {
+        resolutionScale = 0.5;
+    } else if (pixelCount > 1280.0 * 720.0) {
+        resolutionScale = 0.7;
+    }
+    uv *= resolutionScale;
 
     float tempoFactor = max(0.4, tempo * 0.8 + 0.4);
     float fallSpeed = (kVoxelBpm / 60.0) * (0.6 + tempoFactor * 0.6 + energy * 0.4);
