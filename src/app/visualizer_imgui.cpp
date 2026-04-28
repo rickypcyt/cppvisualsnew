@@ -359,10 +359,37 @@ void Visualizer::handleKeyboardInput() {
             lastF9Press = currentTime;
         }
     }
+
+    // Check for 'H' key to toggle clean mode (hide ALL UI for max performance)
+    if (isKeyPressed(GLFW_KEY_H)) {
+        static double lastHPress = 0.0;
+        double currentTime = glfwGetTime();
+        if (currentTime - lastHPress > 0.5) { // 500ms debounce
+            cleanMode_ = !cleanMode_;
+            std::cout << "Clean mode toggled via H key: " << (cleanMode_ ? "ENABLED (UI hidden)" : "DISABLED (UI visible)") << std::endl;
+            if (imguiWindow_) {
+                if (cleanMode_) {
+                    glfwHideWindow(imguiWindow_);
+                } else {
+                    glfwShowWindow(imguiWindow_);
+                }
+            }
+            lastHPress = currentTime;
+        }
+    }
 }
 
 void Visualizer::renderImGui() {
     PROFILE_FUNCTION();
+
+    // Clean mode: skip ALL ImGui rendering and context switching for maximum performance
+    if (cleanMode_) {
+        // Ensure ImGui window is hidden when in clean mode
+        if (imguiWindow_ && glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE)) {
+            glfwHideWindow(imguiWindow_);
+        }
+        return;
+    }
 
     // Detect fullscreen mode on main window
     bool mainWindowFullscreen = false;
@@ -397,11 +424,6 @@ void Visualizer::renderImGui() {
     const bool controlsFullscreen = isImGuiWindowFullscreen();
     bool renderControlsWindow = controlsVisible && !controlsIconified && !controlsFullscreen && (!blockControlsForFullscreen);
 
-    // If we have a separate ImGui window and are allowed to render it, switch to it
-    if (renderControlsWindow) {
-        glfwMakeContextCurrent(imguiWindow_);
-    }
-
     // Only force focus when the window was previously hidden or flagged
     if (renderControlsWindow && imguiWindowNeedsFocus_) {
         glfwFocusWindow(imguiWindow_);
@@ -412,21 +434,23 @@ void Visualizer::renderImGui() {
     if (renderControlsWindow) {
         glfwSetInputMode(imguiWindow_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
-
-    // Get framebuffer size for the ImGui window
-    if (renderControlsWindow) {
-        int fbWidth, fbHeight;
-        glfwGetFramebufferSize(imguiWindow_, &fbWidth, &fbHeight);
-
-        // Set viewport and clear
-        glViewport(0, 0, fbWidth, fbHeight);
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);  // Dark background for controls window
-        glClear(GL_COLOR_BUFFER_BIT);
-    }
+    
+    // Keep main window context active - we'll render to FBO instead of switching context
+    // This avoids expensive NVIDIA driver stalls from context switching
+    // Main window context is already current from the main render loop
 
     // Always keep main window cursor unlocked as well
     if (window_) {
         glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+
+    // Get ImGui window size and ensure FBO matches
+    if (renderControlsWindow && imguiWindow_) {
+        int fbWidth, fbHeight;
+        glfwGetFramebufferSize(imguiWindow_, &fbWidth, &fbHeight);
+        if (fbWidth > 0 && fbHeight > 0) {
+            resizeImGuiFBO(fbWidth, fbHeight);
+        }
     }
 
     // Start the Dear ImGui frame
@@ -515,32 +539,24 @@ void Visualizer::renderImGui() {
             renderShaderPresetsWindow();
         }
 
-        // Render ImGui
+        // Render ImGui to FBO using main window context (no context switch!)
         {
             PROFILE_SCOPE("imgui_render");
             ImGui::Render();
         }
         {
-            PROFILE_SCOPE("imgui_render_draw_data");
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            PROFILE_SCOPE("imgui_render_to_fbo");
+            renderImGuiToFBO();
         }
     } else {
         // Skip drawing overlays entirely so fullscreen stays clean
         ImGui::EndFrame();
     }
 
-    // Swap buffers for ImGui window if it exists and not fullscreen
-    // (when fullscreen, we render ImGui as overlay on main window)
+    // Blit FBO to ImGui window and swap buffers (only context switch happens here)
     if (!blockControlsForFullscreen && renderControlsWindow) {
-        // Always swap buffers for smooth UI interaction
-        glfwSwapBuffers(imguiWindow_);
-        imguiDirty_ = false;
-
-        // Always return context to main window
-        glfwMakeContextCurrent(window_);
-    } else if (window_) {
-        // Ensure we leave context on main window when controls window is hidden/offscreen
-        glfwMakeContextCurrent(window_);
+        PROFILE_SCOPE("imgui_blit_to_window");
+        blitImGuiFBOToWindow();
     }
 }
 
@@ -2062,4 +2078,121 @@ void Visualizer::handleMouseScroll(double xoffset, double yoffset) {
         }
         saveCurrentSettings();
     }
+}
+
+// FBO-based ImGui rendering to avoid expensive context switching
+void Visualizer::initializeImGuiFBO() {
+    if (imguiFBOInitialized_) return;
+    
+    // Default size matches ImGui window default (will be resized as needed)
+    imguiFBOWidth_ = 500;
+    imguiFBOHeight_ = 800;
+    
+    // Create framebuffer
+    glGenFramebuffers(1, &imguiFBO_);
+    glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO_);
+    
+    // Create color texture
+    glGenTextures(1, &imguiFBOTexture_);
+    glBindTexture(GL_TEXTURE_2D, imguiFBOTexture_);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imguiFBOWidth_, imguiFBOHeight_, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, imguiFBOTexture_, 0);
+    
+    // Create renderbuffer for depth (optional, but good for completeness)
+    glGenRenderbuffers(1, &imguiFBODepth_);
+    glBindRenderbuffer(GL_RENDERBUFFER, imguiFBODepth_);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, imguiFBOWidth_, imguiFBOHeight_);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, imguiFBODepth_);
+    
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "[IMGUI FBO] Failed to create complete FBO, status: " << status << std::endl;
+        // Cleanup
+        glDeleteFramebuffers(1, &imguiFBO_);
+        glDeleteTextures(1, &imguiFBOTexture_);
+        glDeleteRenderbuffers(1, &imguiFBODepth_);
+        imguiFBO_ = 0;
+        imguiFBOTexture_ = 0;
+        imguiFBODepth_ = 0;
+    } else {
+        imguiFBOInitialized_ = true;
+        std::cout << "[IMGUI FBO] Initialized " << imguiFBOWidth_ << "x" << imguiFBOHeight_ << std::endl;
+    }
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Visualizer::resizeImGuiFBO(int width, int height) {
+    if (!imguiFBOInitialized_) {
+        initializeImGuiFBO();
+        return;
+    }
+    
+    if (width == imguiFBOWidth_ && height == imguiFBOHeight_) return;
+    
+    imguiFBOWidth_ = width;
+    imguiFBOHeight_ = height;
+    
+    // Resize texture
+    glBindTexture(GL_TEXTURE_2D, imguiFBOTexture_);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imguiFBOWidth_, imguiFBOHeight_, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    
+    // Resize renderbuffer
+    glBindRenderbuffer(GL_RENDERBUFFER, imguiFBODepth_);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, imguiFBOWidth_, imguiFBOHeight_);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Visualizer::renderImGuiToFBO() {
+    if (!imguiFBOInitialized_) {
+        initializeImGuiFBO();
+    }
+    
+    // Bind FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO_);
+    glViewport(0, 0, imguiFBOWidth_, imguiFBOHeight_);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    // ImGui is already rendered to draw data at this point
+    // We just need to render the draw data
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    
+    // Unbind FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Visualizer::blitImGuiFBOToWindow() {
+    if (!imguiFBOInitialized_ || !imguiWindow_) return;
+    
+    // Make ImGui window context current (this is the only context switch)
+    glfwMakeContextCurrent(imguiWindow_);
+    
+    // Get window size
+    int fbWidth, fbHeight;
+    glfwGetFramebufferSize(imguiWindow_, &fbWidth, &fbHeight);
+    glViewport(0, 0, fbWidth, fbHeight);
+    
+    // Blit FBO to window using a simple fullscreen quad
+    // For now, use glBlitFramebuffer which is fast
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, imguiFBO_);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    
+    // Blit with scaling if sizes differ
+    glBlitFramebuffer(0, 0, imguiFBOWidth_, imguiFBOHeight_,
+                      0, 0, fbWidth, fbHeight,
+                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    // Swap buffers
+    glfwSwapBuffers(imguiWindow_);
+    imguiDirty_ = false;
+    
+    // Return to main window context
+    glfwMakeContextCurrent(window_);
 }

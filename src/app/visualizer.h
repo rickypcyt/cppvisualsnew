@@ -313,6 +313,19 @@ private:
     bool imguiInitialized_;
     bool imguiWindowNeedsFocus_ = false;
     bool imguiDirty_ = true;  // Flag to indicate ImGui window needs redraw
+    bool cleanMode_ = false;  // Clean mode: hides ALL UI for maximum performance
+    
+    // ImGui FBO optimization - render to FBO using main context to avoid context switching stalls
+    GLuint imguiFBO_ = 0;
+    GLuint imguiFBOTexture_ = 0;
+    GLuint imguiFBODepth_ = 0;
+    int imguiFBOWidth_ = 0;
+    int imguiFBOHeight_ = 0;
+    bool imguiFBOInitialized_ = false;
+    void initializeImGuiFBO();
+    void resizeImGuiFBO(int width, int height);
+    void renderImGuiToFBO();
+    void blitImGuiFBOToWindow();
     bool autoRandomizeColors_;
     float colorRandomInterval_;
     float colorRandomTimer_;
