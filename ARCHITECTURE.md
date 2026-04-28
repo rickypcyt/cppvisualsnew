@@ -110,15 +110,48 @@ After:  shader_system → gl_backend
 - `src/shader.cpp` (refactored)
 - `CMakeLists.txt` (updated dependencies)
 
-### Phase 3: Rendering Layer Abstraction
+### Phase 3.2: M oratemmodular_land Seo Rendem COmmaMds (IN PROGRESS)PLETED (Infrastructure)
 
-**Goal**: Remove OpenGL from modular_layer and post_processing
+**Goal**: Elipinatment bac callskend-agnostic rende by usingrRenderComm comlmiineo
 
-**Changes needed**:
-1. Implement IRenderLayer in modular_layer
-2. Implement IFramebuffer in post_processor
-3. Use IRenderer interface instead of direct OpenGL calls
-4. Move OpenGL-specific code to gl_backend
+**Completed changes**:
+1. ✅ Created `render_command.h` - Backend-agnostic RenderCommand struct with union-based data
+2. ✅ Created `render_queue.h/cpp` - Command collection and management
+3. ✅ Created `gl_command_executor.h/cpp` - OpenGL-specific command executor in gl_backend
+4. ✅ Updated CMake to include new files in shader_system and gl_backend
+5. ✅ Build succeeds
+
+**Architecture change**:
+```
+Before: modules → direct OpenGL calls
+After:  modules → emit RenderCommand → RenderQueue → GLCommandExecutor → OpenGL
+```
+
+**RenderCommand types supported**:
+- Shader commands (BindShader, SetUniform*)
+- Texture commands (BindTexture, UnbindTexture)
+- Buffer commands (BindVertexArray, BindBuffer)
+- Drawing commands (DrawArrays, DrawElements)
+- Framebuffer commands (BindFramebuffer, ClearFramebuffer)
+- State commands (EnableBlend, SetViewport, etc.)
+
+**Impact**:
+- Enables true backend separation (same commands, different executors)
+- Foundation for state batching and minimization
+- Enables future Vulkan executor (VKCommandExecutor)
+- Modules can now emit commands without knowing the backend
+
+**Files created**:
+- `src/render_command.h` (new)
+- `src/render_queue.cpp` (new)
+- `src/render_queue.h` (new)
+- `src/gl_command_executor.cpp` (new)
+- `src/gl_command_executor.h` (new)
+
+**Next steps** (Phase 3.2-3.4):
+- Migrate modular_layer to emit commands instead of direct OpenGL calls
+- Migrate post_processing to emit commands
+- Implement command batching/sorting in RenderQueue
 
 **Impact**: Makes layers truly backend-agnostic, enables Vulkan post-processing
 

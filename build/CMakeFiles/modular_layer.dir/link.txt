@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmodular_layer.a CMakeFiles/modular_layer.dir/src/modular_layer.cpp.o
+/usr/bin/ranlib libmodular_layer.a

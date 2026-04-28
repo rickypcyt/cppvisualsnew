@@ -1,0 +1,2 @@
+/usr/bin/ar qc libpost_processing.a CMakeFiles/post_processing.dir/src/post_processor.cpp.o
+/usr/bin/ranlib libpost_processing.a

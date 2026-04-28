@@ -76,6 +76,9 @@ add_library(shader_system STATIC
     src/shader.cpp
     src/shader_loader.cpp
     src/layer_validator.cpp
+    src/render_command.h
+    src/render_queue.cpp
+    src/render_queue.h
 )
 
 target_include_directories(shader_system PUBLIC
@@ -151,6 +154,7 @@ target_link_libraries(app_layer PUBLIC
 add_library(gl_backend STATIC
     src/gl_renderer.cpp
     src/gl_shader_compiler.cpp
+    src/gl_command_executor.cpp
 )
 
 target_include_directories(gl_backend PUBLIC

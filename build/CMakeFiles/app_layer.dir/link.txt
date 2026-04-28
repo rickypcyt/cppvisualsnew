@@ -1,0 +1,2 @@
+/usr/bin/ar qc libapp_layer.a CMakeFiles/app_layer.dir/src/app/visualizer.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_imgui.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_diagnostic.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o
+/usr/bin/ranlib libapp_layer.a

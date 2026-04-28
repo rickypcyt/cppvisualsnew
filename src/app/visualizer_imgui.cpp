@@ -532,16 +532,9 @@ void Visualizer::renderImGui() {
     // Swap buffers for ImGui window if it exists and not fullscreen
     // (when fullscreen, we render ImGui as overlay on main window)
     if (!blockControlsForFullscreen && renderControlsWindow) {
-        // Only swap buffers if ImGui is dirty (UI changed) or every few frames for audio updates
-        static int frameCount = 0;
-        const int audioUpdateInterval = 10; // Update audio visualizations every 10 frames
-        bool shouldSwap = imguiDirty_ || (frameCount % audioUpdateInterval == 0);
-
-        if (shouldSwap) {
-            glfwSwapBuffers(imguiWindow_);
-            imguiDirty_ = false;
-        }
-        frameCount++;
+        // Always swap buffers for smooth UI interaction
+        glfwSwapBuffers(imguiWindow_);
+        imguiDirty_ = false;
 
         // Always return context to main window
         glfwMakeContextCurrent(window_);

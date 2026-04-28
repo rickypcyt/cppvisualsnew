@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/validate_layers.dir/link.d CMakeFiles/validate_layers.dir/src/validate_layers.cpp.o -o validate_layers  libshader_system.a -lm -lpthread libgl_backend.a -ldl /usr/lib/libglfw.so.3.4 /usr/lib/libGLEW.so -lGL

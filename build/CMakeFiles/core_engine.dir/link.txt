@@ -1,0 +1,2 @@
+/usr/bin/ar qc libcore_engine.a CMakeFiles/core_engine.dir/src/audio_engine.cpp.o CMakeFiles/core_engine.dir/src/audio_capture.cpp.o CMakeFiles/core_engine.dir/src/audio_analyzer.cpp.o CMakeFiles/core_engine.dir/src/settings_manager.cpp.o CMakeFiles/core_engine.dir/src/midi_controller.cpp.o
+/usr/bin/ranlib libcore_engine.a

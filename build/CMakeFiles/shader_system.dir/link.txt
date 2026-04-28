@@ -1,0 +1,2 @@
+/usr/bin/ar qc libshader_system.a CMakeFiles/shader_system.dir/src/shader.cpp.o CMakeFiles/shader_system.dir/src/shader_loader.cpp.o CMakeFiles/shader_system.dir/src/layer_validator.cpp.o CMakeFiles/shader_system.dir/src/render_queue.cpp.o
+/usr/bin/ranlib libshader_system.a
