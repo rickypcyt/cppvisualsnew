@@ -10,6 +10,15 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
 pkg_check_modules(ALSA REQUIRED alsa)
 find_package(Threads REQUIRED)
+
+# Vulkan (optional for future migration)
+find_package(Vulkan QUIET)
+if(Vulkan_FOUND)
+    message(STATUS "Vulkan found - Vulkan renderer available")
+    include_directories(${Vulkan_INCLUDE_DIRS})
+else()
+    message(STATUS "Vulkan not found - only OpenGL renderer available")
+endif()
 find_package(nlohmann_json QUIET)
 if(NOT nlohmann_json_FOUND)
     message(STATUS "nlohmann_json not found, using header-only fallback")
@@ -101,6 +110,8 @@ add_executable(audio_visualizer
     src/audio_engine.cpp
     src/audio_capture.cpp
     src/audio_analyzer.cpp
+    src/gl_renderer.cpp
+    src/vk_renderer.cpp
     src/modular_layer.cpp
     src/post_processor.cpp
     src/shader.cpp
@@ -142,6 +153,11 @@ target_link_libraries(audio_visualizer
     ${ALSA_LIBRARIES}
     Threads::Threads
 )
+
+# Link Vulkan if available
+if(Vulkan_FOUND)
+    target_link_libraries(audio_visualizer ${Vulkan_LIBRARIES})
+endif()
 
 # Link libraries for validation utilities
 target_link_libraries(validate_layers

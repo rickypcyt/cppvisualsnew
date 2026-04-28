@@ -28,37 +28,43 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 94,
+				"line" : 103,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 135,
+				"line" : 146,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 159,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 166,
+				"line" : 182,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 163,
+				"line" : 179,
 				"parent" : 0
 			},
 			{
 				"command" : 4,
 				"file" : 0,
-				"line" : 90,
+				"line" : 99,
 				"parent" : 0
 			},
 			{
 				"command" : 4,
 				"file" : 0,
-				"line" : 91,
+				"line" : 100,
 				"parent" : 0
 			}
 		]
@@ -88,18 +94,18 @@
 					"fragment" : "-g -std=gnu++17"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"fragment" : "-pthread"
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"path" : "/home/ricky/coding/proyects/visuals/imgui"
 				},
 				{
-					"backtrace" : 6,
+					"backtrace" : 7,
 					"path" : "/home/ricky/coding/proyects/visuals/imgui/backends"
 				}
 			],
@@ -136,7 +142,9 @@
 				19,
 				20,
 				21,
-				22
+				22,
+				23,
+				24
 			]
 		}
 	],
@@ -195,6 +203,11 @@
 				"role" : "libraries"
 			},
 			{
+				"backtrace" : 3,
+				"fragment" : "/usr/lib/libvulkan.so",
+				"role" : "libraries"
+			},
+			{
 				"backtrace" : 2,
 				"fragment" : "-lm",
 				"role" : "libraries"
@@ -202,6 +215,11 @@
 			{
 				"backtrace" : 2,
 				"fragment" : "-lpthread",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "/usr/lib/libvulkan.so",
 				"role" : "libraries"
 			}
 		],
@@ -248,6 +266,10 @@
 		{
 			"backtrace" : 2,
 			"id" : "Threads::Threads::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
+			"fragment" : "/usr/lib/libvulkan.so"
 		}
 	],
 	"name" : "audio_visualizer",
@@ -255,7 +277,7 @@
 	"orderDependencies" : 
 	[
 		{
-			"backtrace" : 3,
+			"backtrace" : 4,
 			"id" : "audio_visualizer::@6890427a1f51a3e7e1df"
 		}
 	],
@@ -292,7 +314,9 @@
 				19,
 				20,
 				21,
-				22
+				22,
+				23,
+				24
 			]
 		}
 	],
@@ -350,6 +374,18 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/audio_analyzer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/gl_renderer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/vk_renderer.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{

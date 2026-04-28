@@ -2,7 +2,7 @@
 3670	6345	1777380955352774830	CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o	e571e4a5dbc4d29a
 10	3893	1777380951692639887	CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o	d02819dd145c5f4
 12	3670	1777380951694639961	CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o	7ba411aeff570b44
-4	6499	1777380989562032987	CMakeFiles/audio_visualizer.dir/src/main.cpp.o	7f19369426a12ba4
+4	2682	1777381488952941128	CMakeFiles/audio_visualizer.dir/src/main.cpp.o	7f19369426a12ba4
 4	4716	1777380951687181801	CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o	44fca68886ccfb52
 3893	5519	1777380955575783050	CMakeFiles/audio_visualizer.dir/src/shader.cpp.o	e7d9628e0ad9e939
 6	4605	1777380951688639740	CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o	8e6b400edf3d79ee
@@ -13,7 +13,7 @@
 8	2812	1777380970494332388	CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o	ee7d250215389078
 2812	3503	1777380973298435524	CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o	dae6e63608baedac
 3286	3758	1777380973772452955	CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o	c62669ade212784
-3	7357	1777380951685639629	CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o	429cc52d11f33969
+3	4089	1777381894094400179	CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o	429cc52d11f33969
 14	4989	1777380970500332609	CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o	a6e7fb9a9cd7ff32
 3503	5385	1777380973989460935	CMakeFiles/validate_layers.dir/src/validate_layers.cpp.o	1170fb5c06c90078
 9	5463	1777380970495332425	CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o	8fdd23668ee5a6ff
@@ -33,7 +33,7 @@
 5108	9587	1777380994665220209	CMakeFiles/test_layer_integration.dir/imgui/imgui_demo.cpp.o	b44393ac5b52dff3
 5	10522	1777380989563522565	CMakeFiles/test_layer_integration.dir/src/layer_validator.cpp.o	89176e8b45b22498
 3758	9508	1777380974244470311	CMakeFiles/validate_layers.dir/src/layer_validator.cpp.o	17061fd3da0b6651
-8431	9653	1777380997988342063	audio_visualizer	7a90f5de78142d9b
+4089	4665	1777381898181351444	audio_visualizer	caeb88700fa43e3a
 6388	10604	1777380995945267153	CMakeFiles/test_layer_integration.dir/imgui/imgui_tables.cpp.o	f9f902b4d6b07d7f
 9874	10307	1777380999431394962	validate_layers	ae1fd102533a8d70
 5215	11046	1777380994772224134	CMakeFiles/test_layer_integration.dir/imgui/imgui_draw.cpp.o	2661f64843e1297e
@@ -43,3 +43,5 @@
 13	13734	1777380989571033317	CMakeFiles/test_layer_integration.dir/src/settings_manager.cpp.o	8f26b4aa63c61312
 13734	14181	1777381003291536421	test_layer_integration	f1e7d232c1758e26
 4	5108	1777380989562714182	CMakeFiles/audio_visualizer.dir/src/audio_engine.cpp.o	edc1814766ca4022
+3	1701	1777381502800429126	CMakeFiles/audio_visualizer.dir/src/gl_renderer.cpp.o	fd9ad174b68bf763
+4	2232	1777381488953941163	CMakeFiles/audio_visualizer.dir/src/vk_renderer.cpp.o	41fddeb82ae2f009

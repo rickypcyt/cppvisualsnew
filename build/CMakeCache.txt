@@ -243,6 +243,18 @@ PKG_CONFIG_ARGN:STRING=
 //pkg-config executable
 PKG_CONFIG_EXECUTABLE:FILEPATH=/usr/bin/pkg-config
 
+//Path to a program.
+Vulkan_GLSLANG_VALIDATOR_EXECUTABLE:FILEPATH=/usr/bin/glslangValidator
+
+//Path to a program.
+Vulkan_GLSLC_EXECUTABLE:FILEPATH=/usr/bin/glslc
+
+//Path to a file.
+Vulkan_INCLUDE_DIR:PATH=/usr/include
+
+//Path to a library.
+Vulkan_LIBRARY:FILEPATH=/usr/lib/libvulkan.so
+
 //The directory containing a CMake configuration file for glfw3.
 glfw3_DIR:PATH=/usr/lib/cmake/glfw3
 
@@ -500,6 +512,14 @@ PORTAUDIO_portaudio-2.0_INCLUDEDIR:INTERNAL=
 PORTAUDIO_portaudio-2.0_LIBDIR:INTERNAL=
 PORTAUDIO_portaudio-2.0_PREFIX:INTERNAL=
 PORTAUDIO_portaudio-2.0_VERSION:INTERNAL=
+//ADVANCED property for variable: Vulkan_GLSLANG_VALIDATOR_EXECUTABLE
+Vulkan_GLSLANG_VALIDATOR_EXECUTABLE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Vulkan_GLSLC_EXECUTABLE
+Vulkan_GLSLC_EXECUTABLE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Vulkan_INCLUDE_DIR
+Vulkan_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Vulkan_LIBRARY
+Vulkan_LIBRARY-ADVANCED:INTERNAL=1
 __pkg_config_arguments_ALSA:INTERNAL=REQUIRED;alsa
 __pkg_config_arguments_PORTAUDIO:INTERNAL=REQUIRED;portaudio-2.0
 __pkg_config_checked_ALSA:INTERNAL=1

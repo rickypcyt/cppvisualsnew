@@ -55,6 +55,18 @@
 },
 {
   "directory": "/home/ricky/coding/proyects/visuals/build",
+  "command": "/usr/bin/clang++ -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -g -std=gnu++17 -pthread -o CMakeFiles/audio_visualizer.dir/src/gl_renderer.cpp.o -c /home/ricky/coding/proyects/visuals/src/gl_renderer.cpp",
+  "file": "/home/ricky/coding/proyects/visuals/src/gl_renderer.cpp",
+  "output": "/home/ricky/coding/proyects/visuals/build/CMakeFiles/audio_visualizer.dir/src/gl_renderer.cpp.o"
+},
+{
+  "directory": "/home/ricky/coding/proyects/visuals/build",
+  "command": "/usr/bin/clang++ -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -g -std=gnu++17 -pthread -o CMakeFiles/audio_visualizer.dir/src/vk_renderer.cpp.o -c /home/ricky/coding/proyects/visuals/src/vk_renderer.cpp",
+  "file": "/home/ricky/coding/proyects/visuals/src/vk_renderer.cpp",
+  "output": "/home/ricky/coding/proyects/visuals/build/CMakeFiles/audio_visualizer.dir/src/vk_renderer.cpp.o"
+},
+{
+  "directory": "/home/ricky/coding/proyects/visuals/build",
   "command": "/usr/bin/clang++ -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -g -std=gnu++17 -pthread -o CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o -c /home/ricky/coding/proyects/visuals/src/modular_layer.cpp",
   "file": "/home/ricky/coding/proyects/visuals/src/modular_layer.cpp",
   "output": "/home/ricky/coding/proyects/visuals/build/CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o"

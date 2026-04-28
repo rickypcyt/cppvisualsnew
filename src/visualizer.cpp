@@ -957,6 +957,18 @@ bool Visualizer::initialize(int width, int height) {
 
     // Load settings first
     settingsManager_->loadSettings();
+
+    // Load camera zoom from settings for current mode
+    if (settingsManager_) {
+        float savedZoom = settingsManager_->getProceduralZoom(proceduralLayerMode_);
+        if (savedZoom > 0.0f) {
+            proceduralLayer_.setCameraZoom(savedZoom);
+        } else {
+            // Use default zoom from shader metadata
+            float defaultZoom = getZoomForShaderMode(proceduralLayerMode_);
+            proceduralLayer_.setCameraZoom(defaultZoom);
+        }
+    }
     
     // Apply loaded settings to visualizer state
     selectedDevice_ = settingsManager_->getSelectedDevice();
@@ -2697,17 +2709,20 @@ void Visualizer::renderProceduralLayer() {
             adjustedSecondary[i] = std::clamp(sceneSecondaryColor_[i] * colorAdjust[i], 0.0f, 1.0f);
         }
 
-        // Set camera zoom and offset specific to this slot's mode
-        float zoom = getZoomForShaderMode(mode);
-        proceduralLayer_.setCameraZoom(zoom);
+        // Camera zoom is now controlled manually via Camera Control window
+        // Don't override it here to respect user's manual adjustments
+        // float zoom = getZoomForShaderMode(mode);
+        // proceduralLayer_.setCameraZoom(zoom);
+        // Camera offset is now controlled manually via Camera Control window
+        // Don't override it here to respect user's manual adjustments
         // Set custom offset for text marquee modes (58-61), reset for others
         // LUPERFUT (61) has slightly higher offset to move it up
-        if (mode >= 58 && mode <= 61) {
-            float yOffset = (mode == 61) ? 1.60f : 1.80f;
-            proceduralLayer_.setCameraOffset(0.0f, yOffset);
-        } else {
-            proceduralLayer_.setCameraOffset(0.0f, 0.0f);
-        }
+        // if (mode >= 58 && mode <= 61) {
+        //     float yOffset = (mode == 61) ? 1.60f : 1.80f;
+        //     proceduralLayer_.setCameraOffset(0.0f, yOffset);
+        // } else {
+        //     proceduralLayer_.setCameraOffset(0.0f, 0.0f);
+        // }
 
         proceduralLayer_.setMode(std::clamp(mode, 0, kProceduralModeCount - 1));
         proceduralLayer_.setColorPalette(adjustedPrimary, adjustedSecondary, scenePaletteBlend_);
@@ -3111,13 +3126,17 @@ void Visualizer::syncProceduralLayerWithSlot1() {
             proceduralSlots_[0].mode = proceduralLayerMode_;
         }
         proceduralLayer_.setMode(proceduralLayerMode_);
-        proceduralLayer_.setCameraZoom(getZoomForShaderMode(proceduralLayerMode_));
+        // Camera zoom is now controlled manually via Camera Control window
+        // Don't override it here to respect user's manual adjustments
+        // proceduralLayer_.setCameraZoom(getZoomForShaderMode(proceduralLayerMode_));
+        // Camera offset is now controlled manually via Camera Control window
+        // Don't override it here to respect user's manual adjustments
         // Set custom offset for text marquee modes (58-61), reset for others
-        if (proceduralLayerMode_ >= 58 && proceduralLayerMode_ <= 61) {
-            proceduralLayer_.setCameraOffset(0.0f, 1.80f);
-        } else {
-            proceduralLayer_.setCameraOffset(0.0f, 0.0f);
-        }
+        // if (proceduralLayerMode_ >= 58 && proceduralLayerMode_ <= 61) {
+        //     proceduralLayer_.setCameraOffset(0.0f, 1.80f);
+        // } else {
+        //     proceduralLayer_.setCameraOffset(0.0f, 0.0f);
+        // }
         showProceduralLayer_ = true;
         if (verboseProceduralLogs) {
             std::cout << "[SYNC DEBUG] After sync: proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;

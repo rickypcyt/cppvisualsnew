@@ -177,12 +177,18 @@ public:
 
     // Create renderer instance
     static std::unique_ptr<IRenderer> create(Backend backend = Backend::OPENGL);
-    
+
     // Check if backend is available
     static bool isBackendAvailable(Backend backend);
-    
+
     // Get default backend for platform
     static Backend getDefaultBackend();
+
+    // Parse backend from string (for command line args)
+    static Backend parseBackend(const std::string& str);
+
+    // Get backend name as string
+    static std::string getBackendName(Backend backend);
 };
 
 // ============================================================

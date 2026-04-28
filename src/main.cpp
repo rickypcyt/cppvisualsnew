@@ -5,6 +5,7 @@
 #include <cstring>
 #include "audio_engine.h"
 #include "visualizer.h"
+#include "renderer_interface.h"
 
 class AudioVisualizerApp {
 public:
@@ -122,11 +123,12 @@ private:
 int main(int argc, char* argv[]) {
     try {
         AudioVisualizerApp app;
-        
+
         // Parse command line arguments
         int deviceIndex = -1;
         bool showDevices = false;
-        
+        std::string backendStr = "";
+
         for (int i = 1; i < argc; ++i) {
             if (strcmp(argv[i], "--list-devices") == 0 || strcmp(argv[i], "-l") == 0) {
                 showDevices = true;
@@ -138,17 +140,46 @@ int main(int argc, char* argv[]) {
                     std::cerr << "Error: --device requires an index" << std::endl;
                     return -1;
                 }
+            } else if (strcmp(argv[i], "--backend") == 0 || strcmp(argv[i], "-b") == 0) {
+                if (i + 1 < argc) {
+                    backendStr = argv[++i];
+                } else {
+                    std::cerr << "Error: --backend requires a value (opengl or vulkan)" << std::endl;
+                    return -1;
+                }
             } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
                 std::cout << "Audio Visualizer - Real-time music visualization" << std::endl;
                 std::cout << "Usage: " << argv[0] << " [options]" << std::endl;
                 std::cout << "Options:" << std::endl;
                 std::cout << "  -l, --list-devices    List available audio devices" << std::endl;
                 std::cout << "  -d, --device <index>   Use specific audio device" << std::endl;
+                std::cout << "  -b, --backend <name>   Choose rendering backend (opengl or vulkan)" << std::endl;
                 std::cout << "  -h, --help            Show this help message" << std::endl;
+                std::cout << std::endl;
+                std::cout << "Available backends:" << std::endl;
+                std::cout << "  opengl (gl, ogl)  - OpenGL renderer (default)" << std::endl;
+                if (RendererFactory::isBackendAvailable(RendererFactory::Backend::VULKAN)) {
+                    std::cout << "  vulkan (vk)       - Vulkan renderer (experimental)" << std::endl;
+                }
                 return 0;
             }
         }
-        
+
+        // Determine rendering backend
+        RendererFactory::Backend backend;
+        if (backendStr.empty()) {
+            backend = RendererFactory::getDefaultBackend();
+        } else {
+            backend = RendererFactory::parseBackend(backendStr);
+            if (!RendererFactory::isBackendAvailable(backend)) {
+                std::cerr << "Error: Backend '" << backendStr << "' is not available" << std::endl;
+                std::cerr << "Falling back to OpenGL" << std::endl;
+                backend = RendererFactory::Backend::OPENGL;
+            }
+        }
+
+        std::cout << "Using rendering backend: " << RendererFactory::getBackendName(backend) << std::endl;
+
         // Show device list if requested
         if (showDevices) {
             AudioEngine engine;
