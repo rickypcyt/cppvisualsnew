@@ -10,7 +10,8 @@
 #include <optional>
 
 // ============================================================
-// VKRenderer - Vulkan implementation of IRenderer
+// MVP Vulkan Renderer - Minimal implementation
+// Focus: Triangle → Frame Loop → SSBO → ImGui
 // ============================================================
 class VKRenderer : public IRenderer {
 public:
@@ -54,7 +55,49 @@ public:
     bool supportsComputeShaders() const override { return true; }
 
 private:
-    // Vulkan initialization
+    // MVP: Core Vulkan objects only
+    GLFWwindow* window_;
+    VkInstance instance_;
+    VkPhysicalDevice physicalDevice_;
+    VkDevice device_;
+    VkQueue graphicsQueue_;
+    VkQueue presentQueue_;
+    VkSurfaceKHR surface_;
+    
+    // MVP: Swapchain and frame rendering
+    VkSwapchainKHR swapChain_;
+    std::vector<VkImage> swapChainImages_;
+    VkFormat swapChainImageFormat_;
+    VkExtent2D swapChainExtent_;
+    std::vector<VkImageView> swapChainImageViews_;
+    std::vector<VkFramebuffer> swapChainFramebuffers_;
+    VkRenderPass renderPass_;
+    
+    // MVP: Pipeline (fullscreen quad)
+    VkPipelineLayout pipelineLayout_;
+    VkPipeline graphicsPipeline_;
+    
+    // MVP: Command buffers and sync
+    VkCommandPool commandPool_;
+    std::vector<VkCommandBuffer> commandBuffers_;
+    std::vector<VkSemaphore> imageAvailableSemaphores_;
+    std::vector<VkSemaphore> renderFinishedSemaphores_;
+    std::vector<VkFence> inFlightFences_;
+    
+    // MVP: SSBO for audio data
+    VkBuffer audioSSBO_;
+    VkDeviceMemory audioSSBOMemory_;
+    
+    // MVP: Frame tracking
+    uint32_t currentFrame_;
+    bool framebufferResized_;
+    const int MAX_FRAMES_IN_FLIGHT = 2;
+    
+    // MVP: Validation layers
+    const bool enableValidationLayers_ = true;
+    VkDebugUtilsMessengerEXT debugMessenger_;
+    
+    // MVP: Helper functions
     bool createInstance();
     bool setupDebugMessenger();
     bool pickPhysicalDevice();
@@ -68,63 +111,10 @@ private:
     bool createCommandPool();
     bool createCommandBuffers();
     bool createSyncObjects();
-
-    // Helper functions
-    bool isDeviceSuitable(VkPhysicalDevice device);
-    uint32_t findQueueFamilies(VkPhysicalDevice device);
-    bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-    bool checkValidationLayerSupport();
-
-    // Cleanup helpers
+    bool createAudioSSBO(); // MVP: SSBO for dummy audio data
     void cleanupSwapChain();
     void cleanup();
-
-    // Vulkan objects
-    VkInstance instance_;
-    VkDebugUtilsMessengerEXT debugMessenger_;
-    VkPhysicalDevice physicalDevice_;
-    VkDevice device_;
-    VkQueue graphicsQueue_;
-    VkQueue presentQueue_;
-    VkSurfaceKHR surface_;
-    VkSwapchainKHR swapChain_;
-    std::vector<VkImage> swapChainImages_;
-    VkFormat swapChainImageFormat_;
-    VkExtent2D swapChainExtent_;
-    std::vector<VkImageView> swapChainImageViews_;
-    VkRenderPass renderPass_;
-    VkPipelineLayout pipelineLayout_;
-    VkPipeline graphicsPipeline_;
-    std::vector<VkFramebuffer> swapChainFramebuffers_;
-    VkCommandPool commandPool_;
-    std::vector<VkCommandBuffer> commandBuffers_;
-    std::vector<VkSemaphore> imageAvailableSemaphores_;
-    std::vector<VkSemaphore> renderFinishedSemaphores_;
-    std::vector<VkFence> inFlightFences_;
-
-    GLFWwindow* window_;
-    int width_;
-    int height_;
-    std::string windowTitle_;
-    bool shaderHotReload_;
-
-    uint32_t currentFrame_;
-    bool framebufferResized_;
-
-    // Constants
-    const int MAX_FRAMES_IN_FLIGHT = 2;
-    const std::vector<const char*> validationLayers_ = {
-        "VK_LAYER_KHRONOS_validation"
-    };
-    const std::vector<const char*> deviceExtensions_ = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
-
-#ifdef NDEBUG
-    const bool enableValidationLayers_ = false;
-#else
-    const bool enableValidationLayers_ = true;
-#endif
+    bool checkValidationLayerSupport();
 };
 
 #endif // VK_RENDERER_H
