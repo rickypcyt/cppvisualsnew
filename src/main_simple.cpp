@@ -5,7 +5,7 @@
 #include <cstring>
 #include "audio_capture.h"
 #include "audio_analyzer.h"
-#include "visualizer.h"
+#include "app/visualizer.h"
 
 class AudioVisualizerSimpleApp {
 public:

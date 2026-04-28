@@ -3,7 +3,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "libmodular_layer.a"
+			"path" : "libshader_system.a"
 		}
 	],
 	"backtrace" : 1,
@@ -27,19 +27,19 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 72,
+				"line" : 75,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 80,
+				"line" : 85,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 76,
+				"line" : 81,
 				"parent" : 0
 			}
 		]
@@ -53,7 +53,7 @@
 	[
 		{
 			"backtrace" : 2,
-			"id" : "shader_system::@6890427a1f51a3e7e1df"
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
 	"compileGroups" : 
@@ -83,7 +83,9 @@
 			},
 			"sourceIndexes" : 
 			[
-				0
+				0,
+				1,
+				2
 			]
 		}
 	],
@@ -91,33 +93,33 @@
 	[
 		{
 			"backtrace" : 2,
-			"id" : "shader_system::@6890427a1f51a3e7e1df"
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
-	"id" : "modular_layer::@6890427a1f51a3e7e1df",
+	"id" : "shader_system::@6890427a1f51a3e7e1df",
 	"interfaceCompileDependencies" : 
 	[
 		{
 			"backtrace" : 2,
-			"id" : "shader_system::@6890427a1f51a3e7e1df"
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
 	"interfaceLinkLibraries" : 
 	[
 		{
 			"backtrace" : 2,
-			"id" : "shader_system::@6890427a1f51a3e7e1df"
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
 	"linkLibraries" : 
 	[
 		{
 			"backtrace" : 2,
-			"id" : "shader_system::@6890427a1f51a3e7e1df"
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
-	"name" : "modular_layer",
-	"nameOnDisk" : "libmodular_layer.a",
+	"name" : "shader_system",
+	"nameOnDisk" : "libshader_system.a",
 	"paths" : 
 	{
 		"build" : ".",
@@ -129,7 +131,9 @@
 			"name" : "Source Files",
 			"sourceIndexes" : 
 			[
-				0
+				0,
+				1,
+				2
 			]
 		}
 	],
@@ -138,7 +142,19 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/modular_layer.cpp",
+			"path" : "src/shader.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/shader_loader.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/layer_validator.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

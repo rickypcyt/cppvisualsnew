@@ -1,28 +1,24 @@
 #include "shader.h"
+#include "gl_shader_compiler.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
 
-Shader::Shader() : program_(0), vertexShader_(0), fragmentShader_(0) {}
+Shader::Shader() : handle_(INVALID_SHADER_HANDLE) {}
 
 Shader::~Shader() {
-    if (program_) {
-        glDeleteProgram(program_);
-    }
-    if (vertexShader_) {
-        glDeleteShader(vertexShader_);
-    }
-    if (fragmentShader_) {
-        glDeleteShader(fragmentShader_);
+    if (handle_ != INVALID_SHADER_HANDLE) {
+        GLShaderCompiler::destroyProgram(handle_);
     }
 }
 
 bool Shader::loadFromFiles(const std::string& vertexPath, const std::string& fragmentPath) {
     std::ifstream vertexFile(vertexPath);
     std::ifstream fragmentFile(fragmentPath);
-    
+
     if (!vertexFile.is_open() || !fragmentFile.is_open()) {
         std::cerr << "Failed to open shader files" << std::endl;
+        lastError_ = "Failed to open shader files";
         return false;
     }
 
@@ -34,104 +30,39 @@ bool Shader::loadFromFiles(const std::string& vertexPath, const std::string& fra
 }
 
 bool Shader::loadFromSource(const std::string& vertexSource, const std::string& fragmentSource) {
-    // Compile shaders
-    vertexShader_ = compileShader(vertexSource, GL_VERTEX_SHADER);
-    fragmentShader_ = compileShader(fragmentSource, GL_FRAGMENT_SHADER);
+    // Delegate compilation to backend-specific compiler
+    handle_ = GLShaderCompiler::compileProgram(vertexSource, fragmentSource, lastError_);
 
-    if (vertexShader_ == 0 || fragmentShader_ == 0) {
+    if (handle_ == INVALID_SHADER_HANDLE) {
+        std::cerr << "[SHADER ERROR] " << lastError_ << std::endl;
         return false;
     }
-
-    // Link program
-    return linkProgram();
-}
-
-void Shader::use() {
-    if (program_) {
-        glUseProgram(program_);
-    }
-}
-
-void Shader::setUniform1f(const std::string& name, float value) {
-    GLint loc = getUniformLocation(name);
-    if (loc != -1) {
-        glUniform1f(loc, value);
-    }
-}
-
-void Shader::setUniform2f(const std::string& name, float x, float y) {
-    GLint loc = getUniformLocation(name);
-    if (loc != -1) {
-        glUniform2f(loc, x, y);
-    }
-}
-
-void Shader::setUniform3f(const std::string& name, float x, float y, float z) {
-    GLint loc = getUniformLocation(name);
-    if (loc != -1) {
-        glUniform3f(loc, x, y, z);
-    }
-}
-
-void Shader::setUniform4f(const std::string& name, float x, float y, float z, float w) {
-    GLint loc = getUniformLocation(name);
-    if (loc != -1) {
-        glUniform4f(loc, x, y, z, w);
-    }
-}
-
-void Shader::setUniform1i(const std::string& name, int value) {
-    GLint loc = getUniformLocation(name);
-    if (loc != -1) {
-        glUniform1i(loc, value);
-    }
-}
-
-GLuint Shader::compileShader(const std::string& source, GLenum type) {
-    GLuint shader = glCreateShader(type);
-    const char* src = source.c_str();
-    glShaderSource(shader, 1, &src, nullptr);
-    glCompileShader(shader);
-
-    GLint success;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char infoLog[1024];
-        glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
-        std::cerr << "[SHADER COMPILATION ERROR] " << infoLog << std::endl;
-        std::cerr << "[SHADER COMPILATION ERROR] Source size: " << source.size() << " bytes" << std::endl;
-        glDeleteShader(shader);
-        return 0;
-    }
-
-    return shader;
-}
-
-bool Shader::linkProgram() {
-    program_ = glCreateProgram();
-    glAttachShader(program_, vertexShader_);
-    glAttachShader(program_, fragmentShader_);
-    glLinkProgram(program_);
-
-    GLint success;
-    glGetProgramiv(program_, GL_LINK_STATUS, &success);
-    if (!success) {
-        char infoLog[512];
-        glGetProgramInfoLog(program_, 512, nullptr, infoLog);
-        std::cerr << "Program linking error: " << infoLog << std::endl;
-        return false;
-    }
-
-    // Shaders can be deleted after linking
-    glDeleteShader(vertexShader_);
-    glDeleteShader(fragmentShader_);
-    vertexShader_ = 0;
-    fragmentShader_ = 0;
 
     return true;
 }
 
-GLint Shader::getUniformLocation(const std::string& name) {
-    if (!program_) return -1;
-    return glGetUniformLocation(program_, name.c_str());
+void Shader::use() {
+    if (handle_ != INVALID_SHADER_HANDLE) {
+        GLShaderCompiler::useProgram(handle_);
+    }
+}
+
+void Shader::setUniform1f(const std::string& name, float value) {
+    GLShaderCompiler::setUniform1f(handle_, name, value);
+}
+
+void Shader::setUniform2f(const std::string& name, float x, float y) {
+    GLShaderCompiler::setUniform2f(handle_, name, x, y);
+}
+
+void Shader::setUniform3f(const std::string& name, float x, float y, float z) {
+    GLShaderCompiler::setUniform3f(handle_, name, x, y, z);
+}
+
+void Shader::setUniform4f(const std::string& name, float x, float y, float z, float w) {
+    GLShaderCompiler::setUniform4f(handle_, name, x, y, z, w);
+}
+
+void Shader::setUniform1i(const std::string& name, int value) {
+    GLShaderCompiler::setUniform1i(handle_, name, value);
 }

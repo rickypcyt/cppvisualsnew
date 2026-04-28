@@ -3,7 +3,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "libimgui.a"
+			"path" : "libcore_engine.a"
 		}
 	],
 	"backtrace" : 1,
@@ -27,19 +27,19 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 26,
+				"line" : 10,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 166,
+				"line" : 219,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 36,
+				"line" : 19,
 				"parent" : 0
 			}
 		]
@@ -53,7 +53,7 @@
 	[
 		{
 			"backtrace" : 2,
-			"id" : "glfw::@6890427a1f51a3e7e1df"
+			"id" : "Threads::Threads::@6890427a1f51a3e7e1df"
 		}
 	],
 	"compileGroups" : 
@@ -69,11 +69,7 @@
 			[
 				{
 					"backtrace" : 3,
-					"path" : "/home/ricky/coding/proyects/visuals/imgui"
-				},
-				{
-					"backtrace" : 3,
-					"path" : "/home/ricky/coding/proyects/visuals/imgui/backends"
+					"path" : "/home/ricky/coding/proyects/visuals/src"
 				}
 			],
 			"language" : "CXX",
@@ -91,36 +87,74 @@
 				1,
 				2,
 				3,
-				4,
-				5,
-				6
+				4
 			]
 		}
 	],
-	"id" : "imgui::@6890427a1f51a3e7e1df",
+	"id" : "core_engine::@6890427a1f51a3e7e1df",
 	"interfaceCompileDependencies" : 
 	[
 		{
 			"backtrace" : 2,
-			"id" : "glfw::@6890427a1f51a3e7e1df"
+			"id" : "Threads::Threads::@6890427a1f51a3e7e1df"
 		}
 	],
 	"interfaceLinkLibraries" : 
 	[
 		{
 			"backtrace" : 2,
-			"id" : "glfw::@6890427a1f51a3e7e1df"
+			"fragment" : "portaudio"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "asound"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "m"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "pthread"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "asound"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "Threads::Threads::@6890427a1f51a3e7e1df"
 		}
 	],
 	"linkLibraries" : 
 	[
 		{
 			"backtrace" : 2,
-			"id" : "glfw::@6890427a1f51a3e7e1df"
+			"fragment" : "portaudio"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "asound"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "m"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "pthread"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "asound"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "Threads::Threads::@6890427a1f51a3e7e1df"
 		}
 	],
-	"name" : "imgui",
-	"nameOnDisk" : "libimgui.a",
+	"name" : "core_engine",
+	"nameOnDisk" : "libcore_engine.a",
 	"paths" : 
 	{
 		"build" : ".",
@@ -136,9 +170,14 @@
 				1,
 				2,
 				3,
-				4,
-				5,
-				6
+				4
+			]
+		},
+		{
+			"name" : "Header Files",
+			"sourceIndexes" : 
+			[
+				5
 			]
 		}
 	],
@@ -147,44 +186,37 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "imgui/imgui.cpp",
+			"path" : "src/audio_engine.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "imgui/imgui_demo.cpp",
+			"path" : "src/audio_capture.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "imgui/imgui_draw.cpp",
+			"path" : "src/audio_analyzer.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "imgui/imgui_tables.cpp",
+			"path" : "src/settings_manager.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "imgui/imgui_widgets.cpp",
+			"path" : "src/midi_controller.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "imgui/backends/imgui_impl_glfw.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "imgui/backends/imgui_impl_opengl3.cpp",
-			"sourceGroupIndex" : 0
+			"path" : "src/profiler.h",
+			"sourceGroupIndex" : 1
 		}
 	],
 	"type" : "STATIC_LIBRARY"

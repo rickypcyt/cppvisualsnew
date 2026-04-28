@@ -2306,6 +2306,18 @@
 			"value" : "1"
 		},
 		{
+			"name" : "app_layer_LIB_DEPENDS",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Dependencies for the target"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "general;core_engine;general;shader_system;general;post_processing;general;modular_layer;general;gl_backend;general;imgui;general;imgui_glfw;general;imgui_opengl3;"
+		},
+		{
 			"name" : "core_engine_LIB_DEPENDS",
 			"properties" : 
 			[
@@ -2327,7 +2339,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "general;core_engine;general;shader_system;general;post_processing;general;modular_layer;general;imgui;general;dl;general;glfw;general;/usr/lib/libGLEW.so;general;-lGL;"
+			"value" : "general;dl;general;glfw;general;/usr/lib/libGLEW.so;general;-lGL;"
 		},
 		{
 			"name" : "glfw3_DIR",
@@ -2354,6 +2366,30 @@
 			"value" : "general;glfw;"
 		},
 		{
+			"name" : "imgui_glfw_LIB_DEPENDS",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Dependencies for the target"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "general;imgui;general;glfw;"
+		},
+		{
+			"name" : "imgui_opengl3_LIB_DEPENDS",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Dependencies for the target"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "general;imgui;"
+		},
+		{
 			"name" : "modular_layer_LIB_DEPENDS",
 			"properties" : 
 			[
@@ -2363,7 +2399,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "general;shader_system;"
+			"value" : "general;shader_system;general;gl_backend;"
 		},
 		{
 			"name" : "nlohmann_json_DIR",
@@ -2467,7 +2503,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "general;shader_system;"
+			"value" : "general;shader_system;general;gl_backend;"
 		},
 		{
 			"name" : "prefix_result",
@@ -2480,6 +2516,18 @@
 			],
 			"type" : "INTERNAL",
 			"value" : "/usr/lib"
+		},
+		{
+			"name" : "shader_system_LIB_DEPENDS",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Dependencies for the target"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "general;gl_backend;"
 		}
 	],
 	"kind" : "cache",

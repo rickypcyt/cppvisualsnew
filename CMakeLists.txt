@@ -21,7 +21,7 @@ target_include_directories(core_engine PUBLIC
 )
 
 # ============================================================================
-# IMGUI STATIC LIBRARY (shared across all targets)
+# IMGUI CORE LIBRARY (backend-agnostic)
 # ============================================================================
 add_library(imgui STATIC
     imgui/imgui.cpp
@@ -29,13 +29,44 @@ add_library(imgui STATIC
     imgui/imgui_draw.cpp
     imgui/imgui_tables.cpp
     imgui/imgui_widgets.cpp
-    imgui/backends/imgui_impl_glfw.cpp
-    imgui/backends/imgui_impl_opengl3.cpp
 )
 
 target_include_directories(imgui PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui
+)
+
+# ============================================================================
+# IMGUI GLFW BACKEND (platform-specific)
+# ============================================================================
+add_library(imgui_glfw STATIC
+    imgui/backends/imgui_impl_glfw.cpp
+)
+
+target_include_directories(imgui_glfw PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
+)
+
+target_link_libraries(imgui_glfw PUBLIC
+    imgui
+    glfw
+)
+
+# ============================================================================
+# IMGUI OPENGL3 BACKEND (rendering backend-specific)
+# ============================================================================
+add_library(imgui_opengl3 STATIC
+    imgui/backends/imgui_impl_opengl3.cpp
+)
+
+target_include_directories(imgui_opengl3 PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
+)
+
+target_link_libraries(imgui_opengl3 PUBLIC
+    imgui
+    ${OPENGL_LIBRARIES}
 )
 
 # ============================================================================
@@ -51,6 +82,10 @@ target_include_directories(shader_system PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
+target_link_libraries(shader_system PUBLIC
+    gl_backend
+)
+
 # ============================================================================
 # POST PROCESSING LIBRARY (backend-agnostic)
 # ============================================================================
@@ -64,6 +99,7 @@ target_include_directories(post_processing PUBLIC
 
 target_link_libraries(post_processing PUBLIC
     shader_system
+    gl_backend
 )
 
 # ============================================================================
@@ -79,18 +115,42 @@ target_include_directories(modular_layer PUBLIC
 
 target_link_libraries(modular_layer PUBLIC
     shader_system
+    gl_backend
 )
 
 # ============================================================================
-# OPENGL BACKEND LIBRARY
+# APP LAYER LIBRARY (backend-agnostic application logic)
+# ============================================================================
+add_library(app_layer STATIC
+    src/app/visualizer.cpp
+    src/app/visualizer_imgui.cpp
+    src/app/visualizer_console.cpp
+    src/app/visualizer_diagnostic.cpp
+    src/app/visualizer_procedural.cpp
+)
+
+target_include_directories(app_layer PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/app
+)
+
+target_link_libraries(app_layer PUBLIC
+    core_engine
+    shader_system
+    post_processing
+    modular_layer
+    gl_backend
+    imgui
+    imgui_glfw
+    imgui_opengl3
+)
+
+# ============================================================================
+# OPENGL BACKEND LIBRARY (pure OpenGL rendering only)
 # ============================================================================
 add_library(gl_backend STATIC
     src/gl_renderer.cpp
-    src/visualizer.cpp
-    src/visualizer_imgui.cpp
-    src/visualizer_console.cpp
-    src/visualizer_diagnostic.cpp
-    src/visualizer_procedural.cpp
+    src/gl_shader_compiler.cpp
 )
 
 target_include_directories(gl_backend PUBLIC
@@ -167,13 +227,8 @@ target_link_libraries(imgui PUBLIC
     glfw
 )
 
-# OpenGL backend dependencies
+# OpenGL backend dependencies (pure OpenGL only)
 target_link_libraries(gl_backend PUBLIC
-    core_engine
-    shader_system
-    post_processing
-    modular_layer
-    imgui
     ${CMAKE_DL_LIBS}
     glfw
     ${GLEW_LIBRARIES}
@@ -200,7 +255,11 @@ add_executable(audio_visualizer
 )
 
 target_link_libraries(audio_visualizer PRIVATE
+    app_layer
     gl_backend
+    imgui
+    imgui_glfw
+    imgui_opengl3
 )
 
 # Add Vulkan if available
@@ -219,7 +278,7 @@ target_link_libraries(validate_layers PRIVATE
     pthread
 )
 
-# Layer integration tests
+# Layer integration tests (backend-agnostic)
 add_executable(test_layer_integration
     src/test_layer_integration.cpp
 )
@@ -229,12 +288,6 @@ target_link_libraries(test_layer_integration PRIVATE
     shader_system
     post_processing
     modular_layer
-    imgui
-    ${CMAKE_DL_LIBS}
-    glfw
-    ${OPENGL_LIBRARIES}
-    ${GLEW_LIBRARIES}
-    -lGL
     m
     pthread
 )

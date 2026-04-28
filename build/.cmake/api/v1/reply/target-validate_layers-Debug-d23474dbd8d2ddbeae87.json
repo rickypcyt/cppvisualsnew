@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "audio_visualizer"
+			"path" : "validate_layers"
 		}
 	],
 	"backtrace" : 1,
@@ -13,8 +13,7 @@
 			"add_executable",
 			"target_link_libraries",
 			"add_custom_command",
-			"copy_shaders_if_changed",
-			"target_compile_options"
+			"copy_shaders_if_changed"
 		],
 		"files" : 
 		[
@@ -28,50 +27,38 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 198,
+				"line" : 271,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 202,
+				"line" : 275,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 208,
+				"line" : 85,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 171,
-				"parent" : 0
-			},
-			{
-				"command" : 1,
-				"file" : 0,
-				"line" : 159,
+				"line" : 231,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 260,
+				"line" : 314,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 253,
-				"parent" : 6
-			},
-			{
-				"command" : 4,
-				"file" : 0,
-				"line" : 245,
-				"parent" : 0
+				"line" : 306,
+				"parent" : 5
 			}
 		]
 	},
@@ -84,7 +71,7 @@
 	[
 		{
 			"backtrace" : 2,
-			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+			"id" : "shader_system::@6890427a1f51a3e7e1df"
 		}
 	],
 	"compileGroups" : 
@@ -94,10 +81,6 @@
 			[
 				{
 					"fragment" : "-g -std=gnu++17"
-				},
-				{
-					"backtrace" : 8,
-					"fragment" : "-pthread"
 				}
 			],
 			"includes" : 
@@ -105,14 +88,6 @@
 				{
 					"backtrace" : 2,
 					"path" : "/home/ricky/coding/proyects/visuals/src"
-				},
-				{
-					"backtrace" : 2,
-					"path" : "/home/ricky/coding/proyects/visuals/imgui"
-				},
-				{
-					"backtrace" : 2,
-					"path" : "/home/ricky/coding/proyects/visuals/imgui/backends"
 				}
 			],
 			"language" : "CXX",
@@ -138,26 +113,10 @@
 		},
 		{
 			"backtrace" : 2,
-			"id" : "post_processing::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "core_engine::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "imgui::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "modular_layer::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
 			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
-	"id" : "audio_visualizer::@6890427a1f51a3e7e1df",
+	"id" : "validate_layers::@6890427a1f51a3e7e1df",
 	"link" : 
 	{
 		"commandFragments" : 
@@ -168,72 +127,22 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "libgl_backend.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "/usr/lib/libvulkan.so",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "libcore_engine.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 5,
-				"fragment" : "-lportaudio",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 5,
-				"fragment" : "-lasound",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 5,
-				"fragment" : "-lm",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 5,
-				"fragment" : "-lpthread",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 5,
-				"fragment" : "-lasound",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 5,
-				"fragment" : "-lm",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 5,
-				"fragment" : "-lpthread",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "libpost_processing.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "libmodular_layer.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
 				"fragment" : "libshader_system.a",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 4,
-				"fragment" : "libimgui.a",
+				"backtrace" : 2,
+				"fragment" : "-lm",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lpthread",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "libgl_backend.a",
 				"role" : "libraries"
 			},
 			{
@@ -263,20 +172,24 @@
 	[
 		{
 			"backtrace" : 2,
-			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+			"id" : "shader_system::@6890427a1f51a3e7e1df"
 		},
 		{
-			"backtrace" : 3,
-			"fragment" : "/usr/lib/libvulkan.so"
+			"backtrace" : 2,
+			"fragment" : "m"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "pthread"
 		}
 	],
-	"name" : "audio_visualizer",
-	"nameOnDisk" : "audio_visualizer",
+	"name" : "validate_layers",
+	"nameOnDisk" : "validate_layers",
 	"orderDependencies" : 
 	[
 		{
-			"backtrace" : 7,
-			"id" : "audio_visualizer::@6890427a1f51a3e7e1df"
+			"backtrace" : 6,
+			"id" : "validate_layers::@6890427a1f51a3e7e1df"
 		}
 	],
 	"paths" : 
@@ -299,7 +212,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/main.cpp",
+			"path" : "src/validate_layers.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

@@ -4,7 +4,7 @@
 #include <memory>
 #include <cstring>
 #include "audio_engine.h"
-#include "visualizer.h"
+#include "app/visualizer.h"
 #include "renderer_interface.h"
 
 class AudioVisualizerApp {

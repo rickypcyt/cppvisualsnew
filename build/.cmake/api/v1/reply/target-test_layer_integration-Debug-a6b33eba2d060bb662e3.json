@@ -27,32 +27,44 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 223,
+				"line" : 282,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 227,
+				"line" : 286,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 159,
+				"line" : 219,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 85,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 231,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 262,
+				"line" : 315,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 253,
-				"parent" : 4
+				"line" : 306,
+				"parent" : 6
 			}
 		]
 	},
@@ -78,14 +90,6 @@
 		{
 			"backtrace" : 2,
 			"id" : "modular_layer::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "imgui::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "glfw::@6890427a1f51a3e7e1df"
 		}
 	],
 	"compileGroups" : 
@@ -102,14 +106,6 @@
 				{
 					"backtrace" : 2,
 					"path" : "/home/ricky/coding/proyects/visuals/src"
-				},
-				{
-					"backtrace" : 2,
-					"path" : "/home/ricky/coding/proyects/visuals/imgui"
-				},
-				{
-					"backtrace" : 2,
-					"path" : "/home/ricky/coding/proyects/visuals/imgui/backends"
 				}
 			],
 			"language" : "CXX",
@@ -131,23 +127,23 @@
 	[
 		{
 			"backtrace" : 2,
-			"id" : "shader_system::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
 			"id" : "post_processing::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
-			"id" : "core_engine::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "imgui::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
 			"id" : "modular_layer::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "shader_system::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "core_engine::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "test_layer_integration::@6890427a1f51a3e7e1df",
@@ -181,31 +177,6 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "libimgui.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "-ldl",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "/usr/lib/libglfw.so.3.4",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "/usr/lib/libGLEW.so",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "-lGL",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
 				"fragment" : "-lm",
 				"role" : "libraries"
 			},
@@ -226,17 +197,42 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "libshader_system.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
 				"fragment" : "-lm",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 2,
 				"fragment" : "-lpthread",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "libshader_system.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "libgl_backend.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "-ldl",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "/usr/lib/libglfw.so.3.4",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "/usr/lib/libGLEW.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "-lGL",
 				"role" : "libraries"
 			}
 		],
@@ -262,26 +258,6 @@
 		},
 		{
 			"backtrace" : 2,
-			"id" : "imgui::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "dl"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "glfw::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "/usr/lib/libGLEW.so"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "-lGL"
-		},
-		{
-			"backtrace" : 2,
 			"fragment" : "m"
 		},
 		{
@@ -294,7 +270,7 @@
 	"orderDependencies" : 
 	[
 		{
-			"backtrace" : 5,
+			"backtrace" : 7,
 			"id" : "test_layer_integration::@6890427a1f51a3e7e1df"
 		}
 	],

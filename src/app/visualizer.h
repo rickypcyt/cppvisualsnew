@@ -6,14 +6,14 @@
 #include <memory>
 #include <random>
 #include <string>
-#include <vector>
 #include <array>
-#include "audio_analyzer.h"
-#include "shader.h"
-#include "modular_layer.h"
-#include "post_processor.h"
-#include "settings_manager.h"
-#include "midi_controller.h"
+#include <unordered_map>
+#include "../audio_analyzer.h"
+#include "../shader.h"
+#include "../modular_layer.h"
+#include "../post_processor.h"
+#include "../settings_manager.h"
+#include "../midi_controller.h"
 
 // Forward declarations for ImGui
 struct ImGuiIO;

@@ -3,7 +3,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "/usr/bin/glslangValidator"
+			"path" : "/usr/bin/glslc"
 		}
 	],
 	"backtrace" : 3,
@@ -27,7 +27,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 121,
+				"line" : 181,
 				"parent" : 0
 			},
 			{
@@ -37,7 +37,7 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 739,
+				"line" : 734,
 				"parent" : 2
 			}
 		]
@@ -47,11 +47,11 @@
 		"major" : 2,
 		"minor" : 10
 	},
-	"id" : "Vulkan::glslangValidator::@6890427a1f51a3e7e1df",
+	"id" : "Vulkan::glslc::@6890427a1f51a3e7e1df",
 	"imported" : true,
 	"local" : true,
-	"name" : "Vulkan::glslangValidator",
-	"nameOnDisk" : "glslangValidator",
+	"name" : "Vulkan::glslc",
+	"nameOnDisk" : "glslc",
 	"paths" : 
 	{
 		"build" : ".",

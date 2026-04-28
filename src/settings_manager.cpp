@@ -1,5 +1,5 @@
 #include "settings_manager.h"
-#include "visualizer.h"
+#include "app/visualizer.h"
 #include "shader_loader.h"
 #include <fstream>
 #include <iostream>

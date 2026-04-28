@@ -7,56 +7,56 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "Threads::Threads::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Threads__Threads-Debug-37c40af2080693a12c38.json",
+					"jsonFile" : "target-Threads__Threads-Debug-20f9bc331ec5b7768e32.json",
 					"name" : "Threads::Threads",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "Vulkan::Headers::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Vulkan__Headers-Debug-df9e508cd53e6e9a6580.json",
+					"jsonFile" : "target-Vulkan__Headers-Debug-a8c8f32eb9972b81b481.json",
 					"name" : "Vulkan::Headers",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "Vulkan::Vulkan::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Vulkan__Vulkan-Debug-84be408fac78346f9993.json",
+					"jsonFile" : "target-Vulkan__Vulkan-Debug-17f52df6a69826e94cba.json",
 					"name" : "Vulkan::Vulkan",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "Vulkan::glslangValidator::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Vulkan__glslangValidator-Debug-e382176fa965b58ff2af.json",
+					"jsonFile" : "target-Vulkan__glslangValidator-Debug-8e00457015737ec9237d.json",
 					"name" : "Vulkan::glslangValidator",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "Vulkan::glslc::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Vulkan__glslc-Debug-68240ad8bd6bf50a1eb4.json",
+					"jsonFile" : "target-Vulkan__glslc-Debug-a29351baa71bdff21efb.json",
 					"name" : "Vulkan::glslc",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "glfw::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-glfw-Debug-5531b81a31d69afa8ff4.json",
+					"jsonFile" : "target-glfw-Debug-7934fb8434843f1621de.json",
 					"name" : "glfw",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "nlohmann_json::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-nlohmann_json-Debug-a08b234aa98ae11135cb.json",
+					"jsonFile" : "target-nlohmann_json-Debug-61d2788243ffc1197959.json",
 					"name" : "nlohmann_json",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "nlohmann_json::nlohmann_json::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-nlohmann_json__nlohmann_json-Debug-a5a9739cc54ff118c301.json",
+					"jsonFile" : "target-nlohmann_json__nlohmann_json-Debug-40622b7a3b0040119820.json",
 					"name" : "nlohmann_json::nlohmann_json",
 					"projectIndex" : 0
 				}
@@ -93,7 +93,10 @@
 						5,
 						6,
 						7,
-						8
+						8,
+						9,
+						10,
+						11
 					]
 				}
 			],
@@ -127,7 +130,10 @@
 						5,
 						6,
 						7,
-						8
+						8,
+						9,
+						10,
+						11
 					]
 				}
 			],
@@ -135,64 +141,85 @@
 			[
 				{
 					"directoryIndex" : 0,
+					"id" : "app_layer::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-app_layer-Debug-b646224bc64d53ebb149.json",
+					"name" : "app_layer",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
 					"id" : "audio_visualizer::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-audio_visualizer-Debug-7fd8ce1d4204654aebef.json",
+					"jsonFile" : "target-audio_visualizer-Debug-00aa6b8a427748378d51.json",
 					"name" : "audio_visualizer",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "core_engine::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-core_engine-Debug-ef25f82ae902086e21b6.json",
+					"jsonFile" : "target-core_engine-Debug-70999d074972fd7eb312.json",
 					"name" : "core_engine",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "gl_backend::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-gl_backend-Debug-0008eefe559b1f80de3f.json",
+					"jsonFile" : "target-gl_backend-Debug-0c11a2c79ff3ec9332fe.json",
 					"name" : "gl_backend",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "imgui::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-imgui-Debug-ba9649cc8e1187b0a561.json",
+					"jsonFile" : "target-imgui-Debug-76a6dd94a6a8199b48f7.json",
 					"name" : "imgui",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
+					"id" : "imgui_glfw::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-imgui_glfw-Debug-977f3013cec09219795c.json",
+					"name" : "imgui_glfw",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "imgui_opengl3::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-imgui_opengl3-Debug-43373ec97c71a84ab819.json",
+					"name" : "imgui_opengl3",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
 					"id" : "modular_layer::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-modular_layer-Debug-9ac792e20de5712c6607.json",
+					"jsonFile" : "target-modular_layer-Debug-7ddb36952b0ade8fd9e9.json",
 					"name" : "modular_layer",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "post_processing::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-post_processing-Debug-6ab9b10f89351441082e.json",
+					"jsonFile" : "target-post_processing-Debug-a17f499eb9dc8de4cec6.json",
 					"name" : "post_processing",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "shader_system::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-shader_system-Debug-b7e6689e7ea26181ef73.json",
+					"jsonFile" : "target-shader_system-Debug-7a4a542f1fb6c9ee5279.json",
 					"name" : "shader_system",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "test_layer_integration::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-test_layer_integration-Debug-e738b81968fc58bab194.json",
+					"jsonFile" : "target-test_layer_integration-Debug-a6b33eba2d060bb662e3.json",
 					"name" : "test_layer_integration",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "validate_layers::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-validate_layers-Debug-853a0a953e1440e6df4d.json",
+					"jsonFile" : "target-validate_layers-Debug-d23474dbd8d2ddbeae87.json",
 					"name" : "validate_layers",
 					"projectIndex" : 0
 				}

@@ -1,8 +1,9 @@
 {
+	"archive" : {},
 	"artifacts" : 
 	[
 		{
-			"path" : "validate_layers"
+			"path" : "libmodular_layer.a"
 		}
 	],
 	"backtrace" : 1,
@@ -10,10 +11,9 @@
 	{
 		"commands" : 
 		[
-			"add_executable",
+			"add_library",
 			"target_link_libraries",
-			"add_custom_command",
-			"copy_shaders_if_changed"
+			"target_include_directories"
 		],
 		"files" : 
 		[
@@ -27,26 +27,20 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 212,
+				"line" : 108,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 216,
-				"parent" : 0
-			},
-			{
-				"command" : 3,
-				"file" : 0,
-				"line" : 261,
+				"line" : 116,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 253,
-				"parent" : 3
+				"line" : 112,
+				"parent" : 0
 			}
 		]
 	},
@@ -60,6 +54,10 @@
 		{
 			"backtrace" : 2,
 			"id" : "shader_system::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
 	"compileGroups" : 
@@ -74,7 +72,7 @@
 			"includes" : 
 			[
 				{
-					"backtrace" : 2,
+					"backtrace" : 3,
 					"path" : "/home/ricky/coding/proyects/visuals/src"
 				}
 			],
@@ -98,35 +96,35 @@
 		{
 			"backtrace" : 2,
 			"id" : "shader_system::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
-	"id" : "validate_layers::@6890427a1f51a3e7e1df",
-	"link" : 
-	{
-		"commandFragments" : 
-		[
-			{
-				"fragment" : "-g",
-				"role" : "flags"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "libshader_system.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "-lm",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "-lpthread",
-				"role" : "libraries"
-			}
-		],
-		"language" : "CXX"
-	},
+	"id" : "modular_layer::@6890427a1f51a3e7e1df",
+	"interfaceCompileDependencies" : 
+	[
+		{
+			"backtrace" : 2,
+			"id" : "shader_system::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+		}
+	],
+	"interfaceLinkLibraries" : 
+	[
+		{
+			"backtrace" : 2,
+			"id" : "shader_system::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+		}
+	],
 	"linkLibraries" : 
 	[
 		{
@@ -135,22 +133,11 @@
 		},
 		{
 			"backtrace" : 2,
-			"fragment" : "m"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "pthread"
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
-	"name" : "validate_layers",
-	"nameOnDisk" : "validate_layers",
-	"orderDependencies" : 
-	[
-		{
-			"backtrace" : 4,
-			"id" : "validate_layers::@6890427a1f51a3e7e1df"
-		}
-	],
+	"name" : "modular_layer",
+	"nameOnDisk" : "libmodular_layer.a",
 	"paths" : 
 	{
 		"build" : ".",
@@ -171,9 +158,9 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/validate_layers.cpp",
+			"path" : "src/modular_layer.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],
-	"type" : "EXECUTABLE"
+	"type" : "STATIC_LIBRARY"
 }

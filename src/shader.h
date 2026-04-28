@@ -2,8 +2,14 @@
 #define SHADER_H
 
 #include <string>
-#include <GL/glew.h>
+#include "shader_handle.h"
 
+// Forward declaration for backend-specific compiler
+class GLShaderCompiler;
+
+// Backend-agnostic shader class
+// Handles loading, caching, and logical validation
+// Delegates actual compilation to backend-specific compiler
 class Shader {
 public:
     Shader();
@@ -18,14 +24,12 @@ public:
     void setUniform4f(const std::string& name, float x, float y, float z, float w);
     void setUniform1i(const std::string& name, int value);
 
-private:
-    GLuint program_;
-    GLuint vertexShader_;
-    GLuint fragmentShader_;
+    // Get the opaque handle (for backend operations)
+    ShaderHandle getHandle() const { return handle_; }
 
-    GLuint compileShader(const std::string& source, GLenum type);
-    bool linkProgram();
-    GLint getUniformLocation(const std::string& name);
+private:
+    ShaderHandle handle_;
+    std::string lastError_;
 };
 
 #endif // SHADER_H

@@ -3,7 +3,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "libgl_backend.a"
+			"path" : "libapp_layer.a"
 		}
 	],
 	"backtrace" : 1,
@@ -27,19 +27,19 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 87,
+				"line" : 124,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 171,
+				"line" : 137,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 96,
+				"line" : 132,
 				"parent" : 0
 			}
 		]
@@ -69,11 +69,19 @@
 		},
 		{
 			"backtrace" : 2,
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
 			"id" : "imgui::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
-			"id" : "glfw::@6890427a1f51a3e7e1df"
+			"id" : "imgui_glfw::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "imgui_opengl3::@6890427a1f51a3e7e1df"
 		}
 	],
 	"compileGroups" : 
@@ -90,6 +98,10 @@
 				{
 					"backtrace" : 3,
 					"path" : "/home/ricky/coding/proyects/visuals/src"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "/home/ricky/coding/proyects/visuals/src/app"
 				},
 				{
 					"backtrace" : 2,
@@ -115,8 +127,7 @@
 				1,
 				2,
 				3,
-				4,
-				5
+				4
 			]
 		}
 	],
@@ -124,11 +135,23 @@
 	[
 		{
 			"backtrace" : 2,
+			"id" : "post_processing::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "modular_layer::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "imgui_opengl3::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
 			"id" : "shader_system::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
-			"id" : "post_processing::@6890427a1f51a3e7e1df"
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
@@ -136,14 +159,14 @@
 		},
 		{
 			"backtrace" : 2,
-			"id" : "imgui::@6890427a1f51a3e7e1df"
+			"id" : "imgui_glfw::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
-			"id" : "modular_layer::@6890427a1f51a3e7e1df"
+			"id" : "imgui::@6890427a1f51a3e7e1df"
 		}
 	],
-	"id" : "gl_backend::@6890427a1f51a3e7e1df",
+	"id" : "app_layer::@6890427a1f51a3e7e1df",
 	"interfaceCompileDependencies" : 
 	[
 		{
@@ -164,11 +187,19 @@
 		},
 		{
 			"backtrace" : 2,
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
 			"id" : "imgui::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
-			"id" : "glfw::@6890427a1f51a3e7e1df"
+			"id" : "imgui_glfw::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "imgui_opengl3::@6890427a1f51a3e7e1df"
 		}
 	],
 	"interfaceLinkLibraries" : 
@@ -191,23 +222,19 @@
 		},
 		{
 			"backtrace" : 2,
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
 			"id" : "imgui::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
-			"fragment" : "dl"
+			"id" : "imgui_glfw::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
-			"id" : "glfw::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "/usr/lib/libGLEW.so"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "-lGL"
+			"id" : "imgui_opengl3::@6890427a1f51a3e7e1df"
 		}
 	],
 	"linkLibraries" : 
@@ -230,27 +257,23 @@
 		},
 		{
 			"backtrace" : 2,
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
 			"id" : "imgui::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
-			"fragment" : "dl"
+			"id" : "imgui_glfw::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
-			"id" : "glfw::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "/usr/lib/libGLEW.so"
-		},
-		{
-			"backtrace" : 2,
-			"fragment" : "-lGL"
+			"id" : "imgui_opengl3::@6890427a1f51a3e7e1df"
 		}
 	],
-	"name" : "gl_backend",
-	"nameOnDisk" : "libgl_backend.a",
+	"name" : "app_layer",
+	"nameOnDisk" : "libapp_layer.a",
 	"paths" : 
 	{
 		"build" : ".",
@@ -266,8 +289,7 @@
 				1,
 				2,
 				3,
-				4,
-				5
+				4
 			]
 		}
 	],
@@ -276,37 +298,31 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/gl_renderer.cpp",
+			"path" : "src/app/visualizer.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/visualizer.cpp",
+			"path" : "src/app/visualizer_imgui.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/visualizer_imgui.cpp",
+			"path" : "src/app/visualizer_console.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/visualizer_console.cpp",
+			"path" : "src/app/visualizer_diagnostic.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/visualizer_diagnostic.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "src/visualizer_procedural.cpp",
+			"path" : "src/app/visualizer_procedural.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

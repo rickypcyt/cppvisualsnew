@@ -1,8 +1,8 @@
 #include "visualizer.h"
 #include "imgui.h"
-#include "audio_capture.h"
-#include "shader_loader.h"
-#include "profiler.h"
+#include "../audio_capture.h"
+#include "../shader_loader.h"
+#include "../profiler.h"
 #include <algorithm>
 #include <array>
 #include <chrono>

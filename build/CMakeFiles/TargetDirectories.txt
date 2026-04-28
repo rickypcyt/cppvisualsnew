@@ -1,8 +1,11 @@
 /home/ricky/coding/proyects/visuals/build/CMakeFiles/core_engine.dir
 /home/ricky/coding/proyects/visuals/build/CMakeFiles/imgui.dir
+/home/ricky/coding/proyects/visuals/build/CMakeFiles/imgui_glfw.dir
+/home/ricky/coding/proyects/visuals/build/CMakeFiles/imgui_opengl3.dir
 /home/ricky/coding/proyects/visuals/build/CMakeFiles/shader_system.dir
 /home/ricky/coding/proyects/visuals/build/CMakeFiles/post_processing.dir
 /home/ricky/coding/proyects/visuals/build/CMakeFiles/modular_layer.dir
+/home/ricky/coding/proyects/visuals/build/CMakeFiles/app_layer.dir
 /home/ricky/coding/proyects/visuals/build/CMakeFiles/gl_backend.dir
 /home/ricky/coding/proyects/visuals/build/CMakeFiles/audio_visualizer.dir
 /home/ricky/coding/proyects/visuals/build/CMakeFiles/validate_layers.dir
