@@ -104,9 +104,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Weird Creature",
+                "effectName": "Voxel Path Tracer",
                 "enabled": true,
-                "mode": 39,
+                "mode": 22,
                 "opacity": 0.949999988079071
             },
             {
@@ -173,8 +173,8 @@
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Weird Creature",
-        "proceduralLayerMode": 39,
+        "proceduralLayerEffectName": "Voxel Path Tracer",
+        "proceduralLayerMode": 22,
         "proceduralLayerOpacity": 0.949999988079071,
         "showCornerOrbs": false,
         "showCurrentEffects": true,

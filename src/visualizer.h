@@ -312,6 +312,7 @@ private:
     bool showConsoleMode_;
     bool imguiInitialized_;
     bool imguiWindowNeedsFocus_ = false;
+    bool imguiDirty_ = true;  // Flag to indicate ImGui window needs redraw
     bool autoRandomizeColors_;
     float colorRandomInterval_;
     float colorRandomTimer_;

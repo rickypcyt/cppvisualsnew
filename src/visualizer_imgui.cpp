@@ -400,17 +400,21 @@ void Visualizer::renderImGui() {
     // If we have a separate ImGui window and are allowed to render it, switch to it
     if (renderControlsWindow) {
         glfwMakeContextCurrent(imguiWindow_);
+    }
 
-        // Only force focus when the window was previously hidden or flagged
-        if (imguiWindowNeedsFocus_) {
-            glfwFocusWindow(imguiWindow_);
-            imguiWindowNeedsFocus_ = false;
-        }
+    // Only force focus when the window was previously hidden or flagged
+    if (renderControlsWindow && imguiWindowNeedsFocus_) {
+        glfwFocusWindow(imguiWindow_);
+        imguiWindowNeedsFocus_ = false;
+    }
 
-        // Ensure cursor mode remains free (Hyprland can latch to hidden windows)
+    // Ensure cursor mode remains free (Hyprland can latch to hidden windows)
+    if (renderControlsWindow) {
         glfwSetInputMode(imguiWindow_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
 
-        // Get framebuffer size for the ImGui window
+    // Get framebuffer size for the ImGui window
+    if (renderControlsWindow) {
         int fbWidth, fbHeight;
         glfwGetFramebufferSize(imguiWindow_, &fbWidth, &fbHeight);
 
@@ -528,9 +532,18 @@ void Visualizer::renderImGui() {
     // Swap buffers for ImGui window if it exists and not fullscreen
     // (when fullscreen, we render ImGui as overlay on main window)
     if (!blockControlsForFullscreen && renderControlsWindow) {
-        glfwSwapBuffers(imguiWindow_);
+        // Only swap buffers if ImGui is dirty (UI changed) or every few frames for audio updates
+        static int frameCount = 0;
+        const int audioUpdateInterval = 10; // Update audio visualizations every 10 frames
+        bool shouldSwap = imguiDirty_ || (frameCount % audioUpdateInterval == 0);
 
-        // Return context to main window
+        if (shouldSwap) {
+            glfwSwapBuffers(imguiWindow_);
+            imguiDirty_ = false;
+        }
+        frameCount++;
+
+        // Always return context to main window
         glfwMakeContextCurrent(window_);
     } else if (window_) {
         // Ensure we leave context on main window when controls window is hidden/offscreen
