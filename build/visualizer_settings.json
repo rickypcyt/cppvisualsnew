@@ -7,26 +7,27 @@
         "rgbRandomInterval": 5.0
     },
     "audio": {
-        "inputGain": 3.4000000953674316,
+        "audioEngineEnabled": true,
+        "inputGain": 2.7300000190734863,
         "manualBPM": 120.0,
         "manualBPMMode": true,
-        "selectedDevice": 3,
+        "selectedDevice": 4,
         "visualSensitivity": 0.47999998927116394
     },
     "colors": {
         "animationEnabled": true,
         "blend": 1.0,
-        "hueSeed": 0.42949971556663513,
+        "hueSeed": 0.17622196674346924,
         "paletteIndex": -1,
         "primary": [
-            0.20900005102157593,
+            0.90751713514328,
             0.949999988079071,
-            0.6365556716918945
+            0.20900005102157593
         ],
         "secondary": [
-            0.42068320512771606,
             0.30800002813339233,
-            0.8799999952316284
+            0.8799999952316284,
+            0.6954338550567627
         ]
     },
     "hotReloadEnabled": false,
@@ -193,9 +194,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Chromatic Swirl",
+                "effectName": "Mandelbulb Flux Bloom",
                 "enabled": true,
-                "mode": 26,
+                "mode": 52,
                 "opacity": 0.949999988079071
             },
             {
@@ -306,8 +307,8 @@
     ],
     "ui": {
         "proceduralLayerDebug": true,
-        "proceduralLayerEffectName": "Chromatic Swirl",
-        "proceduralLayerMode": 26,
+        "proceduralLayerEffectName": "Mandelbulb Flux Bloom",
+        "proceduralLayerMode": 52,
         "proceduralLayerOpacity": 0.949999988079071,
         "showCornerOrbs": false,
         "showCurrentEffects": true,

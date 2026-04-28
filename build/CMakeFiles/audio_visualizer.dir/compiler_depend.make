@@ -2159,7 +2159,7 @@ CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o: /home/ricky/coding/pr
 
 CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visuals/src/main.cpp \
   /home/ricky/coding/proyects/visuals/src/audio_analyzer.h \
-  /home/ricky/coding/proyects/visuals/src/audio_capture.h \
+  /home/ricky/coding/proyects/visuals/src/audio_engine.h \
   /home/ricky/coding/proyects/visuals/src/midi_controller.h \
   /home/ricky/coding/proyects/visuals/src/modular_layer.h \
   /home/ricky/coding/proyects/visuals/src/post_processor.h \
@@ -2344,6 +2344,7 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/bits/stl_iterator_base_types.h \
   /usr/include/c++/15.2.1/bits/stl_numeric.h \
   /usr/include/c++/15.2.1/bits/stl_pair.h \
+  /usr/include/c++/15.2.1/bits/stl_queue.h \
   /usr/include/c++/15.2.1/bits/stl_raw_storage_iter.h \
   /usr/include/c++/15.2.1/bits/stl_tempbuf.h \
   /usr/include/c++/15.2.1/bits/stl_uninitialized.h \
@@ -2371,6 +2372,7 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/compare \
   /usr/include/c++/15.2.1/complex \
   /usr/include/c++/15.2.1/concepts \
+  /usr/include/c++/15.2.1/condition_variable \
   /usr/include/c++/15.2.1/cstddef \
   /usr/include/c++/15.2.1/cstdint \
   /usr/include/c++/15.2.1/cstdio \
@@ -2410,6 +2412,7 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/c++/15.2.1/pstl/glue_memory_defs.h \
   /usr/include/c++/15.2.1/pstl/glue_numeric_defs.h \
   /usr/include/c++/15.2.1/pstl/pstl_config.h \
+  /usr/include/c++/15.2.1/queue \
   /usr/include/c++/15.2.1/random \
   /usr/include/c++/15.2.1/ratio \
   /usr/include/c++/15.2.1/sstream \
@@ -2482,8 +2485,7 @@ CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visu
   /usr/include/wctype.h \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stdarg.h \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stddef.h \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stdint.h \
-  /usr/local/include/portaudio.h
+  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stdint.h
 
 CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.o: /home/ricky/coding/proyects/visuals/src/midi_controller.cpp \
   /home/ricky/coding/proyects/visuals/src/midi_controller.h \
@@ -6131,10 +6133,6 @@ CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o:
 
 /usr/include/c++/15.2.1/set:
 
-/usr/lib/libX11.so.6:
-
-/usr/include/c++/15.2.1/bits/stl_set.h:
-
 /usr/include/c++/15.2.1/bits/stl_multiset.h:
 
 /usr/include/nlohmann/thirdparty/hedley/hedley.hpp:
@@ -6211,8 +6209,6 @@ CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o:
 
 /usr/include/c++/15.2.1/cassert:
 
-/usr/include/c++/15.2.1/bits/valarray_before.h:
-
 /usr/include/nlohmann/detail/input/binary_reader.hpp:
 
 /usr/include/c++/15.2.1/bits/stl_relops.h:
@@ -6284,6 +6280,18 @@ CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o:
 /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/opt_random.h:
 
 /usr/include/c++/15.2.1/thread:
+
+/usr/include/c++/15.2.1/queue:
+
+/usr/include/c++/15.2.1/bits/valarray_before.h:
+
+/usr/include/c++/15.2.1/condition_variable:
+
+/usr/lib/libX11.so.6:
+
+/usr/include/c++/15.2.1/bits/stl_set.h:
+
+/usr/include/c++/15.2.1/bits/stl_queue.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/emmintrin.h:
 
@@ -7478,6 +7486,8 @@ CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o:
 /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/basic_file.h:
 
 /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/time_members.h:
+
+/home/ricky/coding/proyects/visuals/src/audio_engine.h:
 
 /home/ricky/coding/proyects/visuals/src/midi_controller.h:
 

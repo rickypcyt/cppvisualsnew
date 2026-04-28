@@ -98,6 +98,7 @@ add_executable(audio_visualizer
     src/visualizer_console.cpp
     src/visualizer_diagnostic.cpp
     src/visualizer_procedural.cpp
+    src/audio_engine.cpp
     src/audio_capture.cpp
     src/audio_analyzer.cpp
     src/modular_layer.cpp

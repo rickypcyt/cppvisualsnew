@@ -103,6 +103,15 @@ build CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o: CXX_COMPI
   OBJECT_FILE_DIR = CMakeFiles/audio_visualizer.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/audio_visualizer.dir
 
+build CMakeFiles/audio_visualizer.dir/src/audio_engine.cpp.o: CXX_COMPILER__audio_visualizer_unscanned_Debug /home/ricky/coding/proyects/visuals/src/audio_engine.cpp || cmake_object_order_depends_target_audio_visualizer
+  CONFIG = Debug
+  DEP_FILE = CMakeFiles/audio_visualizer.dir/src/audio_engine.cpp.o.d
+  FLAGS = -g -std=gnu++17 -pthread
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends
+  OBJECT_DIR = CMakeFiles/audio_visualizer.dir
+  OBJECT_FILE_DIR = CMakeFiles/audio_visualizer.dir/src
+  TARGET_SUPPORT_DIR = CMakeFiles/audio_visualizer.dir
+
 build CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o: CXX_COMPILER__audio_visualizer_unscanned_Debug /home/ricky/coding/proyects/visuals/src/audio_capture.cpp || cmake_object_order_depends_target_audio_visualizer
   CONFIG = Debug
   DEP_FILE = CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o.d
@@ -255,7 +264,7 @@ build CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o: C
 #############################################
 # Link the executable audio_visualizer
 
-build audio_visualizer: CXX_EXECUTABLE_LINKER__audio_visualizer_Debug CMakeFiles/audio_visualizer.dir/src/main.cpp.o CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o CMakeFiles/audio_visualizer.dir/src/shader.cpp.o CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.o CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o CMakeFiles/audio_visualizer.dir/src/shader_loader.cpp.o CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o | /usr/lib/libglfw.so.3.4 /usr/lib/libGLEW.so
+build audio_visualizer: CXX_EXECUTABLE_LINKER__audio_visualizer_Debug CMakeFiles/audio_visualizer.dir/src/main.cpp.o CMakeFiles/audio_visualizer.dir/src/visualizer.cpp.o CMakeFiles/audio_visualizer.dir/src/visualizer_imgui.cpp.o CMakeFiles/audio_visualizer.dir/src/visualizer_console.cpp.o CMakeFiles/audio_visualizer.dir/src/visualizer_diagnostic.cpp.o CMakeFiles/audio_visualizer.dir/src/visualizer_procedural.cpp.o CMakeFiles/audio_visualizer.dir/src/audio_engine.cpp.o CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.o CMakeFiles/audio_visualizer.dir/src/audio_analyzer.cpp.o CMakeFiles/audio_visualizer.dir/src/modular_layer.cpp.o CMakeFiles/audio_visualizer.dir/src/post_processor.cpp.o CMakeFiles/audio_visualizer.dir/src/shader.cpp.o CMakeFiles/audio_visualizer.dir/src/settings_manager.cpp.o CMakeFiles/audio_visualizer.dir/src/midi_controller.cpp.o CMakeFiles/audio_visualizer.dir/src/layer_validator.cpp.o CMakeFiles/audio_visualizer.dir/src/shader_loader.cpp.o CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o CMakeFiles/audio_visualizer.dir/imgui/imgui_draw.cpp.o CMakeFiles/audio_visualizer.dir/imgui/imgui_tables.cpp.o CMakeFiles/audio_visualizer.dir/imgui/imgui_widgets.cpp.o CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_glfw.cpp.o CMakeFiles/audio_visualizer.dir/imgui/backends/imgui_impl_opengl3.cpp.o | /usr/lib/libglfw.so.3.4 /usr/lib/libGLEW.so
   CONFIG = Debug
   DEP_FILE = CMakeFiles/audio_visualizer.dir/link.d
   FLAGS = -g

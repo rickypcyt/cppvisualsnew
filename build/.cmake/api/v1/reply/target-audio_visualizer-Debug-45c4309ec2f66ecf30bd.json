@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "test_layer_integration"
+			"path" : "audio_visualizer"
 		}
 	],
 	"backtrace" : 1,
@@ -13,6 +13,7 @@
 			"add_executable",
 			"target_link_libraries",
 			"add_custom_command",
+			"target_compile_options",
 			"include_directories"
 		],
 		"files" : 
@@ -27,29 +28,35 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 121,
+				"line" : 94,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 151,
+				"line" : 135,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 176,
+				"line" : 166,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
+				"line" : 163,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
 				"line" : 90,
 				"parent" : 0
 			},
 			{
-				"command" : 3,
+				"command" : 4,
 				"file" : 0,
 				"line" : 91,
 				"parent" : 0
@@ -66,6 +73,10 @@
 		{
 			"backtrace" : 2,
 			"id" : "glfw::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "Threads::Threads::@6890427a1f51a3e7e1df"
 		}
 	],
 	"compileGroups" : 
@@ -75,16 +86,20 @@
 			[
 				{
 					"fragment" : "-g -std=gnu++17"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-pthread"
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "/home/ricky/coding/proyects/visuals/imgui"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"path" : "/home/ricky/coding/proyects/visuals/imgui/backends"
 				}
 			],
@@ -113,11 +128,19 @@
 				11,
 				12,
 				13,
-				14
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22
 			]
 		}
 	],
-	"id" : "test_layer_integration::@6890427a1f51a3e7e1df",
+	"id" : "audio_visualizer::@6890427a1f51a3e7e1df",
 	"link" : 
 	{
 		"commandFragments" : 
@@ -144,6 +167,31 @@
 			{
 				"backtrace" : 2,
 				"fragment" : "-lGL",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lportaudio",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lasound",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lm",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lpthread",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lasound",
 				"role" : "libraries"
 			},
 			{
@@ -179,20 +227,36 @@
 		},
 		{
 			"backtrace" : 2,
+			"fragment" : "portaudio"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "asound"
+		},
+		{
+			"backtrace" : 2,
 			"fragment" : "m"
 		},
 		{
 			"backtrace" : 2,
 			"fragment" : "pthread"
+		},
+		{
+			"backtrace" : 2,
+			"fragment" : "asound"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "Threads::Threads::@6890427a1f51a3e7e1df"
 		}
 	],
-	"name" : "test_layer_integration",
-	"nameOnDisk" : "test_layer_integration",
+	"name" : "audio_visualizer",
+	"nameOnDisk" : "audio_visualizer",
 	"orderDependencies" : 
 	[
 		{
 			"backtrace" : 3,
-			"id" : "test_layer_integration::@6890427a1f51a3e7e1df"
+			"id" : "audio_visualizer::@6890427a1f51a3e7e1df"
 		}
 	],
 	"paths" : 
@@ -220,7 +284,15 @@
 				11,
 				12,
 				13,
-				14
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22
 			]
 		}
 	],
@@ -229,13 +301,55 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/test_layer_integration.cpp",
+			"path" : "src/main.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/layer_validator.cpp",
+			"path" : "src/visualizer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/visualizer_imgui.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/visualizer_console.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/visualizer_diagnostic.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/visualizer_procedural.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/audio_engine.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/audio_capture.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/audio_analyzer.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
@@ -259,13 +373,19 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/audio_analyzer.cpp",
+			"path" : "src/settings_manager.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/settings_manager.cpp",
+			"path" : "src/midi_controller.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/layer_validator.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
