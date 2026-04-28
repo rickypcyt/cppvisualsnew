@@ -3,6 +3,17 @@
 #include <iostream>
 #include <numeric>
 
+namespace {
+unsigned int reverseBits(unsigned int value, int bitCount) {
+    unsigned int reversed = 0;
+    for (int i = 0; i < bitCount; ++i) {
+        reversed = (reversed << 1U) | (value & 1U);
+        value >>= 1U;
+    }
+    return reversed;
+}
+} // namespace
+
 AudioAnalyzer::AudioAnalyzer() 
     : fftInput_(FFT_SIZE), fftOutput_(FFT_SIZE), spectrum_(SPECTRUM_SIZE),
       prevSpectrum_(SPECTRUM_SIZE, 0.0f),
@@ -91,16 +102,48 @@ void AudioAnalyzer::applyWindow(std::vector<float>& buffer) {
 }
 
 void AudioAnalyzer::performFFT(const std::vector<float>& input) {
-    // Simple DFT implementation (for demonstration)
-    // In production, use FFTW or KissFFT
-    for (int k = 0; k < SPECTRUM_SIZE; ++k) {
-        std::complex<float> sum(0.0f, 0.0f);
-        for (int n = 0; n < FFT_SIZE; ++n) {
-            float angle = -2.0f * M_PI * k * n / FFT_SIZE;
-            sum += input[n] * std::complex<float>(cosf(angle), sinf(angle));
+    // Iterative radix-2 Cooley-Tukey FFT
+    constexpr int kN = FFT_SIZE;
+
+    if (static_cast<int>(input.size()) < kN) {
+        return;
+    }
+
+    for (int i = 0; i < kN; ++i) {
+        fftOutput_[i] = std::complex<float>(input[i], 0.0f);
+    }
+
+    int bitCount = 0;
+    while ((1 << bitCount) < kN) {
+        ++bitCount;
+    }
+
+    for (int i = 0; i < kN; ++i) {
+        unsigned int j = reverseBits(static_cast<unsigned int>(i), bitCount);
+        if (j > static_cast<unsigned int>(i)) {
+            std::swap(fftOutput_[i], fftOutput_[j]);
         }
-        fftOutput_[k] = sum;
-        spectrum_[k] = std::abs(sum) / FFT_SIZE;
+    }
+
+    for (int len = 2; len <= kN; len <<= 1) {
+        const float angle = -2.0f * static_cast<float>(M_PI) / static_cast<float>(len);
+        const std::complex<float> wlen(std::cos(angle), std::sin(angle));
+
+        for (int i = 0; i < kN; i += len) {
+            std::complex<float> w(1.0f, 0.0f);
+            const int halfLen = len >> 1;
+            for (int j = 0; j < halfLen; ++j) {
+                const std::complex<float> u = fftOutput_[i + j];
+                const std::complex<float> v = fftOutput_[i + j + halfLen] * w;
+                fftOutput_[i + j] = u + v;
+                fftOutput_[i + j + halfLen] = u - v;
+                w *= wlen;
+            }
+        }
+    }
+
+    for (int k = 0; k < SPECTRUM_SIZE; ++k) {
+        spectrum_[k] = std::abs(fftOutput_[k]) / static_cast<float>(kN);
     }
 }
 

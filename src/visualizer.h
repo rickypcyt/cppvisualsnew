@@ -42,6 +42,8 @@ public:
     void setSelectedDevice(int device) { selectedDevice_ = device; }
     float getAudioInputGain() const { return audioInputGain_; }
     void setAudioInputGain(float gain) { audioInputGain_ = gain; }
+    bool getAudioEngineEnabled() const { return audioEngineEnabled_; }
+    void setAudioEngineEnabled(bool enabled) { audioEngineEnabled_ = enabled; }
     float getVisualSensitivity() const { return visualSensitivity_; }
     void setVisualSensitivity(float sensitivity) { visualSensitivity_ = sensitivity; }
     void toggleDiagnosticMode() { showDiagnostic_ = !showDiagnostic_; }
@@ -53,6 +55,7 @@ public:
     // Settings management
     void updateSettingsFromCurrentState();
     void saveCurrentSettings();
+    void flushPendingSettings();
     
     // Random post process methods
     void updateRandomPostProcess(float deltaTime);
@@ -279,6 +282,7 @@ private:
     std::string rendererName_;
     std::string openglVersion_;
     float audioInputGain_;
+    bool audioEngineEnabled_ = true;
     bool useModernPipeline_;
     
     // Hot-reload settings
@@ -302,6 +306,8 @@ private:
     float colorRandomInterval_;
     float colorRandomTimer_;
     std::array<bool, 3> rgbChannelEnabled_{};
+    bool settingsDirty_ = false;
+    bool settingsFlushInProgress_ = false;
     float globalIntensityEnvelope_;
     float visualSensitivity_;
     float tempoMultiplier_ = 1.0f;
@@ -317,6 +323,7 @@ private:
     float scenePaletteBlend_ = 0.6f;
     int currentScenePaletteIndex_ = -1;
     float scenePaletteHueSeed_ = 0.0f;
+    bool colorAnimationEnabled_ = true;
     
     bool onsetColorCyclingEnabled_ = true;
     bool autoRandomizeRgbChannels_ = false;

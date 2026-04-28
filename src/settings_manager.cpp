@@ -26,6 +26,7 @@ SettingsManager::SettingsManager() {
     proceduralLayerDebug_ = false;
     proceduralLayerOpacity_ = 0.85f;
     proceduralLayerMode_ = 0; // Default to None (0) - user must select a shader
+    colorAnimationEnabled_ = true;
 
     // RGB channels always enabled by default
     rgbChannelEnabled_ = {true, true, true};
@@ -52,6 +53,7 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (audio.contains("selectedDevice")) selectedDevice_ = audio["selectedDevice"];
             if (audio.contains("inputGain")) audioInputGain_ = audio["inputGain"];
             if (audio.contains("visualSensitivity")) visualSensitivity_ = audio["visualSensitivity"];
+            if (audio.contains("audioEngineEnabled")) audioEngineEnabled_ = audio["audioEngineEnabled"];
             if (audio.contains("manualBPMMode")) manualBPMMode_ = audio["manualBPMMode"];
             if (audio.contains("manualBPM")) manualBPM_ = audio["manualBPM"];
         }
@@ -261,6 +263,7 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (colors.contains("blend")) scenePaletteBlend_ = colors["blend"];
             if (colors.contains("paletteIndex")) currentScenePaletteIndex_ = colors["paletteIndex"];
             if (colors.contains("hueSeed")) scenePaletteHueSeed_ = colors["hueSeed"];
+            if (colors.contains("animationEnabled")) colorAnimationEnabled_ = colors["animationEnabled"];
         }
 
         // Load color animation settings
@@ -360,6 +363,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["audio"]["selectedDevice"] = selectedDevice_;
         j["audio"]["inputGain"] = audioInputGain_;
         j["audio"]["visualSensitivity"] = visualSensitivity_;
+        j["audio"]["audioEngineEnabled"] = audioEngineEnabled_;
 
         // Save UI settings with effect name
         j["ui"]["showImGuiWindow"] = showImGuiWindow_;
@@ -434,6 +438,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["colors"]["blend"] = scenePaletteBlend_;
         j["colors"]["paletteIndex"] = currentScenePaletteIndex_;
         j["colors"]["hueSeed"] = scenePaletteHueSeed_;
+        j["colors"]["animationEnabled"] = colorAnimationEnabled_;
 
         // Save color animation settings
         j["animation"]["autoRandomize"] = autoRandomizeColors_;

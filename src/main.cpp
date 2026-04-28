@@ -19,42 +19,22 @@ public:
             return false;
         }
 
+        visualizer_.setAudioAnalyzer(&audioAnalyzer_);
+
         int desiredDevice = deviceIndex;
         if (desiredDevice < 0) {
             desiredDevice = visualizer_.getSelectedDevice();
         }
 
-        auto initWithDevice = [&](int devIndex) -> bool {
-            if (devIndex < 0) {
-                return audioCapture_.initialize();
-            }
-            if (audioCapture_.initialize(devIndex)) {
-                visualizer_.setSelectedDevice(devIndex);
-                return true;
-            }
-            return false;
-        };
-
-        bool captureInitialized = initWithDevice(desiredDevice);
-        if (!captureInitialized) {
-            if (desiredDevice >= 0) {
-                std::cerr << "Failed to initialize audio capture with device " << desiredDevice
-                          << ", falling back to system default" << std::endl;
-            }
-            if (!initWithDevice(-1)) {
+        if (visualizer_.getAudioEngineEnabled()) {
+            if (!startAudioEngine(desiredDevice)) {
                 std::cerr << "Failed to initialize audio capture" << std::endl;
                 return false;
             }
+        } else {
+            audioEngineRunning_ = false;
+            std::cout << "[DEBUG] Audio engine disabled by default (use the Audio panel to enable it)" << std::endl;
         }
-
-        // Start audio capture
-        if (!audioCapture_.start()) {
-            std::cerr << "Failed to start audio capture" << std::endl;
-            return false;
-        }
-
-        audioAnalyzer_.setSampleRate(static_cast<float>(audioCapture_.getSampleRate()));
-        visualizer_.setAudioAnalyzer(&audioAnalyzer_);
 
         std::cout << "Audio Visualizer initialized successfully!" << std::endl;
         std::cout << "Listening to microphone input..." << std::endl;
@@ -64,40 +44,51 @@ public:
     }
 
     void run() {
+        static bool lastAudioEngineEnabled = false;
+        static int lastDevice = -2; // sentinel to force first-run sync
+
         while (!visualizer_.shouldClose()) {
-            // Process window events - CRITICAL for Wayland/Hyprland
-            glfwPollEvents();
-            
+            bool currentAudioEngineEnabled = visualizer_.getAudioEngineEnabled();
+
             // Check for device change
-            static int lastDevice = -2; // sentinel to force first-run sync
             int currentDevice = visualizer_.getSelectedDevice();
             if (lastDevice == -2) {
                 lastDevice = currentDevice;
             }
-            if (currentDevice != lastDevice) {
+            if (currentAudioEngineEnabled != lastAudioEngineEnabled) {
+                if (currentAudioEngineEnabled) {
+                    if (!startAudioEngine(currentDevice)) {
+                        std::cerr << "Failed to enable audio engine" << std::endl;
+                        visualizer_.setAudioEngineEnabled(false);
+                        currentAudioEngineEnabled = false;
+                    }
+                } else {
+                    stopAudioEngine();
+                }
+                lastAudioEngineEnabled = currentAudioEngineEnabled;
+                lastDevice = currentDevice;
+            }
+
+            if (currentAudioEngineEnabled && audioEngineRunning_ && currentDevice != lastDevice) {
                 std::cout << "Changing audio device to: " << visualizer_.getSelectedDevice() << std::endl;
                 
                 // Restart audio with new device
-                audioCapture_.stop();
-                audioCapture_.shutdown();
+                stopAudioEngine();
                 
-                if (!audioCapture_.initialize(visualizer_.getSelectedDevice())) {
+                if (!startAudioEngine(visualizer_.getSelectedDevice())) {
                     std::cerr << "Failed to initialize audio with new device" << std::endl;
                     visualizer_.setSelectedDevice(lastDevice);
-                    audioCapture_.initialize(lastDevice);
+                    if (!startAudioEngine(lastDevice)) {
+                        std::cerr << "Failed to restore previous audio device" << std::endl;
+                    }
                 }
-                
-                if (!audioCapture_.start()) {
-                    std::cerr << "Failed to start audio with new device" << std::endl;
-                }
-
-                audioAnalyzer_.setSampleRate(static_cast<float>(audioCapture_.getSampleRate()));
                 
                 lastDevice = visualizer_.getSelectedDevice();
+                currentAudioEngineEnabled = visualizer_.getAudioEngineEnabled();
             }
             
             // Process audio if new data is available
-            if (audioCapture_.hasNewData()) {
+            if (currentAudioEngineEnabled && audioEngineRunning_ && audioCapture_.hasNewData()) {
                 auto audioBuffer = audioCapture_.getAudioBuffer();
                 float gain = visualizer_.getAudioInputGain();
                 if (gain != 1.0f) {
@@ -108,10 +99,16 @@ public:
                 audioAnalyzer_.processAudio(audioBuffer);
                 visualizer_.updateAudioBuffer(audioBuffer); // Update waveform
                 audioCapture_.clearNewDataFlag();
+            } else {
+                visualizer_.updateAudioBuffer(std::vector<float>{});
             }
 
             // Update visualizer with audio data
-            visualizer_.updateAudioData(audioAnalyzer_.getFeatures());
+            if (currentAudioEngineEnabled && audioEngineRunning_) {
+                visualizer_.updateAudioData(audioAnalyzer_.getFeatures());
+            } else {
+                visualizer_.updateAudioData(AudioAnalyzer::AudioFeatures{});
+            }
 
             // Render frame
             visualizer_.beginFrame();
@@ -134,15 +131,65 @@ public:
     }
 
     void shutdown() {
-        audioCapture_.stop();
-        audioCapture_.shutdown();
+        stopAudioEngine();
         visualizer_.shutdown();
     }
 
 private:
+    bool startAudioEngine(int deviceIndex) {
+        if (!visualizer_.getAudioEngineEnabled()) {
+            audioEngineRunning_ = false;
+            return false;
+        }
+
+        audioCapture_.stop();
+        audioCapture_.shutdown();
+
+        auto initWithDevice = [&](int devIndex) -> bool {
+            if (devIndex < 0) {
+                return audioCapture_.initialize();
+            }
+            if (audioCapture_.initialize(devIndex)) {
+                visualizer_.setSelectedDevice(devIndex);
+                return true;
+            }
+            return false;
+        };
+
+        bool captureInitialized = initWithDevice(deviceIndex);
+        if (!captureInitialized && deviceIndex >= 0) {
+            std::cerr << "Failed to initialize audio capture with device " << deviceIndex
+                      << ", falling back to system default" << std::endl;
+            captureInitialized = initWithDevice(-1);
+        }
+
+        if (!captureInitialized) {
+            audioEngineRunning_ = false;
+            return false;
+        }
+
+        if (!audioCapture_.start()) {
+            std::cerr << "Failed to start audio capture" << std::endl;
+            audioCapture_.shutdown();
+            audioEngineRunning_ = false;
+            return false;
+        }
+
+        audioAnalyzer_.setSampleRate(static_cast<float>(audioCapture_.getSampleRate()));
+        audioEngineRunning_ = true;
+        return true;
+    }
+
+    void stopAudioEngine() {
+        audioCapture_.stop();
+        audioCapture_.shutdown();
+        audioEngineRunning_ = false;
+    }
+
     AudioCapture audioCapture_;
     AudioAnalyzer audioAnalyzer_;
     Visualizer visualizer_;
+    bool audioEngineRunning_ = false;
 };
 
 int main(int argc, char* argv[]) {

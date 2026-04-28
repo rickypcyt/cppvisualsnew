@@ -504,11 +504,9 @@ void ModularLayer::render(const LayerContext& context, bool clearFramebuffer) {
         return;
     }
 
-    // DEBUG: Log mode being rendered (only every 60 frames to avoid spam)
-    static int frameCount = 0;
+    // DEBUG: Log mode being rendered only when it changes to avoid spam
     static int lastLoggedMode = -1;
-    frameCount++;
-    if (frameCount % 60 == 0 || mode_ != lastLoggedMode) {
+    if (mode_ != lastLoggedMode) {
         const char* modeName = "Unknown";
         switch(mode_) {
             case 0: modeName = "None"; break;

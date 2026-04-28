@@ -947,7 +947,7 @@ Visualizer::Visualizer()
 
 Visualizer::~Visualizer() { 
     // Save current settings before shutdown
-    saveCurrentSettings();
+    flushPendingSettings();
     shutdown(); 
 }
 
@@ -961,6 +961,7 @@ bool Visualizer::initialize(int width, int height) {
     // Apply loaded settings to visualizer state
     selectedDevice_ = settingsManager_->getSelectedDevice();
     audioInputGain_ = settingsManager_->getAudioInputGain();
+    audioEngineEnabled_ = settingsManager_->getAudioEngineEnabled();
     visualSensitivity_ = settingsManager_->getVisualSensitivity();
     showImGuiWindow_ = settingsManager_->getShowImGuiWindow();
     showCornerOrbs_ = settingsManager_->getShowCornerOrbs();
@@ -999,6 +1000,7 @@ bool Visualizer::initialize(int width, int height) {
     scenePaletteBlend_ = settingsManager_->getScenePaletteBlend();
     currentScenePaletteIndex_ = settingsManager_->getCurrentScenePaletteIndex();
     scenePaletteHueSeed_ = settingsManager_->getScenePaletteHueSeed();
+    colorAnimationEnabled_ = settingsManager_->getColorAnimationEnabled();
     
     // Apply animation settings
     autoRandomizeColors_ = settingsManager_->getAutoRandomizeColors();
@@ -1106,9 +1108,7 @@ bool Visualizer::initialize(int width, int height) {
         }
     });
 
-    std::cout << "[DEBUG] Initializing MIDI controller..." << std::endl;
-    initializeMIDI();
-    std::cout << "[DEBUG] MIDI controller initialized" << std::endl;
+    std::cout << "[DEBUG] MIDI controller disabled by default (use the MIDI panel to connect manually)" << std::endl;
 
     std::cout << "[DEBUG] Getting OpenGL info..." << std::endl;
     const char *renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
@@ -1231,7 +1231,7 @@ void Visualizer::cycleScenePaletteSequential() {
 }
 
 void Visualizer::updateDynamicScenePalette() {
-    if (currentScenePaletteIndex_ >= 0) {
+    if (currentScenePaletteIndex_ >= 0 || !colorAnimationEnabled_) {
         return;
     }
 
@@ -1293,6 +1293,8 @@ void Visualizer::shutdown() {
         imguiInitialized_ = false;
         showImGuiWindow_ = false;
     }
+
+    flushPendingSettings();
 
     proceduralLayer_.shutdown();
     postProcessor_.shutdown();
@@ -1516,7 +1518,7 @@ void Visualizer::endFrame() {
         fpsUpdateTimer_ = 0.0f;
     }
 
-    if (autoRandomizeColors_) {
+    if (colorAnimationEnabled_ && autoRandomizeColors_) {
         if (colorRandomInterval_ < 0.5f) {
             colorRandomInterval_ = 0.5f;
         }
@@ -1527,7 +1529,7 @@ void Visualizer::endFrame() {
         }
     }
 
-    if (onsetColorCyclingEnabled_) {
+    if (colorAnimationEnabled_ && onsetColorCyclingEnabled_) {
         bool onsetActive = audioFeatures_.onset > 0.5f;
         if (onsetActive && !lastOnsetActive_) {
             ++onsetTriggerCount_;
@@ -1543,7 +1545,7 @@ void Visualizer::endFrame() {
     }
     
     // RGB channel randomization based on music (onsets)
-    if (autoRandomizeRgbChannels_) {
+    if (colorAnimationEnabled_ && autoRandomizeRgbChannels_) {
         bool onsetActive = audioFeatures_.onset > 0.5f;
         if (onsetActive && !lastOnsetActive_) {
             ++lastOnsetCount_;
@@ -1835,6 +1837,7 @@ void Visualizer::updateSettingsFromCurrentState() {
     // Update settings manager with current visualizer state
     settingsManager_->setSelectedDevice(selectedDevice_);
     settingsManager_->setAudioInputGain(audioInputGain_);
+    settingsManager_->setAudioEngineEnabled(audioEngineEnabled_);
     settingsManager_->setVisualSensitivity(visualSensitivity_);
     settingsManager_->setShowImGuiWindow(showImGuiWindow_);
     settingsManager_->setShowCornerOrbs(showCornerOrbs_);
@@ -1866,6 +1869,7 @@ void Visualizer::updateSettingsFromCurrentState() {
     settingsManager_->setScenePaletteBlend(scenePaletteBlend_);
     settingsManager_->setCurrentScenePaletteIndex(currentScenePaletteIndex_);
     settingsManager_->setScenePaletteHueSeed(scenePaletteHueSeed_);
+    settingsManager_->setColorAnimationEnabled(colorAnimationEnabled_);
     
     // Update animation settings
     settingsManager_->setAutoRandomizeColors(autoRandomizeColors_);
@@ -1898,11 +1902,21 @@ void Visualizer::updateSettingsFromCurrentState() {
 
 void Visualizer::saveCurrentSettings() {
     std::cout << "[SAVE DEBUG] saveCurrentSettings() called" << std::endl;
-    updateSettingsFromCurrentState();
-    if (settingsManager_) {
-        std::cout << "[SAVE DEBUG] Persisting settings to disk" << std::endl;
-        settingsManager_->saveSettings();
+    settingsDirty_ = true;
+    std::cout << "[SAVE DEBUG] Marked settings dirty; deferring disk write until shutdown" << std::endl;
+}
+
+void Visualizer::flushPendingSettings() {
+    if (!settingsDirty_ || settingsFlushInProgress_ || !settingsManager_) {
+        return;
     }
+
+    settingsFlushInProgress_ = true;
+    std::cout << "[SAVE DEBUG] Flushing pending settings to disk" << std::endl;
+    updateSettingsFromCurrentState();
+    settingsManager_->saveSettings();
+    settingsDirty_ = false;
+    settingsFlushInProgress_ = false;
 }
 
 bool Visualizer::setupOpenGL() {
@@ -2657,6 +2671,8 @@ void Visualizer::initializeDynamicSystems() {
 }
 
 void Visualizer::renderProceduralLayer() {
+    const bool verboseProceduralLogs = proceduralLayerDebug_;
+
     LayerContext context{};
     context.screenWidth = windowWidth_;
     context.screenHeight = windowHeight_;
@@ -2708,14 +2724,14 @@ void Visualizer::renderProceduralLayer() {
             const bool alreadyLogged = lastRenderLoggedBaseActive_
                 && lastRenderLoggedMode_ == baseMode
                 && std::abs(lastRenderLoggedOpacity_ - baseSlot.opacity) < 1e-4f;
-            if (!alreadyLogged) {
+            if (verboseProceduralLogs && !alreadyLogged) {
                 std::cout << "[PROC RENDER] Base slot mode=" << baseMode
                           << " opacity=" << baseSlot.opacity << std::endl;
                 lastRenderLoggedBaseActive_ = true;
                 lastRenderLoggedMode_ = baseMode;
                 lastRenderLoggedOpacity_ = baseSlot.opacity;
             }
-            if (proceduralSlots_[0].mode != baseMode) {
+            if (verboseProceduralLogs && proceduralSlots_[0].mode != baseMode) {
                 std::cout << "[PROC RENDER] Divergence detected: slot0.mode="
                           << proceduralSlots_[0].mode << " but proceduralLayerMode_="
                           << proceduralLayerMode_ << " -> mirroring global into slot0" << std::endl;
@@ -2730,8 +2746,10 @@ void Visualizer::renderProceduralLayer() {
     if (!baseRendered) {
         lastRenderLoggedBaseActive_ = false;
         std::array<float, 3> neutralAdjust{1.0f, 1.0f, 1.0f};
-        std::cout << "[PROC RENDER] No active base slot, falling back to proceduralLayerMode_="
-                  << proceduralLayerMode_ << " opacity=" << proceduralLayerOpacity_ << std::endl;
+        if (verboseProceduralLogs) {
+            std::cout << "[PROC RENDER] No active base slot, falling back to proceduralLayerMode_="
+                      << proceduralLayerMode_ << " opacity=" << proceduralLayerOpacity_ << std::endl;
+        }
         renderSlot(proceduralLayerMode_, proceduralLayerOpacity_, neutralAdjust);
     }
 
@@ -2740,9 +2758,11 @@ void Visualizer::renderProceduralLayer() {
         if (!slot.enabled || slot.opacity <= 0.001f) {
             continue;
         }
-        std::cout << "[PROC RENDER] Secondary slot " << i
-                  << " mode=" << slot.mode
-                  << " opacity=" << slot.opacity << std::endl;
+        if (verboseProceduralLogs) {
+            std::cout << "[PROC RENDER] Secondary slot " << i
+                      << " mode=" << slot.mode
+                      << " opacity=" << slot.opacity << std::endl;
+        }
         // Slots secundarios no limpian el framebuffer para acumular sobre el slot anterior
         renderSlot(slot.mode, slot.opacity, slot.colorAdjust, false);
     }
@@ -3063,6 +3083,8 @@ void Visualizer::selectRandomProcedural() {
 }
 
 void Visualizer::syncProceduralLayerWithSlot1() {
+    const bool verboseProceduralLogs = proceduralLayerDebug_;
+
     if (kMaxProceduralSlots > 0 && proceduralSlots_[0].enabled) {
         // Skip work if nothing changed since the last sync to avoid redundant loops/logs.
         const float opacity = proceduralSlots_[0].opacity;
@@ -3077,10 +3099,12 @@ void Visualizer::syncProceduralLayerWithSlot1() {
         lastSyncedSlot0Mode_ = proceduralLayerMode_;
         lastSyncedSlot0Opacity_ = opacity;
 
-        std::cout << "[SYNC DEBUG] Before sync: proceduralSlots_[0].mode=" << proceduralSlots_[0].mode
-                  << " proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
+        if (verboseProceduralLogs) {
+            std::cout << "[SYNC DEBUG] Before sync: proceduralSlots_[0].mode=" << proceduralSlots_[0].mode
+                      << " proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
+        }
         proceduralLayerOpacity_ = opacity;
-        if (proceduralLayerMode_ != proceduralSlots_[0].mode) {
+        if (verboseProceduralLogs && proceduralLayerMode_ != proceduralSlots_[0].mode) {
             std::cout << "[SYNC DEBUG] Divergence detected: slot0.mode=" << proceduralSlots_[0].mode
                       << " but proceduralLayerMode_=" << proceduralLayerMode_
                       << " -> mirroring global into slot0" << std::endl;
@@ -3095,7 +3119,9 @@ void Visualizer::syncProceduralLayerWithSlot1() {
             proceduralLayer_.setCameraOffset(0.0f, 0.0f);
         }
         showProceduralLayer_ = true;
-        std::cout << "[SYNC DEBUG] After sync: proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
+        if (verboseProceduralLogs) {
+            std::cout << "[SYNC DEBUG] After sync: proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
+        }
     } else {
         lastSyncedSlot0Enabled_ = false;
         // Fallback to global values if Slot 1 is disabled
@@ -3114,9 +3140,13 @@ void Visualizer::updateRandomProcedural(float deltaTime) {
     randomProceduralTimer_ += deltaTime;
     
     if (randomProceduralTimer_ >= randomProceduralInterval_) {
-        std::cout << "[RANDOM DEBUG] Selecting random procedural (current=" << currentRandomProcedural_ << ")" << std::endl;
+        if (proceduralLayerDebug_) {
+            std::cout << "[RANDOM DEBUG] Selecting random procedural (current=" << currentRandomProcedural_ << ")" << std::endl;
+        }
         selectRandomProcedural();
-        std::cout << "[RANDOM DEBUG] New random mode=" << currentRandomProcedural_ << std::endl;
+        if (proceduralLayerDebug_) {
+            std::cout << "[RANDOM DEBUG] New random mode=" << currentRandomProcedural_ << std::endl;
+        }
         randomProceduralTimer_ = 0.0f;
     }
 }

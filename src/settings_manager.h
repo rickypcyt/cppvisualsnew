@@ -40,6 +40,9 @@ public:
     float getAudioInputGain() const { return audioInputGain_; }
     void setAudioInputGain(float gain) { audioInputGain_ = gain; }
 
+    bool getAudioEngineEnabled() const { return audioEngineEnabled_; }
+    void setAudioEngineEnabled(bool enabled) { audioEngineEnabled_ = enabled; }
+
     float getVisualSensitivity() const { return visualSensitivity_; }
     void setVisualSensitivity(float sensitivity) { visualSensitivity_ = sensitivity; }
 
@@ -84,6 +87,9 @@ public:
 
     float getScenePaletteHueSeed() const { return scenePaletteHueSeed_; }
     void setScenePaletteHueSeed(float seed) { scenePaletteHueSeed_ = seed; }
+
+    bool getColorAnimationEnabled() const { return colorAnimationEnabled_; }
+    void setColorAnimationEnabled(bool enabled) { colorAnimationEnabled_ = enabled; }
 
     bool getAutoRandomizeColors() const { return autoRandomizeColors_; }
     void setAutoRandomizeColors(bool autoRandomize) { autoRandomizeColors_ = autoRandomize; }
@@ -172,6 +178,7 @@ private:
     int selectedDevice_ = -1;
     float audioInputGain_ = 1.0f;
     float visualSensitivity_ = 1.0f;
+    bool audioEngineEnabled_ = true;
 
     // UI settings
     bool showImGuiWindow_ = true;
@@ -206,6 +213,7 @@ private:
     float scenePaletteBlend_ = 0.6f;
     int currentScenePaletteIndex_ = -1;
     float scenePaletteHueSeed_ = 0.0f;
+    bool colorAnimationEnabled_ = true;
 
     // Color animation settings
     bool autoRandomizeColors_;

@@ -581,6 +581,17 @@ void Visualizer::renderMainImGuiWindow() {
 
     ImGui::Text("🎛️ Input Gain");
     ImGui::SliderFloat("##InputGainSlider", &audioInputGain_, 0.1f, 5.0f, "%.2fx", ImGuiSliderFlags_AlwaysClamp);
+
+    ImGui::Spacing();
+    bool prevAudioEngineEnabled = audioEngineEnabled_;
+    ImGui::Checkbox("Audio Engine", &audioEngineEnabled_);
+    if (prevAudioEngineEnabled != audioEngineEnabled_) {
+        saveCurrentSettings();
+    }
+    if (!audioEngineEnabled_) {
+        ImGui::SameLine();
+        ImGui::TextDisabled("(capture and analysis off)");
+    }
     
     ImGui::Spacing();
     ImGui::Text("🎵 Manual BPM Mode");
@@ -825,6 +836,12 @@ void Visualizer::renderColorsWindow() {
     if (ImGui::SliderFloat("Blend", &scenePaletteBlend_, 0.0f, 1.0f, "%.2f")) {
         scenePaletteBlend_ = std::clamp(scenePaletteBlend_, 0.0f, 1.0f);
         proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+        saveCurrentSettings();
+    }
+
+    bool prevColorAnimation = colorAnimationEnabled_;
+    ImGui::Checkbox("Animate colors", &colorAnimationEnabled_);
+    if (prevColorAnimation != colorAnimationEnabled_) {
         saveCurrentSettings();
     }
 

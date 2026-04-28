@@ -1,7 +1,7 @@
 {
     "animation": {
-        "autoRandomize": true,
-        "autoRandomizeRgb": true,
+        "autoRandomize": false,
+        "autoRandomizeRgb": false,
         "onsetColorCycling": false,
         "randomInterval": 1.819000005722046,
         "rgbRandomInterval": 5.0
@@ -10,22 +10,23 @@
         "inputGain": 3.4000000953674316,
         "manualBPM": 120.0,
         "manualBPMMode": true,
-        "selectedDevice": 6,
+        "selectedDevice": 3,
         "visualSensitivity": 0.47999998927116394
     },
     "colors": {
-        "blend": 0.47999998927116394,
-        "hueSeed": 0.622036874294281,
-        "paletteIndex": 1,
+        "animationEnabled": true,
+        "blend": 1.0,
+        "hueSeed": 0.42949971556663513,
+        "paletteIndex": -1,
         "primary": [
-            0.5799999833106995,
-            0.11999999731779099,
-            0.1599999964237213
+            0.20900005102157593,
+            0.949999988079071,
+            0.6365556716918945
         ],
         "secondary": [
-            0.9399999976158142,
-            0.36000001430511475,
-            0.30000001192092896
+            0.42068320512771606,
+            0.30800002813339233,
+            0.8799999952316284
         ]
     },
     "hotReloadEnabled": false,
@@ -192,10 +193,10 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Ikeda Grid",
+                "effectName": "Chromatic Swirl",
                 "enabled": true,
-                "mode": 65,
-                "opacity": 1.0
+                "mode": 26,
+                "opacity": 0.949999988079071
             },
             {
                 "colorAdjust": [
@@ -299,15 +300,15 @@
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
-        false,
-        false,
+        true,
+        true,
         true
     ],
     "ui": {
-        "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Ikeda Grid",
-        "proceduralLayerMode": 65,
-        "proceduralLayerOpacity": 1.0,
+        "proceduralLayerDebug": true,
+        "proceduralLayerEffectName": "Chromatic Swirl",
+        "proceduralLayerMode": 26,
+        "proceduralLayerOpacity": 0.949999988079071,
         "showCornerOrbs": false,
         "showCurrentEffects": true,
         "showImGuiWindow": false,
