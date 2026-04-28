@@ -2018,6 +2018,23 @@ bool Visualizer::setupOpenGL() {
                 vis->handleMouseScroll(xoffset, yoffset);
             }
         });
+
+        // Set up framebuffer size callback for FBO resize (event-based, no polling)
+        glfwSetFramebufferSizeCallback(imguiWindow_, [](GLFWwindow* window, int width, int height) {
+            Visualizer* vis = static_cast<Visualizer*>(glfwGetWindowUserPointer(window));
+            if (vis) {
+                vis->resizeImGuiFBO(width, height);
+            }
+        });
+
+        // Initialize FBO with correct initial size (matches window)
+        resizeImGuiFBO(imguiWindowWidth_, imguiWindowHeight_);
+        
+        // Disable vsync on ImGui window to prevent swapbuffers blocking (22ms stall)
+        // This is critical for dual-window performance
+        glfwMakeContextCurrent(imguiWindow_);
+        glfwSwapInterval(0);
+        glfwMakeContextCurrent(window_);
     }
 
     // Make main window current again

@@ -80,6 +80,7 @@ public:
     void handleKeyboardInput();
     static void handleScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
     void handleMouseScroll(double xoffset, double yoffset);
+    static void handleImGuiFramebufferSizeCallback(GLFWwindow* window, int width, int height);
     bool isKeyPressed(int key) const;
 
     // Multi-monitor support
@@ -297,6 +298,7 @@ private:
     int textureBindsPerFrame_ = 0;
     int shaderSwitchesPerFrame_ = 0;
     bool showPerformanceWindow_ = false;
+    bool cpuBottleneckActive_ = false;  // Hysteresis state for bottleneck detection
 
     // ImGui state
     bool showImGuiWindow_;
@@ -326,6 +328,7 @@ private:
     void resizeImGuiFBO(int width, int height);
     void renderImGuiToFBO();
     void blitImGuiFBOToWindow();
+    
     bool autoRandomizeColors_;
     float colorRandomInterval_;
     float colorRandomTimer_;

@@ -1,0 +1,240 @@
+{
+	"configurations" : 
+	[
+		{
+			"abstractTargets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "Threads::Threads::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Threads__Threads-Debug-47a8d7e17add958a0f22.json",
+					"name" : "Threads::Threads",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Vulkan::Headers::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Vulkan__Headers-Debug-7a1db5a347d4608422a0.json",
+					"name" : "Vulkan::Headers",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Vulkan::Vulkan::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Vulkan__Vulkan-Debug-ed0f5d14968dd6387d48.json",
+					"name" : "Vulkan::Vulkan",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Vulkan::glslangValidator::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Vulkan__glslangValidator-Debug-bb3e3bf61c232c63e9ea.json",
+					"name" : "Vulkan::glslangValidator",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Vulkan::glslc::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Vulkan__glslc-Debug-b54696095fdf74c97d34.json",
+					"name" : "Vulkan::glslc",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "glfw::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-glfw-Debug-a950426de991ad5293e7.json",
+					"name" : "glfw",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "nlohmann_json::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-nlohmann_json-Debug-7f3a0ea452e3541db8b6.json",
+					"name" : "nlohmann_json",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "nlohmann_json::nlohmann_json::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-nlohmann_json__nlohmann_json-Debug-e54e3e940bbc62084d12.json",
+					"name" : "nlohmann_json::nlohmann_json",
+					"projectIndex" : 0
+				}
+			],
+			"directories" : 
+			[
+				{
+					"abstractTargetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-fd6451d79dc282e2f566.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"abstractTargetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "AudioVisualizer",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "app_layer::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-app_layer-Debug-d6122d3901420e8324b8.json",
+					"name" : "app_layer",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "audio_visualizer::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-audio_visualizer-Debug-c6a61e63dfed43fcce95.json",
+					"name" : "audio_visualizer",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "core_engine::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-core_engine-Debug-2833b55e42faed28273f.json",
+					"name" : "core_engine",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "gl_backend::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-gl_backend-Debug-6934b3ee214e89439f16.json",
+					"name" : "gl_backend",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "imgui::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-imgui-Debug-07f75130e2de7735cf9c.json",
+					"name" : "imgui",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "imgui_glfw::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-imgui_glfw-Debug-977f3013cec09219795c.json",
+					"name" : "imgui_glfw",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "imgui_opengl3::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-imgui_opengl3-Debug-43373ec97c71a84ab819.json",
+					"name" : "imgui_opengl3",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "modular_layer::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-modular_layer-Debug-dc8ff70ba97f879d5dd9.json",
+					"name" : "modular_layer",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "post_processing::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-post_processing-Debug-89b3cd7e39e9feb3e77a.json",
+					"name" : "post_processing",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "shader_system::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-shader_system-Debug-c0adbcb7716154c99b25.json",
+					"name" : "shader_system",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_layer_integration::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_layer_integration-Debug-f43447f308df8acf72d1.json",
+					"name" : "test_layer_integration",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "validate_layers::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-validate_layers-Debug-45ea684c9615a677206a.json",
+					"name" : "validate_layers",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/ricky/coding/proyects/visuals/build",
+		"source" : "/home/ricky/coding/proyects/visuals"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 10
+	}
+}

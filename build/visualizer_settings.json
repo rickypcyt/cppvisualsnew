@@ -8,26 +8,26 @@
     },
     "audio": {
         "audioEngineEnabled": true,
-        "inputGain": 1.0,
+        "inputGain": 1.4299999475479126,
         "manualBPM": 120.0,
         "manualBPMMode": false,
         "selectedDevice": 4,
-        "visualSensitivity": 1.0
+        "visualSensitivity": 2.490000009536743
     },
     "colors": {
         "animationEnabled": true,
-        "blend": 0.5600000023841858,
+        "blend": 0.6200000047683716,
         "hueSeed": 0.028130698949098587,
-        "paletteIndex": 2,
+        "paletteIndex": 0,
         "primary": [
             0.10000000149011612,
-            0.3199999928474426,
-            0.18000000715255737
+            0.23999999463558197,
+            0.5799999833106995
         ],
         "secondary": [
-            0.30000001192092896,
-            0.8199999928474426,
-            0.5199999809265137
+            0.2800000011920929,
+            0.699999988079071,
+            0.9800000190734863
         ]
     },
     "hotReloadEnabled": false,
@@ -40,7 +40,7 @@
         "slots": [
             {
                 "enabled": true,
-                "mode": 24,
+                "mode": 27,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -104,10 +104,10 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Phi Fields",
+                "effectName": "Voxel Path Tracer",
                 "enabled": true,
-                "mode": 36,
-                "opacity": 0.949999988079071
+                "mode": 22,
+                "opacity": 1.0
             },
             {
                 "colorAdjust": [
@@ -164,15 +164,15 @@
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
-        true,
+        false,
         true,
         true
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Phi Fields",
-        "proceduralLayerMode": 36,
-        "proceduralLayerOpacity": 0.949999988079071,
+        "proceduralLayerEffectName": "Voxel Path Tracer",
+        "proceduralLayerMode": 22,
+        "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": true,
         "showCurrentEffects": true,
         "showImGuiWindow": false,

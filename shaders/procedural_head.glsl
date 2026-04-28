@@ -573,7 +573,7 @@ float map(vec3 p) {
     return mapWithEye(p).x;
 }
 
-const int NORMAL_STEPS = 6;
+const int NORMAL_STEPS = 4;
 vec3 calcNormal(vec3 pos){
     vec3 eps = vec3(.0005,0,0);
     vec3 nor = vec3(0);
@@ -611,7 +611,7 @@ vec4 renderSingleHead(vec2 st, float uTime, float uTempo, float uEnergy, float u
     vec3 col = vec3(.1);
     bool hitIsEye = false;
 
-    for (int i = 0; i < 150; i++) {
+    for (int i = 0; i < 100; i++) {
         rayLength += dist;
         rayPosition = camPos + rayDirection * rayLength;
         vec2 mapResult = mapWithEye(rayPosition);

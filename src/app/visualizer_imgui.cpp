@@ -201,6 +201,7 @@ void Visualizer::shutdownImGui() {
     if (!ImGui::GetCurrentContext()) {
         return;
     }
+    
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -444,14 +445,7 @@ void Visualizer::renderImGui() {
         glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
-    // Get ImGui window size and ensure FBO matches
-    if (renderControlsWindow && imguiWindow_) {
-        int fbWidth, fbHeight;
-        glfwGetFramebufferSize(imguiWindow_, &fbWidth, &fbHeight);
-        if (fbWidth > 0 && fbHeight > 0) {
-            resizeImGuiFBO(fbWidth, fbHeight);
-        }
-    }
+    // FBO resize is handled by callback - no polling needed here
 
     // Start the Dear ImGui frame
     {
@@ -553,7 +547,7 @@ void Visualizer::renderImGui() {
         ImGui::EndFrame();
     }
 
-    // Blit FBO to ImGui window and swap buffers (only context switch happens here)
+    // Blit FBO to ImGui window and swap buffers (no fences to avoid stalls)
     if (!blockControlsForFullscreen && renderControlsWindow) {
         PROFILE_SCOPE("imgui_blit_to_window");
         blitImGuiFBOToWindow();
@@ -2053,10 +2047,17 @@ void Visualizer::renderPerformanceImGui() {
 
     ImGui::Spacing();
     ImGui::Text("Status:");
-    if (frameTimeCPU_ > 16.67f) {
-        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "  CPU bottleneck detected");
+    // Hysteresis: 20ms to enter bottleneck, 14ms to exit
+    // Prevents rapid toggling when frame time hovers near 16.67ms (60 FPS)
+    if (!cpuBottleneckActive_ && frameTimeCPU_ > 20.0f) {
+        cpuBottleneckActive_ = true;
+    } else if (cpuBottleneckActive_ && frameTimeCPU_ < 14.0f) {
+        cpuBottleneckActive_ = false;
+    }
+    if (cpuBottleneckActive_) {
+        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "  CPU bottleneck detected (%.1f ms)", frameTimeCPU_);
     } else {
-        ImGui::TextColored(ImVec4(0.3f, 1.0f, 0.3f, 1.0f), "  CPU OK");
+        ImGui::TextColored(ImVec4(0.3f, 1.0f, 0.3f, 1.0f), "  CPU OK (%.1f ms)", frameTimeCPU_);
     }
 
     ImGui::End();
@@ -2092,12 +2093,12 @@ void Visualizer::initializeImGuiFBO() {
     glGenFramebuffers(1, &imguiFBO_);
     glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO_);
     
-    // Create color texture
+    // Create color texture (use NEAREST to avoid any filtering/blur)
     glGenTextures(1, &imguiFBOTexture_);
     glBindTexture(GL_TEXTURE_2D, imguiFBOTexture_);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imguiFBOWidth_, imguiFBOHeight_, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, imguiFBOTexture_, 0);
     
     // Create renderbuffer for depth (optional, but good for completeness)
@@ -2135,9 +2136,11 @@ void Visualizer::resizeImGuiFBO(int width, int height) {
     imguiFBOWidth_ = width;
     imguiFBOHeight_ = height;
     
-    // Resize texture
+    // Resize texture (preserve NEAREST filtering)
     glBindTexture(GL_TEXTURE_2D, imguiFBOTexture_);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imguiFBOWidth_, imguiFBOHeight_, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
     // Resize renderbuffer
     glBindRenderbuffer(GL_RENDERBUFFER, imguiFBODepth_);
@@ -2169,30 +2172,39 @@ void Visualizer::renderImGuiToFBO() {
 void Visualizer::blitImGuiFBOToWindow() {
     if (!imguiFBOInitialized_ || !imguiWindow_) return;
     
-    // Make ImGui window context current (this is the only context switch)
-    glfwMakeContextCurrent(imguiWindow_);
+    // FAST PATH: No GPU sync, no fences - just blit and swap
+    // Fences were causing 28ms+ stalls. For audio-reactive visuals,
+    // dropping ImGui frames is better than stalling the main render loop.
     
     // Get window size
     int fbWidth, fbHeight;
     glfwGetFramebufferSize(imguiWindow_, &fbWidth, &fbHeight);
-    glViewport(0, 0, fbWidth, fbHeight);
     
-    // Blit FBO to window using a simple fullscreen quad
-    // For now, use glBlitFramebuffer which is fast
+    // Ensure FBO matches window size
+    if (fbWidth != imguiFBOWidth_ || fbHeight != imguiFBOHeight_) {
+        resizeImGuiFBO(fbWidth, fbHeight);
+    }
+    
+    // Switch to ImGui window context
+    glfwMakeContextCurrent(imguiWindow_);
+    
+    // Blit FBO to imgui window's default framebuffer
     glBindFramebuffer(GL_READ_FRAMEBUFFER, imguiFBO_);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glViewport(0, 0, fbWidth, fbHeight);
     
-    // Blit with scaling if sizes differ
+    // Blit FBO to window - use NEAREST for speed
     glBlitFramebuffer(0, 0, imguiFBOWidth_, imguiFBOHeight_,
                       0, 0, fbWidth, fbHeight,
-                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
+                      GL_COLOR_BUFFER_BIT, GL_NEAREST);
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
-    // Swap buffers
+    // Swap imgui window buffers (no vsync, should not block)
     glfwSwapBuffers(imguiWindow_);
     imguiDirty_ = false;
     
-    // Return to main window context
+    // Switch back to main window context
     glfwMakeContextCurrent(window_);
 }
+
