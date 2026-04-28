@@ -14,7 +14,7 @@ fi
 # Build the project
 if [ -d "build" ]; then
     cd build
-    if make; then
+    if cmake --build . -j$(nproc); then
         echo "Build successful!"
     else
         echo "Build failed!"

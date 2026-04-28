@@ -4,7 +4,113 @@ project(AudioVisualizer)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Find packages
+# ============================================================================
+# CORE ENGINE LIBRARY (backend-agnostic)
+# ============================================================================
+add_library(core_engine STATIC
+    src/audio_engine.cpp
+    src/audio_capture.cpp
+    src/audio_analyzer.cpp
+    src/settings_manager.cpp
+    src/midi_controller.cpp
+    src/profiler.h
+)
+
+target_include_directories(core_engine PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+# ============================================================================
+# IMGUI STATIC LIBRARY (shared across all targets)
+# ============================================================================
+add_library(imgui STATIC
+    imgui/imgui.cpp
+    imgui/imgui_demo.cpp
+    imgui/imgui_draw.cpp
+    imgui/imgui_tables.cpp
+    imgui/imgui_widgets.cpp
+    imgui/backends/imgui_impl_glfw.cpp
+    imgui/backends/imgui_impl_opengl3.cpp
+)
+
+target_include_directories(imgui PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
+)
+
+# ============================================================================
+# SHADER SYSTEM LIBRARY (backend-agnostic)
+# ============================================================================
+add_library(shader_system STATIC
+    src/shader.cpp
+    src/shader_loader.cpp
+    src/layer_validator.cpp
+)
+
+target_include_directories(shader_system PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+# ============================================================================
+# POST PROCESSING LIBRARY (backend-agnostic)
+# ============================================================================
+add_library(post_processing STATIC
+    src/post_processor.cpp
+)
+
+target_include_directories(post_processing PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(post_processing PUBLIC
+    shader_system
+)
+
+# ============================================================================
+# MODULAR LAYER LIBRARY (backend-agnostic)
+# ============================================================================
+add_library(modular_layer STATIC
+    src/modular_layer.cpp
+)
+
+target_include_directories(modular_layer PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(modular_layer PUBLIC
+    shader_system
+)
+
+# ============================================================================
+# OPENGL BACKEND LIBRARY
+# ============================================================================
+add_library(gl_backend STATIC
+    src/gl_renderer.cpp
+    src/visualizer.cpp
+    src/visualizer_imgui.cpp
+    src/visualizer_console.cpp
+    src/visualizer_diagnostic.cpp
+    src/visualizer_procedural.cpp
+)
+
+target_include_directories(gl_backend PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+# ============================================================================
+# VULKAN BACKEND LIBRARY (optional, disabled for now)
+# ============================================================================
+# add_library(vk_backend STATIC
+#     src/vk_renderer.cpp
+# )
+
+# target_include_directories(vk_backend PUBLIC
+#     ${CMAKE_CURRENT_SOURCE_DIR}/src
+# )
+
+# ============================================================================
+# FIND DEPENDENCIES
+# ============================================================================
 find_package(glfw3 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
@@ -19,6 +125,7 @@ if(Vulkan_FOUND)
 else()
     message(STATUS "Vulkan not found - only OpenGL renderer available")
 endif()
+
 find_package(nlohmann_json QUIET)
 if(NOT nlohmann_json_FOUND)
     message(STATUS "nlohmann_json not found, using header-only fallback")
@@ -44,128 +151,85 @@ if(NOT GLEW_INCLUDE_DIRS OR NOT GLEW_LIBRARIES)
     message(FATAL_ERROR "GLEW not found. Please install libglew-dev or equivalent")
 endif()
 
-# ImGui (as submodule)
-set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
-set(IMGUI_SOURCES
-    ${IMGUI_DIR}/imgui.cpp
-    ${IMGUI_DIR}/imgui_demo.cpp
-    ${IMGUI_DIR}/imgui_draw.cpp
-    ${IMGUI_DIR}/imgui_tables.cpp
-    ${IMGUI_DIR}/imgui_widgets.cpp
-    ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
-    ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-)
-set(IMGUI_HEADERS
-    ${IMGUI_DIR}/imgui.h
-    ${IMGUI_DIR}/imgui_internal.h
-    ${IMGUI_DIR}/imgui_demo.h
-    ${IMGUI_DIR}/imgui_draw.h
-    ${IMGUI_DIR}/imgui_tables.h
-    ${IMGUI_DIR}/imgui_widgets.h
-    ${IMGUI_DIR}/backends/imgui_impl_glfw.h
-    ${IMGUI_DIR}/backends/imgui_impl_opengl3.h
-    ${IMGUI_DIR}/imstb_rectpack.h
-    ${IMGUI_DIR}/imstb_textedit.h
-    ${IMGUI_DIR}/imconfig.h
-)
+# ============================================================================
+# LINK DEPENDENCIES TO LIBRARIES
+# ============================================================================
 
-# PortAudio
-pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
-
-# GLFW
-find_package(glfw3 REQUIRED)
-if(NOT glfw3_FOUND)
-    find_path(GLFW_INCLUDE_DIRS GLFW/glfw3.h
-        PATHS /usr/include /usr/local/include
-        PATH_SUFFIXES glfw GL
-    )
-    find_library(GLFW_LIBRARIES glfw
-        PATHS /usr/lib /usr/local/lib
-    )
-    if(NOT GLFW_INCLUDE_DIRS OR NOT GLFW_LIBRARIES)
-        message(FATAL_ERROR "GLFW not found. Please install libglfw-dev or equivalent")
-    endif()
-endif()
-
-# Include directories
-include_directories(${OPENGL_INCLUDE_DIRS})
-if(GLFW_INCLUDE_DIRS)
-    include_directories(${GLFW_INCLUDE_DIRS})
-endif()
-if(GLEW_INCLUDE_DIRS)
-    include_directories(${GLEW_INCLUDE_DIRS})
-endif()
-include_directories(${PORTAUDIO_INCLUDE_DIRS})
-include_directories(${IMGUI_DIR})
-include_directories(${IMGUI_DIR}/backends)
-
-# Add executable
-add_executable(audio_visualizer
-    src/main.cpp
-    src/visualizer.cpp
-    src/visualizer_imgui.cpp
-    src/visualizer_console.cpp
-    src/visualizer_diagnostic.cpp
-    src/visualizer_procedural.cpp
-    src/audio_engine.cpp
-    src/audio_capture.cpp
-    src/audio_analyzer.cpp
-    src/gl_renderer.cpp
-    src/vk_renderer.cpp
-    src/modular_layer.cpp
-    src/post_processor.cpp
-    src/shader.cpp
-    src/settings_manager.cpp
-    src/midi_controller.cpp
-    src/layer_validator.cpp
-    src/shader_loader.cpp
-    ${IMGUI_SOURCES}
-)
-
-# Layer validation utility
-add_executable(validate_layers
-    src/validate_layers.cpp
-    src/layer_validator.cpp
-    src/shader_loader.cpp
-)
-
-# Layer integration tests
-add_executable(test_layer_integration
-    src/test_layer_integration.cpp
-    src/layer_validator.cpp
-    src/modular_layer.cpp
-    src/post_processor.cpp
-    src/shader.cpp
-    src/audio_analyzer.cpp
-    src/settings_manager.cpp
-    src/shader_loader.cpp
-    ${IMGUI_SOURCES}
-)
-
-# Link libraries
-target_link_libraries(audio_visualizer
-    ${CMAKE_DL_LIBS}
-    glfw
-    ${GLEW_LIBRARIES}
-    ${OPENGL_LIBRARIES}
-    -lGL
+# Core engine dependencies
+target_link_libraries(core_engine PUBLIC
     ${PORTAUDIO_LIBRARIES}
     ${ALSA_LIBRARIES}
     Threads::Threads
 )
 
-# Link Vulkan if available
+# ImGui dependencies
+target_link_libraries(imgui PUBLIC
+    glfw
+)
+
+# OpenGL backend dependencies
+target_link_libraries(gl_backend PUBLIC
+    core_engine
+    shader_system
+    post_processing
+    modular_layer
+    imgui
+    ${CMAKE_DL_LIBS}
+    glfw
+    ${GLEW_LIBRARIES}
+    ${OPENGL_LIBRARIES}
+    -lGL
+)
+
+# Vulkan backend dependencies (when enabled)
+# if(Vulkan_FOUND)
+#     target_link_libraries(vk_backend PUBLIC
+#         core_engine
+#         shader_system
+#         ${Vulkan_LIBRARIES}
+#     )
+# endif()
+
+# ============================================================================
+# EXECUTABLES
+# ============================================================================
+
+# Main executable (OpenGL backend only for now)
+add_executable(audio_visualizer
+    src/main.cpp
+)
+
+target_link_libraries(audio_visualizer PRIVATE
+    gl_backend
+)
+
+# Add Vulkan if available
 if(Vulkan_FOUND)
-    target_link_libraries(audio_visualizer ${Vulkan_LIBRARIES})
+    target_link_libraries(audio_visualizer PRIVATE ${Vulkan_LIBRARIES})
 endif()
 
-# Link libraries for validation utilities
-target_link_libraries(validate_layers
+# Layer validation utility
+add_executable(validate_layers
+    src/validate_layers.cpp
+)
+
+target_link_libraries(validate_layers PRIVATE
+    shader_system
     m
     pthread
 )
 
-target_link_libraries(test_layer_integration
+# Layer integration tests
+add_executable(test_layer_integration
+    src/test_layer_integration.cpp
+)
+
+target_link_libraries(test_layer_integration PRIVATE
+    core_engine
+    shader_system
+    post_processing
+    modular_layer
+    imgui
     ${CMAKE_DL_LIBS}
     glfw
     ${OPENGL_LIBRARIES}
@@ -175,32 +239,24 @@ target_link_libraries(test_layer_integration
     pthread
 )
 
-# Compiler flags
+# ============================================================================
+# COMPILER FLAGS
+# ============================================================================
 target_compile_options(audio_visualizer PRIVATE ${PORTAUDIO_CFLAGS_OTHER})
 
-# Copy shaders to build directory BEFORE build
-add_custom_command(TARGET audio_visualizer PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:audio_visualizer>/shaders
-)
+# ============================================================================
+# INCREMENTAL SHADER COPY SYSTEM
+# ============================================================================
 
-# Copy shaders for validation utilities
-add_custom_command(TARGET validate_layers POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:validate_layers>/shaders
-)
+# Function to copy shaders only if they changed
+function(copy_shaders_if_changed target_name)
+    add_custom_command(TARGET ${target_name} PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:${target_name}>/shaders
+        COMMENT "Copying shaders for ${target_name}..."
+    )
+endfunction()
 
-add_custom_command(TARGET test_layer_integration POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:test_layer_integration>/shaders
-)
-
-# Pre-build validation step (commented out for testing)
-# add_custom_target(validate_shaders ALL
-#     COMMAND validate_layers --all
-#     COMMENT "Validating all shader layers before compilation..."
-#     DEPENDS validate_layers
-# )
-
-# Make main executable depend on validation (commented out for testing)
-# add_dependencies(audio_visualizer validate_shaders)
+copy_shaders_if_changed(audio_visualizer)
+copy_shaders_if_changed(validate_layers)
+copy_shaders_if_changed(test_layer_integration)

@@ -288,6 +288,16 @@ private:
     // Hot-reload settings
     bool hotReloadEnabled_ = false;
 
+    // Performance tracking (FASE 0)
+    float frameTimeCPU_ = 0.0f;
+    float frameTimeGPU_ = 0.0f;
+    float fps_ = 0.0f;
+    int drawCallsPerFrame_ = 0;
+    int uniformCallsPerFrame_ = 0;
+    int textureBindsPerFrame_ = 0;
+    int shaderSwitchesPerFrame_ = 0;
+    bool showPerformanceWindow_ = false;
+
     // ImGui state
     bool showImGuiWindow_;
     bool showImGuiVisualWindow_;
@@ -430,6 +440,7 @@ private:
     void renderDiagnosticImGui();
     void renderConsoleImGui();
     void renderShaderPresetsWindow();
+    void renderPerformanceImGui(); // FASE 0.4
     
     // Shader reload method
     void reloadProceduralShaders();

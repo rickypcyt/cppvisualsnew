@@ -255,8 +255,20 @@ Vulkan_INCLUDE_DIR:PATH=/usr/include
 //Path to a library.
 Vulkan_LIBRARY:FILEPATH=/usr/lib/libvulkan.so
 
+//Dependencies for the target
+core_engine_LIB_DEPENDS:STATIC=general;portaudio;general;asound;general;m;general;pthread;general;asound;
+
+//Dependencies for the target
+gl_backend_LIB_DEPENDS:STATIC=general;core_engine;general;shader_system;general;post_processing;general;modular_layer;general;imgui;general;dl;general;glfw;general;/usr/lib/libGLEW.so;general;-lGL;
+
 //The directory containing a CMake configuration file for glfw3.
 glfw3_DIR:PATH=/usr/lib/cmake/glfw3
+
+//Dependencies for the target
+imgui_LIB_DEPENDS:STATIC=general;glfw;
+
+//Dependencies for the target
+modular_layer_LIB_DEPENDS:STATIC=general;shader_system;
 
 //The directory containing a CMake configuration file for nlohmann_json.
 nlohmann_json_DIR:PATH=/usr/share/cmake/nlohmann_json
@@ -275,6 +287,9 @@ pkgcfg_lib_PORTAUDIO_portaudio:FILEPATH=/usr/lib/libportaudio.so
 
 //Path to a library.
 pkgcfg_lib_PORTAUDIO_pthread:FILEPATH=/usr/lib/libpthread.a
+
+//Dependencies for the target
+post_processing_LIB_DEPENDS:STATIC=general;shader_system;
 
 
 ########################

@@ -395,6 +395,54 @@ src/audio_capture.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/audio_capture.cpp.s
 .PHONY : src/audio_capture.cpp.s
 
+src/audio_engine.o: src/audio_engine.cpp.o
+.PHONY : src/audio_engine.o
+
+# target to build an object file
+src/audio_engine.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/audio_engine.cpp.o
+.PHONY : src/audio_engine.cpp.o
+
+src/audio_engine.i: src/audio_engine.cpp.i
+.PHONY : src/audio_engine.i
+
+# target to preprocess a source file
+src/audio_engine.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/audio_engine.cpp.i
+.PHONY : src/audio_engine.cpp.i
+
+src/audio_engine.s: src/audio_engine.cpp.s
+.PHONY : src/audio_engine.s
+
+# target to generate assembly for a file
+src/audio_engine.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/audio_engine.cpp.s
+.PHONY : src/audio_engine.cpp.s
+
+src/gl_renderer.o: src/gl_renderer.cpp.o
+.PHONY : src/gl_renderer.o
+
+# target to build an object file
+src/gl_renderer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/gl_renderer.cpp.o
+.PHONY : src/gl_renderer.cpp.o
+
+src/gl_renderer.i: src/gl_renderer.cpp.i
+.PHONY : src/gl_renderer.i
+
+# target to preprocess a source file
+src/gl_renderer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/gl_renderer.cpp.i
+.PHONY : src/gl_renderer.cpp.i
+
+src/gl_renderer.s: src/gl_renderer.cpp.s
+.PHONY : src/gl_renderer.s
+
+# target to generate assembly for a file
+src/gl_renderer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/src/gl_renderer.cpp.s
+.PHONY : src/gl_renderer.cpp.s
+
 src/layer_validator.o: src/layer_validator.cpp.o
 .PHONY : src/layer_validator.o
 
@@ -817,6 +865,12 @@ help:
 	@echo "... src/audio_capture.o"
 	@echo "... src/audio_capture.i"
 	@echo "... src/audio_capture.s"
+	@echo "... src/audio_engine.o"
+	@echo "... src/audio_engine.i"
+	@echo "... src/audio_engine.s"
+	@echo "... src/gl_renderer.o"
+	@echo "... src/gl_renderer.i"
+	@echo "... src/gl_renderer.s"
 	@echo "... src/layer_validator.o"
 	@echo "... src/layer_validator.i"
 	@echo "... src/layer_validator.s"

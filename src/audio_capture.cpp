@@ -11,6 +11,8 @@ AudioCapture::AudioCapture()
 
 AudioCapture::~AudioCapture() {
     shutdown();
+    Pa_Terminate(); // Only terminate at program exit
+    Pa_Terminate(); // Only terminate at program exit
 }
 
 bool AudioCapture::initialize() {
@@ -41,14 +43,10 @@ bool AudioCapture::initialize() {
     
     if (defaultDevice < 0) {
         std::cerr << "No input devices available" << std::endl;
-        Pa_Terminate();
         return false;
     }
     
     bool result = initialize(defaultDevice);
-    if (!result) {
-        Pa_Terminate();
-    }
     return result;
 }
 
@@ -142,7 +140,8 @@ void AudioCapture::shutdown() {
         Pa_CloseStream(stream_);
         stream_ = nullptr;
     }
-    Pa_Terminate();
+    // Don't terminate PortAudio here to allow reinitialization
+    // Pa_Terminate() should only be called at program exit
 }
 
 bool AudioCapture::start() {

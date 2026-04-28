@@ -1,5 +1,6 @@
 #include "visualizer.h"
-
+#include "imgui.h"
+#include "profiler.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -9,7 +10,6 @@
 #include <sstream>
 #include <iomanip>
 
-#include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
@@ -362,6 +362,8 @@ void Visualizer::handleKeyboardInput() {
 }
 
 void Visualizer::renderImGui() {
+    PROFILE_FUNCTION();
+
     // Detect fullscreen mode on main window
     bool mainWindowFullscreen = false;
     if (window_) {
@@ -391,7 +393,9 @@ void Visualizer::renderImGui() {
     }
 
     const bool controlsVisible = imguiWindow_ && glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE);
-    bool renderControlsWindow = controlsVisible && (!blockControlsForFullscreen);
+    const bool controlsIconified = imguiWindow_ && glfwGetWindowAttrib(imguiWindow_, GLFW_ICONIFIED);
+    const bool controlsFullscreen = isImGuiWindowFullscreen();
+    bool renderControlsWindow = controlsVisible && !controlsIconified && !controlsFullscreen && (!blockControlsForFullscreen);
 
     // If we have a separate ImGui window and are allowed to render it, switch to it
     if (renderControlsWindow) {
@@ -422,9 +426,12 @@ void Visualizer::renderImGui() {
     }
 
     // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
+    {
+        PROFILE_SCOPE("imgui_new_frame");
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+    }
     
     // Ensure cursor is properly updated
     ImGuiIO& io = ImGui::GetIO();
@@ -438,52 +445,81 @@ void Visualizer::renderImGui() {
     if (!blockControlsForFullscreen) {
         // Main control window
         if (showImGuiWindow_) {
+            PROFILE_SCOPE("render_main_imgui_window");
             renderMainImGuiWindow();
         }
 
         // Separate Visual control windows
         if (showImGuiColorsWindow_) {
+            PROFILE_SCOPE("render_colors_window");
             renderColorsWindow();
         }
         if (showImGuiProceduralWindow_) {
+            PROFILE_SCOPE("render_procedural_window");
             renderProceduralWindow();
         }
         if (showImGuiPostProcessWindow_) {
+            PROFILE_SCOPE("render_post_process_window");
             renderPostProcessWindow();
         }
 
         // Camera control window - always visible
-        renderCameraWindow();
+        {
+            PROFILE_SCOPE("render_camera_window");
+            renderCameraWindow();
+        }
 
         // Current effects display window
         if (showCurrentEffects_) {
+            PROFILE_SCOPE("render_current_effects");
             renderCurrentEffectsDisplay();
         }
 
         // Render MIDI controls
-        renderMIDIControls();
+        {
+            PROFILE_SCOPE("render_midi_controls");
+            renderMIDIControls();
+        }
 
         // Device selector window
         if (showDeviceSelector_) {
+            PROFILE_SCOPE("render_device_selector");
             renderDeviceSelectorImGui();
         }
 
         // Diagnostic info window
         if (showDiagnosticInfo_) {
+            PROFILE_SCOPE("render_diagnostic");
             renderDiagnosticImGui();
         }
 
         // Console mode window
         if (showConsoleMode_) {
+            PROFILE_SCOPE("render_console");
             renderConsoleImGui();
         }
 
+        // FASE 0.4: Performance window
+        if (showPerformanceWindow_) {
+            PROFILE_SCOPE("render_performance");
+            renderPerformanceImGui();
+        }
+
         // Shader Presets window
-        renderShaderPresetsWindow();
+        {
+            PROFILE_SCOPE("render_shader_presets");
+            renderShaderPresetsWindow();
+        }
 
         // Render ImGui
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        {
+            PROFILE_SCOPE("imgui_render");
+            ImGui::Render();
+        }
+        {
+            PROFILE_SCOPE("imgui_render_draw_data");
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        }
     } else {
         // Skip drawing overlays entirely so fullscreen stays clean
         ImGui::EndFrame();
@@ -573,6 +609,11 @@ void Visualizer::renderMainImGuiWindow() {
     }
     if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Auto-reload post-processing shaders when files change");
+    }
+
+    ImGui::Spacing();
+    if (ImGui::Checkbox("Show Performance Metrics", &showPerformanceWindow_)) {
+        // FASE 0.4: Toggle performance window
     }
 
     ImGui::Spacing();
@@ -1953,6 +1994,47 @@ void Visualizer::renderCameraWindow() {
         float animatedZoom = mid + sin(time_ * 0.5f) * (range * 0.5f) + audioFeatures_.bassEnergy * (range * 0.3f);
         animatedZoom = std::clamp(animatedZoom, zoomMin, zoomMax);
         proceduralLayer_.setCameraZoom(animatedZoom);
+    }
+
+    ImGui::End();
+}
+
+// FASE 0.4: Performance metrics display
+void Visualizer::renderPerformanceImGui() {
+    if (!ImGui::Begin("Performance Metrics", &showPerformanceWindow_)) {
+        ImGui::End();
+        return;
+    }
+
+    // Profiler controls
+    ImGui::Separator();
+    ImGui::Text("Profiler (CPU Timing)");
+    if (ImGui::Button("Print Profiler Report")) {
+        Profiler::getInstance().printReport();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Reset Profiler")) {
+        Profiler::getInstance().reset();
+    }
+    ImGui::Separator();
+
+    ImGui::Text("Frame Timing:");
+    ImGui::Text("  CPU: %.2f ms", frameTimeCPU_);
+    ImGui::Text("  FPS: %.1f", fps_);
+
+    ImGui::Spacing();
+    ImGui::Text("API Calls:");
+    ImGui::Text("  Draw calls: %d", drawCallsPerFrame_);
+    ImGui::Text("  Uniform calls: %d (TODO)", uniformCallsPerFrame_);
+    ImGui::Text("  Texture binds: %d (TODO)", textureBindsPerFrame_);
+    ImGui::Text("  Shader switches: %d (TODO)", shaderSwitchesPerFrame_);
+
+    ImGui::Spacing();
+    ImGui::Text("Status:");
+    if (frameTimeCPU_ > 16.67f) {
+        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "  CPU bottleneck detected");
+    } else {
+        ImGui::TextColored(ImVec4(0.3f, 1.0f, 0.3f, 1.0f), "  CPU OK");
     }
 
     ImGui::End();

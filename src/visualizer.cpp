@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "audio_capture.h"
 #include "shader_loader.h"
+#include "profiler.h"
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -812,6 +813,7 @@ void Visualizer::renderCornerOrbs() {
 
     glBindVertexArray(cornerVAO_);
     glDrawArrays(GL_POINTS, 0, cornerVertexCount_);
+    drawCallsPerFrame_++;
     glBindVertexArray(0);
 
     glUseProgram(0);
@@ -881,6 +883,7 @@ void Visualizer::renderCore() {
 
     glBindVertexArray(coreVAO_);
     glDrawArrays(GL_TRIANGLES, 0, coreVertexCount_);
+    drawCallsPerFrame_++;
     glBindVertexArray(0);
 
     glUseProgram(0);
@@ -1619,6 +1622,15 @@ void Visualizer::updateAudioBuffer(const std::vector<float> &audioBuffer) {
 }
 
 void Visualizer::render() {
+    // FASE 0.1: Frame timing CPU
+    auto frameStart = std::chrono::high_resolution_clock::now();
+
+    // Reset performance counters
+    drawCallsPerFrame_ = 0;
+    uniformCallsPerFrame_ = 0;
+    textureBindsPerFrame_ = 0;
+    shaderSwitchesPerFrame_ = 0;
+
     // Check if any post-process slots are active
     bool hasActivePostProcess = false;
     for (const auto &slot : postProcessSlots_) {
@@ -1730,10 +1742,16 @@ void Visualizer::render() {
     handleVisualizationShortcuts();
 
     if (imguiInitialized_ && showImGuiWindow_) {
+        PROFILE_SCOPE("render_imgui");
         renderImGui();
     } else if (!imguiInitialized_) {
         renderGUI();
     }
+
+    // FASE 0.1: Calculate frame time CPU and FPS
+    auto frameEnd = std::chrono::high_resolution_clock::now();
+    frameTimeCPU_ = std::chrono::duration<float, std::milli>(frameEnd - frameStart).count();
+    fps_ = 1000.0f / frameTimeCPU_;
 }
 
 void Visualizer::handleVisualizationShortcuts() {
@@ -2245,6 +2263,7 @@ void Visualizer::renderWaveform(const std::vector<float> &audioBuffer) {
 
     glBindVertexArray(waveformVAO_);
     glDrawArrays(GL_LINE_STRIP, 0, audioBuffer.size());
+    drawCallsPerFrame_++;
     glBindVertexArray(0);
 
     // Restore state
@@ -2338,6 +2357,7 @@ void Visualizer::renderModernVisualization() {
 
     glBindVertexArray(quadVAO_);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    drawCallsPerFrame_++;
     glBindVertexArray(0);
 
     glUseProgram(0);
@@ -2385,6 +2405,7 @@ void Visualizer::renderShaderSparkles() {
 
     glBindVertexArray(sparkVAO_);
     glDrawArrays(GL_POINTS, 0, sparkVertexCount_);
+    drawCallsPerFrame_++;
     glBindVertexArray(0);
 
     glUseProgram(0);
@@ -2449,6 +2470,7 @@ void Visualizer::renderModernCore() {
 
     glBindVertexArray(coreVAO_);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, coreVertexCount_);
+    drawCallsPerFrame_++;
     glBindVertexArray(0);
 
     glUseProgram(0);
