@@ -980,17 +980,22 @@ Visualizer::Visualizer()
     // scenePalettes_ = scenePalettes_;
 }
 
-Visualizer::~Visualizer() { 
-    // Save current settings before shutdown
-    flushPendingSettings();
-    shutdown(); 
+Visualizer::~Visualizer() {
+    // Force save current settings before shutdown (ignore dirty flag)
+    if (settingsManager_) {
+        updateSettingsFromCurrentState();
+        settingsManager_->saveSettings();
+        std::cout << "[SHUTDOWN] Settings saved to disk" << std::endl;
+    }
+    shutdown();
 }
 
 bool Visualizer::initialize(int width, int height) {
     windowWidth_ = width;
     windowHeight_ = height;
 
-    // Load settings first
+    // Load settings first (with migration from old location)
+    settingsManager_->migrateOldSettings();
     settingsManager_->loadSettings();
 
     // Load camera zoom from settings for current mode
@@ -1003,6 +1008,11 @@ bool Visualizer::initialize(int width, int height) {
             float defaultZoom = getZoomForShaderMode(proceduralLayerMode_);
             proceduralLayer_.setCameraZoom(defaultZoom);
         }
+
+        // Load camera offsets from settings for current mode
+        float savedOffsetX = settingsManager_->getProceduralOffsetX(proceduralLayerMode_);
+        float savedOffsetY = settingsManager_->getProceduralOffsetY(proceduralLayerMode_);
+        proceduralLayer_.setCameraOffset(savedOffsetX, savedOffsetY);
     }
     
     // Apply loaded settings to visualizer state
@@ -1012,6 +1022,12 @@ bool Visualizer::initialize(int width, int height) {
     visualSensitivity_ = settingsManager_->getVisualSensitivity();
     showImGuiWindow_ = settingsManager_->getShowImGuiWindow();
     showCornerOrbs_ = settingsManager_->getShowCornerOrbs();
+    randomCornerOrbsEnabled_ = settingsManager_->getRandomCornerOrbsEnabled();
+    randomCornerOrbsInterval_ = settingsManager_->getRandomCornerOrbsInterval();
+    autoClearGhosting_ = settingsManager_->getAutoClearGhosting();
+    autoClearGhostingInterval_ = settingsManager_->getAutoClearGhostingInterval();
+    favorites_ = settingsManager_->getFavorites();
+    randomFavoritesOnly_ = settingsManager_->getRandomFavoritesOnly();
     showProceduralLayer_ = settingsManager_->getShowProceduralLayer();
     showCurrentEffects_ = settingsManager_->getShowCurrentEffects();
     proceduralLayerDebug_ = settingsManager_->getProceduralLayerDebug();
@@ -1791,10 +1807,19 @@ void Visualizer::render() {
         std::clamp(rawEnergy * 0.55f + bass * 0.45f + excitement * 0.65f, 0.0f, 2.5f);
 
     float dt = std::max(deltaTime_, 1.0f / 120.0f);
-    
+
+    // Update auto-clear ghosting
+    if (autoClearGhosting_) {
+        autoClearGhostingTimer_ += dt;
+        if (autoClearGhostingTimer_ >= autoClearGhostingInterval_) {
+            postProcessor_.clearAccumulation();
+            autoClearGhostingTimer_ = 0.0f;
+        }
+    }
+
     // Update random post process
     updateRandomPostProcess(dt);
-    
+
     // Update random procedural layer first, then sync Slot 1 so the render uses
     // the latest procedural mode for this frame.
     updateRandomProcedural(dt);
@@ -2145,6 +2170,12 @@ void Visualizer::updateSettingsFromCurrentState() {
     settingsManager_->setVisualSensitivity(visualSensitivity_);
     settingsManager_->setShowImGuiWindow(showImGuiWindow_);
     settingsManager_->setShowCornerOrbs(showCornerOrbs_);
+    settingsManager_->setRandomCornerOrbsEnabled(randomCornerOrbsEnabled_);
+    settingsManager_->setRandomCornerOrbsInterval(randomCornerOrbsInterval_);
+    settingsManager_->setAutoClearGhosting(autoClearGhosting_);
+    settingsManager_->setAutoClearGhostingInterval(autoClearGhostingInterval_);
+    settingsManager_->setFavorites(favorites_);
+    settingsManager_->setRandomFavoritesOnly(randomFavoritesOnly_);
     settingsManager_->setShowProceduralLayer(showProceduralLayer_);
     settingsManager_->setShowCurrentEffects(showCurrentEffects_);
     settingsManager_->setProceduralLayerDebug(proceduralLayerDebug_);
@@ -3356,31 +3387,59 @@ void Visualizer::initializeRandomPostProcess() {
 }
 
 void Visualizer::selectRandomPostProcess() {
+    // If random favorites only mode is enabled, select from favorites
+    if (randomFavoritesOnly_) {
+        if (favorites_.empty()) {
+            std::cout << "[RANDOM POST] ERROR: No favorites available!" << std::endl;
+            return;
+        }
+
+        std::uniform_int_distribution<int> dist(0, favorites_.size() - 1);
+        size_t favIndex = dist(rng_);
+
+        // Avoid selecting the same favorite twice in a row
+        int attempts = 0;
+        while (favorites_.size() > 1 && attempts < 20) {
+            if (favorites_[favIndex].proceduralMode != proceduralLayerMode_) {
+                break;
+            }
+            favIndex = dist(rng_);
+            attempts++;
+        }
+
+        const auto& fav = favorites_[favIndex];
+        postProcessSlots_ = fav.postProcessSlots;
+        saveCurrentSettings();
+        std::cout << "[RANDOM POST] Selected favorite: " << fav.name << std::endl;
+        return;
+    }
+
+    // Normal random selection from all available modes
     if (availablePostProcessModes_.empty()) return;
-    
+
     std::uniform_int_distribution<int> dist(0, availablePostProcessModes_.size() - 1);
-    
+
     // Randomize the specified number of slots
     int slotsToRandomize = std::clamp(randomPostProcessSlotCount_, 1, kMaxPostProcessSlots);
-    
+
     for (int slotIndex = 0; slotIndex < slotsToRandomize && slotIndex < kMaxPostProcessSlots; ++slotIndex) {
         int newIndex = availablePostProcessModes_[dist(rng_)];
-        
+
         // Avoid selecting the same mode twice in a row for the same slot
         // (compare with current mode in that slot, or global if slot 0)
-        int currentMode = (slotIndex == 0) ? currentRandomPostProcess_ : 
+        int currentMode = (slotIndex == 0) ? currentRandomPostProcess_ :
                          ((slotIndex < kMaxPostProcessSlots) ? postProcessSlots_[slotIndex].mode : 0);
-        
+
         int attempts = 0;
         while (availablePostProcessModes_.size() > 1 && newIndex == currentMode && attempts < 10) {
             newIndex = availablePostProcessModes_[dist(rng_)];
             ++attempts;
         }
-        
+
         // Update the slot
         postProcessSlots_[slotIndex].mode = newIndex;
         postProcessSlots_[slotIndex].enabled = true; // Ensure slot is enabled
-        
+
         // Update the tracking variable for slot 0
         if (slotIndex == 0) {
             currentRandomPostProcess_ = newIndex;
@@ -3441,6 +3500,43 @@ void Visualizer::initializeRandomProcedural() {
 }
 
 void Visualizer::selectRandomProcedural() {
+    // If random favorites only mode is enabled, select from favorites
+    if (randomFavoritesOnly_) {
+        if (favorites_.empty()) {
+            std::cout << "[RANDOM SELECT] ERROR: No favorites available!" << std::endl;
+            return;
+        }
+
+        std::uniform_int_distribution<int> dist(0, favorites_.size() - 1);
+        size_t favIndex = dist(rng_);
+
+        // Avoid selecting the same favorite twice in a row
+        int attempts = 0;
+        while (favorites_.size() > 1 && attempts < 20) {
+            if (favorites_[favIndex].proceduralMode != currentRandomProcedural_) {
+                break;
+            }
+            favIndex = dist(rng_);
+            attempts++;
+        }
+
+        const auto& fav = favorites_[favIndex];
+        currentRandomProcedural_ = fav.proceduralMode;
+        proceduralLayerMode_ = fav.proceduralMode;
+        proceduralLayerOpacity_ = fav.proceduralOpacity;
+        proceduralSlots_[0].colorAdjust = fav.proceduralColorAdjust;
+        postProcessSlots_ = fav.postProcessSlots;
+
+        // Sync procedural slot 0 with main mode
+        proceduralSlots_[0].mode = proceduralLayerMode_;
+        proceduralSlots_[0].opacity = proceduralLayerOpacity_;
+
+        saveCurrentSettings();
+        std::cout << "[RANDOM SELECT] Selected favorite: " << fav.name << " (mode " << currentRandomProcedural_ << ")" << std::endl;
+        return;
+    }
+
+    // Normal random selection from all available modes
     std::cout << "[RANDOM SELECT] Called. Available modes: " << availableProceduralModes_.size() << std::endl;
     if (availableProceduralModes_.empty()) {
         std::cout << "[RANDOM SELECT] ERROR: No available modes!" << std::endl;
@@ -3462,11 +3558,11 @@ void Visualizer::selectRandomProcedural() {
     while (availableProceduralModes_.size() > 1 && attempts < 20) {
         bool isSameAsCurrent = (newIndex == currentRandomProcedural_);
         bool isSlot2Mode = (slot2Mode > 0 && newIndex == slot2Mode);
-        
+
         if (!isSameAsCurrent && !isSlot2Mode) {
             break; // Found a valid mode
         }
-        
+
         newIndex = availableProceduralModes_[dist(rng_)];
         attempts++;
     }
@@ -3557,15 +3653,61 @@ void Visualizer::updateRandomProcedural(float deltaTime) {
 
 void Visualizer::updateRandomCornerOrbs(float deltaTime) {
     if (!randomCornerOrbsEnabled_) return;
-    
+
     randomCornerOrbsTimer_ += deltaTime;
-    
+
     if (randomCornerOrbsTimer_ >= randomCornerOrbsInterval_) {
         showCornerOrbs_ = (rand() % 2) == 1;
         saveCurrentSettings();
         std::cout << "[RANDOM] Corner Orbs: " << (showCornerOrbs_ ? "ENABLED" : "DISABLED") << std::endl;
         randomCornerOrbsTimer_ = 0.0f;
     }
+}
+
+void Visualizer::saveCurrentAsFavorite(const std::string& name) {
+    FavoritePreset preset;
+    preset.name = name;
+    preset.proceduralMode = proceduralLayerMode_;
+    preset.proceduralOpacity = proceduralLayerOpacity_;
+    preset.proceduralColorAdjust = proceduralSlots_[0].colorAdjust;
+    preset.postProcessSlots = postProcessSlots_;
+
+    favorites_.push_back(preset);
+    settingsManager_->setFavorites(favorites_);
+    settingsManager_->saveSettings();
+    std::cout << "[FAVORITES] Saved favorite: " << name << std::endl;
+}
+
+void Visualizer::applyFavorite(size_t index) {
+    if (index >= favorites_.size()) {
+        std::cerr << "[FAVORITES] Invalid favorite index: " << index << std::endl;
+        return;
+    }
+
+    const auto& preset = favorites_[index];
+    proceduralLayerMode_ = preset.proceduralMode;
+    proceduralLayerOpacity_ = preset.proceduralOpacity;
+    proceduralSlots_[0].colorAdjust = preset.proceduralColorAdjust;
+    postProcessSlots_ = preset.postProcessSlots;
+
+    // Sync procedural slot 0 with main mode
+    proceduralSlots_[0].mode = proceduralLayerMode_;
+    proceduralSlots_[0].opacity = proceduralLayerOpacity_;
+
+    saveCurrentSettings();
+    std::cout << "[FAVORITES] Applied favorite: " << preset.name << std::endl;
+}
+
+void Visualizer::removeFavorite(size_t index) {
+    if (index >= favorites_.size()) {
+        std::cerr << "[FAVORITES] Invalid favorite index: " << index << std::endl;
+        return;
+    }
+
+    std::cout << "[FAVORITES] Removed favorite: " << favorites_[index].name << std::endl;
+    favorites_.erase(favorites_.begin() + index);
+    settingsManager_->setFavorites(favorites_);
+    settingsManager_->saveSettings();
 }
 
 // MIDI Implementation
@@ -4299,11 +4441,23 @@ void Visualizer::applyMainProceduralMode(int mode, const char* source, bool ensu
         float zoom = getZoomForShaderMode(clampedMode);
         proceduralLayer_.setCameraZoom(zoom);
     }
-    // Set custom offset for text marquee modes (58-61), reset for others
-    if (clampedMode >= 58 && clampedMode <= 61) {
-        proceduralLayer_.setCameraOffset(0.0f, 1.80f);
-    } else {
-        proceduralLayer_.setCameraOffset(0.0f, 0.0f);
+
+    // Load saved offsets for this mode, or use defaults for text marquee modes
+    if (settingsManager_) {
+        float savedOffsetX = settingsManager_->getProceduralOffsetX(clampedMode);
+        float savedOffsetY = settingsManager_->getProceduralOffsetY(clampedMode);
+        
+        // If no saved offset, use defaults for text marquee modes
+        if (savedOffsetX == 0.0f && savedOffsetY == 0.0f) {
+            if (clampedMode >= 58 && clampedMode <= 61) {
+                proceduralLayer_.setCameraOffset(0.0f, 1.80f);
+            } else {
+                proceduralLayer_.setCameraOffset(0.0f, 0.0f);
+            }
+        } else {
+            // Use saved offsets
+            proceduralLayer_.setCameraOffset(savedOffsetX, savedOffsetY);
+        }
     }
 
     if (ensureVisible) {

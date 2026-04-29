@@ -1,4 +1,4 @@
 imgui
-build/audio_visualizer
-build/CMakeFiles/audio_visualizer.dir/imgui/imgui_demo.cpp.o
-build/CMakeFiles/audio_visualizer.dir/imgui/imgui.cpp.o
+build/
+build_*/
+visualizer_settings.json

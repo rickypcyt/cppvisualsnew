@@ -209,6 +209,11 @@ void Visualizer::shutdownImGui() {
 }
 
 void Visualizer::handleKeyboardInput() {
+    // Don't process hotkeys if a text input widget has focus
+    if (ImGui::GetIO().WantTextInput) {
+        return;
+    }
+
     // Check for 'D' key toggle
     if (isKeyPressed(GLFW_KEY_D)) {
         static double lastPress = 0.0;
@@ -906,13 +911,13 @@ void Visualizer::renderColorsWindow() {
     }
 
     ImGui::SetNextItemWidth(180.0f);
-    if (ImGui::ColorEdit3("Primary", scenePrimaryColor_.data(), ImGuiColorEditFlags_Float)) {
+    if (ImGui::ColorEdit3("Primary", scenePrimaryColor_.data(), ImGuiColorEditFlags_Float | ImGuiColorEditFlags_NoInputs)) {
         proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
         saveCurrentSettings();
     }
     ImGui::SameLine();
     ImGui::SetNextItemWidth(180.0f);
-    if (ImGui::ColorEdit3("Secondary", sceneSecondaryColor_.data(), ImGuiColorEditFlags_Float)) {
+    if (ImGui::ColorEdit3("Secondary", sceneSecondaryColor_.data(), ImGuiColorEditFlags_Float | ImGuiColorEditFlags_NoInputs)) {
         proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
         saveCurrentSettings();
     }
@@ -1198,12 +1203,13 @@ void Visualizer::renderProceduralWindow() {
             if (uiIdx >= 0 && uiIdx < static_cast<int>(effectList.size())) {
                 ImGui::Text("Current Effect: %s", effectList.ptrs[uiIdx]);
             }
-            
-            ImGui::Spacing();
-            if (ImGui::Button("Change Effect Now")) {
-                selectRandomProcedural();
-                saveCurrentSettings();
-            }
+        }
+        
+        ImGui::Spacing();
+        if (ImGui::Button("Change Effect Now")) {
+            selectRandomProcedural();
+            randomProceduralEnabled_ = false;
+            saveCurrentSettings();
         }
         
         ImGui::Spacing();
@@ -1326,6 +1332,83 @@ void Visualizer::renderPostProcessWindow() {
     if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Clear accumulation buffers to remove burn-in/ghosting artifacts");
     }
+
+    ImGui::SameLine();
+    bool prevAutoClear = autoClearGhosting_;
+    ImGui::Checkbox("Auto-clear", &autoClearGhosting_);
+    if (prevAutoClear != autoClearGhosting_) {
+        saveCurrentSettings();
+        if (autoClearGhosting_) {
+            autoClearGhostingTimer_ = 0.0f;
+        }
+    }
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Automatically clear ghosting at regular intervals");
+    }
+
+    if (autoClearGhosting_) {
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(100.0f);
+        if (ImGui::SliderFloat("##auto_clear_interval", &autoClearGhostingInterval_, 0.1f, 30.0f, "%.1fs")) {
+            autoClearGhostingInterval_ = std::max(0.1f, autoClearGhostingInterval_);
+            saveCurrentSettings();
+        }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Auto-clear interval (0.1s - 30.0s)");
+        }
+    }
+
+    ImGui::Separator();
+
+    // Favorites Section
+    ImGui::Text("⭐ Favorites");
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(150.0f);
+    if (ImGui::InputText("##favorite_name", favoriteNameBuffer_, sizeof(favoriteNameBuffer_), ImGuiInputTextFlags_EnterReturnsTrue)) {
+        // Name updated
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Save Current")) {
+        saveCurrentAsFavorite(favoriteNameBuffer_);
+    }
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Save current procedural mode and post-fx as favorite");
+    }
+
+    ImGui::SameLine();
+
+    ImGui::Spacing();
+
+    if (!favorites_.empty()) {
+        ImGui::Text("Saved Favorites:");
+        ImGui::Indent();
+        for (size_t i = 0; i < favorites_.size(); ++i) {
+            const auto& fav = favorites_[i];
+            ImGui::PushID(static_cast<int>(i));
+
+            ImGui::Text("%s", fav.name.c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Apply")) {
+                applyFavorite(i);
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Apply this favorite");
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Remove")) {
+                removeFavorite(i);
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Remove this favorite");
+            }
+
+            ImGui::PopID();
+        }
+        ImGui::Unindent();
+    } else {
+        ImGui::TextDisabled("No favorites saved yet");
+    }
+
     ImGui::Separator();
     
     const int postModeCount = static_cast<int>(std::size(kPostProcessModes));
@@ -1448,13 +1531,13 @@ void Visualizer::renderPostProcessWindow() {
         saveCurrentSettings();
         if (randomPostProcessEnabled_) {
             selectRandomPostProcess();
+            randomPostProcessTimer_ = 0.0f; // Reset timer when enabling
         }
     }
     
-    if (randomPostProcessEnabled_) {
-        ImGui::Spacing();
-        
-        // Slot count slider
+    ImGui::Spacing();
+
+        // Slot count slider (always visible)
         ImGui::Text("Slots to Randomize:");
         ImGui::SetNextItemWidth(200.0f);
         int slotCount = randomPostProcessSlotCount_;
@@ -1468,25 +1551,40 @@ void Visualizer::renderPostProcessWindow() {
         
         ImGui::Spacing();
         
-        ImGui::Text("Change Interval:");
-        ImGui::SetNextItemWidth(200.0f);
-        if (ImGui::SliderFloat("##post_random_interval", &randomPostProcessInterval_, 1.0f, 30.0f, "%.1f seconds")) {
-            randomPostProcessInterval_ = std::max(1.0f, randomPostProcessInterval_);
-            saveCurrentSettings();
-        }
-        
-        ImGui::Spacing();
-        
+    // Random only from favorites checkbox
+    bool prevPostRandomFavoritesOnly = randomFavoritesOnly_;
+    ImGui::Checkbox("Random Only From Favorites", &randomFavoritesOnly_);
+    if (prevPostRandomFavoritesOnly != randomFavoritesOnly_) {
+        saveCurrentSettings();
+    }
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Random cycle will only select from saved favorites");
+    }
+    
+    ImGui::Spacing();
+    
+    // Interval slider (always visible)
+    ImGui::Text("Change Interval:");
+    ImGui::SetNextItemWidth(200.0f);
+    if (ImGui::SliderFloat("##post_random_interval", &randomPostProcessInterval_, 1.0f, 30.0f, "%.1f seconds")) {
+        randomPostProcessInterval_ = std::max(1.0f, randomPostProcessInterval_);
+        saveCurrentSettings();
+    }
+    
+    ImGui::Spacing();
+    
+    if (randomPostProcessEnabled_) {
         if (kMaxPostProcessSlots > 0 && currentRandomPostProcess_ >= 0 && currentRandomPostProcess_ < static_cast<int>(std::size(kPostProcessModes))) {
             ImGui::Text("Current Effect: %s", kPostProcessModes[currentRandomPostProcess_]);
         }
-        
-        ImGui::Spacing();
-        if (ImGui::Button("Change Effect Now")) {
+    }
+    
+    ImGui::Spacing();
+    if (ImGui::Button("Change Effect Now")) {
             selectRandomPostProcess();
+            randomPostProcessEnabled_ = false;
             saveCurrentSettings();
         }
-    }
 
     ImGui::Spacing();
     ImGui::Separator();
@@ -1957,6 +2055,11 @@ void Visualizer::renderCameraWindow() {
     ImGui::Text("Offset X:");
     if (ImGui::SliderFloat("##camera_offset_x", &offsetX, -2.0f, 2.0f, "%.2f")) {
         proceduralLayer_.setCameraOffset(offsetX, proceduralLayer_.cameraOffsetY());
+        // Save offset for current shader mode
+        int currentMode = proceduralLayerMode_;
+        if (currentMode > 0 && settingsManager_) {
+            settingsManager_->setProceduralOffsetX(currentMode, offsetX);
+        }
         saveCurrentSettings();
     }
 
@@ -1967,6 +2070,11 @@ void Visualizer::renderCameraWindow() {
     ImGui::Text("Offset Y:");
     if (ImGui::SliderFloat("##camera_offset_y", &offsetY, -2.0f, 2.0f, "%.2f")) {
         proceduralLayer_.setCameraOffset(proceduralLayer_.cameraOffsetX(), offsetY);
+        // Save offset for current shader mode
+        int currentMode = proceduralLayerMode_;
+        if (currentMode > 0 && settingsManager_) {
+            settingsManager_->setProceduralOffsetY(currentMode, offsetY);
+        }
         saveCurrentSettings();
     }
 
@@ -1974,14 +2082,16 @@ void Visualizer::renderCameraWindow() {
     ImGui::Separator();
     ImGui::Spacing();
 
-    // Reset button - resets to shader default zoom
+    // Reset button - resets to shader default zoom and offsets
     if (ImGui::Button("Reset to Default")) {
         float defaultZoom = getZoomForShaderMode(proceduralLayerMode_);
         proceduralLayer_.setCameraZoom(defaultZoom);
         proceduralLayer_.setCameraOffset(0.0f, 0.0f);
-        // Clear saved zoom for current mode to use shader default
+        // Clear saved zoom and offsets for current mode to use shader default
         if (proceduralLayerMode_ > 0 && settingsManager_) {
             settingsManager_->setProceduralZoom(proceduralLayerMode_, 0.0f); // 0 = use shader default
+            settingsManager_->setProceduralOffsetX(proceduralLayerMode_, 0.0f);
+            settingsManager_->setProceduralOffsetY(proceduralLayerMode_, 0.0f);
         }
         saveCurrentSettings();
     }

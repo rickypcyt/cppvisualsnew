@@ -22,16 +22,30 @@ struct ProceduralSlot {
     std::array<float, 3> colorAdjust{1.0f, 1.0f, 1.0f};
 };
 
+struct FavoritePreset {
+    std::string name;
+    int proceduralMode;
+    float proceduralOpacity;
+    std::array<float, 3> proceduralColorAdjust{1.0f, 1.0f, 1.0f};
+    std::array<PostProcessSlot, 5> postProcessSlots;
+};
+
 class SettingsManager {
 public:
     SettingsManager();
     ~SettingsManager();
 
     // Load settings from JSON file
-    bool loadSettings(const std::string& filename = "visualizer_settings.json");
+    bool loadSettings(const std::string& filename = "");
     
     // Save settings to JSON file
-    bool saveSettings(const std::string& filename = "visualizer_settings.json");
+    bool saveSettings(const std::string& filename = "");
+
+    // Get default settings file path (outside build directory)
+    static std::string getDefaultSettingsPath();
+
+    // Migrate old settings from current directory to new config directory
+    static bool migrateOldSettings();
 
     // Getters and setters for all settings
     int getSelectedDevice() const { return selectedDevice_; }
@@ -51,6 +65,18 @@ public:
 
     bool getShowCornerOrbs() const { return showCornerOrbs_; }
     void setShowCornerOrbs(bool show) { showCornerOrbs_ = show; }
+
+    bool getRandomCornerOrbsEnabled() const { return randomCornerOrbsEnabled_; }
+    void setRandomCornerOrbsEnabled(bool enabled) { randomCornerOrbsEnabled_ = enabled; }
+
+    float getRandomCornerOrbsInterval() const { return randomCornerOrbsInterval_; }
+    void setRandomCornerOrbsInterval(float interval) { randomCornerOrbsInterval_ = interval; }
+
+    bool getAutoClearGhosting() const { return autoClearGhosting_; }
+    void setAutoClearGhosting(bool enabled) { autoClearGhosting_ = enabled; }
+
+    float getAutoClearGhostingInterval() const { return autoClearGhostingInterval_; }
+    void setAutoClearGhostingInterval(float interval) { autoClearGhostingInterval_ = interval; }
 
     bool getShowProceduralLayer() const { return showProceduralLayer_; }
     void setShowProceduralLayer(bool show) { showProceduralLayer_ = show; }
@@ -72,6 +98,15 @@ public:
 
     const std::array<ProceduralSlot, 5>& getProceduralSlots() const { return proceduralSlots_; }
     void setProceduralSlots(const std::array<ProceduralSlot, 5>& slots);
+
+    // Favorites presets
+    const std::vector<FavoritePreset>& getFavorites() const { return favorites_; }
+    void setFavorites(const std::vector<FavoritePreset>& favorites) { favorites_ = favorites; }
+    void addFavorite(const FavoritePreset& favorite);
+    void removeFavorite(size_t index);
+
+    bool getRandomFavoritesOnly() const { return randomFavoritesOnly_; }
+    void setRandomFavoritesOnly(bool enabled) { randomFavoritesOnly_ = enabled; }
 
     const std::array<float, 3>& getScenePrimaryColor() const { return scenePrimaryColor_; }
     void setScenePrimaryColor(const std::array<float, 3>& color) { scenePrimaryColor_ = color; }
@@ -130,6 +165,16 @@ public:
     std::unordered_map<int, float> getAllProceduralZooms() const;
     void setAllProceduralZooms(const std::unordered_map<int, float>& zooms);
 
+    // Per-shader offset values (persist user adjustments)
+    float getProceduralOffsetX(int modeIndex) const;
+    void setProceduralOffsetX(int modeIndex, float offsetX);
+    float getProceduralOffsetY(int modeIndex) const;
+    void setProceduralOffsetY(int modeIndex, float offsetY);
+    std::unordered_map<int, float> getAllProceduralOffsetXs() const;
+    std::unordered_map<int, float> getAllProceduralOffsetYs() const;
+    void setAllProceduralOffsetXs(const std::unordered_map<int, float>& offsetXs);
+    void setAllProceduralOffsetYs(const std::unordered_map<int, float>& offsetYs);
+
     // Preset management for shader enable/disable configurations
     struct ShaderPreset {
         std::string name;
@@ -183,6 +228,10 @@ private:
     // UI settings
     bool showImGuiWindow_ = true;
     bool showCornerOrbs_ = true;
+    bool randomCornerOrbsEnabled_ = false;
+    float randomCornerOrbsInterval_ = 5.0f;
+    bool autoClearGhosting_ = true;
+    float autoClearGhostingInterval_ = 1.0f;
     bool showProceduralLayer_ = true;
     bool showCurrentEffects_ = true;
     bool proceduralLayerDebug_ = false;
@@ -206,6 +255,10 @@ private:
     bool randomProceduralSlotEnabled_ = false;
     int randomProceduralSlotIndex_ = 0;
     bool showPostProcess_ = true;
+
+    // Favorites presets
+    std::vector<FavoritePreset> favorites_;
+    bool randomFavoritesOnly_ = false;
 
     // Color palette settings
     std::array<float, 3> scenePrimaryColor_{0.25f, 0.32f, 0.58f};
@@ -244,6 +297,10 @@ private:
 
     // Per-shader zoom values (mode index -> zoom)
     std::unordered_map<int, float> proceduralZoomValues_;
+
+    // Per-shader offset values (mode index -> offset)
+    std::unordered_map<int, float> proceduralOffsetXValues_;
+    std::unordered_map<int, float> proceduralOffsetYValues_;
 };
 
 #endif // SETTINGS_MANAGER_H

@@ -34,11 +34,73 @@ SettingsManager::SettingsManager() {
 
 SettingsManager::~SettingsManager() = default;
 
+std::string SettingsManager::getDefaultSettingsPath() {
+    // Try to use XDG config directory on Linux, fallback to home directory
+    const char* xdgConfigHome = std::getenv("XDG_CONFIG_HOME");
+    std::string configDir;
+
+    if (xdgConfigHome && xdgConfigHome[0] != '\0') {
+        configDir = xdgConfigHome;
+    } else {
+        const char* home = std::getenv("HOME");
+        if (home && home[0] != '\0') {
+            configDir = std::string(home) + "/.config";
+        } else {
+            // Fallback to current directory
+            return "visualizer_settings.json";
+        }
+    }
+
+    // Create config directory if it doesn't exist
+    std::string visualsConfigDir = configDir + "/visuals";
+    std::filesystem::create_directories(visualsConfigDir);
+
+    return visualsConfigDir + "/visualizer_settings.json";
+}
+
+bool SettingsManager::migrateOldSettings() {
+    std::string oldPath = "visualizer_settings.json";
+    std::string newPath = getDefaultSettingsPath();
+
+    // Check if old file exists
+    if (!std::filesystem::exists(oldPath)) {
+        return false;
+    }
+
+    // Check if new file doesn't exist, or if old file is larger (has more data)
+    bool shouldMigrate = false;
+    if (!std::filesystem::exists(newPath)) {
+        shouldMigrate = true;
+    } else {
+        // Compare file sizes - if old is significantly larger, it has more data
+        auto oldSize = std::filesystem::file_size(oldPath);
+        auto newSize = std::filesystem::file_size(newPath);
+        if (oldSize > newSize * 2) { // Old file is more than 2x larger
+            shouldMigrate = true;
+        }
+    }
+
+    if (shouldMigrate) {
+        try {
+            std::filesystem::copy_file(oldPath, newPath, std::filesystem::copy_options::overwrite_existing);
+            std::cout << "[SETTINGS MIGRATION] Migrated settings from " << oldPath
+                      << " to " << newPath << std::endl;
+            return true;
+        } catch (const std::exception& e) {
+            std::cerr << "[SETTINGS MIGRATION] Failed to migrate: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
+    return false;
+}
+
 bool SettingsManager::loadSettings(const std::string& filename) {
     try {
-        std::ifstream file(filename);
+        std::string actualFilename = filename.empty() ? getDefaultSettingsPath() : filename;
+        std::ifstream file(actualFilename);
         if (!file.is_open()) {
-            std::cout << "Settings file not found, using defaults: " << filename << std::endl;
+            std::cout << "Settings file not found, using defaults: " << actualFilename << std::endl;
             return false;
         }
 
@@ -63,6 +125,10 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             const auto& ui = j["ui"];
             if (ui.contains("showImGuiWindow")) showImGuiWindow_ = ui["showImGuiWindow"];
             if (ui.contains("showCornerOrbs")) showCornerOrbs_ = ui["showCornerOrbs"];
+            if (ui.contains("randomCornerOrbsEnabled")) randomCornerOrbsEnabled_ = ui["randomCornerOrbsEnabled"];
+            if (ui.contains("randomCornerOrbsInterval")) randomCornerOrbsInterval_ = ui["randomCornerOrbsInterval"];
+            if (ui.contains("autoClearGhosting")) autoClearGhosting_ = ui["autoClearGhosting"];
+            if (ui.contains("autoClearGhostingInterval")) autoClearGhostingInterval_ = ui["autoClearGhostingInterval"];
             if (ui.contains("showProceduralLayer")) showProceduralLayer_ = ui["showProceduralLayer"];
             if (ui.contains("showCurrentEffects")) showCurrentEffects_ = ui["showCurrentEffects"];
             if (ui.contains("proceduralLayerDebug")) proceduralLayerDebug_ = ui["proceduralLayerDebug"];
@@ -241,6 +307,48 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (procedural.contains("randomInterval")) randomProceduralInterval_ = procedural["randomInterval"];
         }
 
+        // Load favorites
+        if (j.contains("favorites")) {
+            const auto& favorites = j["favorites"];
+            favorites_.clear();
+            for (const auto& fav : favorites) {
+                FavoritePreset preset;
+                if (fav.contains("name")) preset.name = fav["name"];
+                if (fav.contains("proceduralMode")) preset.proceduralMode = fav["proceduralMode"];
+                if (fav.contains("proceduralOpacity")) preset.proceduralOpacity = fav["proceduralOpacity"];
+                if (fav.contains("proceduralColorAdjust")) {
+                    const auto& rgb = fav["proceduralColorAdjust"];
+                    if (rgb.size() >= 3) {
+                        preset.proceduralColorAdjust[0] = rgb[0];
+                        preset.proceduralColorAdjust[1] = rgb[1];
+                        preset.proceduralColorAdjust[2] = rgb[2];
+                    }
+                }
+                if (fav.contains("postProcessSlots")) {
+                    const auto& slots = fav["postProcessSlots"];
+                    for (size_t i = 0; i < slots.size() && i < preset.postProcessSlots.size(); ++i) {
+                        const auto& slot = slots[i];
+                        if (slot.contains("enabled")) preset.postProcessSlots[i].enabled = slot["enabled"];
+                        if (slot.contains("mode")) preset.postProcessSlots[i].mode = slot["mode"];
+                        if (slot.contains("strength")) preset.postProcessSlots[i].strength = slot["strength"];
+                        if (slot.contains("rgbAdjust")) {
+                            const auto& rgb = slot["rgbAdjust"];
+                            if (rgb.size() >= 3) {
+                                preset.postProcessSlots[i].rgbAdjust[0] = rgb[0];
+                                preset.postProcessSlots[i].rgbAdjust[1] = rgb[1];
+                                preset.postProcessSlots[i].rgbAdjust[2] = rgb[2];
+                            }
+                        }
+                    }
+                }
+                favorites_.push_back(preset);
+            }
+            std::cout << "[SETTINGS] Loaded " << favorites_.size() << " favorites" << std::endl;
+        }
+
+        // Load random favorites only setting
+        if (j.contains("randomFavoritesOnly")) randomFavoritesOnly_ = j["randomFavoritesOnly"];
+
         // Load color palette settings
         if (j.contains("colors")) {
             const auto& colors = j["colors"];
@@ -316,6 +424,24 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             }
         }
 
+        // Load per-shader offset values
+        if (j.contains("proceduralOffsetXValues")) {
+            const auto& offsetXValues = j["proceduralOffsetXValues"];
+            proceduralOffsetXValues_.clear();
+            for (auto& [key, value] : offsetXValues.items()) {
+                int modeIndex = std::stoi(key);
+                proceduralOffsetXValues_[modeIndex] = value.get<float>();
+            }
+        }
+        if (j.contains("proceduralOffsetYValues")) {
+            const auto& offsetYValues = j["proceduralOffsetYValues"];
+            proceduralOffsetYValues_.clear();
+            for (auto& [key, value] : offsetYValues.items()) {
+                int modeIndex = std::stoi(key);
+                proceduralOffsetYValues_[modeIndex] = value.get<float>();
+            }
+        }
+
         // Reconcile the main procedural mode with Slot 0 when it is enabled.
         // This keeps the UI state aligned with the actual main procedural slot.
         if (!proceduralSlots_.empty() && proceduralSlots_[0].enabled && proceduralSlots_[0].mode > 0) {
@@ -354,6 +480,8 @@ bool SettingsManager::saveSettings(const std::string& filename) {
     try {
         json j;
 
+        std::string actualFilename = filename.empty() ? getDefaultSettingsPath() : filename;
+
         std::cout << "[SETTINGS SAVE] proceduralLayerMode=" << proceduralLayerMode_
                   << " slot0.mode=" << (proceduralSlots_.empty() ? -1 : proceduralSlots_[0].mode)
                   << " slot0.enabled=" << (proceduralSlots_.empty() ? false : proceduralSlots_[0].enabled)
@@ -368,6 +496,10 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         // Save UI settings with effect name
         j["ui"]["showImGuiWindow"] = showImGuiWindow_;
         j["ui"]["showCornerOrbs"] = showCornerOrbs_;
+        j["ui"]["randomCornerOrbsEnabled"] = randomCornerOrbsEnabled_;
+        j["ui"]["randomCornerOrbsInterval"] = randomCornerOrbsInterval_;
+        j["ui"]["autoClearGhosting"] = autoClearGhosting_;
+        j["ui"]["autoClearGhostingInterval"] = autoClearGhostingInterval_;
         j["ui"]["showProceduralLayer"] = showProceduralLayer_;
         j["ui"]["showCurrentEffects"] = showCurrentEffects_;
         j["ui"]["proceduralLayerDebug"] = proceduralLayerDebug_;
@@ -432,6 +564,30 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["procedural"]["randomEnabled"] = randomProceduralEnabled_;
         j["procedural"]["randomInterval"] = randomProceduralInterval_;
 
+        // Save favorites
+        json favoritesArray;
+        for (const auto& fav : favorites_) {
+            json favJson;
+            favJson["name"] = fav.name;
+            favJson["proceduralMode"] = fav.proceduralMode;
+            favJson["proceduralOpacity"] = fav.proceduralOpacity;
+            favJson["proceduralColorAdjust"] = fav.proceduralColorAdjust;
+
+            json slotsArray;
+            for (const auto& slot : fav.postProcessSlots) {
+                json slotJson;
+                slotJson["enabled"] = slot.enabled;
+                slotJson["mode"] = slot.mode;
+                slotJson["strength"] = slot.strength;
+                slotJson["rgbAdjust"] = slot.rgbAdjust;
+                slotsArray.push_back(slotJson);
+            }
+            favJson["postProcessSlots"] = slotsArray;
+            favoritesArray.push_back(favJson);
+        }
+        j["favorites"] = favoritesArray;
+        j["randomFavoritesOnly"] = randomFavoritesOnly_;
+
         // Save color palette settings
         j["colors"]["primary"] = scenePrimaryColor_;
         j["colors"]["secondary"] = sceneSecondaryColor_;
@@ -471,16 +627,29 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         }
         j["proceduralZoomValues"] = zoomValues;
 
+        // Save per-shader offset values
+        json offsetXValues;
+        for (const auto& [modeIndex, offsetX] : proceduralOffsetXValues_) {
+            offsetXValues[std::to_string(modeIndex)] = offsetX;
+        }
+        j["proceduralOffsetXValues"] = offsetXValues;
+
+        json offsetYValues;
+        for (const auto& [modeIndex, offsetY] : proceduralOffsetYValues_) {
+            offsetYValues[std::to_string(modeIndex)] = offsetY;
+        }
+        j["proceduralOffsetYValues"] = offsetYValues;
+
         j["midi"]["tempoScale"] = midiTempoScale_;
 
-        std::ofstream file(filename);
+        std::ofstream file(actualFilename);
         if (!file.is_open()) {
-            std::cerr << "Failed to open settings file for writing: " << filename << std::endl;
+            std::cerr << "Failed to open settings file for writing: " << actualFilename << std::endl;
             return false;
         }
 
         file << j.dump(4); // Pretty print with 4 spaces indentation
-        std::cout << "Settings saved successfully to: " << filename << std::endl;
+        std::cout << "Settings saved successfully to: " << actualFilename << std::endl;
         return true;
 
     } catch (const std::exception& e) {
@@ -549,6 +718,47 @@ std::unordered_map<int, float> SettingsManager::getAllProceduralZooms() const {
 
 void SettingsManager::setAllProceduralZooms(const std::unordered_map<int, float>& zooms) {
     proceduralZoomValues_ = zooms;
+}
+
+// Per-shader offset methods
+float SettingsManager::getProceduralOffsetX(int modeIndex) const {
+    auto it = proceduralOffsetXValues_.find(modeIndex);
+    if (it != proceduralOffsetXValues_.end()) {
+        return it->second;
+    }
+    return 0.0f; // Return 0 to indicate no saved offset (use default)
+}
+
+void SettingsManager::setProceduralOffsetX(int modeIndex, float offsetX) {
+    proceduralOffsetXValues_[modeIndex] = offsetX;
+}
+
+float SettingsManager::getProceduralOffsetY(int modeIndex) const {
+    auto it = proceduralOffsetYValues_.find(modeIndex);
+    if (it != proceduralOffsetYValues_.end()) {
+        return it->second;
+    }
+    return 0.0f; // Return 0 to indicate no saved offset (use default)
+}
+
+void SettingsManager::setProceduralOffsetY(int modeIndex, float offsetY) {
+    proceduralOffsetYValues_[modeIndex] = offsetY;
+}
+
+std::unordered_map<int, float> SettingsManager::getAllProceduralOffsetXs() const {
+    return proceduralOffsetXValues_;
+}
+
+std::unordered_map<int, float> SettingsManager::getAllProceduralOffsetYs() const {
+    return proceduralOffsetYValues_;
+}
+
+void SettingsManager::setAllProceduralOffsetXs(const std::unordered_map<int, float>& offsetXs) {
+    proceduralOffsetXValues_ = offsetXs;
+}
+
+void SettingsManager::setAllProceduralOffsetYs(const std::unordered_map<int, float>& offsetYs) {
+    proceduralOffsetYValues_ = offsetYs;
 }
 
 // Post-processing effect enabled methods
@@ -713,4 +923,14 @@ void SettingsManager::updateFromVisualizerState() {
 void SettingsManager::applyToVisualizer() {
     // This method will be called to apply settings to Visualizer
     // Implementation will be added after integrating with Visualizer class
+}
+
+void SettingsManager::addFavorite(const FavoritePreset& favorite) {
+    favorites_.push_back(favorite);
+}
+
+void SettingsManager::removeFavorite(size_t index) {
+    if (index < favorites_.size()) {
+        favorites_.erase(favorites_.begin() + index);
+    }
 }

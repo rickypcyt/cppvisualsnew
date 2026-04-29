@@ -72,6 +72,11 @@ public:
     // Random corner orbs methods
     void updateRandomCornerOrbs(float deltaTime);
     void renderNoImGuiLoop();
+
+    // Favorites methods
+    void saveCurrentAsFavorite(const std::string& name);
+    void applyFavorite(size_t index);
+    void removeFavorite(size_t index);
     
     // ImGui methods
     bool setupImGui();
@@ -314,6 +319,16 @@ private:
     bool randomCornerOrbsEnabled_ = false;
     float randomCornerOrbsInterval_ = 5.0f; // seconds
     float randomCornerOrbsTimer_ = 0.0f;
+
+    // Auto-clear ghosting
+    bool autoClearGhosting_ = true;
+    float autoClearGhostingInterval_ = 1.0f; // seconds
+    float autoClearGhostingTimer_ = 0.0f;
+
+    // Favorites
+    std::vector<FavoritePreset> favorites_;
+    char favoriteNameBuffer_[128] = "My Favorite";
+    bool randomFavoritesOnly_ = false;
     
     // Per-shader enabled states (mode index -> enabled)
     std::unordered_map<int, bool> proceduralShaderEnabled_;

@@ -97,7 +97,7 @@ vec4 renderHyperPulse(vec2 st, float time, float tempo, float energy, float bass
     float doodadGlow = 0.0;
     float fogAccum = 0.0;
 
-    for (int i = 0; i < 80 && !hit; ++i) {
+    for (int i = 0; i < 40 && !hit; ++i) {
         float dist = hyper_scene(rayPos, time, tempo, energy, bass, mid, high);
         hit = dist * dist < 1e-6;
         glow += 0.2 / (1.0 + hyper_lazors * hyper_lazors * 20.0) * attenuation;
