@@ -16,18 +16,18 @@
     },
     "colors": {
         "animationEnabled": true,
-        "blend": 0.5600000023841858,
+        "blend": 0.6200000047683716,
         "hueSeed": 0.028130698949098587,
-        "paletteIndex": 2,
+        "paletteIndex": 0,
         "primary": [
             0.10000000149011612,
-            0.3199999928474426,
-            0.18000000715255737
+            0.23999999463558197,
+            0.5799999833106995
         ],
         "secondary": [
-            0.30000001192092896,
-            0.8199999928474426,
-            0.5199999809265137
+            0.2800000011920929,
+            0.699999988079071,
+            0.9800000190734863
         ]
     },
     "hotReloadEnabled": false,
@@ -40,7 +40,7 @@
         "slots": [
             {
                 "enabled": true,
-                "mode": 3,
+                "mode": 25,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -50,7 +50,7 @@
             },
             {
                 "enabled": true,
-                "mode": 0,
+                "mode": 1,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -104,9 +104,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "IChing Hexagrams",
+                "effectName": "Iridescent Eye",
                 "enabled": true,
-                "mode": 66,
+                "mode": 53,
                 "opacity": 1.0
             },
             {
@@ -170,8 +170,8 @@
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "IChing Hexagrams",
-        "proceduralLayerMode": 66,
+        "proceduralLayerEffectName": "Iridescent Eye",
+        "proceduralLayerMode": 53,
         "proceduralLayerOpacity": 1.0,
         "showCornerOrbs": true,
         "showCurrentEffects": true,

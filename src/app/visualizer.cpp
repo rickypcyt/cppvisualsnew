@@ -1947,9 +1947,10 @@ void Visualizer::render() {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         
-        // Apply all active post-process slots in cascade
+        // Apply all active post-process slots in cascade (bottom-to-top: Slot N first, Slot 1 last)
         std::vector<PostProcessor::PostEffectPass> activePasses;
-        for (const auto &slot : postProcessSlots_) {
+        for (int i = static_cast<int>(postProcessSlots_.size()) - 1; i >= 0; --i) {
+            const auto &slot = postProcessSlots_[i];
             if (slot.enabled && slot.mode > 0 && slot.strength > 0.0f) {
                 PostProcessor::PostEffectPass pass;
                 pass.mode = slot.mode;
@@ -4684,15 +4685,68 @@ void Visualizer::toggleBothWindowsFullscreen() {
     bool currentlyFullscreen = isMainWindowFullscreen();
     
     if (currentlyFullscreen) {
-        // Exit fullscreen on both windows
-        std::cout << "[FULLSCREEN] Exiting fullscreen on both windows" << std::endl;
-        toggleMainWindowFullscreen();
-        toggleImGuiWindowFullscreen();
+        // Exit fullscreen - return to windowed mode
+        std::cout << "[FULLSCREEN] Exiting fullscreen" << std::endl;
+        
+        // Exit fullscreen on main window
+        GLFWmonitor* monitor = glfwGetWindowMonitor(window_);
+        if (monitor) {
+            glfwSetWindowMonitor(window_, nullptr, 100, 100, 1280, 720, 0);
+        }
+        
+        // Exit fullscreen on ImGui window
+        if (imguiWindow_ && glfwGetWindowMonitor(imguiWindow_)) {
+            glfwSetWindowMonitor(imguiWindow_, nullptr, 100, 100, imguiWindowWidth_, imguiWindowHeight_, 0);
+        }
+        
+        // Move both windows to primary monitor
+        if (!monitors_.empty()) {
+            moveToMonitor(0);
+        }
     } else {
-        // Enter fullscreen on both windows
-        std::cout << "[FULLSCREEN] Entering fullscreen on both windows" << std::endl;
-        toggleMainWindowFullscreen();
-        toggleImGuiWindowFullscreen();
+        // Enter fullscreen - use multi-monitor layout if available
+        std::cout << "[FULLSCREEN] Entering fullscreen" << std::endl;
+        
+        if (monitors_.size() >= 2) {
+            // Multi-monitor layout: renderer on external, controls on primary
+            int externalIndex = static_cast<int>(monitors_.size()) - 1;
+            GLFWmonitor* external = monitors_[externalIndex];
+            const GLFWvidmode* externalMode = glfwGetVideoMode(external);
+            
+            // Save current window size before fullscreen
+            glfwGetWindowSize(window_, &windowWidth_, &windowHeight_);
+            
+            // Fullscreen main window on external monitor
+            glfwSetWindowMonitor(window_, external, 0, 0, externalMode->width, externalMode->height, externalMode->refreshRate);
+            
+            // Position ImGui window on primary monitor centered (windowed mode)
+            if (imguiWindow_) {
+                int px, py;
+                glfwGetMonitorPos(monitors_[0], &px, &py);
+                const GLFWvidmode* primaryMode = glfwGetVideoMode(monitors_[0]);
+                
+                int imguiX = px + (primaryMode->width - imguiWindowWidth_) / 2;
+                int imguiY = py + (primaryMode->height - imguiWindowHeight_) / 2;
+                
+                // Ensure ImGui window is in windowed mode
+                if (glfwGetWindowMonitor(imguiWindow_)) {
+                    glfwSetWindowMonitor(imguiWindow_, nullptr, imguiX, imguiY, imguiWindowWidth_, imguiWindowHeight_, 0);
+                } else {
+                    glfwSetWindowPos(imguiWindow_, imguiX, imguiY);
+                }
+                glfwShowWindow(imguiWindow_);
+            }
+            
+            std::cout << "[FULLSCREEN] Renderer on external monitor, controls on primary" << std::endl;
+        } else {
+            // Single monitor: fullscreen only renderer, keep ImGui windowed
+            toggleMainWindowFullscreen();
+            
+            // Ensure ImGui window stays in windowed mode
+            if (imguiWindow_ && glfwGetWindowMonitor(imguiWindow_)) {
+                glfwSetWindowMonitor(imguiWindow_, nullptr, 100, 100, imguiWindowWidth_, imguiWindowHeight_, 0);
+            }
+        }
     }
 }
 

@@ -201,11 +201,11 @@ void PostProcessor::applyChain(const std::vector<PostEffectPass> &passes, float 
 
     glDisable(GL_DEPTH_TEST);
 
+    // Disable blending for post-processing chain - effects should replace, not blend
     GLboolean blendWasEnabled = glIsEnabled(GL_BLEND);
-    if (!blendWasEnabled) {
-        glEnable(GL_BLEND);
+    if (blendWasEnabled) {
+        glDisable(GL_BLEND);
     }
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     GLuint currentTexture = colorTexture_;
     int pingIndex = 0;
@@ -286,8 +286,9 @@ void PostProcessor::applyChain(const std::vector<PostEffectPass> &passes, float 
     glBindTexture(GL_TEXTURE_2D, 0);
     glUseProgram(0);
 
-    if (!blendWasEnabled) {
-        glDisable(GL_BLEND);
+    // Restore blending state
+    if (blendWasEnabled) {
+        glEnable(GL_BLEND);
     }
     glEnable(GL_DEPTH_TEST);
 }
