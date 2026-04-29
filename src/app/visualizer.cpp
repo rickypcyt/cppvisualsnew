@@ -1046,6 +1046,7 @@ bool Visualizer::initialize(int width, int height) {
     
     // Apply procedural slots
     proceduralSlots_ = settingsManager_->getProceduralSlots();
+    nameSlots_ = settingsManager_->getNameSlots();
     
     // Apply random settings
     randomPostProcessEnabled_ = settingsManager_->getRandomPostProcessEnabled();
@@ -2001,6 +2002,9 @@ void Visualizer::render() {
             // Apply upscale using the post-processor's output texture
             renderUpscaledToWindow();
         }
+
+        // Render names slots OUTSIDE Post FX (text/marquee effects)
+        renderNamesLayer();
     }
     
     // End GPU timing query
@@ -3147,56 +3151,149 @@ void Visualizer::renderProceduralLayer() {
     };
 
     bool baseRendered = false;
+    bool firstSlotRendered = false;
 
-    if (!proceduralSlots_.empty()) {
-        const auto& baseSlot = proceduralSlots_[0];
-        if (baseSlot.enabled && baseSlot.opacity > 0.001f) {
-            int baseMode = std::clamp(proceduralLayerMode_, 0, kProceduralModeCount - 1);
-            const bool alreadyLogged = lastRenderLoggedBaseActive_
-                && lastRenderLoggedMode_ == baseMode
-                && std::abs(lastRenderLoggedOpacity_ - baseSlot.opacity) < 1e-4f;
-            if (verboseProceduralLogs && !alreadyLogged) {
-                std::cout << "[PROC RENDER] Base slot mode=" << baseMode
-                          << " opacity=" << baseSlot.opacity << std::endl;
-                lastRenderLoggedBaseActive_ = true;
-                lastRenderLoggedMode_ = baseMode;
-                lastRenderLoggedOpacity_ = baseSlot.opacity;
-            }
-            if (verboseProceduralLogs && proceduralSlots_[0].mode != baseMode) {
-                std::cout << "[PROC RENDER] Divergence detected: slot0.mode="
-                          << proceduralSlots_[0].mode << " but proceduralLayerMode_="
-                          << proceduralLayerMode_ << " -> mirroring global into slot0" << std::endl;
-                proceduralSlots_[0].mode = baseMode;
-            }
-            proceduralLayerOpacity_ = baseSlot.opacity;
-            renderSlot(baseMode, baseSlot.opacity, baseSlot.colorAdjust);
-            baseRendered = true;
-        }
-    }
-
-    if (!baseRendered) {
-        lastRenderLoggedBaseActive_ = false;
-        std::array<float, 3> neutralAdjust{1.0f, 1.0f, 1.0f};
-        if (verboseProceduralLogs) {
-            std::cout << "[PROC RENDER] No active base slot, falling back to proceduralLayerMode_="
-                      << proceduralLayerMode_ << " opacity=" << proceduralLayerOpacity_ << std::endl;
-        }
-        renderSlot(proceduralLayerMode_, proceduralLayerOpacity_, neutralAdjust);
-    }
-
-    for (size_t i = 1; i < proceduralSlots_.size(); ++i) {
+    // Render all enabled procedural slots with stacking support
+    for (size_t i = 0; i < proceduralSlots_.size(); ++i) {
         const auto& slot = proceduralSlots_[i];
         if (!slot.enabled || slot.opacity <= 0.001f) {
             continue;
         }
+
+        int slotMode;
+        if (i == 0) {
+            // Slot 0 uses proceduralLayerMode_ for backward compatibility
+            slotMode = std::clamp(proceduralLayerMode_, 0, kProceduralModeCount - 1);
+            if (verboseProceduralLogs && proceduralSlots_[0].mode != slotMode) {
+                std::cout << "[PROC RENDER] Divergence detected: slot0.mode="
+                          << proceduralSlots_[0].mode << " but proceduralLayerMode_="
+                          << proceduralLayerMode_ << " -> mirroring global into slot0" << std::endl;
+                proceduralSlots_[0].mode = slotMode;
+            }
+            proceduralLayerOpacity_ = slot.opacity;
+            baseRendered = true;
+        } else {
+            // Secondary slots use their own mode
+            slotMode = std::clamp(slot.mode, 0, kProceduralModeCount - 1);
+        }
+
+        const bool alreadyLogged = lastRenderLoggedBaseActive_
+            && lastRenderLoggedMode_ == slotMode
+            && std::abs(lastRenderLoggedOpacity_ - slot.opacity) < 1e-4f;
+        
+        if (verboseProceduralLogs && !alreadyLogged) {
+            std::cout << "[PROC RENDER] Slot " << i
+                      << " mode=" << slotMode
+                      << " opacity=" << slot.opacity << std::endl;
+            lastRenderLoggedBaseActive_ = true;
+            lastRenderLoggedMode_ = slotMode;
+            lastRenderLoggedOpacity_ = slot.opacity;
+        }
+
+        // First slot clears framebuffer, subsequent slots stack on top
+        renderSlot(slotMode, slot.opacity, slot.colorAdjust, !firstSlotRendered);
+        firstSlotRendered = true;
+    }
+
+    if (!firstSlotRendered) {
+        lastRenderLoggedBaseActive_ = false;
+        std::array<float, 3> neutralAdjust{1.0f, 1.0f, 1.0f};
         if (verboseProceduralLogs) {
-            std::cout << "[PROC RENDER] Secondary slot " << i
-                      << " mode=" << slot.mode
+            std::cout << "[PROC RENDER] No active slots, falling back to proceduralLayerMode_="
+                      << proceduralLayerMode_ << " opacity=" << proceduralLayerOpacity_ << std::endl;
+        }
+        renderSlot(proceduralLayerMode_, proceduralLayerOpacity_, neutralAdjust, true);
+    }
+}
+
+void Visualizer::renderNamesLayer() {
+    const bool verboseLogs = proceduralLayerDebug_;
+
+    LayerContext context{};
+    context.screenWidth = windowWidth_;
+    context.screenHeight = windowHeight_;
+    context.time = time_;
+    context.tempo = tempoMultiplier_;
+    context.audio = &audioFeatures_;
+    context.intensity = std::clamp(globalIntensityEnvelope_, 0.0f, 1.5f);
+
+    // Check if any name slots are enabled
+    bool anyNameSlotEnabled = false;
+    for (const auto& slot : nameSlots_) {
+        if (slot.enabled && slot.opacity > 0.001f && slot.mode > 0) {
+            anyNameSlotEnabled = true;
+            break;
+        }
+    }
+
+    if (!anyNameSlotEnabled) {
+        proceduralLayer_.setEnabled(false);
+        return;
+    }
+
+    // Save current camera state to restore after rendering names
+    float savedZoom = proceduralLayer_.cameraZoom();
+    float savedOffsetX = proceduralLayer_.cameraOffsetX();
+    float savedOffsetY = proceduralLayer_.cameraOffsetY();
+
+    proceduralLayer_.setEnabled(true);
+    proceduralLayer_.setDebugPreview(proceduralLayerDebug_);
+
+    auto renderSlot = [&](int mode, float opacity, const std::array<float, 3>& colorAdjust, bool clearFramebuffer = true) {
+        float adjustedPrimary[3];
+        float adjustedSecondary[3];
+        for (int i = 0; i < 3; ++i) {
+            adjustedPrimary[i] = std::clamp(scenePrimaryColor_[i] * colorAdjust[i], 0.0f, 1.0f);
+            adjustedSecondary[i] = std::clamp(sceneSecondaryColor_[i] * colorAdjust[i], 0.0f, 1.0f);
+        }
+
+        proceduralLayer_.setMode(std::clamp(mode, 0, kProceduralModeCount - 1));
+        proceduralLayer_.setColorPalette(adjustedPrimary, adjustedSecondary, scenePaletteBlend_);
+        
+        // Load saved camera settings for this specific name mode
+        if (settingsManager_ && mode > 0) {
+            float savedNamesZoom = settingsManager_->getProceduralZoom(mode);
+            float savedNamesOffsetX = settingsManager_->getProceduralOffsetX(mode);
+            float savedNamesOffsetY = settingsManager_->getProceduralOffsetY(mode);
+            
+            if (savedNamesZoom > 0.0f) {
+                proceduralLayer_.setCameraZoom(savedNamesZoom);
+            } else {
+                // Use default zoom from shader metadata if no saved zoom
+                proceduralLayer_.setCameraZoom(getZoomForShaderMode(mode));
+            }
+            proceduralLayer_.setCameraOffset(savedNamesOffsetX, savedNamesOffsetY);
+        }
+        
+        proceduralLayer_.render(context, clearFramebuffer);
+        proceduralLayer_.composite(context, std::clamp(opacity, 0.0f, 1.0f));
+    };
+
+    bool firstSlotRendered = false;
+
+    // Render all enabled name slots with stacking support
+    for (size_t i = 0; i < nameSlots_.size(); ++i) {
+        const auto& slot = nameSlots_[i];
+        if (!slot.enabled || slot.opacity <= 0.001f || slot.mode <= 0) {
+            continue;
+        }
+
+        int slotMode = std::clamp(slot.mode, 0, kProceduralModeCount - 1);
+
+        if (verboseLogs) {
+            std::cout << "[NAMES RENDER] Slot " << i
+                      << " mode=" << slotMode
                       << " opacity=" << slot.opacity << std::endl;
         }
-        // Slots secundarios no limpian el framebuffer para acumular sobre el slot anterior
-        renderSlot(slot.mode, slot.opacity, slot.colorAdjust, false);
+
+        // First slot clears framebuffer, subsequent slots stack on top
+        renderSlot(slotMode, slot.opacity, slot.colorAdjust, !firstSlotRendered);
+        firstSlotRendered = true;
     }
+
+    // Restore original camera state
+    proceduralLayer_.setCameraZoom(savedZoom);
+    proceduralLayer_.setCameraOffset(savedOffsetX, savedOffsetY);
 }
 
 void Visualizer::renderIdleSpinner(float animatedTime) const {

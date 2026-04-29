@@ -167,6 +167,7 @@ private:
 
     static constexpr int kMaxPostProcessSlots = 5;
     static constexpr int kMaxProceduralSlots = 5;
+    static constexpr int kMaxNameSlots = 5;
     
     // Procedural layer constants
     static constexpr int kProceduralModeCount = 76;
@@ -293,6 +294,7 @@ private:
     std::unique_ptr<MidiController> midiController_;
     bool midiEnabled_ = false;
     std::array<PostProcessSlot, kMaxPostProcessSlots> postProcessSlots_;
+    std::array<NameSlot, kMaxNameSlots> nameSlots_;
     std::array<ProceduralSlot, kMaxProceduralSlots> proceduralSlots_;
     
     // Post-process controls
@@ -500,6 +502,7 @@ private:
     void renderCornerOrbs();
     void renderDoodadObject();
     void renderProceduralLayer();
+    void renderNamesLayer();
     void renderCore();
     void handleVisualizationShortcuts();
     

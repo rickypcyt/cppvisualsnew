@@ -22,6 +22,13 @@ struct ProceduralSlot {
     std::array<float, 3> colorAdjust{1.0f, 1.0f, 1.0f};
 };
 
+struct NameSlot {
+    bool enabled = false;
+    int mode = 0;
+    float opacity = 1.0f;
+    std::array<float, 3> colorAdjust{1.0f, 1.0f, 1.0f};
+};
+
 struct FavoritePreset {
     std::string name;
     int proceduralMode;
@@ -98,6 +105,9 @@ public:
 
     const std::array<ProceduralSlot, 5>& getProceduralSlots() const { return proceduralSlots_; }
     void setProceduralSlots(const std::array<ProceduralSlot, 5>& slots);
+
+    const std::array<NameSlot, 5>& getNameSlots() const { return nameSlots_; }
+    void setNameSlots(const std::array<NameSlot, 5>& slots);
 
     // Favorites presets
     const std::vector<FavoritePreset>& getFavorites() const { return favorites_; }
@@ -243,6 +253,9 @@ private:
     
     // Procedural slots settings
     std::array<ProceduralSlot, 5> proceduralSlots_;
+    
+    // Names slots settings (text/marquee effects that render outside Post FX)
+    std::array<NameSlot, 5> nameSlots_;
     
     // Random settings
     bool randomPostProcessEnabled_ = false;

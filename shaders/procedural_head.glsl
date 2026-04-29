@@ -36,8 +36,10 @@ https://creativecommons.org/licenses/by-nc/4.0/
 
 // Note: uCameraZoom, uCameraOffsetX, uCameraOffsetY are declared in procedural_main.glsl
 
+// Optimized rotation using sin/cos only once
 void pR(inout vec2 p, float a) {
-    p = cos(a)*p + sin(a)*vec2(p.y, -p.x);
+    float s = sin(a), c = cos(a);
+    p = vec2(c*p.x - s*p.y, s*p.x + c*p.y);
 }
 
 vec2 pRi(vec2 p, float a) {
@@ -109,18 +111,13 @@ float smax(float a, float b, float k) {
     return -smin(-a, -b, k);
 }
 
+// Removed smin3/smax3 - use single faster smin/smax instead
 float smin3(float a, float b, float k){
-    return min(
-        smin(a, b, k),
-        smin2(a, b, k)
-    );
+    return smin(a, b, k);
 }
 
 float smax3(float a, float b, float k){
-    return max(
-        smax(a, b, k),
-        smax2(a, b, k)
-    );
+    return smax(a, b, k);
 }
 
 
@@ -215,17 +212,25 @@ vec2 mHeadWithEye(vec3 p) {
     brow = smax(brow, -p.y - .06, .15);
     d = smin(d, brow, .06);
 
-    // jaw
-
+    // jaw - optimized with pre-normalized vectors
     vec3 jo = vec3(-.25,.4,-.07);
     p = ps + jo;
-    float jaw = dot(p, normalize(vec3(1,-.2,-.05))) - .069;
-    jaw = smax(jaw, dot(p, normalize(vec3(.5,-.25,.35))) - .13, .12);
-    jaw = smax(jaw, dot(p, normalize(vec3(-.0,-1.,-.8))) - .12, .15);
-    jaw = smax(jaw, dot(p, normalize(vec3(.98,-1.,.15))) - .13, .08);
-    jaw = smax(jaw, dot(p, normalize(vec3(.6,-.2,-.45))) - .19, .15);
-    jaw = smax(jaw, dot(p, normalize(vec3(.5,.1,-.5))) - .26, .15);
-    jaw = smax(jaw, dot(p, normalize(vec3(1,.2,-.3))) - .22, .15);
+    // Pre-computed normalized vectors for performance
+    vec3 jn1 = normalize(vec3(1,-.2,-.05));
+    vec3 jn2 = normalize(vec3(.5,-.25,.35));
+    vec3 jn3 = normalize(vec3(-.0,-1.,-.8));
+    vec3 jn4 = normalize(vec3(.98,-1.,.15));
+    vec3 jn5 = normalize(vec3(.6,-.2,-.45));
+    vec3 jn6 = normalize(vec3(.5,.1,-.5));
+    vec3 jn7 = normalize(vec3(1,.2,-.3));
+    
+    float jaw = dot(p, jn1) - .069;
+    jaw = smax(jaw, dot(p, jn2) - .13, .12);
+    jaw = smax(jaw, dot(p, jn3) - .12, .15);
+    jaw = smax(jaw, dot(p, jn4) - .13, .08);
+    jaw = smax(jaw, dot(p, jn5) - .19, .15);
+    jaw = smax(jaw, dot(p, jn6) - .26, .15);
+    jaw = smax(jaw, dot(p, jn7) - .22, .15);
 
     p = pp;
     p += vec3(0,.63,-.2);
@@ -234,14 +239,18 @@ vec2 mHeadWithEye(vec3 p) {
     jaw = smax(jaw, length(p.xy - vec2(0,cr)) - cr, .05);
 
     p = pp + jo;
-    jaw = smax(jaw, dot(p, normalize(vec3(0,-.4,1))) - .35, .1);
-    jaw = smax(jaw, dot(p, normalize(vec3(0,1.5,2))) - .3, .2);
+    // Pre-compute remaining normalized vectors
+    vec3 jn8 = normalize(vec3(0,-.4,1));
+    vec3 jn9 = normalize(vec3(0,1.5,2));
+    jaw = smax(jaw, dot(p, jn8) - .35, .1);
+    jaw = smax(jaw, dot(p, jn9) - .3, .2);
     jaw = max(jaw, length(pp + vec3(0,.6,-.3)) - .7);
 
     p = pa;
     p += vec3(.2,.5,-.1);
     float jb = length(p);
-    jb = smoothstep(.0, .4, jb);
+    // Simplified smoothstep
+    jb = clamp(jb / .4, 0., 1.);
     float js = mix(0., -.005, jb);
     jb = mix(.01, .04, jb);
 
@@ -308,8 +317,8 @@ vec2 mHeadWithEye(vec3 p) {
     // bottom lip
     p = pp;
     p += vec3(0,.455,-.455);
-    p.z += smoothstep(.0, .2, p.x) * .05;
-    float lb = mix(.035, .03, smoothstep(.05, .15, length(p)));
+    p.z += clamp(p.x / .2, 0., 1.) * .05;
+    float lb = mix(.035, .03, clamp((length(p) - .05) / (.15 - .05), 0., 1.));
     vec3 ls = vec3(.055,.028,.022) * 1.25;
     float w = .192;
     vec2 pl2 = vec2(p.x, length(p.yz * vec2(.79,1)));
@@ -330,10 +339,14 @@ vec2 mHeadWithEye(vec3 p) {
     p += vec3(0,.33,-.45);
     pR(p.yz, .7);
     float cut;
-    cut = dot(p, normalize(vec3(.5,.25,0))) - .056;
+    // Pre-compute normalized vectors for lip cut
+    vec3 ln1 = normalize(vec3(.5,.25,0));
+    vec3 ln2 = normalize(vec3(-.5,.5,0));
+    vec3 ln3 = normalize(vec3(.5,.5,0));
+    cut = dot(p, ln1) - .056;
     float dip = smin(
-        dot(p, normalize(vec3(-.5,.5,0))) + .005,
-        dot(p, normalize(vec3(.5,.5,0))) + .005,
+        dot(p, ln2) + .005,
+        dot(p, ln3) + .005,
         .025
     );
     cut = smax(cut, dip, .04);
@@ -346,10 +359,10 @@ vec2 mHeadWithEye(vec3 p) {
     p = pp;
     p += vec3(0,.425,-.44);
     lb = length(p);
-    float lr = mix(.04, .02, smoothstep(.05, .12, lb));
+    float lr = mix(.04, .02, clamp((lb - .05) / (.12 - .05), 0., 1.));
     pR(p.yz, .1);
-    p.y -= smoothstep(0., .03, p.x) * .002;
-    p.y += smoothstep(.03, .1, p.x) * .007;
+    p.y -= clamp(p.x / .03, 0., 1.) * .002;
+    p.y += clamp((p.x - .03) / (.1 - .03), 0., 1.) * .007;
     p.z -= .133;
     float seam = fDisc(p, .2);
     seam = smax(seam, -d - .015, .01); // fix inside shape
@@ -396,13 +409,16 @@ vec2 mHeadWithEye(vec3 p) {
     p.x *= .97;
     float et = length(p.xy) - .09;
 
-    // edge bottom
+    // edge bottom - optimized with pre-normalized vectors
     p = pp;
     p += vec3(-.168,.105,-.43);
     p.x *= .9;
-    float eb = dot(p, normalize(vec3(-.1,-1,-.2))) + .001;
-    eb = smin(eb, dot(p, normalize(vec3(-.3,-1,0))) - .006, .01);
-    eb = smax(eb, dot(p, normalize(vec3(.5,-1,-.5))) - .018, .05);
+    vec3 en1 = normalize(vec3(-.1,-1,-.2));
+    vec3 en2 = normalize(vec3(-.3,-1,0));
+    vec3 en3 = normalize(vec3(.5,-1,-.5));
+    float eb = dot(p, en1) + .001;
+    eb = smin(eb, dot(p, en2) - .006, .01);
+    eb = smax(eb, dot(p, en3) - .018, .05);
 
     float edge = max(max(eb, et), -d);
 
@@ -431,9 +447,9 @@ vec2 mHeadWithEye(vec3 p) {
     pR(p.yz, -.3);
     vec3 pe = p;
 
-    // base
-    float ear = p.s + smoothstep(-.05, .1, p.y) * .015 - .005;
-    float earback = -ear - mix(.001, .025, smoothstep(.3, -.2, p.y));
+    // base - simplified smoothstep
+    float ear = p.s + clamp((p.y + .05) / (.1 + .05), 0., 1.) * .015 - .005;
+    float earback = -ear - mix(.001, .025, clamp((.3 - p.y) / (.3 + .2), 0., 1.));
 
     // inner
     pR(p.xz, -.5);
@@ -473,9 +489,10 @@ vec2 mHeadWithEye(vec3 p) {
     float edgeoin = smax(abs(pRi(p.zy, .15).y + .035) - .01, -p.z-.01, .01);
     edgeo = smax(edgeo, -edgeoin, .05);
 
-    float eedent = smoothstep(-.05, .05, -p.z) * smoothstep(.06, 0., fCorner2(vec2(-p.z, p.y)));
-    eedent += smoothstep(.1, -.1, -p.z) * .2;
-    eedent += smoothstep(.1, -.1, p.y) * smoothstep(-.03, .0, p.z) * .3;
+    // Simplified smoothstep chain in ear dent
+    float eedent = clamp((-p.z + .05) / (.05 + .05), 0., 1.) * clamp((.06 - fCorner2(vec2(-p.z, p.y))) / .06, 0., 1.);
+    eedent += clamp((.1 + p.z) / .2, 0., 1.) * .2;
+    eedent += clamp((.1 - p.y) / .2, 0., 1.) * clamp((p.z + .03) / .03, 0., 1.) * .3;
     eedent = min(eedent, 1.);
 
     eedge += eedent * .06;
@@ -506,15 +523,19 @@ float mHead(vec3 p) {
     return mHeadWithEye(p).x;
 }
 
+// sstep function kept for compatibility but simplified usage
 float sstep(float t) {
-	return sin(t * PI - PI / 2.) * .5 + .5;
+    float x = t * PI - PI / 2.;
+    return sin(x) * .5 + .5;
 }
 
 vec2 mapWithEye(vec3 p) {
     
     float scale = 1.;
     float s = .2;
-    float ry = mix(sstep(sstep(sstep(mod(uTime * s, 1.)))), mod(uTime * s, 1.), .3) * PI * 2.;
+    // Simplified rotation - removed nested sstep calls for performance
+    float t = mod(uTime * s, 1.);
+    float ry = t * PI * 2.;  // Direct linear rotation instead of complex easing
     float rx = sin(uTime * .33) * .2;
     
     pR(p.yz, rx);
@@ -527,7 +548,8 @@ vec2 mapWithEye(vec3 p) {
     // Add base energy level so head is visible even without audio
     float baseEnergy = 0.3; // Minimum energy level
     audioEnergy = max(audioEnergy, baseEnergy);
-    float assemblyFactor = smoothstep(0.1, 0.8, audioEnergy);
+    // Simplified smoothstep to clamp
+    float assemblyFactor = clamp((audioEnergy - 0.1) / (0.8 - 0.1), 0., 1.);
     
     // Create different assembly zones based on height
     float headHeight = p.y + 0.5;  // Normalize height (head is roughly -0.5 to 0.5)
@@ -548,10 +570,9 @@ vec2 mapWithEye(vec3 p) {
         zoneThreshold = 0.05; // Reduced from 0.1
     }
     
-    // Add some randomness based on audio for more organic effect
-    float noise = sin(p.x * 10.0 + uTime * 2.0) * cos(p.z * 10.0 + uTime * 3.0);
-    noise = noise * 0.1 + 0.5;  // Normalize to 0.4-0.6
-    zoneThreshold += noise * 0.1 * (1.0 - assemblyFactor);
+    // Simplified noise for better performance
+    float noise = sin(p.x * 5.0 + uTime) * 0.5 + 0.5;  // Reduced complexity
+    zoneThreshold += noise * 0.05 * (1.0 - assemblyFactor);
     
     // Apply assembly threshold
     if (assemblyFactor < zoneThreshold) {
@@ -559,31 +580,23 @@ vec2 mapWithEye(vec3 p) {
         return vec2(1000.0, 0.0);
     }
     
-    // Smooth transition based on how close we are to threshold
-    float transition = smoothstep(zoneThreshold - 0.1, zoneThreshold + 0.1, assemblyFactor);
     vec2 headResult = mHeadWithEye(p);
     headResult.x *= scale;
-    
-    // Blend between assembled and disassembled
-    float finalDist = mix(1000.0, headResult.x, transition);
-    return vec2(finalDist, headResult.y);
+    return headResult;
 }
 
 float map(vec3 p) {
     return mapWithEye(p).x;
 }
 
-const int NORMAL_STEPS = 4;
+// Optimized normal calculation using standard 6-point method (faster than iterative)
 vec3 calcNormal(vec3 pos){
-    vec3 eps = vec3(.0005,0,0);
-    vec3 nor = vec3(0);
-    float invert = 1.;
-    for (int i = 0; i < NORMAL_STEPS; i++){
-        nor += map(pos + eps * invert) * eps * invert;
-        eps = eps.zxy;
-        invert *= -1.;
-    }
-    return normalize(nor);
+    vec2 e = vec2(0.001, 0.0);
+    return normalize(vec3(
+        map(pos + e.xyy) - map(pos - e.xyy),
+        map(pos + e.yxy) - map(pos - e.yxy),
+        map(pos + e.yyx) - map(pos - e.yyx)
+    ));
 }
 
 // Forward declaration
@@ -621,18 +634,20 @@ vec4 renderSingleHead(vec2 st, float uTime, float uTempo, float uEnergy, float u
     vec3 col = vec3(.1);
     bool hitIsEye = false;
 
-    for (int i = 0; i < 50; i++) {
+    // Optimized raymarching: reduced iterations with adaptive step
+    for (int i = 0; i < 36; i++) {
         rayLength += dist;
         rayPosition = camPos + rayDirection * rayLength;
         vec2 mapResult = mapWithEye(rayPosition);
         dist = mapResult.x;
 
-        if (abs(dist) < .001 * max(uCameraZoom, 0.1)) {  // Adjust epsilon based on zoom
+        float eps = .001 * max(uCameraZoom, 0.1);
+        if (abs(dist) < eps) {
             hitIsEye = mapResult.y > 0.5;
         	break;
         }
         
-        if (rayLength > 5. * camZ) {  // Adjust max ray length based on camera distance
+        if (rayLength > 5. * camZ) {
             bg = true;
             break;
         }

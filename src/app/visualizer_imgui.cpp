@@ -1157,12 +1157,23 @@ void Visualizer::renderProceduralWindow() {
             }
         }
         
-        // Update global state based on slots
+        // Update global state based on slots - any enabled slot should enable procedural layer
         if (!anySlotEnabled) {
             showProceduralLayer_ = false;
-        } else if (proceduralSlots_[0].enabled) {
+        } else {
             showProceduralLayer_ = true;
-            proceduralLayerOpacity_ = proceduralSlots_[0].opacity;
+            // Use slot 0 opacity as global opacity for compatibility
+            if (proceduralSlots_[0].enabled) {
+                proceduralLayerOpacity_ = proceduralSlots_[0].opacity;
+            } else {
+                // If slot 0 is disabled but other slots are enabled, find first active slot's opacity
+                for (int i = 1; i < kMaxProceduralSlots; ++i) {
+                    if (proceduralSlots_[i].enabled) {
+                        proceduralLayerOpacity_ = proceduralSlots_[i].opacity;
+                        break;
+                    }
+                }
+            }
         }
         
         // Random Cycle Section
@@ -1210,6 +1221,87 @@ void Visualizer::renderProceduralWindow() {
             selectRandomProcedural();
             randomProceduralEnabled_ = false;
             saveCurrentSettings();
+        }
+        
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        
+        // Names Slots Section (text/marquee effects that render outside Post FX)
+        ImGui::Text("📝 NAMES (Text/Marquee)");
+        ImGui::TextDisabled("Text effects that render OUTSIDE Post FX - unaffected by post-processing");
+        
+        ImGui::Spacing();
+        
+        // Individual Names Slot Controls
+        bool anyNameSlotEnabled = false;
+        for (int slotIndex = 0; slotIndex < kMaxNameSlots; ++slotIndex) {
+            auto& slot = nameSlots_[slotIndex];
+            
+            ImGui::PushID(slotIndex);
+            std::string slotName = "Names Slot " + std::to_string(slotIndex + 1);
+            if (ImGui::CollapsingHeader(slotName.c_str())) {
+                
+                // Enable Control
+                bool prevEnabled = slot.enabled;
+                ImGui::Checkbox("Enabled", &slot.enabled);
+                if (prevEnabled != slot.enabled) {
+                    anyNameSlotEnabled = slot.enabled;
+                    saveCurrentSettings();
+                }
+                
+                // Mode and Opacity Controls (only when enabled)
+                if (slot.enabled) {
+                    ImGui::Text("Effect Mode:");
+                    
+                    // Only allow text/marquee modes (56, 58, 59, 60, 61)
+                    const char* nameEffects[] = {
+                        "None",
+                        "Hello World Grid",
+                        "LITN Grid", 
+                        "HANNAH ADAMS Grid",
+                        "ANOTHER CODE Grid",
+                        "LUPERFUT Grid"
+                    };
+                    const int nameModes[] = {0, 56, 58, 59, 60, 61};
+                    
+                    int currentModeIndex = 0;
+                    for (int i = 0; i < 6; ++i) {
+                        if (slot.mode == nameModes[i]) {
+                            currentModeIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    if (ImGui::Combo("##name_mode", &currentModeIndex, nameEffects, 6)) {
+                        slot.mode = nameModes[currentModeIndex];
+                        saveCurrentSettings();
+                    }
+                    
+                    // Opacity Control
+                    ImGui::Text("Opacity:");
+                    float prevOpacity = slot.opacity;
+                    ImGui::SliderFloat("##name_opacity", &slot.opacity, 0.0f, 1.0f, "%.2f");
+                    if (prevOpacity != slot.opacity) {
+                        saveCurrentSettings();
+                    }
+                    
+                    // Color Adjust
+                    ImGui::Text("Color Adjust:");
+                    ImGui::SetNextItemWidth(200.0f);
+                    ImGui::ColorEdit3("##name_color", slot.colorAdjust.data());
+                    if (ImGui::IsItemEdited()) {
+                        saveCurrentSettings();
+                    }
+                }
+            }
+            ImGui::PopID();
+            
+            if (slotIndex < kMaxNameSlots - 1) {
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+            }
         }
         
         ImGui::Spacing();
@@ -1585,6 +1677,24 @@ void Visualizer::renderPostProcessWindow() {
             randomPostProcessEnabled_ = false;
             saveCurrentSettings();
         }
+    
+    ImGui::SameLine();
+    if (ImGui::Button("Enable All")) {
+        for (int mode = 1; mode < postModeCount - 1; ++mode) {
+            setPostProcessEffectEnabled(mode, true);
+        }
+        initializeRandomPostProcess();
+        saveCurrentSettings();
+    }
+    
+    ImGui::SameLine();
+    if (ImGui::Button("Disable All")) {
+        for (int mode = 1; mode < postModeCount - 1; ++mode) {
+            setPostProcessEffectEnabled(mode, false);
+        }
+        initializeRandomPostProcess();
+        saveCurrentSettings();
+    }
 
     ImGui::Spacing();
     ImGui::Separator();
@@ -2029,23 +2139,187 @@ void Visualizer::renderCameraWindow() {
     // Camera window always visible - no close button
     ImGui::Begin("Camera Control", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
+    ImGui::Text("🎥 Slot Camera Settings");
+    ImGui::Separator();
+
+    // Slot type selector (Procedural vs Names)
+    static int slotType = 0; // 0 = Procedural, 1 = Names
+    const char* slotTypes[] = {"Procedural", "Names"};
+    ImGui::Text("Slot Type:");
+    if (ImGui::Combo("##slot_type", &slotType, slotTypes, 2)) {
+        saveCurrentSettings();
+    }
+
+    // Slot index selector
+    static int slotIndex = 0;
+    ImGui::Text("Slot:");
+    ImGui::SameLine();
+    if (ImGui::RadioButton("1", slotIndex == 0)) slotIndex = 0;
+    ImGui::SameLine();
+    if (ImGui::RadioButton("2", slotIndex == 1)) slotIndex = 1;
+    ImGui::SameLine();
+    if (ImGui::RadioButton("3", slotIndex == 2)) slotIndex = 2;
+    ImGui::SameLine();
+    if (ImGui::RadioButton("4", slotIndex == 3)) slotIndex = 3;
+    ImGui::SameLine();
+    if (ImGui::RadioButton("5", slotIndex == 4)) slotIndex = 4;
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // Get current slot info
+    int currentMode = 0;
+    float currentOpacity = 1.0f;
+    std::array<float, 3> currentColorAdjust{1.0f, 1.0f, 1.0f};
+    
+    if (slotType == 0) {
+        // Procedural slot
+        if (slotIndex < kMaxProceduralSlots) {
+            currentMode = proceduralSlots_[slotIndex].mode;
+            currentOpacity = proceduralSlots_[slotIndex].opacity;
+            currentColorAdjust = proceduralSlots_[slotIndex].colorAdjust;
+        }
+    } else {
+        // Names slot
+        if (slotIndex < kMaxNameSlots) {
+            currentMode = nameSlots_[slotIndex].mode;
+            currentOpacity = nameSlots_[slotIndex].opacity;
+            currentColorAdjust = nameSlots_[slotIndex].colorAdjust;
+        }
+    }
+
+    // Show current mode name
+    std::string modeName = GetEffectRegistry().getEffectNameByIndex(currentMode);
+    if (modeName.empty()) {
+        modeName = "None";
+    }
+    ImGui::Text("Current Mode: %s (Index: %d)", modeName.c_str(), currentMode);
+
+    ImGui::Spacing();
+
+    // Mode selector
+    ImGui::Text("Change Mode:");
+    auto& effectList = GetEffectListForImGui(this);
+    int uiIndex = effectList.findUiIndex(currentMode);
+    
+    // Filter modes based on slot type
+    if (slotType == 1) {
+        // Names slots only allow text/marquee modes
+        ImGui::TextDisabled("(Only text/marquee modes available for Names)");
+        const char* nameEffects[] = {
+            "None",
+            "Hello World Grid",
+            "LITN Grid", 
+            "HANNAH ADAMS Grid",
+            "ANOTHER CODE Grid",
+            "LUPERFUT Grid"
+        };
+        const int nameModes[] = {0, 56, 58, 59, 60, 61};
+        
+        int currentModeIndex = 0;
+        for (int i = 0; i < 6; ++i) {
+            if (currentMode == nameModes[i]) {
+                currentModeIndex = i;
+                break;
+            }
+        }
+        
+        if (ImGui::Combo("##mode_selector", &currentModeIndex, nameEffects, 6)) {
+            int newMode = nameModes[currentModeIndex];
+            if (slotType == 0 && slotIndex < kMaxProceduralSlots) {
+                proceduralSlots_[slotIndex].mode = newMode;
+                if (slotIndex == 0) {
+                    applyMainProceduralMode(newMode, "camera-control");
+                }
+            } else if (slotType == 1 && slotIndex < kMaxNameSlots) {
+                nameSlots_[slotIndex].mode = newMode;
+            }
+            saveCurrentSettings();
+        }
+    } else {
+        // Procedural slots allow all modes
+        if (ImGui::Combo("##mode_selector", &uiIndex, effectList.ptrs.data(), effectList.size())) {
+            int newMode = effectList.getModeIndex(uiIndex);
+            if (slotIndex < kMaxProceduralSlots) {
+                proceduralSlots_[slotIndex].mode = newMode;
+                if (slotIndex == 0) {
+                    applyMainProceduralMode(newMode, "camera-control");
+                }
+            }
+            saveCurrentSettings();
+        }
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // Opacity control
+    ImGui::Text("Opacity:");
+    if (ImGui::SliderFloat("##slot_opacity", &currentOpacity, 0.0f, 1.0f, "%.2f")) {
+        if (slotType == 0 && slotIndex < kMaxProceduralSlots) {
+            proceduralSlots_[slotIndex].opacity = currentOpacity;
+            if (slotIndex == 0) {
+                proceduralLayerOpacity_ = currentOpacity;
+            }
+        } else if (slotType == 1 && slotIndex < kMaxNameSlots) {
+            nameSlots_[slotIndex].opacity = currentOpacity;
+        }
+        saveCurrentSettings();
+    }
+
+    ImGui::Spacing();
+
+    // Color adjust
+    ImGui::Text("Color Adjust:");
+    ImGui::SetNextItemWidth(200.0f);
+    if (ImGui::ColorEdit3("##slot_color", currentColorAdjust.data())) {
+        if (slotType == 0 && slotIndex < kMaxProceduralSlots) {
+            proceduralSlots_[slotIndex].colorAdjust = currentColorAdjust;
+        } else if (slotType == 1 && slotIndex < kMaxNameSlots) {
+            nameSlots_[slotIndex].colorAdjust = currentColorAdjust;
+        }
+        saveCurrentSettings();
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // Global camera settings (affect all slots)
     ImGui::Text("🎥 Global Camera Settings");
     ImGui::Separator();
+
+    // Determine which mode to use for camera settings
+    int targetMode = 0;
+    if (slotType == 1 && slotIndex < kMaxNameSlots && nameSlots_[slotIndex].mode > 0) {
+        // Names mode: use selected names slot's mode
+        targetMode = nameSlots_[slotIndex].mode;
+    } else {
+        // Procedural mode: use current procedural mode
+        targetMode = proceduralLayerMode_;
+    }
 
     // Zoom control - saves per shader mode
     float zoom = proceduralLayer_.cameraZoom();
     ImGui::Text("Zoom:");
     if (ImGui::SliderFloat("##camera_zoom", &zoom, 0.1f, 5.0f, "%.2fx")) {
         proceduralLayer_.setCameraZoom(zoom);
-        // Save zoom for current shader mode
-        int currentMode = proceduralLayerMode_;
-        if (currentMode > 0 && settingsManager_) {
-            settingsManager_->setProceduralZoom(currentMode, zoom);
+        
+        // Save for the target mode
+        if (targetMode > 0 && settingsManager_) {
+            settingsManager_->setProceduralZoom(targetMode, zoom);
         }
+        
         saveCurrentSettings();
     }
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Global zoom for all procedural effects (saved per shader)");
+        if (slotType == 1) {
+            ImGui::SetTooltip("Zoom for selected names slot (saved per mode)");
+        } else {
+            ImGui::SetTooltip("Zoom for procedural effects (saved per shader)");
+        }
     }
 
     ImGui::Spacing();
@@ -2055,11 +2329,12 @@ void Visualizer::renderCameraWindow() {
     ImGui::Text("Offset X:");
     if (ImGui::SliderFloat("##camera_offset_x", &offsetX, -2.0f, 2.0f, "%.2f")) {
         proceduralLayer_.setCameraOffset(offsetX, proceduralLayer_.cameraOffsetY());
-        // Save offset for current shader mode
-        int currentMode = proceduralLayerMode_;
-        if (currentMode > 0 && settingsManager_) {
-            settingsManager_->setProceduralOffsetX(currentMode, offsetX);
+        
+        // Save for the target mode
+        if (targetMode > 0 && settingsManager_) {
+            settingsManager_->setProceduralOffsetX(targetMode, offsetX);
         }
+        
         saveCurrentSettings();
     }
 
@@ -2070,11 +2345,12 @@ void Visualizer::renderCameraWindow() {
     ImGui::Text("Offset Y:");
     if (ImGui::SliderFloat("##camera_offset_y", &offsetY, -2.0f, 2.0f, "%.2f")) {
         proceduralLayer_.setCameraOffset(proceduralLayer_.cameraOffsetX(), offsetY);
-        // Save offset for current shader mode
-        int currentMode = proceduralLayerMode_;
-        if (currentMode > 0 && settingsManager_) {
-            settingsManager_->setProceduralOffsetY(currentMode, offsetY);
+        
+        // Save for the target mode
+        if (targetMode > 0 && settingsManager_) {
+            settingsManager_->setProceduralOffsetY(targetMode, offsetY);
         }
+        
         saveCurrentSettings();
     }
 
@@ -2084,15 +2360,17 @@ void Visualizer::renderCameraWindow() {
 
     // Reset button - resets to shader default zoom and offsets
     if (ImGui::Button("Reset to Default")) {
-        float defaultZoom = getZoomForShaderMode(proceduralLayerMode_);
+        float defaultZoom = getZoomForShaderMode(targetMode);
         proceduralLayer_.setCameraZoom(defaultZoom);
         proceduralLayer_.setCameraOffset(0.0f, 0.0f);
-        // Clear saved zoom and offsets for current mode to use shader default
-        if (proceduralLayerMode_ > 0 && settingsManager_) {
-            settingsManager_->setProceduralZoom(proceduralLayerMode_, 0.0f); // 0 = use shader default
-            settingsManager_->setProceduralOffsetX(proceduralLayerMode_, 0.0f);
-            settingsManager_->setProceduralOffsetY(proceduralLayerMode_, 0.0f);
+        
+        // Reset for the target mode
+        if (targetMode > 0 && settingsManager_) {
+            settingsManager_->setProceduralZoom(targetMode, 0.0f);
+            settingsManager_->setProceduralOffsetX(targetMode, 0.0f);
+            settingsManager_->setProceduralOffsetY(targetMode, 0.0f);
         }
+        
         saveCurrentSettings();
     }
 

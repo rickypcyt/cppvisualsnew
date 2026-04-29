@@ -20,6 +20,14 @@ SettingsManager::SettingsManager() {
         postProcessSlots_[i].rgbAdjust = {1.0f, 1.0f, 1.0f};
     }
 
+    // Initialize all name slots as disabled
+    for (int i = 0; i < 5; ++i) {
+        nameSlots_[i].enabled = false;
+        nameSlots_[i].mode = 0;
+        nameSlots_[i].opacity = 1.0f;
+        nameSlots_[i].colorAdjust = {1.0f, 1.0f, 1.0f};
+    }
+
     // Set UI elements to always be expanded by default
     showImGuiWindow_ = true;
     showProceduralLayer_ = true;
@@ -207,6 +215,45 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                             proceduralSlots_[i].colorAdjust[0] = rgb[0];
                             proceduralSlots_[i].colorAdjust[1] = rgb[1];
                             proceduralSlots_[i].colorAdjust[2] = rgb[2];
+                        }
+                    }
+                }
+            }
+        }
+
+        // Load name slots settings (text/marquee effects that render outside Post FX)
+        if (j.contains("nameSlots")) {
+            const auto& names = j["nameSlots"];
+            if (names.contains("slots")) {
+                const auto& slots = names["slots"];
+                for (size_t i = 0; i < slots.size() && i < nameSlots_.size(); ++i) {
+                    const auto& slot = slots[i];
+                    if (slot.contains("enabled")) nameSlots_[i].enabled = slot["enabled"];
+                    
+                    // Try to load by name first (new format)
+                    if (slot.contains("effectName")) {
+                        std::string effectName = slot["effectName"];
+                        int idx = GetEffectRegistry().getEffectIndexByName(effectName);
+                        if (idx >= 0) {
+                            nameSlots_[i].mode = idx;
+                        } else if (slot.contains("mode")) {
+                            // Fallback: try to load by index
+                            int loadedMode = slot["mode"];
+                            nameSlots_[i].mode = std::clamp(loadedMode, 0, 73);
+                        }
+                    } else if (slot.contains("mode")) {
+                        // Legacy: load by index
+                        int loadedMode = slot["mode"];
+                        nameSlots_[i].mode = std::clamp(loadedMode, 0, 73);
+                    }
+                    
+                    if (slot.contains("opacity")) nameSlots_[i].opacity = slot["opacity"];
+                    if (slot.contains("colorAdjust")) {
+                        const auto& rgb = slot["colorAdjust"];
+                        if (rgb.size() >= 3) {
+                            nameSlots_[i].colorAdjust[0] = rgb[0];
+                            nameSlots_[i].colorAdjust[1] = rgb[1];
+                            nameSlots_[i].colorAdjust[2] = rgb[2];
                         }
                     }
                 }
@@ -526,16 +573,30 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         for (size_t i = 0; i < proceduralSlots_.size(); ++i) {
             json slot;
             slot["enabled"] = proceduralSlots_[i].enabled;
-            // Save both index (for compatibility) and name (for robustness)
-            int modeIndex = std::clamp(proceduralSlots_[i].mode, 0, 75);
-            slot["mode"] = modeIndex;
-            std::string effectName = GetEffectRegistry().getEffectNameByIndex(modeIndex);
+            // Save by name if available, fallback to index
+            std::string effectName = GetEffectRegistry().getEffectNameByIndex(proceduralSlots_[i].mode);
             if (!effectName.empty()) {
                 slot["effectName"] = effectName;
             }
+            slot["mode"] = std::clamp(proceduralSlots_[i].mode, 0, 73);
             slot["opacity"] = proceduralSlots_[i].opacity;
             slot["colorAdjust"] = proceduralSlots_[i].colorAdjust;
             j["proceduralSlots"]["slots"].push_back(slot);
+        }
+
+        // Save name slots settings
+        for (size_t i = 0; i < nameSlots_.size(); ++i) {
+            json slot;
+            slot["enabled"] = nameSlots_[i].enabled;
+            // Save by name if available, fallback to index
+            std::string effectName = GetEffectRegistry().getEffectNameByIndex(nameSlots_[i].mode);
+            if (!effectName.empty()) {
+                slot["effectName"] = effectName;
+            }
+            slot["mode"] = std::clamp(nameSlots_[i].mode, 0, 73);
+            slot["opacity"] = nameSlots_[i].opacity;
+            slot["colorAdjust"] = nameSlots_[i].colorAdjust;
+            j["nameSlots"]["slots"].push_back(slot);
         }
 
         // Save random settings
@@ -677,6 +738,10 @@ void SettingsManager::setPostProcessSlots(const std::array<PostProcessSlot, 5>& 
 
 void SettingsManager::setProceduralSlots(const std::array<ProceduralSlot, 5>& slots) {
     proceduralSlots_ = slots;
+}
+
+void SettingsManager::setNameSlots(const std::array<NameSlot, 5>& slots) {
+    nameSlots_ = slots;
 }
 
 bool SettingsManager::getProceduralShaderEnabled(int modeIndex) const {
