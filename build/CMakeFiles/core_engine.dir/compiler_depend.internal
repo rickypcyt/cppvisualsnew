@@ -1130,6 +1130,7 @@ CMakeFiles/core_engine.dir/src/midi_controller.cpp.o
 CMakeFiles/core_engine.dir/src/settings_manager.cpp.o
  /home/ricky/coding/proyects/visuals/src/settings_manager.cpp
  /home/ricky/coding/proyects/visuals/src/audio_analyzer.h
+ /home/ricky/coding/proyects/visuals/src/gpu_profiler.h
  /home/ricky/coding/proyects/visuals/src/midi_controller.h
  /home/ricky/coding/proyects/visuals/src/modular_layer.h
  /home/ricky/coding/proyects/visuals/src/post_processor.h

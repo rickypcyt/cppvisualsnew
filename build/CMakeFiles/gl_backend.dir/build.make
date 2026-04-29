@@ -114,11 +114,26 @@ CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/gl_command_executor.cpp -o CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.s
 
+CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o: CMakeFiles/gl_backend.dir/flags.make
+CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o: /home/ricky/coding/proyects/visuals/src/gpu_profiler.cpp
+CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o: CMakeFiles/gl_backend.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o -MF CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o.d -o CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o -c /home/ricky/coding/proyects/visuals/src/gpu_profiler.cpp
+
+CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ricky/coding/proyects/visuals/src/gpu_profiler.cpp > CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.i
+
+CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ricky/coding/proyects/visuals/src/gpu_profiler.cpp -o CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.s
+
 # Object files for target gl_backend
 gl_backend_OBJECTS = \
 "CMakeFiles/gl_backend.dir/src/gl_renderer.cpp.o" \
 "CMakeFiles/gl_backend.dir/src/gl_shader_compiler.cpp.o" \
-"CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.o"
+"CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.o" \
+"CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o"
 
 # External object files for target gl_backend
 gl_backend_EXTERNAL_OBJECTS =
@@ -126,9 +141,10 @@ gl_backend_EXTERNAL_OBJECTS =
 libgl_backend.a: CMakeFiles/gl_backend.dir/src/gl_renderer.cpp.o
 libgl_backend.a: CMakeFiles/gl_backend.dir/src/gl_shader_compiler.cpp.o
 libgl_backend.a: CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.o
+libgl_backend.a: CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o
 libgl_backend.a: CMakeFiles/gl_backend.dir/build.make
 libgl_backend.a: CMakeFiles/gl_backend.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX static library libgl_backend.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX static library libgl_backend.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/gl_backend.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/gl_backend.dir/link.txt --verbose=$(VERBOSE)
 

@@ -208,6 +208,56 @@ private:
     float currentFPS_ = 0.0f;
     float fpsUpdateTimer_ = 0.0f;
     int frameCount_ = 0;
+    
+    // Separate FPS tracking for main window and ImGui window
+    float mainWindowFPS_ = 0.0f;
+    float mainWindowFPSTimer_ = 0.0f;
+    int mainWindowFrameCount_ = 0;
+    float imguiWindowFPS_ = 0.0f;
+    float imguiWindowFPSTimer_ = 0.0f;
+    int imguiWindowFrameCount_ = 0;
+    
+    // GPU sync objects for presentation stall detection
+    GLsync mainFrameSync_ = nullptr;
+    GLsync imguiFrameSync_ = nullptr;
+    int framesInFlight_ = 0;
+    static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
+    
+    // Render resolution decoupling (for fill-rate optimization)
+    int renderWidth_ = 1280;   // Fixed internal render resolution
+    int renderHeight_ = 720;
+    bool useResolutionDecoupling_ = false;  // Enable/disable for testing (disabled to always render at full resolution)
+    
+    // Adaptive Resolution Scaling System (GPU Budget Control)
+    bool adaptiveResolutionEnabled_ = false;  // Enable dynamic resolution scaling (disabled to always render at full resolution)
+    float targetFrameTimeMs_ = 16.67f;       // Target 60 FPS (16.67ms)
+    float gpuFrameBudgetMs_ = 14.0f;         // GPU budget (leave headroom for CPU/present)
+    float gpuFrameBudgetLow_ = 8.0f;         // Lower threshold for scaling up (wider hysteresis band: 14-8=6ms)
+    float resolutionScale_ = 1.0f;           // Current resolution scale (0.5 - 1.0)
+    float minResolutionScale_ = 0.5f;        // Minimum scale (720p -> 360p)
+    float maxResolutionScale_ = 1.0f;        // Maximum scale (native)
+    float resolutionScaleStep_ = 0.05f;      // Step size for scaling adjustments
+    int consecutiveSlowFrames_ = 0;        // Count of frames exceeding budget
+    int consecutiveFastFrames_ = 0;          // Count of frames under budget
+    static constexpr int kScaleDownThreshold = 8;   // Frames before scaling down (increased for stability)
+    static constexpr int kScaleUpThreshold = 180;    // Frames before scaling up (strong hysteresis)
+    
+    // Signal filtering for stability
+    float gpuTimeFiltered_ = 0.0f;         // EMA-filtered GPU time
+    float emaAlpha_ = 0.08f;               // EMA smoothing factor (0.05-0.2 typical, reduced for stronger smoothing)
+    double lastScaleChangeTime_ = 0.0f;    // Timestamp of last resolution scale change
+    double scaleCooldownMs_ = 1500.0;      // Cooldown period after scaling (ms, increased for stability)
+    
+    // GPU Timing queries for real GPU frame time (not CPU time)
+    GLuint gpuQueryStart_ = 0;
+    GLuint gpuQueryEnd_ = 0;
+    bool gpuQueryAvailable_ = false;
+    float lastGpuFrameTimeMs_ = 0.0f;
+    
+    // Upscale shader for resolution decoupling
+    std::unique_ptr<Shader> upscaleShader_;
+    GLuint upscaleVAO_ = 0;
+    GLuint upscaleVBO_ = 0;
 
     // OpenGL objects
     GLuint quadVAO_;
@@ -422,6 +472,9 @@ private:
     void setupSparkField();
     void setupCornerQuad();
     void setupDoodadMesh();
+    bool loadUpscaleShader();
+    void setupUpscaleQuad();
+    void renderUpscaledToWindow();
     void renderWaveform(const std::vector<float>& audioBuffer);
     void renderText(const std::string& text, float x, float y);
     void renderConsoleVisualization();

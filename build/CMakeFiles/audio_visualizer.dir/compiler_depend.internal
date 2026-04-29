@@ -4,6 +4,7 @@
 CMakeFiles/audio_visualizer.dir/src/main.cpp.o
  /home/ricky/coding/proyects/visuals/src/main.cpp
  /home/ricky/coding/proyects/visuals/src/audio_analyzer.h
+ /home/ricky/coding/proyects/visuals/src/gpu_profiler.h
  /home/ricky/coding/proyects/visuals/src/midi_controller.h
  /home/ricky/coding/proyects/visuals/src/modular_layer.h
  /home/ricky/coding/proyects/visuals/src/post_processor.h

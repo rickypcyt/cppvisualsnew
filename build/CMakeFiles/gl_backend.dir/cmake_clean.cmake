@@ -5,6 +5,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/gl_backend.dir/src/gl_renderer.cpp.o.d"
   "CMakeFiles/gl_backend.dir/src/gl_shader_compiler.cpp.o"
   "CMakeFiles/gl_backend.dir/src/gl_shader_compiler.cpp.o.d"
+  "CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o"
+  "CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o.d"
   "libgl_backend.a"
   "libgl_backend.pdb"
 )

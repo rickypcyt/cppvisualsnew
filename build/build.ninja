@@ -94,15 +94,6 @@ build CMakeFiles/core_engine.dir/src/midi_controller.cpp.o: CXX_COMPILER__core_e
   OBJECT_FILE_DIR = CMakeFiles/core_engine.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/core_engine.dir
 
-build CMakeFiles/core_engine.dir/src/gpu_profiler.cpp.o: CXX_COMPILER__core_engine_unscanned_Debug /home/ricky/coding/proyects/visuals/src/gpu_profiler.cpp || cmake_object_order_depends_target_core_engine
-  CONFIG = Debug
-  DEP_FILE = CMakeFiles/core_engine.dir/src/gpu_profiler.cpp.o.d
-  FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
-  OBJECT_DIR = CMakeFiles/core_engine.dir
-  OBJECT_FILE_DIR = CMakeFiles/core_engine.dir/src
-  TARGET_SUPPORT_DIR = CMakeFiles/core_engine.dir
-
 
 # =============================================================================
 # Link build statements for STATIC_LIBRARY target core_engine
@@ -111,7 +102,7 @@ build CMakeFiles/core_engine.dir/src/gpu_profiler.cpp.o: CXX_COMPILER__core_engi
 #############################################
 # Link the static library libcore_engine.a
 
-build libcore_engine.a: CXX_STATIC_LIBRARY_LINKER__core_engine_Debug CMakeFiles/core_engine.dir/src/audio_engine.cpp.o CMakeFiles/core_engine.dir/src/audio_capture.cpp.o CMakeFiles/core_engine.dir/src/audio_analyzer.cpp.o CMakeFiles/core_engine.dir/src/settings_manager.cpp.o CMakeFiles/core_engine.dir/src/midi_controller.cpp.o CMakeFiles/core_engine.dir/src/gpu_profiler.cpp.o
+build libcore_engine.a: CXX_STATIC_LIBRARY_LINKER__core_engine_Debug CMakeFiles/core_engine.dir/src/audio_engine.cpp.o CMakeFiles/core_engine.dir/src/audio_capture.cpp.o CMakeFiles/core_engine.dir/src/audio_analyzer.cpp.o CMakeFiles/core_engine.dir/src/settings_manager.cpp.o CMakeFiles/core_engine.dir/src/midi_controller.cpp.o
   CONFIG = Debug
   LANGUAGE_COMPILE_FLAGS = -g
   OBJECT_DIR = CMakeFiles/core_engine.dir
@@ -508,6 +499,15 @@ build CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.o: CXX_COMPILER__gl_
   OBJECT_FILE_DIR = CMakeFiles/gl_backend.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/gl_backend.dir
 
+build CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o: CXX_COMPILER__gl_backend_unscanned_Debug /home/ricky/coding/proyects/visuals/src/gpu_profiler.cpp || cmake_object_order_depends_target_gl_backend
+  CONFIG = Debug
+  DEP_FILE = CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
+  OBJECT_DIR = CMakeFiles/gl_backend.dir
+  OBJECT_FILE_DIR = CMakeFiles/gl_backend.dir/src
+  TARGET_SUPPORT_DIR = CMakeFiles/gl_backend.dir
+
 
 # =============================================================================
 # Link build statements for STATIC_LIBRARY target gl_backend
@@ -516,7 +516,7 @@ build CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.o: CXX_COMPILER__gl_
 #############################################
 # Link the static library libgl_backend.a
 
-build libgl_backend.a: CXX_STATIC_LIBRARY_LINKER__gl_backend_Debug CMakeFiles/gl_backend.dir/src/gl_renderer.cpp.o CMakeFiles/gl_backend.dir/src/gl_shader_compiler.cpp.o CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.o
+build libgl_backend.a: CXX_STATIC_LIBRARY_LINKER__gl_backend_Debug CMakeFiles/gl_backend.dir/src/gl_renderer.cpp.o CMakeFiles/gl_backend.dir/src/gl_shader_compiler.cpp.o CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.o CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o
   CONFIG = Debug
   LANGUAGE_COMPILE_FLAGS = -g
   OBJECT_DIR = CMakeFiles/gl_backend.dir
@@ -552,12 +552,12 @@ build CMakeFiles/audio_visualizer.dir/src/main.cpp.o: CXX_COMPILER__audio_visual
 #############################################
 # Link the executable audio_visualizer
 
-build audio_visualizer: CXX_EXECUTABLE_LINKER__audio_visualizer_Debug CMakeFiles/audio_visualizer.dir/src/main.cpp.o | libapp_layer.a libgl_backend.a libimgui.a libimgui_glfw.a libimgui_opengl3.a /usr/lib/libvulkan.so libimgui.a libcore_engine.a libpost_processing.a libmodular_layer.a libshader_system.a libgl_backend.a /usr/lib/libglfw.so.3.4 /usr/lib/libGLEW.so || libapp_layer.a libcore_engine.a libgl_backend.a libimgui.a libimgui_glfw.a libimgui_opengl3.a libmodular_layer.a libpost_processing.a libshader_system.a
+build audio_visualizer: CXX_EXECUTABLE_LINKER__audio_visualizer_Debug CMakeFiles/audio_visualizer.dir/src/main.cpp.o | libapp_layer.a libcore_engine.a libgl_backend.a libimgui.a libimgui_glfw.a libimgui_opengl3.a /usr/lib/libvulkan.so libimgui.a libpost_processing.a libmodular_layer.a libshader_system.a libgl_backend.a /usr/lib/libglfw.so.3.4 /usr/lib/libGLEW.so || libapp_layer.a libcore_engine.a libgl_backend.a libimgui.a libimgui_glfw.a libimgui_opengl3.a libmodular_layer.a libpost_processing.a libshader_system.a
   CONFIG = Debug
   DEP_FILE = CMakeFiles/audio_visualizer.dir/link.d
   FLAGS = -g
   LINK_FLAGS = -Xlinker --dependency-file=CMakeFiles/audio_visualizer.dir/link.d
-  LINK_LIBRARIES = libapp_layer.a  libgl_backend.a  libimgui.a  libimgui_glfw.a  libimgui_opengl3.a  /usr/lib/libvulkan.so  libimgui.a  libcore_engine.a  -lportaudio  -lasound  -lm  -lpthread  -lasound  -lm  -lpthread  libpost_processing.a  libmodular_layer.a  libshader_system.a  libgl_backend.a  -ldl  /usr/lib/libglfw.so.3.4  /usr/lib/libGLEW.so  -lGL
+  LINK_LIBRARIES = libapp_layer.a  libcore_engine.a  libgl_backend.a  libimgui.a  libimgui_glfw.a  libimgui_opengl3.a  /usr/lib/libvulkan.so  -lportaudio  -lasound  -lm  -lpthread  -lasound  -lm  -lpthread  libimgui.a  libpost_processing.a  libmodular_layer.a  libshader_system.a  libgl_backend.a  -ldl  /usr/lib/libglfw.so.3.4  /usr/lib/libGLEW.so  -lGL
   OBJECT_DIR = CMakeFiles/audio_visualizer.dir
   POST_BUILD = :
   PRE_LINK = cd /home/ricky/coding/proyects/visuals/build && /usr/bin/cmake -E copy_directory /home/ricky/coding/proyects/visuals/shaders /home/ricky/coding/proyects/visuals/build/shaders && cd /home/ricky/coding/proyects/visuals/build

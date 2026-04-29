@@ -248,6 +248,9 @@ void PostProcessor::applyChain(const std::vector<PostEffectPass> &passes, float 
         drewPass = true;
     }
 
+    // Store which texture has the final result
+    lastOutputTexture_ = drewPass ? currentTexture : colorTexture_;
+
     if (!drewPass) {
         // No effects applied, just render the original scene
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -287,6 +290,10 @@ void PostProcessor::applyChain(const std::vector<PostEffectPass> &passes, float 
         glDisable(GL_BLEND);
     }
     glEnable(GL_DEPTH_TEST);
+}
+
+GLuint PostProcessor::getOutputTexture() const {
+    return lastOutputTexture_;
 }
 
 bool PostProcessor::createResources(int width, int height) {

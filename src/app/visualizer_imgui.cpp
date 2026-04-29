@@ -1796,7 +1796,9 @@ void Visualizer::renderCurrentEffectsDisplay() {
 
     float fps = ImGui::GetIO().Framerate;
     if (fps > 0.0f) {
-        ImGui::Text("⚡ FPS: %.1f (%.2f ms)", fps, 1000.0f / fps);
+        ImGui::Text("⚡ Main Window FPS: %.1f", mainWindowFPS_);
+        ImGui::Text("⚡ ImGui Window FPS: %.1f", imguiWindowFPS_);
+        ImGui::Text("⚡ ImGui Internal FPS: %.1f (%.2f ms)", fps, 1000.0f / fps);
     } else {
         ImGui::Text("⚡ FPS: --");
     }
@@ -2268,9 +2270,47 @@ void Visualizer::blitImGuiFBOToWindow() {
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     GPUProfiler::getInstance().beforeSwap();
+    
+    // Profile glfwSwapBuffers for ImGui window
+    auto swapStart = std::chrono::high_resolution_clock::now();
     glfwSwapBuffers(imguiWindow_);
+    auto swapEnd = std::chrono::high_resolution_clock::now();
+    float swapTime = std::chrono::duration<float, std::milli>(swapEnd - swapStart).count();
+    
+    // Accumulate ImGui swap statistics
+    static float avgImguiSwapTime = 0.0f;
+    static int imguiSampleCount = 0;
+    static int imguiStallCount = 0;
+    
+    avgImguiSwapTime = (avgImguiSwapTime * imguiSampleCount + swapTime) / (imguiSampleCount + 1);
+    if (swapTime > 5.0f) imguiStallCount++;
+    imguiSampleCount++;
+    
+    // Log ImGui statistics every 60 frames
+    static int imguiStatCounter = 0;
+    if (imguiStatCounter++ % 60 == 0 && imguiSampleCount > 0) {
+        std::cout << "[PERF] ImGui window - Swap: " << avgImguiSwapTime << "ms avg, Stalls: " << imguiStallCount << "/" << imguiSampleCount << std::endl;
+        avgImguiSwapTime = 0.0f;
+        imguiSampleCount = 0;
+        imguiStallCount = 0;
+    }
+    
     GPUProfiler::getInstance().afterSwap();
     imguiDirty_ = false;
+
+    // Update ImGui window FPS tracking
+    static auto lastImGuiWindowTime = std::chrono::high_resolution_clock::now();
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float deltaTime = std::chrono::duration<float>(currentTime - lastImGuiWindowTime).count();
+    lastImGuiWindowTime = currentTime;
+    
+    imguiWindowFrameCount_++;
+    imguiWindowFPSTimer_ += deltaTime;
+    if (imguiWindowFPSTimer_ >= 0.5f) { // Update every 0.5 seconds
+        imguiWindowFPS_ = imguiWindowFrameCount_ / imguiWindowFPSTimer_;
+        imguiWindowFrameCount_ = 0;
+        imguiWindowFPSTimer_ = 0.0f;
+    }
 
     // Switch back to main window context
     GPUProfiler::getInstance().beforeContextSwitch();

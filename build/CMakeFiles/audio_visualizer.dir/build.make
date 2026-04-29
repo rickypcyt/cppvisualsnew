@@ -97,13 +97,13 @@ audio_visualizer: CMakeFiles/audio_visualizer.dir/src/main.cpp.o
 audio_visualizer: CMakeFiles/audio_visualizer.dir/build.make
 audio_visualizer: CMakeFiles/audio_visualizer.dir/compiler_depend.ts
 audio_visualizer: libapp_layer.a
+audio_visualizer: libcore_engine.a
 audio_visualizer: libgl_backend.a
 audio_visualizer: libimgui.a
 audio_visualizer: libimgui_glfw.a
 audio_visualizer: libimgui_opengl3.a
 audio_visualizer: /usr/lib/libvulkan.so
 audio_visualizer: libimgui.a
-audio_visualizer: libcore_engine.a
 audio_visualizer: libpost_processing.a
 audio_visualizer: libmodular_layer.a
 audio_visualizer: libshader_system.a

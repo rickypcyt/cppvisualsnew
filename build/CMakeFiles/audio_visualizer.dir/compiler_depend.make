@@ -3,6 +3,7 @@
 
 CMakeFiles/audio_visualizer.dir/src/main.cpp.o: /home/ricky/coding/proyects/visuals/src/main.cpp \
   /home/ricky/coding/proyects/visuals/src/audio_analyzer.h \
+  /home/ricky/coding/proyects/visuals/src/gpu_profiler.h \
   /home/ricky/coding/proyects/visuals/src/midi_controller.h \
   /home/ricky/coding/proyects/visuals/src/modular_layer.h \
   /home/ricky/coding/proyects/visuals/src/post_processor.h \
@@ -540,9 +541,7 @@ libgl_backend.a:
 
 /usr/include/c++/15.2.1/sstream:
 
-/usr/include/stdio.h:
-
-/usr/include/bits/wordsize.h:
+/usr/include/c++/15.2.1/pstl/pstl_config.h:
 
 /usr/include/c++/15.2.1/bits/cxxabi_init_exception.h:
 
@@ -565,6 +564,10 @@ libgl_backend.a:
 /home/ricky/coding/proyects/visuals/src/midi_controller.h:
 
 /usr/include/c++/15.2.1/algorithm:
+
+/usr/include/stdio.h:
+
+/usr/include/bits/wordsize.h:
 
 /usr/include/bits/wctype-wchar.h:
 
@@ -698,8 +701,6 @@ libgl_backend.a:
 
 /usr/include/asm-generic/errno-base.h:
 
-/usr/include/bits/byteswap.h:
-
 /usr/include/bits/flt-eval-method.h:
 
 /usr/include/GLFW/glfw3.h:
@@ -756,8 +757,6 @@ libshader_system.a:
 
 /usr/include/c++/15.2.1/bits/atomic_base.h:
 
-/usr/include/c++/15.2.1/bits/ostream.h:
-
 /usr/include/bits/stdint-least.h:
 
 /usr/include/asm-generic/errno.h:
@@ -781,6 +780,8 @@ libshader_system.a:
 /usr/include/bits/libc-header-start.h:
 
 /usr/include/c++/15.2.1/ostream:
+
+/usr/include/bits/byteswap.h:
 
 /usr/lib/libc.so.6:
 
@@ -807,6 +808,10 @@ libshader_system.a:
 /usr/include/c++/15.2.1/ratio:
 
 /usr/include/bits/floatn-common.h:
+
+/usr/include/c++/15.2.1/bits/ostream.h:
+
+/home/ricky/coding/proyects/visuals/src/gpu_profiler.h:
 
 /usr/include/wctype.h:
 
@@ -840,8 +845,6 @@ libshader_system.a:
 
 /usr/include/bits/pthread_stack_min-dynamic.h:
 
-/usr/include/c++/15.2.1/pstl/pstl_config.h:
-
 /usr/lib/libc.so:
 
 /usr/include/c++/15.2.1/tr1/beta_function.tcc:
@@ -860,6 +863,12 @@ libshader_system.a:
 
 /usr/include/bits/types/cookie_io_functions_t.h:
 
+/usr/include/features.h:
+
+/usr/include/bits/types/__FILE.h:
+
+/usr/include/bits/sched.h:
+
 /usr/include/c++/15.2.1/bits/stl_algobase.h:
 
 /usr/include/c++/15.2.1/system_error:
@@ -869,12 +878,6 @@ libshader_system.a:
 /usr/include/bits/stdint-uintn.h:
 
 /usr/include/c++/15.2.1/cstdlib:
-
-/usr/include/features.h:
-
-/usr/include/bits/sched.h:
-
-/usr/include/bits/types/__FILE.h:
 
 /usr/include/c++/15.2.1/vector:
 

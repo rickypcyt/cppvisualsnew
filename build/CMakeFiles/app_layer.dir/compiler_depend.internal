@@ -7,6 +7,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer.cpp.o
  /home/ricky/coding/proyects/visuals/imgui/imgui.h
  /home/ricky/coding/proyects/visuals/src/audio_analyzer.h
  /home/ricky/coding/proyects/visuals/src/audio_capture.h
+ /home/ricky/coding/proyects/visuals/src/gpu_profiler.h
  /home/ricky/coding/proyects/visuals/src/midi_controller.h
  /home/ricky/coding/proyects/visuals/src/modular_layer.h
  /home/ricky/coding/proyects/visuals/src/post_processor.h
@@ -245,6 +246,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer.cpp.o
  /usr/include/c++/15.2.1/cstdint
  /usr/include/c++/15.2.1/cstdio
  /usr/include/c++/15.2.1/cstdlib
+ /usr/include/c++/15.2.1/cstring
  /usr/include/c++/15.2.1/ctime
  /usr/include/c++/15.2.1/cwchar
  /usr/include/c++/15.2.1/cwctype
@@ -365,6 +367,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer.cpp.o
 CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o
  /home/ricky/coding/proyects/visuals/src/app/visualizer_console.cpp
  /home/ricky/coding/proyects/visuals/src/audio_analyzer.h
+ /home/ricky/coding/proyects/visuals/src/gpu_profiler.h
  /home/ricky/coding/proyects/visuals/src/midi_controller.h
  /home/ricky/coding/proyects/visuals/src/modular_layer.h
  /home/ricky/coding/proyects/visuals/src/post_processor.h
@@ -581,6 +584,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o
  /usr/include/c++/15.2.1/cstdint
  /usr/include/c++/15.2.1/cstdio
  /usr/include/c++/15.2.1/cstdlib
+ /usr/include/c++/15.2.1/cstring
  /usr/include/c++/15.2.1/ctime
  /usr/include/c++/15.2.1/cwchar
  /usr/include/c++/15.2.1/cwctype
@@ -676,6 +680,8 @@ CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o
  /usr/include/stdint.h
  /usr/include/stdio.h
  /usr/include/stdlib.h
+ /usr/include/string.h
+ /usr/include/strings.h
  /usr/include/sys/cdefs.h
  /usr/include/sys/select.h
  /usr/include/sys/single_threaded.h
@@ -690,6 +696,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o
 CMakeFiles/app_layer.dir/src/app/visualizer_diagnostic.cpp.o
  /home/ricky/coding/proyects/visuals/src/app/visualizer_diagnostic.cpp
  /home/ricky/coding/proyects/visuals/src/audio_analyzer.h
+ /home/ricky/coding/proyects/visuals/src/gpu_profiler.h
  /home/ricky/coding/proyects/visuals/src/midi_controller.h
  /home/ricky/coding/proyects/visuals/src/modular_layer.h
  /home/ricky/coding/proyects/visuals/src/post_processor.h
@@ -906,6 +913,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer_diagnostic.cpp.o
  /usr/include/c++/15.2.1/cstdint
  /usr/include/c++/15.2.1/cstdio
  /usr/include/c++/15.2.1/cstdlib
+ /usr/include/c++/15.2.1/cstring
  /usr/include/c++/15.2.1/ctime
  /usr/include/c++/15.2.1/cwchar
  /usr/include/c++/15.2.1/cwctype
@@ -1000,6 +1008,8 @@ CMakeFiles/app_layer.dir/src/app/visualizer_diagnostic.cpp.o
  /usr/include/stdint.h
  /usr/include/stdio.h
  /usr/include/stdlib.h
+ /usr/include/string.h
+ /usr/include/strings.h
  /usr/include/sys/cdefs.h
  /usr/include/sys/select.h
  /usr/include/sys/single_threaded.h
@@ -1018,14 +1028,15 @@ CMakeFiles/app_layer.dir/src/app/visualizer_imgui.cpp.o
  /home/ricky/coding/proyects/visuals/imgui/imconfig.h
  /home/ricky/coding/proyects/visuals/imgui/imgui.h
  /home/ricky/coding/proyects/visuals/src/audio_analyzer.h
+ /home/ricky/coding/proyects/visuals/src/gpu_profiler.h
  /home/ricky/coding/proyects/visuals/src/midi_controller.h
  /home/ricky/coding/proyects/visuals/src/modular_layer.h
  /home/ricky/coding/proyects/visuals/src/post_processor.h
+ /home/ricky/coding/proyects/visuals/src/profiler.h
  /home/ricky/coding/proyects/visuals/src/settings_manager.h
  /home/ricky/coding/proyects/visuals/src/shader.h
  /home/ricky/coding/proyects/visuals/src/shader_handle.h
  /home/ricky/coding/proyects/visuals/src/app/visualizer.h
- /home/ricky/coding/proyects/visuals/src/profiler.h
  /home/ricky/coding/proyects/visuals/src/shader_loader.h
  /usr/include/GL/gl.h
  /usr/include/GL/glew.h
@@ -1373,6 +1384,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer_imgui.cpp.o
 CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o
  /home/ricky/coding/proyects/visuals/src/app/visualizer_procedural.cpp
  /home/ricky/coding/proyects/visuals/src/audio_analyzer.h
+ /home/ricky/coding/proyects/visuals/src/gpu_profiler.h
  /home/ricky/coding/proyects/visuals/src/midi_controller.h
  /home/ricky/coding/proyects/visuals/src/modular_layer.h
  /home/ricky/coding/proyects/visuals/src/post_processor.h
@@ -1589,6 +1601,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o
  /usr/include/c++/15.2.1/cstdint
  /usr/include/c++/15.2.1/cstdio
  /usr/include/c++/15.2.1/cstdlib
+ /usr/include/c++/15.2.1/cstring
  /usr/include/c++/15.2.1/ctime
  /usr/include/c++/15.2.1/cwchar
  /usr/include/c++/15.2.1/cwctype
@@ -1683,6 +1696,8 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o
  /usr/include/stdint.h
  /usr/include/stdio.h
  /usr/include/stdlib.h
+ /usr/include/string.h
+ /usr/include/strings.h
  /usr/include/sys/cdefs.h
  /usr/include/sys/select.h
  /usr/include/sys/single_threaded.h

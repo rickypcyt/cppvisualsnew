@@ -6,6 +6,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer.cpp.o: /home/ricky/coding/proyects/v
   /home/ricky/coding/proyects/visuals/imgui/imgui.h \
   /home/ricky/coding/proyects/visuals/src/audio_analyzer.h \
   /home/ricky/coding/proyects/visuals/src/audio_capture.h \
+  /home/ricky/coding/proyects/visuals/src/gpu_profiler.h \
   /home/ricky/coding/proyects/visuals/src/midi_controller.h \
   /home/ricky/coding/proyects/visuals/src/modular_layer.h \
   /home/ricky/coding/proyects/visuals/src/post_processor.h \
@@ -244,6 +245,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer.cpp.o: /home/ricky/coding/proyects/v
   /usr/include/c++/15.2.1/cstdint \
   /usr/include/c++/15.2.1/cstdio \
   /usr/include/c++/15.2.1/cstdlib \
+  /usr/include/c++/15.2.1/cstring \
   /usr/include/c++/15.2.1/ctime \
   /usr/include/c++/15.2.1/cwchar \
   /usr/include/c++/15.2.1/cwctype \
@@ -363,6 +365,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer.cpp.o: /home/ricky/coding/proyects/v
 
 CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o: /home/ricky/coding/proyects/visuals/src/app/visualizer_console.cpp \
   /home/ricky/coding/proyects/visuals/src/audio_analyzer.h \
+  /home/ricky/coding/proyects/visuals/src/gpu_profiler.h \
   /home/ricky/coding/proyects/visuals/src/midi_controller.h \
   /home/ricky/coding/proyects/visuals/src/modular_layer.h \
   /home/ricky/coding/proyects/visuals/src/post_processor.h \
@@ -579,6 +582,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o: /home/ricky/coding/pr
   /usr/include/c++/15.2.1/cstdint \
   /usr/include/c++/15.2.1/cstdio \
   /usr/include/c++/15.2.1/cstdlib \
+  /usr/include/c++/15.2.1/cstring \
   /usr/include/c++/15.2.1/ctime \
   /usr/include/c++/15.2.1/cwchar \
   /usr/include/c++/15.2.1/cwctype \
@@ -674,6 +678,8 @@ CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o: /home/ricky/coding/pr
   /usr/include/stdint.h \
   /usr/include/stdio.h \
   /usr/include/stdlib.h \
+  /usr/include/string.h \
+  /usr/include/strings.h \
   /usr/include/sys/cdefs.h \
   /usr/include/sys/select.h \
   /usr/include/sys/single_threaded.h \
@@ -687,6 +693,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o: /home/ricky/coding/pr
 
 CMakeFiles/app_layer.dir/src/app/visualizer_diagnostic.cpp.o: /home/ricky/coding/proyects/visuals/src/app/visualizer_diagnostic.cpp \
   /home/ricky/coding/proyects/visuals/src/audio_analyzer.h \
+  /home/ricky/coding/proyects/visuals/src/gpu_profiler.h \
   /home/ricky/coding/proyects/visuals/src/midi_controller.h \
   /home/ricky/coding/proyects/visuals/src/modular_layer.h \
   /home/ricky/coding/proyects/visuals/src/post_processor.h \
@@ -903,6 +910,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer_diagnostic.cpp.o: /home/ricky/coding
   /usr/include/c++/15.2.1/cstdint \
   /usr/include/c++/15.2.1/cstdio \
   /usr/include/c++/15.2.1/cstdlib \
+  /usr/include/c++/15.2.1/cstring \
   /usr/include/c++/15.2.1/ctime \
   /usr/include/c++/15.2.1/cwchar \
   /usr/include/c++/15.2.1/cwctype \
@@ -997,6 +1005,8 @@ CMakeFiles/app_layer.dir/src/app/visualizer_diagnostic.cpp.o: /home/ricky/coding
   /usr/include/stdint.h \
   /usr/include/stdio.h \
   /usr/include/stdlib.h \
+  /usr/include/string.h \
+  /usr/include/strings.h \
   /usr/include/sys/cdefs.h \
   /usr/include/sys/select.h \
   /usr/include/sys/single_threaded.h \
@@ -1014,14 +1024,15 @@ CMakeFiles/app_layer.dir/src/app/visualizer_imgui.cpp.o: /home/ricky/coding/proy
   /home/ricky/coding/proyects/visuals/imgui/imconfig.h \
   /home/ricky/coding/proyects/visuals/imgui/imgui.h \
   /home/ricky/coding/proyects/visuals/src/audio_analyzer.h \
+  /home/ricky/coding/proyects/visuals/src/gpu_profiler.h \
   /home/ricky/coding/proyects/visuals/src/midi_controller.h \
   /home/ricky/coding/proyects/visuals/src/modular_layer.h \
   /home/ricky/coding/proyects/visuals/src/post_processor.h \
+  /home/ricky/coding/proyects/visuals/src/profiler.h \
   /home/ricky/coding/proyects/visuals/src/settings_manager.h \
   /home/ricky/coding/proyects/visuals/src/shader.h \
   /home/ricky/coding/proyects/visuals/src/shader_handle.h \
   /home/ricky/coding/proyects/visuals/src/app/visualizer.h \
-  /home/ricky/coding/proyects/visuals/src/profiler.h \
   /home/ricky/coding/proyects/visuals/src/shader_loader.h \
   /usr/include/GL/gl.h \
   /usr/include/GL/glew.h \
@@ -1368,6 +1379,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer_imgui.cpp.o: /home/ricky/coding/proy
 
 CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding/proyects/visuals/src/app/visualizer_procedural.cpp \
   /home/ricky/coding/proyects/visuals/src/audio_analyzer.h \
+  /home/ricky/coding/proyects/visuals/src/gpu_profiler.h \
   /home/ricky/coding/proyects/visuals/src/midi_controller.h \
   /home/ricky/coding/proyects/visuals/src/modular_layer.h \
   /home/ricky/coding/proyects/visuals/src/post_processor.h \
@@ -1584,6 +1596,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
   /usr/include/c++/15.2.1/cstdint \
   /usr/include/c++/15.2.1/cstdio \
   /usr/include/c++/15.2.1/cstdlib \
+  /usr/include/c++/15.2.1/cstring \
   /usr/include/c++/15.2.1/ctime \
   /usr/include/c++/15.2.1/cwchar \
   /usr/include/c++/15.2.1/cwctype \
@@ -1678,6 +1691,8 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
   /usr/include/stdint.h \
   /usr/include/stdio.h \
   /usr/include/stdlib.h \
+  /usr/include/string.h \
+  /usr/include/strings.h \
   /usr/include/sys/cdefs.h \
   /usr/include/sys/select.h \
   /usr/include/sys/single_threaded.h \
@@ -1689,8 +1704,6 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stddef.h \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stdint.h
 
-
-/usr/include/c++/15.2.1/cstring:
 
 /home/ricky/coding/proyects/visuals/src/app/visualizer_diagnostic.cpp:
 
@@ -1820,7 +1833,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 
 /usr/include/c++/15.2.1/fstream:
 
-/usr/include/c++/15.2.1/bits/cxxabi_init_exception.h:
+/usr/include/c++/15.2.1/ext/string_conversions.h:
 
 /usr/include/c++/15.2.1/bits/basic_ios.tcc:
 
@@ -1938,29 +1951,19 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 
 /usr/include/bits/stdint-least.h:
 
-/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stddef.h:
-
-/usr/include/asm-generic/int-ll64.h:
-
-/usr/include/bits/mathcalls-macros.h:
-
-/usr/include/c++/15.2.1/bits/stl_set.h:
-
-/usr/include/c++/15.2.1/bits/allocator.h:
-
-/usr/include/c++/15.2.1/cwctype:
-
-/usr/include/c++/15.2.1/compare:
-
-/usr/include/bits/time.h:
-
-/usr/include/asm/posix_types.h:
-
 /home/ricky/coding/proyects/visuals/src/app/visualizer.h:
 
 /usr/include/asm-generic/errno-base.h:
 
 /usr/include/c++/15.2.1/bits/regex_compiler.tcc:
+
+/usr/include/bits/mathcalls-macros.h:
+
+/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stddef.h:
+
+/usr/include/asm-generic/int-ll64.h:
+
+/usr/include/c++/15.2.1/bits/stl_set.h:
 
 /home/ricky/coding/proyects/visuals/src/shader_handle.h:
 
@@ -1980,8 +1983,6 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 
 /usr/include/c++/15.2.1/bits/std_mutex.h:
 
-/usr/include/c++/15.2.1/bits/ostream.h:
-
 /usr/include/bits/flt-eval-method.h:
 
 /usr/include/GLFW/glfw3.h:
@@ -1994,19 +1995,11 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 
 /home/ricky/coding/proyects/visuals/src/app/visualizer.cpp:
 
-/usr/include/bits/waitstatus.h:
+/usr/include/c++/15.2.1/bits/ios_base.h:
 
-/usr/include/bits/wchar.h:
+/usr/include/c++/15.2.1/chrono:
 
-/usr/include/bits/types/struct___jmp_buf_tag.h:
-
-/usr/include/bits/setjmp.h:
-
-/usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/c++config.h:
-
-/usr/include/bits/types/__sigset_t.h:
-
-/usr/include/c++/15.2.1/bits/unique_lock.h:
+/usr/include/c++/15.2.1/bits/stl_iterator_base_funcs.h:
 
 /usr/include/c++/15.2.1/debug/debug.h:
 
@@ -2024,11 +2017,35 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 
 /usr/include/bits/pthread_stack_min-dynamic.h:
 
-/usr/include/c++/15.2.1/bits/ios_base.h:
+/usr/include/c++/15.2.1/bits/allocator.h:
 
-/usr/include/c++/15.2.1/chrono:
+/usr/include/bits/time.h:
 
-/usr/include/c++/15.2.1/bits/stl_iterator_base_funcs.h:
+/usr/include/asm/posix_types.h:
+
+/usr/include/c++/15.2.1/cwctype:
+
+/usr/include/c++/15.2.1/compare:
+
+/home/ricky/coding/proyects/visuals/imgui/imgui.h:
+
+/usr/include/c++/15.2.1/bits/regex_executor.h:
+
+/usr/include/c++/15.2.1/bits/regex_scanner.tcc:
+
+/usr/include/bits/waitstatus.h:
+
+/usr/include/bits/wchar.h:
+
+/usr/include/bits/types/struct___jmp_buf_tag.h:
+
+/usr/include/bits/setjmp.h:
+
+/usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/c++config.h:
+
+/usr/include/bits/types/__sigset_t.h:
+
+/usr/include/c++/15.2.1/bits/unique_lock.h:
 
 /home/ricky/coding/proyects/visuals/src/app/visualizer_procedural.cpp:
 
@@ -2056,12 +2073,6 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 
 /home/ricky/coding/proyects/visuals/src/shader.h:
 
-/home/ricky/coding/proyects/visuals/imgui/imgui.h:
-
-/usr/include/c++/15.2.1/bits/regex_executor.h:
-
-/usr/include/c++/15.2.1/bits/regex_scanner.tcc:
-
 /usr/include/assert.h:
 
 /usr/local/include/portaudio.h:
@@ -2075,6 +2086,12 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 /usr/include/c++/15.2.1/bits/istream.tcc:
 
 /usr/include/c++/15.2.1/cstdio:
+
+/usr/include/c++/15.2.1/random:
+
+/usr/include/bits/stdint-intn.h:
+
+/usr/include/bits/types/clockid_t.h:
 
 /usr/include/bits/atomic_wide_counter.h:
 
@@ -2103,6 +2120,16 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 /usr/include/c++/15.2.1/atomic:
 
 /usr/include/bits/floatn.h:
+
+/usr/include/c++/15.2.1/bits/ostream.h:
+
+/home/ricky/coding/proyects/visuals/src/gpu_profiler.h:
+
+/usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/atomic_word.h:
+
+/usr/include/c++/15.2.1/bits/parse_numbers.h:
+
+/usr/include/c++/15.2.1/bitset:
 
 /usr/include/bits/fp-logb.h:
 
@@ -2166,11 +2193,7 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 
 /usr/include/c++/15.2.1/bits/regex_error.h:
 
-/usr/include/c++/15.2.1/random:
-
-/usr/include/bits/types/clockid_t.h:
-
-/usr/include/bits/stdint-intn.h:
+/usr/include/c++/15.2.1/bits/cxxabi_init_exception.h:
 
 /usr/include/c++/15.2.1/bits/deque.tcc:
 
@@ -2222,8 +2245,6 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 
 /usr/include/c++/15.2.1/bits/predefined_ops.h:
 
-/usr/include/c++/15.2.1/ext/string_conversions.h:
-
 /usr/include/asm/posix_types_64.h:
 
 /usr/include/c++/15.2.1/bits/locale_facets.tcc:
@@ -2265,6 +2286,10 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 /usr/include/c++/15.2.1/bits/postypes.h:
 
 /usr/include/c++/15.2.1/bits/random.h:
+
+/usr/include/c++/15.2.1/ext/type_traits.h:
+
+/usr/include/c++/15.2.1/bits/this_thread_sleep.h:
 
 /usr/include/c++/15.2.1/bits/random.tcc:
 
@@ -2374,12 +2399,6 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 
 /usr/include/c++/15.2.1/bits/version.h:
 
-/usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/atomic_word.h:
-
-/usr/include/c++/15.2.1/bits/parse_numbers.h:
-
-/usr/include/c++/15.2.1/bitset:
-
 /usr/include/c++/15.2.1/clocale:
 
 /usr/include/stdint.h:
@@ -2393,6 +2412,8 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 /usr/include/c++/15.2.1/cstddef:
 
 /usr/include/c++/15.2.1/cstdint:
+
+/usr/include/c++/15.2.1/cstring:
 
 /usr/include/bits/timex.h:
 
@@ -2417,7 +2438,3 @@ CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: /home/ricky/coding
 /usr/include/c++/15.2.1/ext/concurrence.h:
 
 /usr/include/c++/15.2.1/ext/numeric_traits.h:
-
-/usr/include/c++/15.2.1/bits/this_thread_sleep.h:
-
-/usr/include/c++/15.2.1/ext/type_traits.h:

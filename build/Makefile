@@ -704,6 +704,30 @@ src/gl_shader_compiler.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gl_backend.dir/build.make CMakeFiles/gl_backend.dir/src/gl_shader_compiler.cpp.s
 .PHONY : src/gl_shader_compiler.cpp.s
 
+src/gpu_profiler.o: src/gpu_profiler.cpp.o
+.PHONY : src/gpu_profiler.o
+
+# target to build an object file
+src/gpu_profiler.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gl_backend.dir/build.make CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o
+.PHONY : src/gpu_profiler.cpp.o
+
+src/gpu_profiler.i: src/gpu_profiler.cpp.i
+.PHONY : src/gpu_profiler.i
+
+# target to preprocess a source file
+src/gpu_profiler.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gl_backend.dir/build.make CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.i
+.PHONY : src/gpu_profiler.cpp.i
+
+src/gpu_profiler.s: src/gpu_profiler.cpp.s
+.PHONY : src/gpu_profiler.s
+
+# target to generate assembly for a file
+src/gpu_profiler.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gl_backend.dir/build.make CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.s
+.PHONY : src/gpu_profiler.cpp.s
+
 src/layer_validator.o: src/layer_validator.cpp.o
 .PHONY : src/layer_validator.o
 
@@ -1042,6 +1066,9 @@ help:
 	@echo "... src/gl_shader_compiler.o"
 	@echo "... src/gl_shader_compiler.i"
 	@echo "... src/gl_shader_compiler.s"
+	@echo "... src/gpu_profiler.o"
+	@echo "... src/gpu_profiler.i"
+	@echo "... src/gpu_profiler.s"
 	@echo "... src/layer_validator.o"
 	@echo "... src/layer_validator.i"
 	@echo "... src/layer_validator.s"

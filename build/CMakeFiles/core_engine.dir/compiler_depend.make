@@ -1125,6 +1125,7 @@ CMakeFiles/core_engine.dir/src/midi_controller.cpp.o: /home/ricky/coding/proyect
 
 CMakeFiles/core_engine.dir/src/settings_manager.cpp.o: /home/ricky/coding/proyects/visuals/src/settings_manager.cpp \
   /home/ricky/coding/proyects/visuals/src/audio_analyzer.h \
+  /home/ricky/coding/proyects/visuals/src/gpu_profiler.h \
   /home/ricky/coding/proyects/visuals/src/midi_controller.h \
   /home/ricky/coding/proyects/visuals/src/modular_layer.h \
   /home/ricky/coding/proyects/visuals/src/post_processor.h \
@@ -1826,6 +1827,8 @@ CMakeFiles/core_engine.dir/src/settings_manager.cpp.o: /home/ricky/coding/proyec
 /usr/include/c++/15.2.1/bits/ptr_traits.h:
 
 /usr/include/nlohmann/detail/iterators/iter_impl.hpp:
+
+/home/ricky/coding/proyects/visuals/src/gpu_profiler.h:
 
 /usr/include/alsa/pcm.h:
 

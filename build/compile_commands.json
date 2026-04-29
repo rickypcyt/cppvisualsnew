@@ -31,12 +31,6 @@
 },
 {
   "directory": "/home/ricky/coding/proyects/visuals/build",
-  "command": "/usr/bin/clang++ -I/home/ricky/coding/proyects/visuals/src -g -std=gnu++17 -o CMakeFiles/core_engine.dir/src/gpu_profiler.cpp.o -c /home/ricky/coding/proyects/visuals/src/gpu_profiler.cpp",
-  "file": "/home/ricky/coding/proyects/visuals/src/gpu_profiler.cpp",
-  "output": "/home/ricky/coding/proyects/visuals/build/CMakeFiles/core_engine.dir/src/gpu_profiler.cpp.o"
-},
-{
-  "directory": "/home/ricky/coding/proyects/visuals/build",
   "command": "/usr/bin/clang++ -I/home/ricky/coding/proyects/visuals/imgui -g -std=gnu++17 -o CMakeFiles/imgui.dir/imgui/imgui.cpp.o -c /home/ricky/coding/proyects/visuals/imgui/imgui.cpp",
   "file": "/home/ricky/coding/proyects/visuals/imgui/imgui.cpp",
   "output": "/home/ricky/coding/proyects/visuals/build/CMakeFiles/imgui.dir/imgui/imgui.cpp.o"
@@ -160,6 +154,12 @@
   "command": "/usr/bin/clang++ -I/home/ricky/coding/proyects/visuals/src -g -std=gnu++17 -o CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.o -c /home/ricky/coding/proyects/visuals/src/gl_command_executor.cpp",
   "file": "/home/ricky/coding/proyects/visuals/src/gl_command_executor.cpp",
   "output": "/home/ricky/coding/proyects/visuals/build/CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.o"
+},
+{
+  "directory": "/home/ricky/coding/proyects/visuals/build",
+  "command": "/usr/bin/clang++ -I/home/ricky/coding/proyects/visuals/src -g -std=gnu++17 -o CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o -c /home/ricky/coding/proyects/visuals/src/gpu_profiler.cpp",
+  "file": "/home/ricky/coding/proyects/visuals/src/gpu_profiler.cpp",
+  "output": "/home/ricky/coding/proyects/visuals/build/CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o"
 },
 {
   "directory": "/home/ricky/coding/proyects/visuals/build",

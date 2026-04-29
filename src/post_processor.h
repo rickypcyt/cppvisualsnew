@@ -41,6 +41,9 @@ public:
     // Clear accumulation buffers to remove ghosting/burn-in
     void clearAccumulation();
 
+    // Get the output texture after applyChain (for resolution upscaling)
+    GLuint getOutputTexture() const;
+
 private:
     bool createResources(int width, int height);
     void destroyResources();
@@ -52,6 +55,7 @@ private:
     GLuint quadVBO_{0};
     std::array<GLuint, 2> pingFbos_{0, 0};
     std::array<GLuint, 2> pingTextures_{0, 0};
+    mutable GLuint lastOutputTexture_{0}; // Tracks which texture has the final result
 
     int width_{0};
     int height_{0};

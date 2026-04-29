@@ -95,18 +95,6 @@ public:
             visualizer_.beginFrame();
             visualizer_.render();
             visualizer_.endFrame();
-
-            // Frame rate limiter
-            static auto lastFrameTime = std::chrono::high_resolution_clock::now();
-            auto currentFrameTime = std::chrono::high_resolution_clock::now();
-            auto frameDuration = std::chrono::duration<float, std::milli>(currentFrameTime - lastFrameTime).count();
-            
-            constexpr float targetFrameTime = 1000.0f / 60.0f;
-            if (frameDuration < targetFrameTime) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(
-                    static_cast<int>(targetFrameTime - frameDuration)));
-            }
-            lastFrameTime = std::chrono::high_resolution_clock::now();
         }
     }
 

@@ -744,6 +744,38 @@ void main() {
 }
 )";
 
+// Upscale shader for resolution decoupling - bilinear upscale from render resolution to window
+const char *upscaleVertexShaderSource = R"(
+#version 330 core
+layout (location = 0) in vec2 aPos;
+layout (location = 1) in vec2 aTexCoord;
+
+out vec2 vTexCoord;
+
+void main() {
+    vTexCoord = aTexCoord;
+    gl_Position = vec4(aPos, 0.0, 1.0);
+}
+)";
+
+const char *upscaleFragmentShaderSource = R"(
+#version 330 core
+
+in vec2 vTexCoord;
+out vec4 FragColor;
+
+uniform sampler2D uSourceTexture;
+uniform vec2 uSourceResolution;
+uniform vec2 uTargetResolution;
+
+void main() {
+    // Simple bilinear sampling - OpenGL's built-in interpolation handles this
+    // when we set texture parameters to LINEAR
+    vec3 color = texture(uSourceTexture, vTexCoord).rgb;
+    FragColor = vec4(color, 1.0);
+}
+)";
+
 void Visualizer::renderCornerOrbs() {
     if (!cornerShader_ || cornerVAO_ == 0) {
         std::cerr << "Corner orbs cannot render: shader=" << (cornerShader_ ? "valid" : "null") 
@@ -1100,6 +1132,20 @@ bool Visualizer::initialize(int width, int height) {
     }
     std::cout << "[DEBUG] Corner shader loaded" << std::endl;
 
+    // Load upscale shader for resolution decoupling
+    std::cout << "[DEBUG] Loading upscale shader..." << std::endl;
+    if (!loadUpscaleShader()) {
+        upscaleShader_.reset();
+    }
+    std::cout << "[DEBUG] Upscale shader loaded" << std::endl;
+    
+    // Setup upscale quad
+    setupUpscaleQuad();
+    
+    // Initialize GPU timing queries for adaptive resolution
+    glGenQueries(1, &gpuQueryStart_);
+    glGenQueries(1, &gpuQueryEnd_);
+
     std::cout << "[DEBUG] Setting up ImGui..." << std::endl;
     if (setupImGui()) {
         imguiInitialized_ = true;
@@ -1303,6 +1349,37 @@ void Visualizer::randomizeRgbChannels() {
 }
 
 void Visualizer::shutdown() {
+    // Clean up GPU sync objects
+    if (mainFrameSync_) {
+        glDeleteSync(mainFrameSync_);
+        mainFrameSync_ = nullptr;
+    }
+    if (imguiFrameSync_) {
+        glDeleteSync(imguiFrameSync_);
+        imguiFrameSync_ = nullptr;
+    }
+    
+    // Clean up GPU timing queries
+    if (gpuQueryStart_ != 0) {
+        glDeleteQueries(1, &gpuQueryStart_);
+        gpuQueryStart_ = 0;
+    }
+    if (gpuQueryEnd_ != 0) {
+        glDeleteQueries(1, &gpuQueryEnd_);
+        gpuQueryEnd_ = 0;
+    }
+    
+    // Clean up upscale resources
+    if (upscaleVAO_) {
+        glDeleteVertexArrays(1, &upscaleVAO_);
+        upscaleVAO_ = 0;
+    }
+    if (upscaleVBO_) {
+        glDeleteBuffers(1, &upscaleVBO_);
+        upscaleVBO_ = 0;
+    }
+    upscaleShader_.reset();
+
     if (imguiInitialized_) {
         shutdownImGui();
         imguiInitialized_ = false;
@@ -1394,9 +1471,17 @@ void Visualizer::beginFrame() {
         if (fbWidth > 0 && fbHeight > 0 && (fbWidth != windowWidth_ || fbHeight != windowHeight_)) {
             windowWidth_ = fbWidth;
             windowHeight_ = fbHeight;
-            glViewport(0, 0, windowWidth_, windowHeight_);
-            proceduralLayer_.resize(windowWidth_, windowHeight_);
-            postProcessor_.resize(windowWidth_, windowHeight_);
+            
+            // Use fixed render resolution if decoupling is enabled
+            if (useResolutionDecoupling_) {
+                glViewport(0, 0, renderWidth_, renderHeight_);
+                proceduralLayer_.resize(renderWidth_, renderHeight_);
+                postProcessor_.resize(renderWidth_, renderHeight_);
+            } else {
+                glViewport(0, 0, windowWidth_, windowHeight_);
+                proceduralLayer_.resize(windowWidth_, windowHeight_);
+                postProcessor_.resize(windowWidth_, windowHeight_);
+            }
         }
     }
 
@@ -1514,21 +1599,65 @@ void Visualizer::beginFrame() {
 }
 
 void Visualizer::endFrame() {
-    glfwSwapBuffers(window_);
-
-    // Update time
-    static auto lastTime = std::chrono::high_resolution_clock::now();
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
-    lastTime = currentTime;
-    time_ += deltaTime;
-    deltaTime_ = deltaTime;
+    // FIX: Remove GPU fences from frame pacing to eliminate double synchronization
+    // swapBuffers is the only sync point needed for frame pacing
+    // Fences are only used for profiling/debugging now
     
-    // Update FPS counter
+    // Profile glfwSwapBuffers to detect presentation stalls
+    auto swapStart = std::chrono::high_resolution_clock::now();
+    glfwSwapBuffers(window_);
+    auto swapEnd = std::chrono::high_resolution_clock::now();
+    float swapTime = std::chrono::duration<float, std::milli>(swapEnd - swapStart).count();
+    
+    // Log swap time statistics (no fence waiting)
+    static float avgSwapTime = 0.0f;
+    static int sampleCount = 0;
+    
+    avgSwapTime = (avgSwapTime * sampleCount + swapTime) / (sampleCount + 1);
+    sampleCount++;
+    
+    // Log aggregated statistics every 60 frames (1 second at 60fps)
+    static int statCounter = 0;
+    if (statCounter++ % 60 == 0 && sampleCount > 0) {
+        std::cout << "[PERF] Main window - Swap: " << avgSwapTime << "ms avg" << std::endl;
+        avgSwapTime = 0.0f;
+        sampleCount = 0;
+    }
+
+    // Update main window FPS tracking
+    static auto lastMainWindowTime = std::chrono::high_resolution_clock::now();
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float deltaTime = std::chrono::duration<float>(currentTime - lastMainWindowTime).count();
+    lastMainWindowTime = currentTime;
+    
+    mainWindowFrameCount_++;
+    mainWindowFPSTimer_ += deltaTime;
+    if (mainWindowFPSTimer_ >= 0.5f) { // Update every 0.5 seconds
+        mainWindowFPS_ = mainWindowFrameCount_ / mainWindowFPSTimer_;
+        mainWindowFrameCount_ = 0;
+        mainWindowFPSTimer_ = 0.0f;
+    }
+
+    // Update global time (for animations, etc.)
+    static auto lastGlobalTime = std::chrono::high_resolution_clock::now();
+    auto globalCurrentTime = std::chrono::high_resolution_clock::now();
+    float globalDeltaTime = std::chrono::duration<float>(globalCurrentTime - lastGlobalTime).count();
+    lastGlobalTime = globalCurrentTime;
+    time_ += globalDeltaTime;
+    deltaTime_ = globalDeltaTime;
+
+    // Debug: log deltaTime
+    static int deltaTimeDebugCounter = 0;
+    if (deltaTimeDebugCounter++ % 60 == 0) {
+        std::cout << "DEBUG deltaTime: " << globalDeltaTime << "s (" << (globalDeltaTime * 1000.0f) << "ms)" << std::endl;
+    }
+    
+    // Update legacy FPS counter (for backward compatibility)
     frameCount_++;
-    fpsUpdateTimer_ += deltaTime;
+    fpsUpdateTimer_ += globalDeltaTime;
     if (fpsUpdateTimer_ >= 0.5f) { // Update every 0.5 seconds
         currentFPS_ = frameCount_ / fpsUpdateTimer_;
+        std::cout << "FPS: " << currentFPS_ << " | Window: " << windowWidth_ << "x" << windowHeight_ << " | Frames: " << frameCount_ << std::endl;
         frameCount_ = 0;
         fpsUpdateTimer_ = 0.0f;
     }
@@ -1633,6 +1762,14 @@ void Visualizer::render() {
     uniformCallsPerFrame_ = 0;
     textureBindsPerFrame_ = 0;
     shaderSwitchesPerFrame_ = 0;
+    
+    // Profile CPU time per stage
+    static float avgRenderTime = 0.0f;
+    static float avgPostProcessTime = 0.0f;
+    static float avgImGuiTime = 0.0f;
+    static float avgProceduralTime = 0.0f;
+    static float avgPostEffectTime = 0.0f;
+    static int sampleCount = 0;
 
     // Check if any post-process slots are active
     bool hasActivePostProcess = false;
@@ -1679,11 +1816,98 @@ void Visualizer::render() {
     }
     globalIntensityEnvelope_ = std::clamp(globalIntensityEnvelope_, 0.0f, 2.5f);
 
+    // Adaptive Resolution Scaling: adjust render resolution based on GPU workload ONLY (not swap/present latency)
+    if (adaptiveResolutionEnabled_ && useResolutionDecoupling_) {
+        float gpuTimeForScaling = 0.0f;
+        
+        // ONLY use GPU time from timestamp queries - NO fallback to CPU time
+        // This ensures we're measuring actual GPU workload, not swap/present latency
+        if (gpuQueryAvailable_ && gpuQueryEnd_ != 0) {
+            // Check if query result is available without stalling
+            GLint available = 0;
+            glGetQueryObjectiv(gpuQueryEnd_, GL_QUERY_RESULT_AVAILABLE, &available);
+            if (available) {
+                // Get the GPU frame time from previous frame
+                GLuint64 gpuTime = 0;
+                glGetQueryObjectui64v(gpuQueryEnd_, GL_QUERY_RESULT, &gpuTime);
+                lastGpuFrameTimeMs_ = gpuTime / 1000000.0f; // Convert nanoseconds to milliseconds
+                if (lastGpuFrameTimeMs_ > 0.001f) { // Valid GPU time
+                    gpuTimeForScaling = lastGpuFrameTimeMs_;
+                }
+            }
+        }
+        
+        // Only scale if we have valid GPU time - skip frame otherwise
+        if (gpuTimeForScaling > 0.001f) {
+            // Apply EMA filtering to reduce noise (critical for stability)
+            if (gpuTimeFiltered_ <= 0.001f) {
+                // Initialize on first frame
+                gpuTimeFiltered_ = gpuTimeForScaling;
+            } else {
+                // Exponential Moving Average: filtered = α * new + (1-α) * old
+                gpuTimeFiltered_ = emaAlpha_ * gpuTimeForScaling + (1.0f - emaAlpha_) * gpuTimeFiltered_;
+            }
+            
+            // Check cooldown period (prevent rapid oscillation)
+            double currentTime = glfwGetTime();
+            bool inCooldown = (currentTime - lastScaleChangeTime_) < (scaleCooldownMs_ / 1000.0);
+            
+            // Adaptive scaling logic with hysteresis bands
+            if (!inCooldown) {
+                if (gpuTimeFiltered_ > gpuFrameBudgetMs_) {
+                    // GPU workload exceeded budget - scale down resolution
+                    consecutiveSlowFrames_++;
+                    consecutiveFastFrames_ = 0;
+                    
+                    if (consecutiveSlowFrames_ >= kScaleDownThreshold && resolutionScale_ > minResolutionScale_) {
+                        resolutionScale_ = std::max(minResolutionScale_, resolutionScale_ - resolutionScaleStep_);
+                        consecutiveSlowFrames_ = 0;
+                        lastScaleChangeTime_ = currentTime;
+                        std::cout << "[Adaptive Resolution] Scaling DOWN to " << (resolutionScale_ * 100.0f) 
+                                  << "% (GPU filtered: " << gpuTimeFiltered_ << "ms, raw: " << gpuTimeForScaling << "ms > budget: " << gpuFrameBudgetMs_ << "ms)" << std::endl;
+                    }
+                } else if (gpuTimeFiltered_ < gpuFrameBudgetLow_) {
+                    // GPU workload well under budget - consider scaling up (separate band for hysteresis)
+                    consecutiveFastFrames_++;
+                    consecutiveSlowFrames_ = 0;
+                    
+                    if (consecutiveFastFrames_ >= kScaleUpThreshold && resolutionScale_ < maxResolutionScale_) {
+                        resolutionScale_ = std::min(maxResolutionScale_, resolutionScale_ + resolutionScaleStep_);
+                        consecutiveFastFrames_ = 0;
+                        lastScaleChangeTime_ = currentTime;
+                        std::cout << "[Adaptive Resolution] Scaling UP to " << (resolutionScale_ * 100.0f) 
+                                  << "% (GPU filtered: " << gpuTimeFiltered_ << "ms, raw: " << gpuTimeForScaling << "ms < low threshold: " << gpuFrameBudgetLow_ << "ms)" << std::endl;
+                    }
+                } else {
+                    // Within acceptable hysteresis band, reset counters
+                    consecutiveSlowFrames_ = 0;
+                    consecutiveFastFrames_ = 0;
+                }
+            }
+        }
+        
+        // Apply resolution scale to render dimensions
+        renderWidth_ = static_cast<int>(windowWidth_ * resolutionScale_);
+        renderHeight_ = static_cast<int>(windowHeight_ * resolutionScale_);
+        // Ensure even dimensions for GPU compatibility
+        renderWidth_ = (renderWidth_ / 2) * 2;
+        renderHeight_ = (renderHeight_ / 2) * 2;
+    }
+    
+    int renderW = useResolutionDecoupling_ ? renderWidth_ : windowWidth_;
+    int renderH = useResolutionDecoupling_ ? renderHeight_ : windowHeight_;
+
+    // Start GPU timing query (swap start/end each frame for non-blocking readback)
+    if (gpuQueryStart_ != 0 && gpuQueryEnd_ != 0) {
+        std::swap(gpuQueryStart_, gpuQueryEnd_);
+        glBeginQuery(GL_TIME_ELAPSED, gpuQueryStart_);
+    }
+
     if (usePost) {
-        postProcessor_.beginCapture(windowWidth_, windowHeight_);
+        postProcessor_.beginCapture(renderW, renderH);
     } else {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, windowWidth_, windowHeight_);
+        glViewport(0, 0, renderW, renderH);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
     }
@@ -1699,7 +1923,11 @@ void Visualizer::render() {
     }
 
     if (showProceduralLayer_) {
+        auto proceduralStart = std::chrono::high_resolution_clock::now();
         renderProceduralLayer();
+        auto proceduralEnd = std::chrono::high_resolution_clock::now();
+        float proceduralTime = std::chrono::duration<float, std::milli>(proceduralEnd - proceduralStart).count();
+        avgProceduralTime = (avgProceduralTime * sampleCount + proceduralTime) / (sampleCount + 1);
     }
 
     float intensityScale = std::clamp(globalIntensityEnvelope_, 0.0f, 2.0f);
@@ -1718,7 +1946,7 @@ void Visualizer::render() {
         glViewport(0, 0, windowWidth_, windowHeight_);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
+        
         // Apply all active post-process slots in cascade
         std::vector<PostProcessor::PostEffectPass> activePasses;
         for (const auto &slot : postProcessSlots_) {
@@ -1735,10 +1963,26 @@ void Visualizer::render() {
         
         // Apply all passes at once for proper cascading
         if (!activePasses.empty()) {
+            auto postEffectStart = std::chrono::high_resolution_clock::now();
             postProcessor_.applyChain(activePasses, time_, audioFeatures_.bassEnergy);
+            auto postEffectEnd = std::chrono::high_resolution_clock::now();
+            float postEffectTime = std::chrono::duration<float, std::milli>(postEffectEnd - postEffectStart).count();
+            avgPostEffectTime = (avgPostEffectTime * sampleCount + postEffectTime) / (sampleCount + 1);
+        }
+        
+        // If using resolution decoupling, upscale from render resolution to window resolution
+        if (useResolutionDecoupling_) {
+            // Apply upscale using the post-processor's output texture
+            renderUpscaledToWindow();
         }
     }
-
+    
+    // End GPU timing query
+    if (gpuQueryStart_ != 0) {
+        glEndQuery(GL_TIME_ELAPSED);
+        gpuQueryAvailable_ = true;
+    }
+    
     glColorMask(previousMask[0], previousMask[1], previousMask[2], previousMask[3]);
 
     handleKeyboardInput();
@@ -1758,6 +2002,29 @@ void Visualizer::render() {
     auto frameEnd = std::chrono::high_resolution_clock::now();
     frameTimeCPU_ = std::chrono::duration<float, std::milli>(frameEnd - frameStart).count();
     fps_ = 1000.0f / frameTimeCPU_;
+    
+    // Accumulate CPU time statistics
+    avgRenderTime = (avgRenderTime * sampleCount + frameTimeCPU_) / (sampleCount + 1);
+    sampleCount++;
+    
+    // Log CPU time statistics every 60 frames (detailed breakdown)
+    static int cpuStatCounter = 0;
+    if (cpuStatCounter++ % 60 == 0 && sampleCount > 0) {
+        std::cout << "[CPU] Total: " << avgRenderTime << "ms avg | Procedural: " << avgProceduralTime 
+                  << "ms | Post-Effects: " << avgPostEffectTime << "ms | FPS: " << fps_;
+        if (useResolutionDecoupling_) {
+            std::cout << " | Resolution: " << renderWidth_ << "x" << renderHeight_ 
+                      << " (" << (resolutionScale_ * 100.0f) << "%)";
+        }
+        if (gpuQueryAvailable_) {
+            std::cout << " | GPU: " << lastGpuFrameTimeMs_ << "ms";
+        }
+        std::cout << std::endl;
+        avgRenderTime = 0.0f;
+        avgProceduralTime = 0.0f;
+        avgPostEffectTime = 0.0f;
+        sampleCount = 0;
+    }
 }
 
 void Visualizer::handleVisualizationShortcuts() {
@@ -1999,6 +2266,14 @@ bool Visualizer::setupOpenGL() {
     // Clear any potential GL errors from GLEW initialization
     glGetError();
 
+    // Log GPU information
+    const char* vendor = (const char*)glGetString(GL_VENDOR);
+    const char* renderer = (const char*)glGetString(GL_RENDERER);
+    const char* version = (const char*)glGetString(GL_VERSION);
+    std::cout << "[GPU] Vendor: " << vendor << std::endl;
+    std::cout << "[GPU] Renderer: " << renderer << std::endl;
+    std::cout << "[GPU] OpenGL Version: " << version << std::endl;
+
     glViewport(0, 0, windowWidth_, windowHeight_);
 
     // === CREATE SEPARATE IMGUI CONTROLS WINDOW ===
@@ -2204,6 +2479,67 @@ bool Visualizer::loadCornerShader() {
         std::cerr << "Failed to load corner shader" << std::endl;
     }
     return result;
+}
+
+bool Visualizer::loadUpscaleShader() {
+    upscaleShader_ = std::make_unique<Shader>();
+    bool result = upscaleShader_->loadFromSource(upscaleVertexShaderSource, upscaleFragmentShaderSource);
+    if (result) {
+        std::cout << "Upscale shader loaded successfully" << std::endl;
+    } else {
+        std::cerr << "Failed to load upscale shader" << std::endl;
+    }
+    return result;
+}
+
+void Visualizer::setupUpscaleQuad() {
+    // Same quad setup as setupQuad() - fullscreen quad with texture coordinates
+    float vertices[] = {
+        // positions   // texCoords
+        -1.0f,  1.0f,  0.0f, 1.0f,  // top left
+        -1.0f, -1.0f,  0.0f, 0.0f,  // bottom left
+         1.0f,  1.0f,  1.0f, 1.0f,  // top right
+         1.0f, -1.0f,  1.0f, 0.0f   // bottom right
+    };
+
+    glGenVertexArrays(1, &upscaleVAO_);
+    glGenBuffers(1, &upscaleVBO_);
+
+    glBindVertexArray(upscaleVAO_);
+    glBindBuffer(GL_ARRAY_BUFFER, upscaleVBO_);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // position attribute
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    // tex coord attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+}
+
+void Visualizer::renderUpscaledToWindow() {
+    if (!upscaleShader_ || upscaleVAO_ == 0) {
+        return;
+    }
+    
+    upscaleShader_->use();
+    
+    // Bind the post-processor's output texture (contains the rendered scene with effects)
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, postProcessor_.getOutputTexture());
+    upscaleShader_->setUniform1i("uSourceTexture", 0);
+    
+    // Set resolution uniforms
+    upscaleShader_->setUniform2f("uSourceResolution", static_cast<float>(renderWidth_), static_cast<float>(renderHeight_));
+    upscaleShader_->setUniform2f("uTargetResolution", static_cast<float>(windowWidth_), static_cast<float>(windowHeight_));
+    
+    // Render fullscreen quad with bilinear filtering (handled by texture parameters)
+    glBindVertexArray(upscaleVAO_);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
 }
 
 void Visualizer::setupQuad() {

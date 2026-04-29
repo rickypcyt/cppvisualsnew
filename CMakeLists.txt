@@ -14,7 +14,6 @@ add_library(core_engine STATIC
     src/settings_manager.cpp
     src/midi_controller.cpp
     src/profiler.h
-    src/gpu_profiler.cpp
 )
 
 target_include_directories(core_engine PUBLIC
@@ -156,6 +155,7 @@ add_library(gl_backend STATIC
     src/gl_renderer.cpp
     src/gl_shader_compiler.cpp
     src/gl_command_executor.cpp
+    src/gpu_profiler.cpp
 )
 
 target_include_directories(gl_backend PUBLIC
@@ -261,6 +261,7 @@ add_executable(audio_visualizer
 
 target_link_libraries(audio_visualizer PRIVATE
     app_layer
+    core_engine
     gl_backend
     imgui
     imgui_glfw

@@ -399,7 +399,7 @@ bool GLRenderer::initializeWindow(int width, int height, const std::string& titl
     }
 
     glfwMakeContextCurrent(window_);
-    glfwSwapInterval(1); // Enable VSync
+    glfwSwapInterval(0); // Disable VSync for uncapped FPS
 
     return true;
 }
