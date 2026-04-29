@@ -168,6 +168,22 @@
 		},
 		{
 			"backtrace" : 2,
+			"id" : "post_processing::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "core_engine::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "imgui::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "modular_layer::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
 			"id" : "app_layer::@6890427a1f51a3e7e1df"
 		},
 		{
@@ -176,27 +192,11 @@
 		},
 		{
 			"backtrace" : 2,
-			"id" : "core_engine::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "modular_layer::@6890427a1f51a3e7e1df"
+			"id" : "imgui_glfw::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
 			"id" : "imgui_opengl3::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "post_processing::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "imgui::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "imgui_glfw::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "audio_visualizer::@6890427a1f51a3e7e1df",

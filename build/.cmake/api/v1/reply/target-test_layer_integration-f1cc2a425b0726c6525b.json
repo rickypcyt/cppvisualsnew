@@ -131,7 +131,7 @@
 		},
 		{
 			"backtrace" : 2,
-			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+			"id" : "post_processing::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
@@ -143,7 +143,7 @@
 		},
 		{
 			"backtrace" : 2,
-			"id" : "post_processing::@6890427a1f51a3e7e1df"
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "test_layer_integration::@6890427a1f51a3e7e1df",

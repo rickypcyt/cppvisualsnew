@@ -139,7 +139,7 @@
 		},
 		{
 			"backtrace" : 2,
-			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+			"id" : "post_processing::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
@@ -147,23 +147,23 @@
 		},
 		{
 			"backtrace" : 2,
-			"id" : "modular_layer::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "imgui_opengl3::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "post_processing::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 2,
 			"id" : "imgui::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
+			"id" : "modular_layer::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "gl_backend::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
 			"id" : "imgui_glfw::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "imgui_opengl3::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "app_layer::@6890427a1f51a3e7e1df",

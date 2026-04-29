@@ -2,8 +2,8 @@
     "animation": {
         "autoRandomize": true,
         "autoRandomizeRgb": false,
-        "onsetColorCycling": true,
-        "randomInterval": 0.5,
+        "onsetColorCycling": false,
+        "randomInterval": 1.0,
         "rgbRandomInterval": 5.0
     },
     "audio": {
@@ -16,18 +16,18 @@
     },
     "colors": {
         "animationEnabled": true,
-        "blend": 0.47999998927116394,
+        "blend": 0.5600000023841858,
         "hueSeed": 0.028130698949098587,
-        "paletteIndex": 1,
+        "paletteIndex": 2,
         "primary": [
-            0.5799999833106995,
-            0.11999999731779099,
-            0.1599999964237213
+            0.10000000149011612,
+            0.3199999928474426,
+            0.18000000715255737
         ],
         "secondary": [
-            0.9399999976158142,
-            0.36000001430511475,
-            0.30000001192092896
+            0.30000001192092896,
+            0.8199999928474426,
+            0.5199999809265137
         ]
     },
     "hotReloadEnabled": false,
@@ -35,12 +35,12 @@
         "tempoScale": 1.0
     },
     "postProcess": {
-        "randomEnabled": false,
-        "randomInterval": 5.0,
+        "randomEnabled": true,
+        "randomInterval": 1.0,
         "slots": [
             {
                 "enabled": true,
-                "mode": 24,
+                "mode": 3,
                 "rgbAdjust": [
                     1.0,
                     1.0,
@@ -92,8 +92,8 @@
     },
     "postProcessEffectEnabled": null,
     "procedural": {
-        "randomEnabled": false,
-        "randomInterval": 8.0
+        "randomEnabled": true,
+        "randomInterval": 1.0
     },
     "proceduralShaderEnabled": null,
     "proceduralSlots": {
@@ -104,9 +104,9 @@
                     1.0,
                     1.0
                 ],
-                "effectName": "Fractal Rotation Field",
+                "effectName": "IChing Hexagrams",
                 "enabled": true,
-                "mode": 47,
+                "mode": 66,
                 "opacity": 1.0
             },
             {
@@ -153,27 +153,27 @@
     },
     "proceduralZoomValues": null,
     "random": {
-        "postProcessEnabled": false,
-        "postProcessInterval": 5.0,
+        "postProcessEnabled": true,
+        "postProcessInterval": 1.0,
         "postProcessSlotCount": 1,
         "postProcessSlotEnabled": false,
         "postProcessSlotIndex": 0,
-        "proceduralEnabled": false,
-        "proceduralInterval": 8.0,
+        "proceduralEnabled": true,
+        "proceduralInterval": 1.0,
         "proceduralSlotEnabled": false,
         "proceduralSlotIndex": 0
     },
     "rgbChannels": [
-        true,
+        false,
         true,
         true
     ],
     "ui": {
         "proceduralLayerDebug": false,
-        "proceduralLayerEffectName": "Fractal Rotation Field",
-        "proceduralLayerMode": 47,
+        "proceduralLayerEffectName": "IChing Hexagrams",
+        "proceduralLayerMode": 66,
         "proceduralLayerOpacity": 1.0,
-        "showCornerOrbs": false,
+        "showCornerOrbs": true,
         "showCurrentEffects": true,
         "showImGuiWindow": false,
         "showProceduralLayer": true
