@@ -141,8 +141,32 @@ std::vector<std::string> MidiController::getAvailableDevices() const {
         snd_seq_client_info_set_client(clientInfo, -1);
         while (snd_seq_query_next_client(seq, clientInfo) >= 0) {
             int client = snd_seq_client_info_get_client(clientInfo);
-            if (client != 0) { // Skip system client
-                devices.push_back(snd_seq_client_info_get_name(clientInfo));
+            const char* clientName = snd_seq_client_info_get_name(clientInfo);
+            
+            if (client == 0) continue; // Skip system client
+            
+            // Check if this client has MIDI output ports
+            snd_seq_port_info_t* portInfo;
+            snd_seq_port_info_alloca(&portInfo);
+            snd_seq_port_info_set_client(portInfo, client);
+            snd_seq_port_info_set_port(portInfo, -1);
+            
+            bool hasMidiPort = false;
+            while (snd_seq_query_next_port(seq, portInfo) >= 0) {
+                unsigned int capability = snd_seq_port_info_get_capability(portInfo);
+                // Check if this port can send MIDI
+                if ((capability & SND_SEQ_PORT_CAP_READ) && 
+                    (capability & SND_SEQ_PORT_CAP_SUBS_READ)) {
+                    hasMidiPort = true;
+                    const char* portName = snd_seq_port_info_get_name(portInfo);
+                    std::string deviceName = std::string(clientName) + " - " + portName;
+                    devices.push_back(deviceName);
+                }
+            }
+            
+            // If no specific ports found but client exists, add client name
+            if (!hasMidiPort) {
+                devices.push_back(clientName);
             }
         }
         

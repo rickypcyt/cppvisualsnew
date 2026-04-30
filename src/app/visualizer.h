@@ -57,6 +57,7 @@ public:
     void updateSettingsFromCurrentState();
     void saveCurrentSettings();
     void flushPendingSettings();
+    void printStatisticsOnShutdown();
     
     // Random post process methods
     void updateRandomPostProcess(float deltaTime);
@@ -365,6 +366,15 @@ private:
     bool showPerformanceWindow_ = false;
     bool cpuBottleneckActive_ = false;  // Hysteresis state for bottleneck detection
 
+    // Session statistics (accumulated over entire runtime)
+    long long totalFramesRendered_ = 0;
+    double totalSessionTime_ = 0.0;
+    float avgSessionFPS_ = 0.0f;
+    float avgSessionCPUTime_ = 0.0f;
+    float avgSessionGPUTime_ = 0.0f;
+    float minFPS_ = 9999.0f;
+    float maxFPS_ = 0.0f;
+
     // ImGui state
     bool showImGuiWindow_;
     bool showImGuiVisualWindow_;
@@ -381,6 +391,7 @@ private:
     bool imguiWindowNeedsFocus_ = false;
     bool imguiDirty_ = true;  // Flag to indicate ImGui window needs redraw
     bool cleanMode_ = false;  // Clean mode: hides ALL UI for maximum performance
+    int imguiFrameSkipCounter_ = 0;  // Counter for frame skipping to reduce overhead
     
     // ImGui FBO optimization - render to FBO using main context to avoid context switching stalls
     GLuint imguiFBO_ = 0;

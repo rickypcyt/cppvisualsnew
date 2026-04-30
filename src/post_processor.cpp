@@ -148,7 +148,8 @@ void PostProcessor::clearAccumulation() {
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    std::cout << "PostProcessor: Accumulation buffers cleared (ghosting reset)" << std::endl;
+    // Disabled - statistics will be printed on shutdown instead
+    // std::cout << "PostProcessor: Accumulation buffers cleared (ghosting reset)" << std::endl;
 }
 
 void PostProcessor::beginCapture(int width, int height) {

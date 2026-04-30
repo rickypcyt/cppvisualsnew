@@ -785,7 +785,8 @@ void Visualizer::renderCornerOrbs() {
 
     static int debugCounter = 0;
     if (debugCounter++ % 300 == 0) { // Print every 5 seconds at 60fps
-        std::cout << "Rendering corner orbs - showCornerOrbs_: " << showCornerOrbs_ << std::endl;
+        // Disabled - statistics will be printed on shutdown instead
+        // std::cout << "Rendering corner orbs - showCornerOrbs_: " << showCornerOrbs_ << std::endl;
     }
 
     GLboolean depthWasEnabled = glIsEnabled(GL_DEPTH_TEST);
@@ -803,12 +804,13 @@ void Visualizer::renderCornerOrbs() {
     glGetBooleanv(GL_COLOR_WRITEMASK, previousMask);
     
     // Debug: Show RGB channel state (reuse existing debugCounter)
+    // Disabled - statistics will be printed on shutdown instead
     if (debugCounter++ % 300 == 0) { // Print every 5 seconds at 60fps
-        std::cout << "RGB Channels enabled: R=" << rgbChannelEnabled_[0] 
-                  << " G=" << rgbChannelEnabled_[1] 
-                  << " B=" << rgbChannelEnabled_[2] << std::endl;
-        std::cout << "Current colors: Primary={" << scenePrimaryColor_[0] << "," << scenePrimaryColor_[1] << "," << scenePrimaryColor_[2] 
-                  << "} Secondary={" << sceneSecondaryColor_[0] << "," << sceneSecondaryColor_[1] << "," << sceneSecondaryColor_[2] << "}" << std::endl;
+        // std::cout << "RGB Channels enabled: R=" << rgbChannelEnabled_[0] 
+        //           << " G=" << rgbChannelEnabled_[1] 
+        //           << " B=" << rgbChannelEnabled_[2] << std::endl;
+        // std::cout << "Current colors: Primary={" << scenePrimaryColor_[0] << "," << scenePrimaryColor_[1] << "," << scenePrimaryColor_[2] 
+        //           << "} Secondary={" << sceneSecondaryColor_[0] << "," << sceneSecondaryColor_[1] << "," << sceneSecondaryColor_[2] << "}" << std::endl;
     }
     
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -982,6 +984,9 @@ Visualizer::Visualizer()
 }
 
 Visualizer::~Visualizer() {
+    // Print session statistics before shutdown
+    printStatisticsOnShutdown();
+    
     // Force save current settings before shutdown (ignore dirty flag)
     if (settingsManager_) {
         updateSettingsFromCurrentState();
@@ -1650,6 +1655,9 @@ void Visualizer::endFrame() {
     // swapBuffers is the only sync point needed for frame pacing
     // Fences are only used for profiling/debugging now
     
+    // Process Wayland events before swap to reduce blocking
+    glfwPollEvents();
+    
     // Profile glfwSwapBuffers to detect presentation stalls
     auto swapStart = std::chrono::high_resolution_clock::now();
     glfwSwapBuffers(window_);
@@ -1664,6 +1672,7 @@ void Visualizer::endFrame() {
     sampleCount++;
     
     // Log aggregated statistics every 60 frames (1 second at 60fps)
+    // Temporarily re-enabled to diagnose swap bottleneck
     static int statCounter = 0;
     if (statCounter++ % 60 == 0 && sampleCount > 0) {
         std::cout << "[PERF] Main window - Swap: " << avgSwapTime << "ms avg" << std::endl;
@@ -1693,18 +1702,19 @@ void Visualizer::endFrame() {
     time_ += globalDeltaTime;
     deltaTime_ = globalDeltaTime;
 
-    // Debug: log deltaTime
+    // Debug: log deltaTime - Disabled, statistics will be printed on shutdown instead
     static int deltaTimeDebugCounter = 0;
     if (deltaTimeDebugCounter++ % 60 == 0) {
-        std::cout << "DEBUG deltaTime: " << globalDeltaTime << "s (" << (globalDeltaTime * 1000.0f) << "ms)" << std::endl;
+        // std::cout << "DEBUG deltaTime: " << globalDeltaTime << "s (" << (globalDeltaTime * 1000.0f) << "ms)" << std::endl;
     }
     
     // Update legacy FPS counter (for backward compatibility)
     frameCount_++;
     fpsUpdateTimer_ += globalDeltaTime;
     if (fpsUpdateTimer_ >= 0.5f) { // Update every 0.5 seconds
-        currentFPS_ = frameCount_ / fpsUpdateTimer_;
-        std::cout << "FPS: " << currentFPS_ << " | Window: " << windowWidth_ << "x" << windowHeight_ << " | Frames: " << frameCount_ << std::endl;
+        mainWindowFPS_ = mainWindowFrameCount_ / mainWindowFPSTimer_;
+        // Disabled - statistics will be printed on shutdown instead
+        // std::cout << "FPS: " << currentFPS_ << " | Window: " << windowWidth_ << "x" << windowHeight_ << " | Frames: " << frameCount_ << std::endl;
         frameCount_ = 0;
         fpsUpdateTimer_ = 0.0f;
     }
@@ -2062,23 +2072,35 @@ void Visualizer::render() {
     frameTimeCPU_ = std::chrono::duration<float, std::milli>(frameEnd - frameStart).count();
     fps_ = 1000.0f / frameTimeCPU_;
     
+    // Accumulate session statistics
+    totalFramesRendered_++;
+    totalSessionTime_ += frameTimeCPU_ / 1000.0; // Convert to seconds
+    avgSessionFPS_ = (avgSessionFPS_ * (totalFramesRendered_ - 1) + fps_) / totalFramesRendered_;
+    avgSessionCPUTime_ = (avgSessionCPUTime_ * (totalFramesRendered_ - 1) + frameTimeCPU_) / totalFramesRendered_;
+    if (gpuQueryAvailable_) {
+        avgSessionGPUTime_ = (avgSessionGPUTime_ * (totalFramesRendered_ - 1) + lastGpuFrameTimeMs_) / totalFramesRendered_;
+    }
+    if (fps_ < minFPS_) minFPS_ = fps_;
+    if (fps_ > maxFPS_) maxFPS_ = fps_;
+    
     // Accumulate CPU time statistics
     avgRenderTime = (avgRenderTime * sampleCount + frameTimeCPU_) / (sampleCount + 1);
     sampleCount++;
     
     // Log CPU time statistics every 60 frames (detailed breakdown)
+    // Disabled - statistics will be printed on shutdown instead
     static int cpuStatCounter = 0;
     if (cpuStatCounter++ % 60 == 0 && sampleCount > 0) {
-        std::cout << "[CPU] Total: " << avgRenderTime << "ms avg | Procedural: " << avgProceduralTime 
-                  << "ms | Post-Effects: " << avgPostEffectTime << "ms | FPS: " << fps_;
-        if (useResolutionDecoupling_) {
-            std::cout << " | Resolution: " << renderWidth_ << "x" << renderHeight_ 
-                      << " (" << (resolutionScale_ * 100.0f) << "%)";
-        }
-        if (gpuQueryAvailable_) {
-            std::cout << " | GPU: " << lastGpuFrameTimeMs_ << "ms";
-        }
-        std::cout << std::endl;
+        // std::cout << "[CPU] Total: " << avgRenderTime << "ms avg | Procedural: " << avgProceduralTime 
+        //           << "ms | Post-Effects: " << avgPostEffectTime << "ms | FPS: " << fps_;
+        // if (useResolutionDecoupling_) {
+        //     std::cout << " | Resolution: " << renderWidth_ << "x" << renderHeight_ 
+        //               << " (" << (resolutionScale_ * 100.0f) << "%)";
+        // }
+        // if (gpuQueryAvailable_) {
+        //     std::cout << " | GPU: " << lastGpuFrameTimeMs_ << "ms";
+        // }
+        // std::cout << std::endl;
         avgRenderTime = 0.0f;
         avgProceduralTime = 0.0f;
         avgPostEffectTime = 0.0f;
@@ -2183,16 +2205,18 @@ void Visualizer::handleVisualizationShortcuts() {
 void Visualizer::updateSettingsFromCurrentState() {
     if (!settingsManager_) return;
 
-    std::cout << "[SAVE DEBUG] Syncing Visualizer -> SettingsManager"
-              << " proceduralLayerMode_=" << proceduralLayerMode_
-              << " slot0.mode=" << (kMaxProceduralSlots > 0 ? proceduralSlots_[0].mode : -1)
-              << " slot0.enabled=" << (kMaxProceduralSlots > 0 ? proceduralSlots_[0].enabled : false)
-              << " slot0.opacity=" << (kMaxProceduralSlots > 0 ? proceduralSlots_[0].opacity : 0.0f)
-              << std::endl;
+    // Disabled - statistics will be printed on shutdown instead
+    // std::cout << "[SAVE DEBUG] Syncing Visualizer -> SettingsManager"
+    //           << " proceduralLayerMode_=" << proceduralLayerMode_
+    //           << " slot0.mode=" << (kMaxProceduralSlots > 0 ? proceduralSlots_[0].mode : -1)
+    //           << " slot0.enabled=" << (kMaxProceduralSlots > 0 ? proceduralSlots_[0].enabled : false)
+    //           << " slot0.opacity=" << (kMaxProceduralSlots > 0 ? proceduralSlots_[0].opacity : 0.0f)
+    //           << std::endl;
 
     if (kMaxProceduralSlots > 0 && proceduralSlots_[0].mode != proceduralLayerMode_) {
-        std::cout << "[SAVE DEBUG] Forcing slot0.mode to match proceduralLayerMode_ before save: "
-                  << proceduralSlots_[0].mode << " -> " << proceduralLayerMode_ << std::endl;
+        // Disabled - statistics will be printed on shutdown instead
+        // std::cout << "[SAVE DEBUG] Forcing slot0.mode to match proceduralLayerMode_ before save: "
+        //           << proceduralSlots_[0].mode << " -> " << proceduralLayerMode_ << std::endl;
         proceduralSlots_[0].mode = proceduralLayerMode_;
     }
     
@@ -2265,16 +2289,18 @@ void Visualizer::updateSettingsFromCurrentState() {
         settingsManager_->setPostProcessEffectEnabled(modeIndex, enabled);
     }
 
-    std::cout << "[SAVE DEBUG] SettingsManager updated"
-              << " proceduralLayerMode=" << settingsManager_->getProceduralLayerMode()
-              << " slot0.mode=" << (settingsManager_->getProceduralSlots().empty() ? -1 : settingsManager_->getProceduralSlots()[0].mode)
-              << std::endl;
+    // Disabled - statistics will be printed on shutdown instead
+    // std::cout << "[SAVE DEBUG] SettingsManager updated"
+    //           << " proceduralLayerMode=" << settingsManager_->getProceduralLayerMode()
+    //           << " slot0.mode=" << (settingsManager_->getProceduralSlots().empty() ? -1 : settingsManager_->getProceduralSlots()[0].mode)
+    //           << std::endl;
 }
 
 void Visualizer::saveCurrentSettings() {
-    std::cout << "[SAVE DEBUG] saveCurrentSettings() called" << std::endl;
+    // Disabled - statistics will be printed on shutdown instead
+    // std::cout << "[SAVE DEBUG] saveCurrentSettings() called" << std::endl;
     settingsDirty_ = true;
-    std::cout << "[SAVE DEBUG] Marked settings dirty; deferring disk write until shutdown" << std::endl;
+    // std::cout << "[SAVE DEBUG] Marked settings dirty; deferring disk write until shutdown" << std::endl;
 }
 
 void Visualizer::flushPendingSettings() {
@@ -2283,11 +2309,32 @@ void Visualizer::flushPendingSettings() {
     }
 
     settingsFlushInProgress_ = true;
-    std::cout << "[SAVE DEBUG] Flushing pending settings to disk" << std::endl;
+    // Disabled - statistics will be printed on shutdown instead
+    // std::cout << "[SAVE DEBUG] Flushing pending settings to disk" << std::endl;
     updateSettingsFromCurrentState();
     settingsManager_->saveSettings();
     settingsDirty_ = false;
     settingsFlushInProgress_ = false;
+}
+
+void Visualizer::printStatisticsOnShutdown() {
+    std::cout << "\n========== SESSION STATISTICS ==========" << std::endl;
+    std::cout << "Total frames rendered: " << totalFramesRendered_ << std::endl;
+    std::cout << "Total session time: " << totalSessionTime_ << "s (" << (totalSessionTime_ / 60.0) << " min)" << std::endl;
+    std::cout << "Average FPS: " << avgSessionFPS_ << std::endl;
+    std::cout << "Min FPS: " << minFPS_ << std::endl;
+    std::cout << "Max FPS: " << maxFPS_ << std::endl;
+    std::cout << "Average CPU frame time: " << avgSessionCPUTime_ << "ms" << std::endl;
+    if (gpuQueryAvailable_) {
+        std::cout << "Average GPU frame time: " << avgSessionGPUTime_ << "ms" << std::endl;
+    }
+    std::cout << "Window resolution: " << windowWidth_ << "x" << windowHeight_ << std::endl;
+    if (useResolutionDecoupling_) {
+        std::cout << "Render resolution: " << renderWidth_ << "x" << renderHeight_ 
+                  << " (" << (resolutionScale_ * 100.0f) << "%)" << std::endl;
+    }
+    std::cout << "Procedural mode: " << proceduralLayerMode_ << std::endl;
+    std::cout << "========================================" << std::endl;
 }
 
 bool Visualizer::setupOpenGL() {
@@ -2303,6 +2350,10 @@ bool Visualizer::setupOpenGL() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE); // Don't force core profile
     glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE); // Keep fullscreen window rendering when losing focus
+    
+    // Wayland-specific hints for better performance
+    glfwWindowHint(GLFW_REFRESH_RATE, GLFW_DONT_CARE); // Let compositor decide refresh rate
+    glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE); // Make window visible immediately
 
     // Try with OpenGL ES if desktop OpenGL fails
     bool useGLES = false;
@@ -2344,50 +2395,11 @@ bool Visualizer::setupOpenGL() {
 
     glViewport(0, 0, windowWidth_, windowHeight_);
 
-    // === CREATE SEPARATE IMGUI CONTROLS WINDOW ===
-    // The second window shares the context with the first window
-    glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE); // Don't steal focus when showing controls window
-    std::cout << "[DEBUG] Creating ImGui controls window (" << imguiWindowWidth_ << "x" << imguiWindowHeight_ << ")..." << std::endl;
-    imguiWindow_ = glfwCreateWindow(imguiWindowWidth_, imguiWindowHeight_, "Audio Visualizer - Controls", nullptr, window_);
-    if (!imguiWindow_) {
-        std::cerr << "Failed to create ImGui GLFW window, continuing without controls window" << std::endl;
-        // Continue without the controls window - non-critical
-    } else {
-        std::cout << "[DEBUG] ImGui controls window created successfully" << std::endl;
-
-        // Position ImGui window to the right of the main window
-        int mainX, mainY;
-        glfwGetWindowPos(window_, &mainX, &mainY);
-        glfwSetWindowPos(imguiWindow_, mainX + windowWidth_ + 50, mainY);
-
-        // Set up scroll callback for mouse wheel zoom in ImGui window
-        glfwSetScrollCallback(imguiWindow_, [](GLFWwindow* window, double xoffset, double yoffset) {
-            Visualizer* vis = static_cast<Visualizer*>(glfwGetWindowUserPointer(window));
-            if (vis) {
-                vis->handleMouseScroll(xoffset, yoffset);
-            }
-        });
-
-        // Set up framebuffer size callback for FBO resize (event-based, no polling)
-        glfwSetFramebufferSizeCallback(imguiWindow_, [](GLFWwindow* window, int width, int height) {
-            Visualizer* vis = static_cast<Visualizer*>(glfwGetWindowUserPointer(window));
-            if (vis) {
-                vis->resizeImGuiFBO(width, height);
-            }
-        });
-
-        // Initialize FBO with correct initial size (matches window)
-        resizeImGuiFBO(imguiWindowWidth_, imguiWindowHeight_);
-        
-        // Disable vsync on ImGui window to prevent swapbuffers blocking (22ms stall)
-        // This is critical for dual-window performance
-        glfwMakeContextCurrent(imguiWindow_);
-        glfwSwapInterval(0);
-        glfwMakeContextCurrent(window_);
-    }
-
-    // Make main window current again
-    glfwMakeContextCurrent(window_);
+    // === IMGUI RENDERED AS OVERLAY ON MAIN WINDOW ===
+    // No separate window to avoid expensive context switch and blit (96ms+ overhead)
+    // ImGui will be rendered directly on main window at the end of each frame
+    imguiWindow_ = nullptr; // Disable separate window
+    std::cout << "[INFO] ImGui configured as overlay on main window (no separate window)" << std::endl;
 
     // Disable vsync to prevent compositor from pausing rendering when window not visible
     // This is critical for Hyprland/Wayland where frame callbacks stop on inactive workspaces
@@ -3672,7 +3684,8 @@ void Visualizer::updateRandomCornerOrbs(float deltaTime) {
     if (randomCornerOrbsTimer_ >= randomCornerOrbsInterval_) {
         showCornerOrbs_ = (rand() % 2) == 1;
         saveCurrentSettings();
-        std::cout << "[RANDOM] Corner Orbs: " << (showCornerOrbs_ ? "ENABLED" : "DISABLED") << std::endl;
+        // Disabled - statistics will be printed on shutdown instead
+        // std::cout << "[RANDOM] Corner Orbs: " << (showCornerOrbs_ ? "ENABLED" : "DISABLED") << std::endl;
         randomCornerOrbsTimer_ = 0.0f;
     }
 }
@@ -4159,7 +4172,7 @@ void Visualizer::renderMIDIControls() {
             }
         } else {
             ImGui::Text("No MIDI devices found");
-            if (ImGui::Button("Scan for Devices")) {
+            if (ImGui::Button("🔄 Scan for Devices")) {
                 devicesLoaded = false;
                 midiDevices.clear();
                 if (midiController_) {

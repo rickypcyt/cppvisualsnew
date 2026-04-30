@@ -393,71 +393,12 @@ void Visualizer::handleKeyboardInput() {
 void Visualizer::renderImGui() {
     PROFILE_FUNCTION();
 
-    // Clean mode: skip ALL ImGui rendering and context switching for maximum performance
+    // Clean mode: skip ALL ImGui rendering for maximum performance
     if (cleanMode_) {
-        // Ensure ImGui window is hidden when in clean mode
-        if (imguiWindow_ && glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE)) {
-            glfwHideWindow(imguiWindow_);
-        }
         return;
     }
 
-    // Detect fullscreen mode on main window
-    bool mainWindowFullscreen = false;
-    if (window_) {
-        GLFWmonitor* monitor = glfwGetWindowMonitor(window_);
-        mainWindowFullscreen = (monitor != nullptr);
-    }
-
-    // Allow controls window even while main window is fullscreen if we are in multi-monitor mode
-    // OR if user manually toggled fullscreen (we detect this by checking if imgui window is also fullscreen)
-    bool imguiFullscreen = isImGuiWindowFullscreen();
-    bool allowControlsDuringFullscreen = multiMonitorMode_ || monitors_.size() >= 2 || imguiFullscreen;
-
-    const bool blockControlsForFullscreen = mainWindowFullscreen && !allowControlsDuringFullscreen;
-
-    // If main window is fullscreen and we are not explicitly allowed to show controls, hide the ImGui window
-    bool shouldHideControls = imguiWindow_ && blockControlsForFullscreen;
-    if (shouldHideControls) {
-        if (glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE)) {
-            glfwHideWindow(imguiWindow_);
-            imguiWindowNeedsFocus_ = true; // Focus next time we show it
-        }
-    } else if (imguiWindow_) {
-        if (!glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE)) {
-            glfwShowWindow(imguiWindow_);
-            imguiWindowNeedsFocus_ = true;
-        }
-    }
-
-    const bool controlsVisible = imguiWindow_ && glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE);
-    const bool controlsIconified = imguiWindow_ && glfwGetWindowAttrib(imguiWindow_, GLFW_ICONIFIED);
-    const bool controlsFullscreen = isImGuiWindowFullscreen();
-    bool renderControlsWindow = controlsVisible && !controlsIconified && !controlsFullscreen && (!blockControlsForFullscreen);
-
-    // Only force focus when the window was previously hidden or flagged
-    if (renderControlsWindow && imguiWindowNeedsFocus_) {
-        glfwFocusWindow(imguiWindow_);
-        imguiWindowNeedsFocus_ = false;
-    }
-
-    // Ensure cursor mode remains free (Hyprland can latch to hidden windows)
-    if (renderControlsWindow) {
-        glfwSetInputMode(imguiWindow_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    }
-    
-    // Keep main window context active - we'll render to FBO instead of switching context
-    // This avoids expensive NVIDIA driver stalls from context switching
-    // Main window context is already current from the main render loop
-
-    // Always keep main window cursor unlocked as well
-    if (window_) {
-        glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    }
-
-    // FBO resize is handled by callback - no polling needed here
-
-    // Start the Dear ImGui frame
+    // Start the Dear ImGui frame (rendered as overlay on main window)
     {
         PROFILE_SCOPE("imgui_new_frame");
         ImGui_ImplOpenGL3_NewFrame();
@@ -474,95 +415,81 @@ void Visualizer::renderImGui() {
     // Handle keyboard input
     handleKeyboardInput();
 
-    if (!blockControlsForFullscreen) {
-        // Main control window
-        if (showImGuiWindow_) {
-            PROFILE_SCOPE("render_main_imgui_window");
-            renderMainImGuiWindow();
-        }
-
-        // Separate Visual control windows
-        if (showImGuiColorsWindow_) {
-            PROFILE_SCOPE("render_colors_window");
-            renderColorsWindow();
-        }
-        if (showImGuiProceduralWindow_) {
-            PROFILE_SCOPE("render_procedural_window");
-            renderProceduralWindow();
-        }
-        if (showImGuiPostProcessWindow_) {
-            PROFILE_SCOPE("render_post_process_window");
-            renderPostProcessWindow();
-        }
-
-        // Camera control window - always visible
-        {
-            PROFILE_SCOPE("render_camera_window");
-            renderCameraWindow();
-        }
-
-        // Current effects display window
-        if (showCurrentEffects_) {
-            PROFILE_SCOPE("render_current_effects");
-            renderCurrentEffectsDisplay();
-        }
-
-        // Render MIDI controls
-        {
-            PROFILE_SCOPE("render_midi_controls");
-            renderMIDIControls();
-        }
-
-        // Device selector window
-        if (showDeviceSelector_) {
-            PROFILE_SCOPE("render_device_selector");
-            renderDeviceSelectorImGui();
-        }
-
-        // Diagnostic info window
-        if (showDiagnosticInfo_) {
-            PROFILE_SCOPE("render_diagnostic");
-            renderDiagnosticImGui();
-        }
-
-        // Console mode window
-        if (showConsoleMode_) {
-            PROFILE_SCOPE("render_console");
-            renderConsoleImGui();
-        }
-
-        // FASE 0.4: Performance window
-        if (showPerformanceWindow_) {
-            PROFILE_SCOPE("render_performance");
-            renderPerformanceImGui();
-        }
-
-        // Shader Presets window
-        {
-            PROFILE_SCOPE("render_shader_presets");
-            renderShaderPresetsWindow();
-        }
-
-        // Render ImGui to FBO using main window context (no context switch!)
-        {
-            PROFILE_SCOPE("imgui_render");
-            ImGui::Render();
-        }
-        {
-            PROFILE_SCOPE("imgui_render_to_fbo");
-            GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_IMGUI_RENDER);
-            renderImGuiToFBO();
-            GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_IMGUI_RENDER);
-        }
-    } else {
-        // Skip drawing overlays entirely so fullscreen stays clean
-        ImGui::EndFrame();
+    // Main control window
+    if (showImGuiWindow_) {
+        PROFILE_SCOPE("render_main_imgui_window");
+        renderMainImGuiWindow();
     }
 
-    // Blit FBO to ImGui window and swap buffers (no fences to avoid stalls)
-    if (!blockControlsForFullscreen && renderControlsWindow) {
-        PROFILE_SCOPE("imgui_blit_to_window");
-        blitImGuiFBOToWindow();
+    // Separate Visual control windows
+    if (showImGuiColorsWindow_) {
+        PROFILE_SCOPE("render_colors_window");
+        renderColorsWindow();
+    }
+    if (showImGuiProceduralWindow_) {
+        PROFILE_SCOPE("render_procedural_window");
+        renderProceduralWindow();
+    }
+    if (showImGuiPostProcessWindow_) {
+        PROFILE_SCOPE("render_post_process_window");
+        renderPostProcessWindow();
+    }
+
+    // Camera control window - always visible
+    {
+        PROFILE_SCOPE("render_camera_window");
+        renderCameraWindow();
+    }
+
+    // Current effects display window
+    if (showCurrentEffects_) {
+        PROFILE_SCOPE("render_current_effects");
+        renderCurrentEffectsDisplay();
+    }
+
+    // Render MIDI controls
+    {
+        PROFILE_SCOPE("render_midi_controls");
+        renderMIDIControls();
+    }
+
+    // Device selector window
+    if (showDeviceSelector_) {
+        PROFILE_SCOPE("render_device_selector");
+        renderDeviceSelectorImGui();
+    }
+
+    // Diagnostic info window
+    if (showDiagnosticInfo_) {
+        PROFILE_SCOPE("render_diagnostic");
+        renderDiagnosticImGui();
+    }
+
+    // Console mode window
+    if (showConsoleMode_) {
+        PROFILE_SCOPE("render_console");
+        renderConsoleImGui();
+    }
+
+    // FASE 0.4: Performance window
+    if (showPerformanceWindow_) {
+        PROFILE_SCOPE("render_performance");
+        renderPerformanceImGui();
+    }
+
+    // Shader Presets window
+    {
+        PROFILE_SCOPE("render_shader_presets");
+        renderShaderPresetsWindow();
+    }
+
+    // Render ImGui directly to main framebuffer (no FBO, no blit, no context switch)
+    {
+        PROFILE_SCOPE("imgui_render");
+        ImGui::Render();
+        GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_IMGUI_RENDER);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_IMGUI_RENDER);
     }
 }
 
@@ -583,6 +510,15 @@ void Visualizer::renderMainImGuiWindow() {
         ImGui::SameLine();
         ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.3f, 1.0f), "(Internal / Loopback)");
     }
+
+    ImGui::Spacing();
+    ImGui::Text("🖥️ GPU Info:");
+    const char* vendor = (const char*)glGetString(GL_VENDOR);
+    const char* renderer = (const char*)glGetString(GL_RENDERER);
+    ImGui::TextColored(ImVec4(0.3f, 0.8f, 1.0f, 1.0f), "Vendor: %s", vendor);
+    ImGui::TextColored(ImVec4(0.3f, 0.8f, 1.0f, 1.0f), "Renderer: %s", renderer);
+    ImGui::TextDisabled("(Use ./run_with_gpu.sh [amd|nvidia] to change GPU)");
+    ImGui::Spacing();
 
     ImGui::Spacing();
     ImGui::Text("Input Source:");
@@ -1031,7 +967,7 @@ void Visualizer::renderColorsWindow() {
     if (prevOnsetCycling != onsetColorCyclingEnabled_) {
         saveCurrentSettings();
     }
-    ImGui::SameLine();
+    
     ImGui::SetNextItemWidth(160.0f);
     if (ImGui::SliderFloat("Interval (s)", &colorRandomInterval_, 1.0f, 60.0f)) {
         colorRandomInterval_ = std::max(1.0f, colorRandomInterval_);
