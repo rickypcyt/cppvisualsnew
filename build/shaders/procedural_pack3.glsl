@@ -304,10 +304,10 @@ vec4 renderFractalInfinity(vec2 st, float time, float tempo, float energy, float
     vec3 raydir = normalize(vec3((st + st - r) / sqrt(r.x * r.y),1));
     
     float t = time + tempo * 0.1 + energy * 0.2;
-    mat3 rot = mat3(1,0,0,0,1,0,0,0,1);
+    mat3 rot = mat3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
     for(int j = 0; j < 8; j++) {
-        rot *= mat3(cos(t),0,sin(t),0,1,0,-sin(t),0,cos(t));
-        rot *= mat3(0,1,0,0,0,1,1,0,0);
+        rot *= mat3(cos(t), 0.0, sin(t), 0.0, 1.0, 0.0, -sin(t), 0.0, cos(t));
+        rot *= mat3(0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0);
         t /= -1.237415;
     }
     

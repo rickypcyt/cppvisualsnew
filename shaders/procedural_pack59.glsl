@@ -25,11 +25,11 @@ vec4 renderCollatzSpiral(
     float velocity = 12.0;
     float evenAngle = 0.24;
     float oddAngle = -0.47;
-    float length = 2.0;
+    float segmentLength = 2.0;
     
     // Audio-reactive parameters
     velocity *= (0.5 + bass * 0.5);
-    length *= (0.8 + energy * 0.4);
+    segmentLength *= (0.8 + energy * 0.4);
     evenAngle *= (0.8 + mid * 0.4);
     oddAngle *= (0.8 + high * 0.4);
     
@@ -68,7 +68,7 @@ vec4 renderCollatzSpiral(
             // Calculate line segment
             vec2 dirA = vec2(cos(angleA), -sin(angleA));
             vec2 lineStart = pos;
-            vec2 lineEnd = pos + dirA * length * 0.01;
+            vec2 lineEnd = pos + dirA * segmentLength * 0.01;
             
             // Check if our sample point is near this line
             float lineDist = distToLine(fromCenter, lineStart, lineEnd);
@@ -76,7 +76,7 @@ vec4 renderCollatzSpiral(
                 brightness += 1.0 - smoothstep(0.0, 0.005, lineDist);
             }
             
-            pos += dirA * length * 0.01;
+            pos += dirA * segmentLength * 0.01;
         }
     }
     
@@ -97,7 +97,7 @@ vec4 renderCollatzSpiral(
             // Calculate line segment (reverse direction)
             vec2 dirB = vec2(-cos(angleB), -sin(angleB));
             vec2 lineStart = pos;
-            vec2 lineEnd = pos + dirB * length * 0.01;
+            vec2 lineEnd = pos + dirB * segmentLength * 0.01;
             
             // Check if our sample point is near this line
             float lineDist = distToLine(fromCenter, lineStart, lineEnd);
@@ -105,7 +105,7 @@ vec4 renderCollatzSpiral(
                 brightness -= 0.5 - smoothstep(0.0, 0.005, lineDist);
             }
             
-            pos += dirB * length * 0.01;
+            pos += dirB * segmentLength * 0.01;
         }
     }
     

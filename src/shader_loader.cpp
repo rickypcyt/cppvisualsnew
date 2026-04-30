@@ -198,3 +198,17 @@ std::string EffectRegistry::getEffectNameByIndex(int index) const {
     return "";
 }
 
+// Get maximum mode index (for dynamic mode count)
+int EffectRegistry::getMaxModeIndex() const {
+    if (effects_.empty()) {
+        return 0;
+    }
+    int maxIndex = 0;
+    for (const auto& [index, _] : effects_) {
+        if (index > maxIndex) {
+            maxIndex = index;
+        }
+    }
+    return maxIndex;
+}
+

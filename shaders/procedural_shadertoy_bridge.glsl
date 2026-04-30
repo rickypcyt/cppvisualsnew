@@ -53,7 +53,11 @@ float pinieon(vec2 uv) {
     vec2 ruv = uv * 5.0;
     vec2 fuv = fract(ruv);
     vec2 iuv = floor(ruv);
-    vec2 id = vec2[3](vec2(1.0, 12.0), vec2(15.0, 13.0), vec2(2.0, 12.0))[int(ruv.x + 2.0) % 3];
+    int idx = int(ruv.x + 2.0) % 3;
+    vec2 id;
+    if (idx == 0) id = vec2(1.0, 12.0);
+    else if (idx == 1) id = vec2(15.0, 13.0);
+    else id = vec2(2.0, 12.0);
     return font(0.5 + (fuv - 0.5) * 0.7, id) * float(iuv.y == 2.0) * step(0.5, iuv.x) * step(iuv.x, 3.5);
 }
 
@@ -63,7 +67,11 @@ float hjct(vec2 uv) {
     vec2 ruv = uv * 5.0;
     vec2 fuv = fract(ruv);
     vec2 iuv = floor(ruv);
-    vec2 id = vec2[3](vec2(1.0, 12.0), vec2(15.0, 13.0), vec2(2.0, 12.0))[int(ruv.x + 2.0) % 3];
+    int idx = int(ruv.x + 2.0) % 3;
+    vec2 id;
+    if (idx == 0) id = vec2(1.0, 12.0);
+    else if (idx == 1) id = vec2(15.0, 13.0);
+    else id = vec2(2.0, 12.0);
     return font(0.5 + (fuv - 0.5) * 0.7, id) * float(iuv.y == 2.0) * step(0.5, iuv.x) * step(iuv.x, 3.5);
 }
 

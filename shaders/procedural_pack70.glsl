@@ -1,11 +1,7 @@
 // @EFFECT name="Noise Particles" index=96 desc="Noise-based particle system" author="p5.js port"
 
 // 3D simplex noise
-vec3 permute3(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
-
-vec4 taylorInvSqrt(vec4 r) {
-    return 1.79284291400159 - 0.85373472095314 * r;
-}
+vec4 permute4(vec4 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
 
 float snoise3(vec3 v) {
     const vec2 C = vec2(1.0/6.0, 1.0/3.0);
@@ -20,10 +16,10 @@ float snoise3(vec3 v) {
     vec3 x2 = x0 - i2 + C.yyy;
     vec3 x3 = x0 - D.yyy;
     i = mod(i, 289.0);
-    vec4 p = permute3( permute3( permute3(
-                i.z + vec3(0.0, i1.z, i2.z))
-                + i.y + vec3(0.0, i1.y, i2.y))
-                + i.x + vec3(0.0, i1.x, i2.x));
+    vec4 p = permute4( permute4( permute4(
+                vec4(i.z, i.z + i1.z, i.z + i2.z, i.z + 1.0))
+                + vec4(i.y, i.y + i1.y, i.y + i2.y, i.y + 1.0))
+                + vec4(i.x, i.x + i1.x, i.x + i2.x, i.x + 1.0));
     float n_ = 0.142857142857;
     vec3  ns = n_ * D.wyz - D.xzx;
     vec4 j = p - 49.0 * floor(p * ns.z * ns.z);

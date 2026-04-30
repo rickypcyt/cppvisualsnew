@@ -1109,7 +1109,7 @@ bool Visualizer::initialize(int width, int height) {
         // showProceduralLayer_ = false;  // Commented out to preserve saved UI state
         proceduralLayerDebug_ = false;
     } else {
-        applyMainProceduralMode(std::clamp(proceduralLayerMode_, 0, kProceduralModeCount - 1), "initialize");
+        applyMainProceduralMode(std::clamp(proceduralLayerMode_, 0, GetEffectRegistry().getMaxModeIndex()), "initialize");
     }
     
     // Initialize hot-reload if enabled
@@ -3144,7 +3144,7 @@ void Visualizer::renderProceduralLayer() {
         //     proceduralLayer_.setCameraOffset(0.0f, 0.0f);
         // }
 
-        proceduralLayer_.setMode(std::clamp(mode, 0, kProceduralModeCount - 1));
+        proceduralLayer_.setMode(std::clamp(mode, 0, GetEffectRegistry().getMaxModeIndex()));
         proceduralLayer_.setColorPalette(adjustedPrimary, adjustedSecondary, scenePaletteBlend_);
         proceduralLayer_.render(context, clearFramebuffer);
         proceduralLayer_.composite(context, std::clamp(opacity, 0.0f, 1.0f));
@@ -3163,7 +3163,7 @@ void Visualizer::renderProceduralLayer() {
         int slotMode;
         if (i == 0) {
             // Slot 0 uses proceduralLayerMode_ for backward compatibility
-            slotMode = std::clamp(proceduralLayerMode_, 0, kProceduralModeCount - 1);
+            slotMode = std::clamp(proceduralLayerMode_, 0, GetEffectRegistry().getMaxModeIndex());
             if (verboseProceduralLogs && proceduralSlots_[0].mode != slotMode) {
                 std::cout << "[PROC RENDER] Divergence detected: slot0.mode="
                           << proceduralSlots_[0].mode << " but proceduralLayerMode_="
@@ -3174,7 +3174,7 @@ void Visualizer::renderProceduralLayer() {
             baseRendered = true;
         } else {
             // Secondary slots use their own mode
-            slotMode = std::clamp(slot.mode, 0, kProceduralModeCount - 1);
+            slotMode = std::clamp(slot.mode, 0, GetEffectRegistry().getMaxModeIndex());
         }
 
         const bool alreadyLogged = lastRenderLoggedBaseActive_
@@ -3247,7 +3247,7 @@ void Visualizer::renderNamesLayer() {
             adjustedSecondary[i] = std::clamp(sceneSecondaryColor_[i] * colorAdjust[i], 0.0f, 1.0f);
         }
 
-        proceduralLayer_.setMode(std::clamp(mode, 0, kProceduralModeCount - 1));
+        proceduralLayer_.setMode(std::clamp(mode, 0, GetEffectRegistry().getMaxModeIndex()));
         proceduralLayer_.setColorPalette(adjustedPrimary, adjustedSecondary, scenePaletteBlend_);
         
         // Load saved camera settings for this specific name mode
@@ -3278,7 +3278,7 @@ void Visualizer::renderNamesLayer() {
             continue;
         }
 
-        int slotMode = std::clamp(slot.mode, 0, kProceduralModeCount - 1);
+        int slotMode = std::clamp(slot.mode, 0, GetEffectRegistry().getMaxModeIndex());
 
         if (verboseLogs) {
             std::cout << "[NAMES RENDER] Slot " << i
@@ -4510,7 +4510,7 @@ void Visualizer::reloadProceduralShaders() {
 }
 
 void Visualizer::applyMainProceduralMode(int mode, const char* source, bool ensureVisible, bool updateZoom) {
-    const int clampedMode = std::clamp(mode, 0, kProceduralModeCount - 1);
+    const int clampedMode = std::clamp(mode, 0, GetEffectRegistry().getMaxModeIndex());
     const char* origin = (source && source[0] != '\0') ? source : "unspecified";
 
     lastProceduralModeSource_ = origin;

@@ -67,7 +67,8 @@ vec4 renderQuadtreeBoxes(
     
     // Ray setup
     vec3 ro = vec3(0.0, 0.0, 400.0);
-    vec3 rd = normalize(vec3(st * 800.0 - 400.0, st * 800.0 - 400.0, -400.0));
+    vec2 screen = st * 800.0 - 400.0;
+    vec3 rd = normalize(vec3(screen, -400.0));
     
     // Apply rotations
     ro = rotateZ(rotateX(ro, rotX), rotZ);
@@ -128,7 +129,7 @@ vec4 renderQuadtreeBoxes(
             
             // Add grid pattern if ran >= 0.6
             if (ran >= 0.6) {
-                vec2 localUV = (hit.xy - boxPos) / boxSize + 0.5;
+                vec2 localUV = (hit.xy - boxPos.xy) / boxSize + 0.5;
                 float gridX = step(0.5, mod(localUV.x * float(o), 1.0));
                 float gridY = step(0.5, mod(localUV.y * float(o), 1.0));
                 if (gridX > 0.5 || gridY > 0.5) {

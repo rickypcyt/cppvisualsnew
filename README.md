@@ -176,12 +176,10 @@ Para modificar los visuales, edita el fragment shader en `src/visualizer.cpp`. L
 5. **Incluir la función en los paquetes**
    - Si usaste un `procedural_packXX.glsl` nuevo, asegúrate de que el archivo esté listado en la constante `kProceduralShaderFiles` para que el `EffectRegistry` lo escanee.
 
-6. **Sincronizar el límite de modos**
-   - Si agregas un índice nuevo, verifica que `kProceduralModeCount` en `visualizer.h` cubra el rango (ej. 50 modos ⇒ valor 50).
-
-7. **Recompilar y ejecutar**
+6. **Recompilar y ejecutar**
    - Usa el script `./run_visualizer.sh` (o `cmake && make`) para copiar shaders, compilar y lanzar el binario.
    - Tu shader aparecerá en la UI con el nombre declarado en `@EFFECT` y también podrá usarse en el randomizer.
+   - El límite de modos se calcula automáticamente desde `EffectRegistry`, no requiere actualización manual.
 
 ## Rendimiento
 

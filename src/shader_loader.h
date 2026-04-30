@@ -53,6 +53,9 @@ public:
     
     size_t size() const { return effects_.size(); }
     
+    // Get maximum mode index (for dynamic mode count)
+    int getMaxModeIndex() const;
+    
     // Clear all registered effects
     void clear() { effects_.clear(); }
 
