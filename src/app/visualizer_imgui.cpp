@@ -141,7 +141,8 @@ const char* const Visualizer::kPostProcessModes[] = {
     "Posterize + Edge",
     "Little Planet",
     "Recursive Feedback",
-    "Threshold Levels"
+    "Threshold Levels",
+    "Warp"
 };
 
 bool Visualizer::setupImGui() {
@@ -1689,7 +1690,7 @@ void Visualizer::renderPostProcessWindow() {
     
     ImGui::SameLine();
     if (ImGui::Button("Disable All")) {
-        for (int mode = 1; mode < postModeCount - 1; ++mode) {
+        for (int mode = 1; mode < postModeCount; ++mode) {
             setPostProcessEffectEnabled(mode, false);
         }
         initializeRandomPostProcess();
@@ -1709,7 +1710,7 @@ void Visualizer::renderPostProcessWindow() {
         ImGui::Columns(2, "post_fx_columns", false);
         int columnIndex = 0;
 
-        for (int mode = 1; mode < postModeCount - 1; ++mode) {
+        for (int mode = 1; mode < postModeCount; ++mode) {
             bool enabled = isPostProcessEffectEnabled(mode);
             std::string label = std::string(kPostProcessModes[mode]) + "##postfx_" + std::to_string(mode);
             if (ImGui::Checkbox(label.c_str(), &enabled)) {
@@ -1731,7 +1732,7 @@ void Visualizer::renderPostProcessWindow() {
 
         ImGui::Spacing();
         if (ImGui::Button("Enable All Post FX")) {
-            for (int mode = 1; mode < postModeCount - 1; ++mode) {
+            for (int mode = 1; mode < postModeCount; ++mode) {
                 setPostProcessEffectEnabled(mode, true);
             }
             initializeRandomPostProcess();

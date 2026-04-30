@@ -173,7 +173,7 @@ private:
     static constexpr int kProceduralModeCount = 76;
     
     // Post-process constants
-    static constexpr int kPostProcessModeCount = 28;
+    static constexpr int kPostProcessModeCount = 33;
     static constexpr int kPostProcessKaleidoscopeModeIndex = 7;
     static constexpr int kPostProcessGrayscaleModeIndex = 1;
     static constexpr int kDefaultPostProcessMode = 2;

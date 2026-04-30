@@ -458,7 +458,8 @@ bool PostProcessor::loadEffectShaders() {
         "shaders/post_effects/effect_posterize_edge.glsl",    // 28: Posterize + Edge
         "shaders/post_effects/effect_little_planet.glsl",      // 29: Little Planet
         "shaders/post_effects/effect_recursive_feedback.glsl",  // 30: Recursive Feedback
-        "shaders/post_effects/effect_threshold_levels.glsl"       // 31: Threshold Levels
+        "shaders/post_effects/effect_threshold_levels.glsl",     // 31: Threshold Levels
+        "shaders/post_effects/effect_warp.glsl"                  // 32: Warp
     };
 
     effectShaders_.resize(effectPaths_.size());

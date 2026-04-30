@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace {
-constexpr int kPostProcessModeCount = 22;
+constexpr int kPostProcessModeCount = 33;
 constexpr int kKaleidoscopeModeIndex = 29;
 constexpr int kPostProcessKaleidoscopeModeIndex = 7;
 constexpr int kPostProcessGrayscaleModeIndex = 1;
@@ -3475,7 +3475,7 @@ void Visualizer::initializeRandomPostProcess() {
     }
     
     if (!availablePostProcessModes_.empty() && 
-        (currentRandomPostProcess_ == 0 || currentRandomPostProcess_ >= kPostProcessModeCount - 1 ||
+        (currentRandomPostProcess_ == 0 || currentRandomPostProcess_ >= kPostProcessModeCount ||
          !isPostProcessEffectEnabled(currentRandomPostProcess_))) {
         // If current mode is invalid or disabled, select a random one
         std::uniform_int_distribution<int> dist(0, availablePostProcessModes_.size() - 1);

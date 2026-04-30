@@ -165,7 +165,7 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                     if (slot.contains("mode")) {
                         int loadedMode = slot["mode"];
                         // Clamp to valid range (0-31 for 32 modes)
-                        postProcessSlots_[i].mode = std::clamp(loadedMode, 0, 31);
+                        postProcessSlots_[i].mode = std::clamp(loadedMode, 0, 32);
                     }
                     if (slot.contains("strength")) postProcessSlots_[i].strength = slot["strength"];
                     if (slot.contains("rgbAdjust")) {
@@ -563,7 +563,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
             json slot;
             slot["enabled"] = postProcessSlots_[i].enabled;
             // Ensure mode is within valid range before saving
-            slot["mode"] = std::clamp(postProcessSlots_[i].mode, 0, 31);
+            slot["mode"] = std::clamp(postProcessSlots_[i].mode, 0, 32);
             slot["strength"] = postProcessSlots_[i].strength;
             slot["rgbAdjust"] = postProcessSlots_[i].rgbAdjust;
             j["postProcess"]["slots"].push_back(slot);
