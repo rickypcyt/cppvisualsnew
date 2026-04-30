@@ -143,8 +143,8 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (ui.contains("proceduralLayerOpacity")) proceduralLayerOpacity_ = ui["proceduralLayerOpacity"];
             if (ui.contains("proceduralLayerMode")) {
                 int loadedMode = ui["proceduralLayerMode"];
-                // Clamp to valid range (0-65 for all modes)
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 73);
+                // Clamp to valid range (0-96 for all modes)
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 96);
                 loadedMainModeFromUi = true;
             }
             std::cout << "[SETTINGS LOAD] UI layer mode=" << proceduralLayerMode_;
@@ -277,12 +277,12 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                 } else {
                     // Fallback to index
                     int loadedMode = j["ui"]["proceduralLayerMode"];
-                    proceduralLayerMode_ = std::clamp(loadedMode, 0, 73);
+                    proceduralLayerMode_ = std::clamp(loadedMode, 0, 96);
                 }
             } else {
                 // Legacy: load by index
                 int loadedMode = j["ui"]["proceduralLayerMode"];
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 73);
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 96);
             }
         }
 
@@ -551,7 +551,7 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["ui"]["showCurrentEffects"] = showCurrentEffects_;
         j["ui"]["proceduralLayerDebug"] = proceduralLayerDebug_;
         j["ui"]["proceduralLayerOpacity"] = proceduralLayerOpacity_;
-        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 73);
+        j["ui"]["proceduralLayerMode"] = std::clamp(proceduralLayerMode_, 0, 96);
         // Also save effect name for robustness
         std::string mainEffectName = GetEffectRegistry().getEffectNameByIndex(proceduralLayerMode_);
         if (!mainEffectName.empty()) {

@@ -32,7 +32,7 @@ void main() {
 }
 )";
 
-const std::array<const char*, 55> kProceduralShaderFiles = {
+const std::array<const char*, 76> kProceduralShaderFiles = {
     "procedural_header.glsl",
     "procedural_helpers.glsl",
     "procedural_shadertoy_bridge.glsl",
@@ -87,6 +87,27 @@ const std::array<const char*, 55> kProceduralShaderFiles = {
     "procedural_pack47.glsl",
     "procedural_pack48.glsl",
     "procedural_pack49.glsl",
+    "procedural_pack50.glsl",
+    "procedural_pack51.glsl",
+    "procedural_pack52.glsl",
+    "procedural_pack53.glsl",
+    "procedural_pack54.glsl",
+    "procedural_pack55.glsl",
+    "procedural_pack56.glsl",
+    "procedural_pack57.glsl",
+    "procedural_pack58.glsl",
+    "procedural_pack59.glsl",
+    "procedural_pack60.glsl",
+    "procedural_pack61.glsl",
+    "procedural_pack62.glsl",
+    "procedural_pack63.glsl",
+    "procedural_pack64.glsl",
+    "procedural_pack65.glsl",
+    "procedural_pack66.glsl",
+    "procedural_pack67.glsl",
+    "procedural_pack68.glsl",
+    "procedural_pack69.glsl",
+    "procedural_pack70.glsl",
     "procedural_main.glsl"
 };
 
@@ -100,7 +121,7 @@ void InitializeEffectRegistry() {
     GetEffectRegistry().scanShaderFiles(kShaderSearchRoots, files);
 }
 
-const std::array<const char*, 29> kProceduralPackFiles = {
+const std::array<const char*, 70> kProceduralPackFiles = {
     "procedural_pack1.glsl",
     "procedural_pack2.glsl",
     "procedural_pack3.glsl",
@@ -129,7 +150,42 @@ const std::array<const char*, 29> kProceduralPackFiles = {
     "procedural_pack32.glsl",
        "procedural_pack33.glsl",
     "procedural_pack34.glsl",
-    "procedural_pack35.glsl"
+    "procedural_pack35.glsl",
+    "procedural_pack36.glsl",
+    "procedural_pack37.glsl",
+    "procedural_pack38.glsl",
+    "procedural_pack39.glsl",
+    "procedural_pack40.glsl",
+    "procedural_pack41.glsl",
+    "procedural_pack42.glsl",
+    "procedural_pack43.glsl",
+    "procedural_pack44.glsl",
+    "procedural_pack45.glsl",
+    "procedural_pack46.glsl",
+    "procedural_pack47.glsl",
+    "procedural_pack48.glsl",
+    "procedural_pack49.glsl",
+    "procedural_pack50.glsl",
+    "procedural_pack51.glsl",
+    "procedural_pack52.glsl",
+    "procedural_pack53.glsl",
+    "procedural_pack54.glsl",
+    "procedural_pack55.glsl",
+    "procedural_pack56.glsl",
+    "procedural_pack57.glsl",
+    "procedural_pack58.glsl",
+    "procedural_pack59.glsl",
+    "procedural_pack60.glsl",
+    "procedural_pack61.glsl",
+    "procedural_pack62.glsl",
+    "procedural_pack63.glsl",
+    "procedural_pack64.glsl",
+    "procedural_pack65.glsl",
+    "procedural_pack66.glsl",
+    "procedural_pack67.glsl",
+    "procedural_pack68.glsl",
+    "procedural_pack69.glsl",
+    "procedural_pack70.glsl"
 };
 
 const char* kProceduralDebugMain = R"(

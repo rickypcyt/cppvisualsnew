@@ -327,17 +327,17 @@ vec4 renderHSVColorShift(vec2 st, float time, float tempo, float energy, float b
 mat2 rotCrypt (float a) { float c=cos(a), s=sin(a); return mat2(c,s,-s,c); }
 float smoothmin (float a, float b, float r) { float h = clamp(.5+.5*(b-a)/r, 0., 1.); return mix(b, a, h)-r*h*(1.-h); }
 float random (in vec2 st) { return fract(sin(dot(st.xy,vec2(12.9898,78.233)))*43758.5453123); }
-float hash(float n) { return fract(sin(n) * 1e4); }
+float hash_n(float n) { return fract(sin(n) * 1e4); }
 float noise(vec3 x) {
     const vec3 step = vec3(110, 241, 171);
     vec3 i = floor(x);
     vec3 f = fract(x);
     float n = dot(i, step);
     vec3 u = f * f * (3.0 - 2.0 * f);
-    return mix(mix(mix( hash(n + dot(step, vec3(0, 0, 0))), hash(n + dot(step, vec3(1, 0, 0))), u.x),
-                   mix( hash(n + dot(step, vec3(0, 1, 0))), hash(n + dot(step, vec3(1, 1, 0))), u.x), u.y),
-               mix(mix( hash(n + dot(step, vec3(0, 0, 1))), hash(n + dot(step, vec3(1, 0, 1))), u.x),
-                   mix( hash(n + dot(step, vec3(0, 1, 1))), hash(n + dot(step, vec3(1, 1, 1))), u.x), u.y), u.z);
+    return mix(mix(mix( hash_n(n + dot(step, vec3(0, 0, 0))), hash_n(n + dot(step, vec3(1, 0, 0))), u.x),
+                   mix( hash_n(n + dot(step, vec3(0, 1, 0))), hash_n(n + dot(step, vec3(1, 1, 0))), u.x), u.y),
+               mix(mix( hash_n(n + dot(step, vec3(0, 0, 1))), hash_n(n + dot(step, vec3(1, 0, 1))), u.x),
+                   mix( hash_n(n + dot(step, vec3(0, 1, 1))), hash_n(n + dot(step, vec3(1, 1, 1))), u.x), u.y), u.z);
 }
 float fbm (vec3 p) {
   float amplitude = 0.5;

@@ -31,10 +31,6 @@ vec3 hash33(vec3 p3) {
     return fract((p3.xxy + p3.yxx)*p3.zyx);
 }
 
-vec3 hash( in vec3 center ) {
-    return center + (hash33(center)-0.5) * 0.5;
-}
-
 float B2( vec2 _P ) {
     return mod( 2.0*_P.y + _P.x + 1.0, 4.0 );
 }
@@ -59,7 +55,7 @@ vec3 voronoi( in vec3 uv, in vec3 no, inout float rough ) {
     for (float z = -0.5 ; z < 1.0 ; z+=1.0) {
 		vec3 offset = vec3(x, y, z);
         vec3 newCenter = center + offset;
-        vec3 newCenterOffset = hash(newCenter);
+        vec3 newCenterOffset = newCenter + (hash33(newCenter)-0.5) * 0.5;
         vec3 temp = newCenterOffset - uv;
         float distSq = dot(temp, temp);
         if (distSq < bestDist) {

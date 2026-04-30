@@ -170,7 +170,7 @@ private:
     static constexpr int kMaxNameSlots = 5;
     
     // Procedural layer constants
-    static constexpr int kProceduralModeCount = 76;
+    static constexpr int kProceduralModeCount = 78;
     
     // Post-process constants
     static constexpr int kPostProcessModeCount = 33;

@@ -159,7 +159,50 @@ void main() {
         color = renderTilesNumbers(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 75) {
         color = renderAudioEQ(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 76) {
+        color = renderNoiseDotGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 77) {
+        color = renderRecursiveGrids(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 78) {
+        color = renderGameOfLife(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 79) {
+        color = render3DWaveBoxes(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 80) {
+        color = renderCircularCellularAutomata(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 81) {
+        color = renderRecursiveSubdivision(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 82) {
+        color = renderLowresPixelation(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 83) {
+        color = renderParticleCloud(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 84) {
+        color = renderFibonacciCurl(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 85) {
+        color = renderCollatzSpiral(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 86) {
+        color = renderQuadtreeBoxes(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 87) {
+        color = renderStarRing(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 88) {
+        color = renderRotatingCircle(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 89) {
+        color = renderCurvedLines(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 90) {
+        color = renderTriangleParticles(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 91) {
+        color = renderBezierPetals(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 92) {
+        color = renderKochSnowflake(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 93) {
+        color = renderFlowField(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 94) {
+        color = renderIsometricCubes(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 95) {
+        color = renderWaveCircles(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 96) {
+        color = renderNoiseParticles(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
+    
     // Invalid modes will show black/pink error color
 
     FragColor = color;
