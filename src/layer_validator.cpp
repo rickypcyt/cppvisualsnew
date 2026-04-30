@@ -388,6 +388,9 @@ bool LayerValidator::validateGLSLSyntax(const std::string& source, std::string& 
             return false;
         }
         
+        // Validar funciones comunes que suelen faltar
+        validateCommonFunctions(source, error);
+        
         return true;
     }
     
@@ -415,7 +418,46 @@ bool LayerValidator::validateGLSLSyntax(const std::string& source, std::string& 
         return false;
     }
     
+    // Validar funciones comunes que suelen faltar
+    validateCommonFunctions(source, error);
+    
     return true;
+}
+
+void LayerValidator::validateCommonFunctions(const std::string& source, std::string& error) {
+    // Lista de funciones comunes en shaders procedurales
+    const std::vector<std::string> commonFunctions = {
+        "taylorInvSqrt",
+        "fract",
+        "mix",
+        "smoothstep",
+        "length",
+        "normalize",
+        "dot",
+        "cross",
+        "reflect",
+        " refract"
+    };
+    
+    // Buscar usos de estas funciones sin definición
+    for (const auto& func : commonFunctions) {
+        // Si se usa la función pero no está definida
+        std::regex usageRegex(R"(\b)" + func + R"(\s*\()");
+        std::regex defRegex(R"(\b)" + func + R"(\s*\([^)]*\)\s*\{)");
+        
+        bool hasUsage = std::regex_search(source, usageRegex);
+        bool hasDef = std::regex_search(source, defRegex);
+        
+        if (hasUsage && !hasDef) {
+            // Algunas funciones son built-in de GLSL, no reportarlas
+            if (func != "fract" && func != "mix" && func != "smoothstep" && 
+                func != "length" && func != "normalize" && func != "dot" && 
+                func != "cross" && func != "reflect" && func != "refract") {
+                error = "Función utilizada pero no definida: " + func;
+                return;
+            }
+        }
+    }
 }
 
 void LayerValidator::reportProgress(const std::string& stage, int current, int total) {

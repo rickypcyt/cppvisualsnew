@@ -1,6 +1,7 @@
 #include "gl_shader_compiler.h"
 #include <GL/glew.h>
 #include <iostream>
+#include <fstream>
 
 GLuint GLShaderCompiler::toGLuint(ShaderHandle handle) {
     return static_cast<GLuint>(handle);
@@ -15,6 +16,15 @@ ShaderHandle GLShaderCompiler::compileProgram(
     const std::string& fragmentSource,
     std::string& outErrorLog
 ) {
+    // Dump fragment shader for debugging (always write, even if compilation fails)
+    std::ofstream fragDump("/home/ricky/coding/proyects/visuals/debug_shader.frag");
+    if (fragDump.is_open()) {
+        fragDump << fragmentSource;
+        fragDump.close();
+    } else {
+        std::cerr << "[SHADER DEBUG] Warning: Could not write debug_shader.frag" << std::endl;
+    }
+
     // Compile vertex shader
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     const char* vSrc = vertexSource.c_str();

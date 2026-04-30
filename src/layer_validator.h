@@ -81,6 +81,7 @@ private:
     std::string readFileContents(const std::string& path);
     std::vector<std::string> extractIncludes(const std::string& source);
     bool validateGLSLSyntax(const std::string& source, std::string& error);
+    void validateCommonFunctions(const std::string& source, std::string& error);
     
     void reportProgress(const std::string& stage, int current, int total);
     ValidationResult validateProceduralShaders();

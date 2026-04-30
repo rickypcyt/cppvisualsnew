@@ -83,14 +83,25 @@ inline const std::vector<std::string> kShaderSearchRoots = {
 // the configured `searchRoots`. Returns true on success and stores the
 // resulting source code in `outSource`. When provided, `outError` receives a
 // diagnostic message on failure.
+// Also returns a mapping of file IDs to filenames for #line directive debugging.
+// Handles #version directives by extracting the first one and removing duplicates.
 inline bool LoadShaderSources(const std::vector<std::string>& searchRoots,
                               const std::vector<std::string>& shaderFiles,
                               std::string& outSource,
-                              std::string* outError) {
+                              std::string* outError,
+                              std::vector<std::string>* outFileMapping = nullptr) {
     namespace fs = std::filesystem;
 
     outSource.clear();
 
+    if (outFileMapping) {
+        outFileMapping->clear();
+    }
+
+    std::string versionLine;
+    std::vector<std::string> fileContents;
+
+    // First pass: read all files and extract #version
     for (const std::string& shaderFile : shaderFiles) {
         fs::path resolvedPath;
         bool found = false;
@@ -126,12 +137,38 @@ inline bool LoadShaderSources(const std::vector<std::string>& searchRoots,
             return false;
         }
 
-        std::ostringstream buffer;
-        buffer << file.rdbuf();
+        std::string content;
+        std::string line;
+        while (std::getline(file, line)) {
+            // Extract first #version directive
+            if (line.find("#version") == 0) {
+                if (versionLine.empty()) {
+                    versionLine = line;
+                }
+                // Skip #version lines in output (we'll add single version at start)
+            } else {
+                content += line + "\n";
+            }
+        }
+        fileContents.push_back(content);
 
-        outSource += "\n// --- Begin " + shaderFile + " ---\n";
-        outSource += buffer.str();
-        outSource += "\n// --- End " + shaderFile + " ---\n";
+        // Store mapping for error translation
+        if (outFileMapping) {
+            outFileMapping->push_back(shaderFile);
+        }
+    }
+
+    // Second pass: assemble with single #version at start
+    if (!versionLine.empty()) {
+        outSource += versionLine + "\n";
+    }
+
+    int fileId = 0;
+    for (const auto& content : fileContents) {
+        // Insert #line directive for debugging
+        outSource += "\n#line 1 " + std::to_string(fileId) + "\n";
+        outSource += content;
+        fileId++;
     }
 
     return true;
@@ -141,12 +178,13 @@ template <size_t N>
 bool LoadShaderSources(const std::vector<std::string>& searchRoots,
                        const std::array<const char*, N>& shaderFiles,
                        std::string& outSource,
-                       std::string* outError) {
+                       std::string* outError,
+                       std::vector<std::string>* outFileMapping = nullptr) {
     std::vector<std::string> files;
     files.reserve(N);
     for (const char* file : shaderFiles) {
         files.emplace_back(file);
     }
-    return LoadShaderSources(searchRoots, files, outSource, outError);
+    return LoadShaderSources(searchRoots, files, outSource, outError, outFileMapping);
 }
 

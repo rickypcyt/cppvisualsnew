@@ -1,5 +1,5 @@
 #define PI 3.14159265359
-#define rot(a) mat2(cos(a + PI*0.5*vec4(0,1,3,0)))
+#define rot(a) mat2(cos(a), sin(a), -sin(a), cos(a))
 
 #define SAMPLES 4
 

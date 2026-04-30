@@ -104,7 +104,7 @@ vec4 render3DWaveBoxes(
     // If we hit a box, render it
     if (closestT < 1e5) {
         // HSB color calculation
-        float hue = map(closestLayer, 0.0, float(layerNum), 0.0, float(layerNum));
+        float hue = remap(closestLayer, 0.0, float(layerNum), 0.0, float(layerNum));
         float sat = 100.0 * (0.75 + 0.25 * sin(radians(mod(time, 360.0))));
         float bri = 100.0 * (1.0 + 0.0 * cos(radians(mod(time / 2.0, 360.0))));
         

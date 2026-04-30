@@ -34,7 +34,10 @@ bool Shader::loadFromSource(const std::string& vertexSource, const std::string& 
     handle_ = GLShaderCompiler::compileProgram(vertexSource, fragmentSource, lastError_);
 
     if (handle_ == INVALID_SHADER_HANDLE) {
-        std::cerr << "[SHADER ERROR] " << lastError_ << std::endl;
+        std::cerr << "[SHADER ERROR]" << std::endl;
+        std::cerr << "----- FRAGMENT SHADER COMPILATION FAILED -----" << std::endl;
+        std::cerr << lastError_ << std::endl;
+        std::cerr << "----- Debug dump written to: debug_shader.frag -----" << std::endl;
         return false;
     }
 

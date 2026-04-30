@@ -12,12 +12,14 @@ vec4 renderFractalRotation(vec2 st, float time, float tempo, float energy, float
     float S = 5.0, a = 0.0, j = 0.0;
     float t = time;
     
-    for(mat2 m = rotate2D_fractal(5.0); j < 30.0; j++, S *= 1.2) {
+    mat2 m = rotate2D_fractal(5.0);
+    for(; j < 30.0; j++, S *= 1.2) {
         p *= m;
         n *= m;
         q = p * S + j + n + t * 4.0 + sin(t * 4.0) * 0.8;
         a += dot(cos(q) / S, vec2(1.0));
-        n += q = sin(q);
+        q = sin(q);
+        n += q;
         N += q / (S + 20.0);
     }
     
