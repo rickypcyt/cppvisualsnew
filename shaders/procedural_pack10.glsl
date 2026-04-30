@@ -183,7 +183,10 @@ vec4 renderMetalGyroidHall(vec2 st, float time, float tempo, float energy, float
         color += attenuation * metalRaymarch(rayPos, rayDir, 60, fogDensity, lightColor, attenuation, hit);
     }
 
-    color = metalToneMapACES(color * 0.8);
+    // Ensure minimum brightness to prevent black screen
+    color = max(color, vec3(0.15));
+
+    color = metalToneMapACES(color * 1.2); // Increased from 0.8
     color = pow(color, vec3(1.0 / 2.2));
 
     vec3 palette = mix(uPrimaryColor, uSecondaryColor, clamp(uColorBlend, 0.0, 1.0));

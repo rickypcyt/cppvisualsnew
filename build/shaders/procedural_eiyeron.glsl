@@ -86,5 +86,19 @@ vec4 renderEiyeronDeform(vec2 st, float time, float tempo, float energy, float b
 
     vec3 color = eiyeronCore(fragCoord, t, energy, bass, mid, high);
     color = clamp(color, 0.0, 1.0);
+
+    // Calculate brightness for mixing with black background
+    float brightness = dot(color, vec3(0.299, 0.587, 0.114));
+
+    // Black background - prioritize dark areas
+    vec3 bgColor = vec3(0.0);
+
+    // Mix with black based on brightness - only show colors where brightness is high
+    float mixFactor = smoothstep(0.15, 0.5, brightness);
+    color = mix(bgColor, color, mixFactor);
+
+    // Further darken to ensure black dominance
+    color *= 0.7;
+
     return vec4(color, 1.0);
 }

@@ -20,12 +20,21 @@ vec4 renderVoronoiCells(vec2 st, float time, float tempo, float energy, float ba
     float distance = voronoi(p + time * 0.12, edge, cellSeed);
     float interior = smoothstep(0.0, 0.9, distance * 1.5);
     float edgeGlow = smoothstep(0.02, 0.2, 1.0 - edge);
-    vec3 cellColor = mix(uPrimaryColor * (0.4 + bass * 0.4),
-                         uSecondaryColor * (0.6 + high * 0.5),
+
+    // Dark background
+    vec3 bgColor = vec3(0.05, 0.05, 0.08);
+
+    // Darker cell colors
+    vec3 cellColor = mix(uPrimaryColor * (0.2 + bass * 0.2),
+                         uSecondaryColor * (0.3 + high * 0.25),
                          interior);
-    cellColor += vec3(0.15, 0.25, 0.2) * cellSeed * 0.6;
-    cellColor += vec3(0.4, 0.55, 0.65) * edgeGlow * (0.4 + high * 0.7);
+    cellColor += vec3(0.08, 0.12, 0.1) * cellSeed * 0.3;
+    cellColor += vec3(0.15, 0.2, 0.25) * edgeGlow * (0.2 + high * 0.35);
     cellColor = clamp(cellColor, 0.0, 1.0);
+
+    // Mix with dark background
+    cellColor = mix(bgColor, cellColor, 0.7);
+
     float alpha = clamp(0.25 + interior * 0.5 + edgeGlow * (0.35 + high * 0.2) + energy * 0.2, 0.0, 1.0);
     return vec4(cellColor, alpha);
 }
@@ -311,27 +320,30 @@ vec4 renderFractalInfinity(vec2 st, float time, float tempo, float energy, float
         t /= -1.237415;
     }
     
-    vec4 c = vec4(1);
-    
+    vec4 c = vec4(2.0); // Increased initial brightness
+
     for(int i = 0; i < 80; i++) {
         float dist = fractalInfinitySDF(raypos,rot);
         raypos += raydir * dist;
         if(dist < 0.0001) {
             break;
         }
-        c /= 1.07;
+        c /= 1.03; // Reduced fade factor for better visibility
     }
-    
+
+    // Ensure minimum brightness to prevent black screen
+    c = max(c, vec4(0.3)); // Minimum brightness floor
+
     // Add color based on audio reactivity
     vec3 color = c.rgb;
     color.r *= 1.0 + bass * 0.3;
     color.g *= 1.0 + mid * 0.2;
     color.b *= 1.0 + high * 0.4;
-    
+
     // Mix with user colors
     float paletteBias = clamp(uColorBlend, 0.0, 1.0);
     color = mix(color * uPrimaryColor, color * uSecondaryColor, paletteBias);
-    
+
     float alpha = clamp(length(c.rgb) + energy * 0.3, 0.0, 1.0);
     return vec4(clamp(color, 0.0, 1.0), alpha);
 }
@@ -528,10 +540,10 @@ vec4 renderVoxelPathTracer(vec2 st, float time, float tempo, float energy, float
 }
 
 vec4 renderFractalTunnel(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
-    vec2 uv = st * (0.55 + energy * 0.15);
+    vec2 uv = st * (0.25 + energy * 0.05);
     float twist = sin(time * 0.3) * 0.4 + mid * 0.6;
     uv = rotate(uv, twist);
-    vec3 dir = normalize(vec3(uv, 1.5));
+    vec3 dir = normalize(vec3(uv, 0.8));
     float speed = 1.05 + tempo * 0.7 + energy * 0.45;
     float travel = time * speed;
     vec3 accum = vec3(0.0);
@@ -581,6 +593,13 @@ vec4 renderFractalTunnel(vec2 st, float time, float tempo, float energy, float b
     vec3 coreColor = mix(uPrimaryColor, uSecondaryColor, clamp(0.5 + 0.5 * sin(travel + high * 2.5), 0.0, 1.0));
     accum += coreColor * coreGlow * (0.4 + high * 0.4 + energy * 0.3);
     alpha += coreGlow * (0.18 + energy * 0.15);
+
+    // Black background - remove colored background
+    float brightness = dot(accum, vec3(0.299, 0.587, 0.114));
+    vec3 bgColor = vec3(0.0);
+    float mixFactor = smoothstep(0.1, 0.4, brightness);
+    accum = mix(bgColor, accum, mixFactor);
+    accum *= 0.6;
 
     accum = clamp(accum, 0.0, 1.0);
     alpha = clamp(alpha, 0.0, 1.0);

@@ -62,8 +62,16 @@ vec4 renderGlitchGrid(vec2 st, float time, float tempo, float energy, float bass
     float jitter = hash(cell + floor(time * (1.5 + tempo)));
     float mask = smoothstep(0.45 + high * 0.2, 0.0, length(cellUV + (jitter - 0.5) * 0.3));
     float pulse = sin(time * (4.0 + tempo * 1.2) + cell.x * 0.8 + cell.y * 0.6) * 0.5 + 0.5;
-    vec3 base = mix(uPrimaryColor, uSecondaryColor, hash(cell));
-    vec3 color = base * (0.3 + 0.7 * pulse);
+
+    // Internal colors (cyan/magenta digital colors)
+    vec3 internalColor1 = vec3(0.0, 0.8, 1.0);
+    vec3 internalColor2 = vec3(1.0, 0.0, 0.8);
+    vec3 internalBase = mix(internalColor1, internalColor2, hash(cell));
+
+    // Mix with user palette as tint (not as base)
+    vec3 userTint = mix(uPrimaryColor, uSecondaryColor, hash(cell));
+    vec3 color = internalBase * (0.5 + 0.5 * pulse);
+    color = mix(color, color * userTint * 2.0, 0.3); // User colors as tint
     color = mix(color, color.bgr, high * 0.4);
     color *= mask * (0.6 + energy * 0.6);
     color = clamp(color, 0.0, 1.0);
@@ -93,20 +101,22 @@ vec4 renderChemicalFlow(vec2 st, float time, float tempo, float energy, float ba
     float radial  = 1.0 - smoothstep(0.0, 0.8, length(st));
     float glow    = radial * bass * 0.5;
 
-    // Color base: tres zonas en vez de dos (sombra / medio / luz)
-    vec3 shadow = uPrimaryColor  * 0.2;
-    vec3 midCol = mix(uPrimaryColor, uSecondaryColor, 0.5) + vec3(mid * 0.1, bass * 0.05, 0.0);
-    vec3 light  = uSecondaryColor + vec3(bass * 0.25, mid * 0.2, high * 0.35);
+    // Color base: make black more dominant by reducing light
+    vec3 shadow = uPrimaryColor  * 0.15;  // Darker shadow
+    vec3 midCol = mix(uPrimaryColor, uSecondaryColor, 0.5) * 0.6;  // Reduced mid brightness
+    vec3 light  = uSecondaryColor * 0.4 + vec3(bass * 0.1, mid * 0.08, high * 0.12);  // Much darker light
 
     vec3 color = flow < 0.45
         ? mix(shadow, midCol, flow / 0.45)
         : mix(midCol, light,  (flow - 0.45) / 0.55);
 
-    // Capas aditivas
-    color += vec3(0.08, 0.02, 0.12) * swirl * 0.25;   // tinte swirl
-    color += vec3(0.6,  0.3,  0.9)  * veins;           // venas violeta
-    color += vec3(0.3,  0.1,  0.5)  * glow;            // halo central
+    // Reduced additive layers for darker appearance
+    color += vec3(0.04, 0.01, 0.06) * swirl * 0.15;   // tinte swirl (reduced)
+    color += vec3(0.3,  0.15,  0.45)  * veins * 0.5;   // venas violeta (reduced)
+    color += vec3(0.15,  0.05,  0.25)  * glow * 0.5;   // halo central (reduced)
 
+    // Darken overall to make black dominate
+    color *= 0.7;
     color = clamp(color, 0.0, 1.0);
 
     // Alpha: respira con el bajo y se abre con la energía
@@ -122,8 +132,16 @@ vec4 renderCrystalLattice(vec2 st, float time, float tempo, float energy, float 
     float node = exp(-12.0 * dot(cell, cell));
     float cross = exp(-30.0 * abs(cell.x)) + exp(-30.0 * abs(cell.y));
     float glow = node + 0.2 * cross;
-    vec3 base = mix(uPrimaryColor, uSecondaryColor, 0.5 + 0.5 * bass);
-    vec3 color = base * (0.5 + glow * (0.8 + energy * 0.5));
+
+    // Internal colors (crystal blue/purple)
+    vec3 internalColor1 = vec3(0.3, 0.5, 1.0);
+    vec3 internalColor2 = vec3(0.6, 0.3, 1.0);
+    vec3 internalBase = mix(internalColor1, internalColor2, 0.5 + 0.5 * bass);
+
+    // Mix with user palette as tint (not as base)
+    vec3 userTint = mix(uPrimaryColor, uSecondaryColor, 0.5 + 0.5 * bass);
+    vec3 color = internalBase * (0.5 + glow * (0.8 + energy * 0.5));
+    color = mix(color, color * userTint * 2.0, 0.3); // User colors as tint
     color = clamp(color, 0.0, 1.0);
     float alpha = clamp(glow * (0.6 + energy * 0.4), 0.0, 1.0);
     return vec4(color, alpha);

@@ -165,13 +165,15 @@ target_include_directories(gl_backend PUBLIC
 # ============================================================================
 # VULKAN BACKEND LIBRARY (optional, disabled for now)
 # ============================================================================
-# add_library(vk_backend STATIC
-#     src/vk_renderer.cpp
-# )
+if(Vulkan_FOUND)
+    add_library(vk_backend STATIC
+        src/vk_renderer.cpp
+    )
 
-# target_include_directories(vk_backend PUBLIC
-#     ${CMAKE_CURRENT_SOURCE_DIR}/src
-# )
+    target_include_directories(vk_backend PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
+endif()
 
 # ============================================================================
 # FIND DEPENDENCIES
@@ -240,15 +242,6 @@ target_link_libraries(gl_backend PUBLIC
     ${OPENGL_LIBRARIES}
     -lGL
 )
-
-# Vulkan backend dependencies (when enabled)
-# if(Vulkan_FOUND)
-#     target_link_libraries(vk_backend PUBLIC
-#         core_engine
-#         shader_system
-#         ${Vulkan_LIBRARIES}
-#     )
-# endif()
 
 # ============================================================================
 # EXECUTABLES

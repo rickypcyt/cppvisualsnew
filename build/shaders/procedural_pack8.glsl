@@ -75,6 +75,12 @@ vec4 renderHyperPulse(vec2 st, float time, float tempo, float energy, float bass
     vec2 fragCoord = (st / aspect + 0.5) * uResolution.xy;
     vec2 uv = (fragCoord - 0.5 * uResolution.xy) / max(uResolution.y, 1.0);
 
+    // Early exit for pixels outside viewport (optimization)
+    float distFromCenter = length(uv);
+    if (distFromCenter > 1.2) {
+        return vec4(0.0, 0.0, 0.0, 0.0);
+    }
+
     float beatTime = time / 60.0 * kHyperBpm;
     float bpmBlend = mix(pow(sin(fract(beatTime) * 3.14159 / 2.0), 20.0) + floor(beatTime), beatTime, 0.4);
     hyper_timeScaled = bpmBlend;

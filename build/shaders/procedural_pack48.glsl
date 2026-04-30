@@ -261,8 +261,8 @@ vec4 renderTilesNumbers(vec2 st, float time, float tempo, float energy, float ba
     float d = renderTiles(uv, time);
     float w = length(fwidth(_uvTiles)) * 1.5;
     float aa = smoothstep(-w, w, d);
-    // Pure monochrome - white background with black lines
-    vec3 col = vec3(1.0); // Pure white background
-    col = mix(col, vec3(0.0), aa); // Pure black lines
+    // Use user colors from preset
+    vec3 col = uPrimaryColor; // Primary color background
+    col = mix(col, uSecondaryColor, aa); // Secondary color lines
     return vec4(col, 1.0);
 }

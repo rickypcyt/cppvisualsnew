@@ -114,16 +114,19 @@ float mapCollapsed(vec3 p) {
     vec2 right = vec2(index.x + 1.0, index.y);
     vec2 left = vec2(index.x - 1.0, index.y);
 
-    float dc = tan(uTime * rand2(index) * 4.0 - rand2(index) * 0.4);
-    float dup = sin(uTime * rand2(up) * 4.0 - rand2(up) * 0.4);
-    float ddown = sin(uTime * rand2(down) * 4.0 - rand2(down) * 0.4);
-    float dright = sin(uTime * rand2(right) * 4.0 - rand2(right) * 0.4);
-    float dleft = sin(uTime * rand2(left) * 4.0 - rand2(left) * 0.4);
+    // More fluid and faster animation
+    float speed = 8.0;
+    float dc = tan(uTime * rand2(index) * speed - rand2(index) * 0.4);
+    float dup = sin(uTime * rand2(up) * speed - rand2(up) * 0.4);
+    float ddown = sin(uTime * rand2(down) * speed - rand2(down) * 0.4);
+    float dright = sin(uTime * rand2(right) * speed - rand2(right) * 0.4);
+    float dleft = sin(uTime * rand2(left) * speed - rand2(left) * 0.4);
 
-    d = min(d, sdCapsule(q, vec3(0.0, 0.0, h + dc), vec3(cell.x, 0.0, noise2(right) + dright), 0.01));
-    d = min(d, sdCapsule(q, vec3(2.0, 0.0, h + dc), vec3(-cell.x, 0.0, noise2(left) + dleft), 0.01));
-    d = min(d, sdCapsule(q, vec3(0.0, 0.0, h + dc), vec3(0.0, cell.y, noise2(up) + dup), 0.01));
-    d = min(d, sdCapsule(q, vec3(0.0, 0.0, h + dc), vec3(0.0, -cell.y, noise2(down) + ddown), 0.01));
+    // More dynamic capsule connections
+    d = min(d, sdCapsule(q, vec3(0.0, 0.0, h + dc), vec3(cell.x, 0.0, noise2(right) + dright), 0.015));
+    d = min(d, sdCapsule(q, vec3(2.0, 0.0, h + dc), vec3(-cell.x, 0.0, noise2(left) + dleft), 0.015));
+    d = min(d, sdCapsule(q, vec3(0.0, 0.0, h + dc), vec3(0.0, cell.y, noise2(up) + dup), 0.015));
+    d = min(d, sdCapsule(q, vec3(0.0, 0.0, h + dc), vec3(0.0, -cell.y, noise2(down) + ddown), 0.015));
 
     glowAccum = min(glowAccum, d);
     return d;
@@ -141,9 +144,30 @@ vec3 getNormalCollapsed(vec3 p) {
 vec4 renderCollapsedTransit(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {
     vec2 fragCoord = (st * 0.5 + 0.5) * uResolution;
     vec3 lightDir = normalize(vec3(0.2, -0.99, 0.99));
-    vec3 pos = vec3(3.0 * cos(time), 3.0 * sin(time), 4.0);
-    vec3 target = vec3(0.5, 0.0, 0.0);
-    vec3 dir = GenRay(normalize(target - pos), vec3(0.0, 0.0, 1.0), 120.0, fragCoord);
+
+    // More dynamic and fluid camera movement with rotations
+    float camSpeed = 1.5 + tempo * 0.3 + energy * 0.5;
+    float rotSpeed = 0.8 + bass * 0.6;
+
+    vec3 pos = vec3(
+        3.0 * cos(time * camSpeed) * (1.0 + bass * 0.3),
+        3.0 * sin(time * camSpeed * 0.7) * (1.0 + mid * 0.2),
+        4.0 + sin(time * rotSpeed) * 1.5
+    );
+
+    // Rotating target for more dynamic view
+    vec3 target = vec3(
+        0.5 * cos(time * rotSpeed * 0.5),
+        0.0,
+        0.5 * sin(time * rotSpeed * 0.5)
+    );
+
+    // Add camera roll rotation
+    vec3 forward = normalize(target - pos);
+    vec3 up = vec3(0.0, 0.0, 1.0);
+    up = rotM(forward, time * rotSpeed * 0.3 + high * 0.5) * up;
+
+    vec3 dir = GenRay(forward, up, 130.0 + bass * 20.0, fragCoord);
 
     glowAccum = 99990.0;
     float t = 0.0;
@@ -163,14 +187,36 @@ vec4 renderCollapsedTransit(vec2 st, float time, float tempo, float energy, floa
     if (dist < DIST_MIN) {
         vec3 n = getNormalCollapsed(ip);
         float diff = clamp(dot(lightDir, n), 0.1, 1.0);
-        color = mix(uPrimaryColor, uSecondaryColor, clamp(uColorBlend + mid * 0.2, 0.0, 1.0)) * diff;
-        color *= 0.8 + energy * 0.4;
+
+        // More vibrant colors with audio reactivity
+        vec3 palette = mix(uPrimaryColor, uSecondaryColor, clamp(uColorBlend + mid * 0.3, 0.0, 1.0));
+        color = palette * diff;
+
+        // Enhanced audio reactivity
+        color *= (1.0 + energy * 0.6);
+        color.r *= (1.0 + bass * 0.4);
+        color.g *= (1.0 + mid * 0.3);
+        color.b *= (1.0 + high * 0.5);
+
+        // Add specular highlight for more excitement
+        vec3 viewDir = normalize(pos - ip);
+        vec3 reflectDir = reflect(-lightDir, n);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+        color += vec3(0.3, 0.4, 0.5) * spec * (1.0 + high * 0.6);
     } else {
-        color += 0.01 / (glowAccum + 0.0001);
+        // Increased glow for more exciting visuals
+        color += 0.02 / (glowAccum + 0.0001);
+        color *= (1.0 + energy * 0.5);
     }
 
-    float depthFog = clamp(1.0 - t * 0.04, 0.0, 1.0);
-    color = mix(vec3(0.05, 0.08, 0.1), color, depthFog);
+    // Less fog for better visibility of the exciting tunnel
+    float depthFog = clamp(1.0 - t * 0.02, 0.0, 1.0);
+    vec3 bgColor = vec3(0.02, 0.03, 0.05);
+    color = mix(bgColor, color, depthFog);
+
+    // Add subtle color pulsing
+    color *= 1.0 + sin(time * 3.0) * 0.1 * energy;
+
     color = clamp(color, 0.0, 1.0);
     return vec4(color, 1.0);
 }

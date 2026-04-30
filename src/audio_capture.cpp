@@ -62,7 +62,12 @@ bool AudioCapture::initialize(int deviceIndex) {
     int numDevices = Pa_GetDeviceCount();
     if (deviceIndex < 0 || deviceIndex >= numDevices) {
         std::cerr << "Invalid device index: " << deviceIndex << std::endl;
-        return false;
+        std::cerr << "Attempting to use default input device instead..." << std::endl;
+        deviceIndex = Pa_GetDefaultInputDevice();
+        if (deviceIndex == paNoDevice) {
+            std::cerr << "No default input device available" << std::endl;
+            return false;
+        }
     }
 
     const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(deviceIndex);

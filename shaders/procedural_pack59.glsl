@@ -111,17 +111,22 @@ vec4 renderCollatzSpiral(
     
     brightness = clamp(brightness, -0.5, 1.0);
     
-    // Color based on brightness (white for positive, black for negative)
-    vec3 spiralColor = vec3(brightness + 0.5);
+    // Background color (dark instead of white)
+    vec3 bgColor = vec3(0.05, 0.05, 0.08);
+    
+    // Spiral color based on brightness (cyan/magenta for positive, dark for negative)
+    vec3 spiralColor = mix(bgColor, vec3(0.2, 0.8, 1.0), smoothstep(0.0, 0.5, brightness));
+    spiralColor = mix(spiralColor, vec3(1.0, 0.2, 0.8), smoothstep(0.5, 1.0, brightness));
     
     // Audio-reactive color modulation
     spiralColor *= (0.8 + energy * 0.4);
     
-    // Add subtle glow
-    float glow = smoothstep(0.0, 0.1, abs(brightness));
-    spiralColor += vec3(0.1) * energy * glow;
+    // Add glow effect
+    float glow = smoothstep(0.0, 0.15, abs(brightness));
+    spiralColor += vec3(0.3, 0.1, 0.5) * energy * glow;
     
-    color = spiralColor;
+    // Mix with background
+    color = mix(bgColor, spiralColor, 0.5 + 0.5 * abs(brightness));
     
     return vec4(color, 1.0);
 }

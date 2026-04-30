@@ -133,7 +133,9 @@ vec3 gyroidMarch(inout vec3 rayPos, inout vec3 rayDir, inout vec3 attenuation, o
 
     float materialParam = smoothstep(0.01, 0.1, length(rayPos - gyroidSpherePos) - 0.3);
     float phase = length(rayPos) * 4.0 - gyroidTimeValue * 2.0;
-    vec3 albedo = gyroidHSV(floor(phase / kGyroidPi) * kGyroidPi * 0.4, 0.8, 1.0);
+    // Use user colors with layered effect based on phase
+    float phaseLayer = fract(phase / (kGyroidPi * 2.0));
+    vec3 albedo = mix(uPrimaryColor, uSecondaryColor, phaseLayer);
     albedo = mix(vec3(0.9), albedo, materialParam);
 
     float f0 = mix(0.01, 0.8, materialParam);

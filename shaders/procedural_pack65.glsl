@@ -96,17 +96,23 @@ vec4 renderBezierPetals(
     }
     
     brightness = clamp(brightness, 0.0, 1.0);
-    
-    // Color (white from p5.js)
-    color = vec3(brightness);
-    
-    // Audio-reactive color modulation
-    color *= (0.8 + energy * 0.4);
-    
-    // Add subtle hue shift based on audio
-    color = mix(color, vec3(brightness, brightness * 0.8, brightness * 0.6), bass * 0.3);
-    
-    alpha = brightness + 0.1;
+
+    // Bright vibrant colors using user palette
+    vec3 palette = mix(uPrimaryColor, uSecondaryColor, uColorBlend);
+
+    // Base color with increased brightness
+    color = mix(vec3(brightness), palette * 1.5, 0.6);
+
+    // Audio-reactive color modulation - much brighter
+    color *= (1.2 + energy * 0.6);
+
+    // Add vibrant hue shift based on audio
+    color = mix(color, vec3(brightness * 1.2, brightness * 0.9, brightness * 1.5) * palette, bass * 0.5);
+
+    // Add extra glow on high frequencies
+    color += vec3(brightness * 0.3, brightness * 0.2, brightness * 0.4) * high * 0.8;
+
+    alpha = brightness + 0.15;
     
     // Background
     vec3 bgColor = vec3(0.0);

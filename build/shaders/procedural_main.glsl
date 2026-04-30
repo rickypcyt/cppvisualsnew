@@ -201,6 +201,8 @@ void main() {
         color = renderWaveCircles(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 96) {
         color = renderNoiseParticles(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 97) {
+        color = renderLavaFluidFloor(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
     
     // Invalid modes will show black/pink error color

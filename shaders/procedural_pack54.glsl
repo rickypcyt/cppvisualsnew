@@ -177,24 +177,21 @@ vec4 renderCircularCellularAutomata(
     // Normalize state to 0-1
     float normalizedState = smoothState / 255.0;
     
-    // HSB color calculation
-    float hue = fract(time * 0.05 + float(patternIndex) * 0.1) * 255.0;
-    float saturation = 255.0;
-    float brightness = normalizedState * 255.0;
+    // Binary cell state for proper cellular automata visualization
+    float cellActive = step(0.5, normalizedState);
     
-    // Convert HSB to RGB
-    vec3 hsb = vec3(hue, saturation, brightness) / 255.0;
-    vec3 rgb = hsb2rgb(hsb);
+    // Color: use user colors instead of hardcoded white
+    vec3 bgColor = uPrimaryColor * 0.3;
+    vec3 cellColor = mix(uPrimaryColor, uSecondaryColor, 0.7);
     
-    // Audio-reactive color modulation
-    rgb *= (0.8 + energy * 0.4);
+    // Audio-reactive brightness
+    cellColor *= (0.8 + energy * 0.4);
     
-    // Add glow based on energy
-    float glow = normalizedState * energy * 0.5;
-    rgb += glow * uPrimaryColor;
+    // Mix based on cell state
+    vec3 rgb = mix(bgColor, cellColor, cellActive);
     
     // Alpha based on cell state
-    alpha = normalizedState * 0.9 + 0.1;
+    alpha = cellActive * 0.9 + 0.1;
     
     // Add circular grid lines (decorative)
     float gridLine = smoothstep(0.02, 0.0, fract(ringFraction * float(rows))) +

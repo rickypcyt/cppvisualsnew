@@ -41,7 +41,7 @@ vec4 renderParticleCloud(
     vec2 gridUV = fract(gridPos);
     
     // Sample multiple particles in this region
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < 16; i++) {  // Reduced from 32 to 16 for performance
         float idx = float(i) + hash21(gridIdx) * 100.0;
         
         // Compute rotating "home" position

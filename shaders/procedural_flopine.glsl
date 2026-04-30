@@ -65,7 +65,9 @@ obj prim1 (vec3 p, float bass, float mid, float high)
   mo(p.xz,vec2(0.3));
   p.x += bouncy(2.,0.)*0.8;
   float pd = box(p,vec3(1.5,0.2,0.2));
-  return obj(pd,vec3(0.5,0.,0.),vec3(1.,0.5,0.9));
+  vec3 cs = uPrimaryColor;
+  vec3 cl = uSecondaryColor;
+  return obj(pd, cs, cl);
 }
 
 obj prim2 (vec3 p, float bass, float mid, float high)
@@ -79,7 +81,9 @@ obj prim2 (vec3 p, float bass, float mid, float high)
   float p2d = max(-flopine_sc(p,0.7),box(p,vec3(1.)));
   p = pp;
   p2d = min(p2d, max(box(p,vec3(bouncy(2.,0.)*4. + mid * 2.)),flopine_sc(p,0.2)));
-  return obj(p2d, vec3(0.2),vec3(1.));
+  vec3 cs = uPrimaryColor * 0.4;
+  vec3 cl = uSecondaryColor;
+  return obj(p2d, cs, cl);
 }
 
 obj prim3 (vec3 p, float bass, float mid, float high)
@@ -91,7 +95,9 @@ obj prim3 (vec3 p, float bass, float mid, float high)
   float p3d = box(p,vec3(2.,2.,0.2));
   crep(p.xy,per,2.);
   p3d = stmin(p3d,box(p+vec3(0.,0.,height*0.9),vec3(0.15,.15,height)),0.2,3.);
-  return obj (p3d, vec3(0.1,0.7,0.),vec3(1.,0.9,0.));
+  vec3 cs = uPrimaryColor;
+  vec3 cl = uSecondaryColor;
+  return obj (p3d, cs, cl);
 }
 
 obj prim4 (vec3 p, float bass, float mid, float high)
@@ -103,7 +109,9 @@ obj prim4 (vec3 p, float bass, float mid, float high)
   float per = 2.*(bouncy(0.5,0.) + bass * 0.3);
   crep(p.xz,per,2.);
   float p4d = max(box(p,vec3(0.9)),flopine_sc(p,0.25));
-  return obj (p4d/scale, vec3(0.1,0.2,0.4),vec3(0.1,0.8,0.9));
+  vec3 cs = uPrimaryColor * 0.5;
+  vec3 cl = uSecondaryColor;
+  return obj (p4d/scale, cs, cl);
 }
 
 float squared (vec3 p,float s)
@@ -126,7 +134,9 @@ obj prim5 (vec3 p, float bass, float mid, float high)
     p.yz *= rot(PI/4.);
     scarce -= 1.;    
   }
-  return obj(p5d,vec3(0.5,0.2,0.1),vec3(1.,0.9,0.1));
+  vec3 cs = uPrimaryColor;
+  vec3 cl = uSecondaryColor;
+  return obj(p5d, cs, cl);
 }
 
 obj SDF (vec3 p, float bass, float mid, float high)

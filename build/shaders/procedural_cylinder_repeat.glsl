@@ -182,19 +182,31 @@ vec4 renderCylinderRepeat(vec2 st, float time, float tempo, float energy, float 
 
     bool hit = sample.x < 0.0;
     if (!hit) {
-        vec3 bg = mix(uPrimaryColor * 0.1, uSecondaryColor * 0.2, cylSaturateScalar(high * 0.6));
+        // Internal colors for background
+        vec3 internalBg = mix(vec3(0.02, 0.04, 0.08), vec3(0.06, 0.08, 0.15), cylSaturateScalar(high * 0.6));
+        vec3 userTint = mix(uPrimaryColor * 0.1, uSecondaryColor * 0.2, cylSaturateScalar(high * 0.6));
+        vec3 bg = mix(internalBg, internalBg * userTint * 3.0, 0.3);
         return vec4(bg, 0.3);
     }
 
     vec3 normal = cylEstimateNormal(marchPos, sample.x, time, bass, mid, high);
 
-    vec3 baseColor = mix(vec3(0.05, 0.07, 0.09), mix(uPrimaryColor, uSecondaryColor, 0.5), cylSaturateScalar(sample.y));
+    // Internal colors for base (blue/purple gradient)
+    vec3 internalColor1 = vec3(0.2, 0.4, 0.9);
+    vec3 internalColor2 = vec3(0.5, 0.2, 0.8);
+    vec3 internalBase = mix(internalColor1, internalColor2, cylSaturateScalar(sample.y));
+    vec3 baseColor = mix(vec3(0.05, 0.07, 0.09), internalBase, cylSaturateScalar(sample.y));
+
     float shade = cylSaturateScalar(dot(normal, -dir) * 0.5 + 0.5);
     vec3 color = mix(vec3(0.05, 0.07, 0.09), baseColor, shade);
 
     float iterationRatio = (float(steps) + 0.5 - jitter) / float(CYL_MAX_STEPS);
     float glow = CYL_GLOW_GAIN * pow(iterationRatio, 2.3);
-    vec3 glowColor = mix(uPrimaryColor, uSecondaryColor, cylSaturateScalar(0.5 + high * 0.4));
+
+    // Internal colors for glow
+    vec3 internalGlow = mix(vec3(0.3, 0.5, 1.0), vec3(0.6, 0.3, 1.0), cylSaturateScalar(0.5 + high * 0.4));
+    vec3 userGlowTint = mix(uPrimaryColor, uSecondaryColor, cylSaturateScalar(0.5 + high * 0.4));
+    vec3 glowColor = mix(internalGlow, internalGlow * userGlowTint * 2.0, 0.3);
     color += glow * glowColor * 0.18;
 
     float vignette = pow(1.5 - length(centered * vec2(2.35, 1.0)), 2.0);

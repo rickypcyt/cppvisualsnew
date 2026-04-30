@@ -46,9 +46,12 @@ struct EffectListForImGui {
                 if (visualizer && effect.modeIndex > 0) {
                     enabled = visualizer->isProceduralShaderEnabled(effect.modeIndex);
                 }
-                names.push_back(effect.name);
-                modeIndices.push_back(effect.modeIndex);
-                enabledStates.push_back(enabled);
+                // Only add enabled shaders to the list
+                if (enabled) {
+                    names.push_back(effect.name);
+                    modeIndices.push_back(effect.modeIndex);
+                    enabledStates.push_back(enabled);
+                }
             }
         }
         
@@ -895,6 +898,29 @@ void Visualizer::renderColorsWindow() {
     }
 
     ImGui::Spacing();
+
+    // Randomize Presets
+    bool prevAutoRandomizePresets = autoRandomizePresets_;
+    ImGui::Checkbox("Randomize presets", &autoRandomizePresets_);
+    if (prevAutoRandomizePresets != autoRandomizePresets_) {
+        saveCurrentSettings();
+    }
+    if (autoRandomizePresets_) {
+        ImGui::SameLine();
+        float presetInterval = settingsManager_->getPresetRandomInterval();
+        ImGui::TextDisabled("(every %ds)", static_cast<int>(presetInterval));
+
+        ImGui::Spacing();
+        ImGui::Text("Interval (seconds):");
+        ImGui::SetNextItemWidth(160.0f);
+        if (ImGui::SliderFloat("##preset_random_interval", &presetInterval, 1.0f, 60.0f, "%.1fs")) {
+            presetInterval = std::max(1.0f, presetInterval);
+            settingsManager_->setPresetRandomInterval(presetInterval);
+            saveCurrentSettings();
+        }
+    }
+
+    ImGui::Spacing();
     
     // Color Controls
     ImGui::Text("Colors:");
@@ -942,13 +968,15 @@ void Visualizer::renderColorsWindow() {
     }
     if (autoRandomizeRgbChannels_) {
         ImGui::SameLine();
-        ImGui::TextDisabled("(every %ds + 3 onsets)", static_cast<int>(rgbRandomInterval_));
-        
+        float rgbInterval = settingsManager_->getRgbRandomInterval();
+        ImGui::TextDisabled("(every %ds)", static_cast<int>(rgbInterval));
+
         ImGui::Spacing();
         ImGui::Text("Interval (seconds):");
         ImGui::SetNextItemWidth(160.0f);
-        if (ImGui::SliderFloat("##rgb_random_interval", &rgbRandomInterval_, 1.0f, 30.0f, "%.1fs")) {
-            rgbRandomInterval_ = std::max(1.0f, rgbRandomInterval_);
+        if (ImGui::SliderFloat("##rgb_random_interval", &rgbInterval, 1.0f, 30.0f, "%.1fs")) {
+            rgbInterval = std::max(1.0f, rgbInterval);
+            settingsManager_->setRgbRandomInterval(rgbInterval);
             saveCurrentSettings();
         }
     }
@@ -1132,21 +1160,6 @@ void Visualizer::renderProceduralWindow() {
                         }
                         ImGui::EndCombo();
                     }
-                    
-                    ImGui::Spacing();
-                    
-                    // Opacity Control
-                    ImGui::Text("Opacity:");
-                    float prevOpacity = slot.opacity;
-                    ImGui::SliderFloat("##proc_opacity", &slot.opacity, 0.0f, 1.0f, "%.2f");
-                    if (prevOpacity != slot.opacity) {
-                        saveCurrentSettings();
-                        if (slotIndex == 0) {
-                            proceduralLayerOpacity_ = slot.opacity;
-                            slot.enabled = true;
-                            showProceduralLayer_ = true;
-                        }
-                    }
                 }
             }
             ImGui::PopID();
@@ -1279,22 +1292,7 @@ void Visualizer::renderProceduralWindow() {
                         saveCurrentSettings();
                     }
                     
-                    // Opacity Control
-                    ImGui::Text("Opacity:");
-                    float prevOpacity = slot.opacity;
-                    ImGui::SliderFloat("##name_opacity", &slot.opacity, 0.0f, 1.0f, "%.2f");
-                    if (prevOpacity != slot.opacity) {
-                        saveCurrentSettings();
                     }
-                    
-                    // Color Adjust
-                    ImGui::Text("Color Adjust:");
-                    ImGui::SetNextItemWidth(200.0f);
-                    ImGui::ColorEdit3("##name_color", slot.colorAdjust.data());
-                    if (ImGui::IsItemEdited()) {
-                        saveCurrentSettings();
-                    }
-                }
             }
             ImGui::PopID();
             
@@ -2172,21 +2170,18 @@ void Visualizer::renderCameraWindow() {
     // Get current slot info
     int currentMode = 0;
     float currentOpacity = 1.0f;
-    std::array<float, 3> currentColorAdjust{1.0f, 1.0f, 1.0f};
-    
+
     if (slotType == 0) {
         // Procedural slot
         if (slotIndex < kMaxProceduralSlots) {
             currentMode = proceduralSlots_[slotIndex].mode;
             currentOpacity = proceduralSlots_[slotIndex].opacity;
-            currentColorAdjust = proceduralSlots_[slotIndex].colorAdjust;
         }
     } else {
         // Names slot
         if (slotIndex < kMaxNameSlots) {
             currentMode = nameSlots_[slotIndex].mode;
             currentOpacity = nameSlots_[slotIndex].opacity;
-            currentColorAdjust = nameSlots_[slotIndex].colorAdjust;
         }
     }
 
@@ -2266,20 +2261,6 @@ void Visualizer::renderCameraWindow() {
             }
         } else if (slotType == 1 && slotIndex < kMaxNameSlots) {
             nameSlots_[slotIndex].opacity = currentOpacity;
-        }
-        saveCurrentSettings();
-    }
-
-    ImGui::Spacing();
-
-    // Color adjust
-    ImGui::Text("Color Adjust:");
-    ImGui::SetNextItemWidth(200.0f);
-    if (ImGui::ColorEdit3("##slot_color", currentColorAdjust.data())) {
-        if (slotType == 0 && slotIndex < kMaxProceduralSlots) {
-            proceduralSlots_[slotIndex].colorAdjust = currentColorAdjust;
-        } else if (slotType == 1 && slotIndex < kMaxNameSlots) {
-            nameSlots_[slotIndex].colorAdjust = currentColorAdjust;
         }
         saveCurrentSettings();
     }
@@ -2384,24 +2365,30 @@ void Visualizer::renderCameraWindow() {
         // Get current range settings
         float zoomMin = proceduralLayer_.autoZoomMin();
         float zoomMax = proceduralLayer_.autoZoomMax();
-        
+
         // Range controls
         ImGui::Text("Zoom Range:");
         bool rangeChanged = false;
         if (ImGui::SliderFloat("Min##auto_zoom_min", &zoomMin, 0.1f, zoomMax - 0.05f, "%.2fx")) {
             rangeChanged = true;
         }
-        if (ImGui::SliderFloat("Max##auto_zoom_max", &zoomMax, zoomMin + 0.05f, 5.0f, "%.2fx")) {
+        if (ImGui::SliderFloat("Max##auto_zoom_max", &zoomMax, zoomMin + 0.05f, 10.0f, "%.2fx")) {
             rangeChanged = true;
         }
         if (rangeChanged) {
             proceduralLayer_.setAutoZoomRange(zoomMin, zoomMax);
         }
-        
-        // Calculate animated zoom within the range
-        float range = zoomMax - zoomMin;
-        float mid = (zoomMax + zoomMin) / 2.0f;
-        float animatedZoom = mid + sin(time_ * 0.5f) * (range * 0.5f) + audioFeatures_.bassEnergy * (range * 0.3f);
+
+        // Savage randomization - much larger range with audio reactivity
+        float currentZoom = settingsManager_->getProceduralZoom(targetMode);
+        float energyChaos = audioFeatures_.energy * audioFeatures_.energy; // Squared for more extreme response
+        float bassPunch = audioFeatures_.bassEnergy > 0.3f ? 1.5f : 0.5f; // Extra punch on strong bass
+
+        // Random offset: +/- 1.5 base, amplified by energy and bass
+        float randomOffset = (rng_() / static_cast<float>(rng_.max()) - 0.5f) * 3.0f; // +/- 1.5
+        randomOffset *= (1.0f + energyChaos * 2.0f) * bassPunch; // Amplify by energy and bass
+
+        float animatedZoom = currentZoom + randomOffset;
         animatedZoom = std::clamp(animatedZoom, zoomMin, zoomMax);
         proceduralLayer_.setCameraZoom(animatedZoom);
     }

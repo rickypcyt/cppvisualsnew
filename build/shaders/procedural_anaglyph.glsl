@@ -125,9 +125,7 @@ vec4 anaglyphShadeEye(vec3 eye, vec3 ray, vec2 anchor) {
 
             vec3 color = basePalette * (0.3 + diff * (0.9 + uEnergy * 0.4));
 
-            float fog = exp(-travel * 0.5);
-            vec3 ambient = mix(uPrimaryColor, uSecondaryColor, 0.5) * 0.1;
-            color = mix(ambient, color, fog);
+            // Removed fog effect for better sharpness/quality
 
             float alpha = clamp(0.5 + diff * 0.3 + assemblyFactor * 0.3, 0.0, 1.0);
             return vec4(clamp(color, 0.0, 1.0), alpha);

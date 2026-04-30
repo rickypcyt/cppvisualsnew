@@ -143,8 +143,8 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (ui.contains("proceduralLayerOpacity")) proceduralLayerOpacity_ = ui["proceduralLayerOpacity"];
             if (ui.contains("proceduralLayerMode")) {
                 int loadedMode = ui["proceduralLayerMode"];
-                // Clamp to valid range (0-96 for all modes)
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 96);
+                // Clamp to valid range (0-97 for all modes)
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 97);
                 loadedMainModeFromUi = true;
             }
             std::cout << "[SETTINGS LOAD] UI layer mode=" << proceduralLayerMode_;
@@ -277,12 +277,12 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                 } else {
                     // Fallback to index
                     int loadedMode = j["ui"]["proceduralLayerMode"];
-                    proceduralLayerMode_ = std::clamp(loadedMode, 0, 96);
+                    proceduralLayerMode_ = std::clamp(loadedMode, 0, 97);
                 }
             } else {
                 // Legacy: load by index
                 int loadedMode = j["ui"]["proceduralLayerMode"];
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 96);
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 97);
             }
         }
 
@@ -429,6 +429,8 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (animation.contains("onsetColorCycling")) onsetColorCyclingEnabled_ = animation["onsetColorCycling"];
             if (animation.contains("autoRandomizeRgb")) autoRandomizeRgbChannels_ = animation["autoRandomizeRgb"];
             if (animation.contains("rgbRandomInterval")) rgbRandomInterval_ = animation["rgbRandomInterval"];
+            if (animation.contains("autoRandomizePresets")) autoRandomizePresets_ = animation["autoRandomizePresets"];
+            if (animation.contains("presetRandomInterval")) presetRandomInterval_ = animation["presetRandomInterval"];
         }
 
         // Load RGB channel settings
@@ -663,6 +665,8 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         j["animation"]["onsetColorCycling"] = onsetColorCyclingEnabled_;
         j["animation"]["autoRandomizeRgb"] = autoRandomizeRgbChannels_;
         j["animation"]["rgbRandomInterval"] = rgbRandomInterval_;
+        j["animation"]["autoRandomizePresets"] = autoRandomizePresets_;
+        j["animation"]["presetRandomInterval"] = presetRandomInterval_;
         
         // Save RGB channel settings
         j["rgbChannels"] = rgbChannelEnabled_;

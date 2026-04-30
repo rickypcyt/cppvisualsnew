@@ -127,7 +127,7 @@ vec4 renderGlassRefractionField(vec2 st, float time, float tempo, float energy, 
         
         if (d < 1e-3) {
             vec3 n = normGlass(p, time) * side;
-            float fog = 1.0 - clamp(dd / maxd, 0.0, 1.0);
+            // Removed fog effect for better sharpness
             float diff = max(0.0, dot(normalize(ro - p), n));
             float fres = clamp(dot(-rd, n), 0.0, 1.0);
             

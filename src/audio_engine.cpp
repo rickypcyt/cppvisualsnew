@@ -58,6 +58,13 @@ bool AudioEngine::initialize(int deviceIndex) {
         success = capture_->initialize(deviceIndex);
     }
 
+    // If failed with specified device, try with default device
+    if (!success && deviceIndex >= 0) {
+        std::cerr << "[AudioEngine] Failed to initialize with device " << deviceIndex << std::endl;
+        std::cerr << "[AudioEngine] Attempting to use default input device..." << std::endl;
+        success = capture_->initialize(); // Use default device
+    }
+
     if (!success) {
         std::cerr << "[AudioEngine] Failed to initialize audio capture" << std::endl;
         return false;
@@ -67,7 +74,7 @@ bool AudioEngine::initialize(int deviceIndex) {
     currentSampleRate_.store(static_cast<float>(capture_->getSampleRate()));
     analyzer_->setSampleRate(currentSampleRate_.load());
 
-    std::cout << "[AudioEngine] Initialized with device: " << getCurrentDeviceName() 
+    std::cout << "[AudioEngine] Initialized with device: " << getCurrentDeviceName()
               << " at " << currentSampleRate_.load() << " Hz" << std::endl;
 
     return true;

@@ -62,7 +62,7 @@ vec4 renderNoiseParticles(
     float alpha = 0.0;
     
     // Parameters from original code
-    int num = 1000;
+    int num = 200;  // Reduced from 1000 for performance
     float noiseScale = 0.01 / 2.0;
     
     // Audio-reactive parameters
@@ -76,7 +76,7 @@ vec4 renderNoiseParticles(
     vec2 uv = (st - center) * 2.0;
     
     // Simulate particle system
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 200; i++) {  // Reduced from 1000 for performance
         if (i >= num) break;
         
         // Pseudo-random particle position based on index

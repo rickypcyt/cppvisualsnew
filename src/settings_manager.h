@@ -147,6 +147,15 @@ public:
 
     bool getAutoRandomizeRgbChannels() const { return autoRandomizeRgbChannels_; }
     void setAutoRandomizeRgbChannels(bool enabled) { autoRandomizeRgbChannels_ = enabled; }
+
+    float getRgbRandomInterval() const { return rgbRandomInterval_; }
+    void setRgbRandomInterval(float interval) { rgbRandomInterval_ = std::clamp(interval, 1.0f, 30.0f); }
+
+    bool getAutoRandomizePresets() const { return autoRandomizePresets_; }
+    void setAutoRandomizePresets(bool enabled) { autoRandomizePresets_ = enabled; }
+
+    float getPresetRandomInterval() const { return presetRandomInterval_; }
+    void setPresetRandomInterval(float interval) { presetRandomInterval_ = std::clamp(interval, 1.0f, 60.0f); }
     
     bool getManualBPMMode() const { return manualBPMMode_; }
     void setManualBPMMode(bool enabled) { manualBPMMode_ = enabled; }
@@ -298,6 +307,9 @@ private:
     bool onsetColorCyclingEnabled_ = true;
     bool autoRandomizeRgbChannels_ = false;
     float rgbRandomInterval_ = 5.0f;
+
+    bool autoRandomizePresets_ = false;
+    float presetRandomInterval_ = 10.0f;
 
     // RGB channel settings
     std::array<bool, 3> rgbChannelEnabled_{true, true, true};

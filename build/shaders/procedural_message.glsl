@@ -53,14 +53,14 @@ vec3 messageShade(vec3 o, vec3 r, float time, float energy, float bass, float mi
     vec3 w = o + r * t;
     float fd = messageMap(w, time, energy, bass, mid, high);
 
-    float inv = 1.0 / (1.0 + t * t * 0.1 + abs(fd) * 1200.0);
+    // Removed distance-based attenuation (fog) for better sharpness
+    float inv = 1.0;
 
     vec3 baseColor = mix(uPrimaryColor * 0.6, uSecondaryColor * 0.8, clamp(0.4 + high * 0.6, 0.0, 1.0));
     vec3 color = baseColor * inv;
 
     float bloom = 1.0 / (1.0 + t * t * 0.18);
     color = mix(color, vec3(1.0), bloom * 0.35);
-    color = mix(vec3(0.1, 0.11, 0.13), color, 1.0 / (1.0 + t * t * 0.1));
 
     float scan = sign((fract((r.y + 0.5) * 14.0) - 0.5) / 16.0) * 0.5 + 0.5;
     float vignette = smoothstep(1.2, 0.2, length(r.xy));

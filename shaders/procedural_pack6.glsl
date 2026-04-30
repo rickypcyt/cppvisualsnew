@@ -37,11 +37,14 @@ vec4 renderVolumetricTunnel(vec2 st, float time, float tempo, float energy, floa
     }
 
     float vignette = max(0.0, 1.0 - length(originalUv * originalUv) * 2.5);
-    vec3 palette = mix(uPrimaryColor, uSecondaryColor, clamp(uColorBlend, 0.0, 1.0));
-    vec3 tunnel = vec3(v, v * v, v * v * v) * 8.0 * vignette;
+
+    // Tunnel rays - blue dominant instead of red
+    vec3 tunnel = vec3(v * v * v, v * v, v) * 8.0 * vignette;  // Blue dominant (v is blue channel)
 
     float colorMix = clamp(0.4 + energy * 0.5 + uIntensity * 0.3, 0.0, 1.0);
+    vec3 palette = mix(uPrimaryColor, uSecondaryColor, clamp(uColorBlend, 0.0, 1.0));
     vec3 finalColor = mix(palette, tunnel, colorMix);
+
     float alpha = clamp(0.25 + v * 0.3 + energy * 0.2, 0.0, 1.0);
     return vec4(finalColor, alpha);
 }

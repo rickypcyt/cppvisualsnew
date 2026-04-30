@@ -111,18 +111,33 @@ vec4 renderLowresPixelation(
     vec2 center = gridUV - 0.5;
     float dist = length(center);
     float dotMask = smoothstep(dotSize * 0.5, dotSize * 0.4, dist);
-    
-    // White color from p5.js
-    vec3 dotColor = vec3(1.0);
-    
-    // Audio-reactive brightness
-    dotColor *= (0.8 + energy * 0.4);
-    
+
+    // Multi-color variation based on position and brightness
+    vec3 palette = mix(uPrimaryColor, uSecondaryColor, uColorBlend);
+
+    // Position-based color shift
+    float posColor = sin(lowResUV.x * 6.28318 + time) * 0.5 + 0.5;
+    float posColor2 = cos(lowResUV.y * 6.28318 + time * 0.7) * 0.5 + 0.5;
+
+    // Mix multiple color sources for variety
+    vec3 color1 = mix(vec3(0.2, 0.8, 1.0), vec3(1.0, 0.2, 0.8), brightness);
+    vec3 color2 = mix(vec3(1.0, 0.6, 0.2), vec3(0.2, 1.0, 0.6), posColor);
+    vec3 color3 = palette * (1.0 + posColor2);
+
+    // Combine colors with brightness modulation
+    vec3 dotColor = mix(color1, color2, 0.4);
+    dotColor = mix(dotColor, color3, brightness * 0.5);
+
+    // Audio-reactive brightness per channel
+    dotColor.r *= (0.8 + energy * 0.5) * (1.0 + bass * 0.3);
+    dotColor.g *= (0.8 + energy * 0.4) * (1.0 + mid * 0.2);
+    dotColor.b *= (0.8 + energy * 0.6) * (1.0 + high * 0.4);
+
     color = dotColor * dotMask;
     alpha = dotMask;
     
-    // Background
-    vec3 bgColor = vec3(0.0);
+    // Background (dark blue-gray)
+    vec3 bgColor = vec3(0.05, 0.05, 0.1);
     color = mix(bgColor, color, alpha);
     
     return vec4(color, alpha);

@@ -10,9 +10,18 @@ mat2 pouetRot(float a) {
 }
 
 vec3 pouetPalette(float bass, float mid, float high) {
-    vec3 base = mix(uPrimaryColor, uSecondaryColor, 0.5 + 0.5 * sin(uTime * 0.3));
+    // Internal colors (cyan/magenta/yellow for RGB grid effect)
+    vec3 internalColor1 = vec3(0.0, 0.8, 1.0);  // Cyan
+    vec3 internalColor2 = vec3(1.0, 0.3, 0.6);  // Magenta
+    vec3 internalBase = mix(internalColor1, internalColor2, 0.5 + 0.5 * sin(uTime * 0.3));
     vec3 lift = vec3(0.6 + bass * 0.4, 0.5 + mid * 0.3, 0.7 + high * 0.5);
-    return clamp(base * lift, 0.0, 1.5);
+    vec3 color = clamp(internalBase * lift, 0.0, 1.5);
+
+    // User colors as tint only (30%)
+    vec3 userTint = mix(uPrimaryColor, uSecondaryColor, 0.5 + 0.5 * sin(uTime * 0.3));
+    color = mix(color, color * userTint * 2.0, 0.3);
+
+    return color;
 }
 
 vec4 renderPouetGrid(vec2 st, float time, float tempo, float energy, float bass, float mid, float high) {

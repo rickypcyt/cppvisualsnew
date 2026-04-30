@@ -397,6 +397,11 @@ private:
     bool autoRandomizeColors_;
     float colorRandomInterval_;
     float colorRandomTimer_;
+
+    bool autoRandomizePresets_;
+    float presetRandomInterval_;
+    float presetRandomTimer_;
+
     std::array<bool, 3> rgbChannelEnabled_{};
     bool settingsDirty_ = false;
     bool settingsFlushInProgress_ = false;

@@ -148,8 +148,8 @@ vec4 renderIsometricCubes(
                 float cubeHit = drawCube(uv, cubePos, cubeSize, alphaAngle, betaAngle);
                 
                 if (cubeHit > 0.0) {
-                    // Color from original code: #7259ff (purple)
-                    vec3 cubeColor = vec3(0.45, 0.35, 1.0);
+                    // Use user colors instead of hardcoded purple
+                    vec3 cubeColor = mix(uPrimaryColor, uSecondaryColor, 0.5);
                     
                     // Audio-reactive color modulation
                     cubeColor *= (0.8 + energy * 0.4);

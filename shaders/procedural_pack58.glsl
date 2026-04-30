@@ -4,7 +4,7 @@
 
 
 
-// Draw arc segment
+// Draw arc segment with line
 float drawArc(vec2 p, float radius, float startAngle, float endAngle, float lineWidth) {
     vec2 toP = p;
     float dist = length(toP);
@@ -25,15 +25,21 @@ float drawArc(vec2 p, float radius, float startAngle, float endAngle, float line
         inAngle = angle >= start || angle <= end;
     }
     
-    // Distance from arc
+    // Distance from arc - increased line width
     float distFromArc = abs(dist - radius);
     
-    // Arc stroke
+    // Arc stroke - thicker line
     if (inAngle && distFromArc < lineWidth) {
         return 1.0 - smoothstep(0.0, lineWidth, distFromArc);
     }
     
     return 0.0;
+}
+
+// Draw point at position
+float drawPoint(vec2 p, vec2 pointPos, float radius) {
+    float dist = length(p - pointPos);
+    return smoothstep(radius, radius * 0.5, dist);
 }
 
 vec4 renderFibonacciCurl(
@@ -99,9 +105,15 @@ vec4 renderFibonacciCurl(
             currentPos += vec2(offset, 0.0);
         }
         
-        // Draw arc segment
-        float arc = drawArc(pos2D - currentPos, r, currentAngle, currentAngle + halfPi, 0.02 * scale);
-        arcBrightness += arc;
+        // Draw arc segment with line - emphasized
+        float arc = drawArc(pos2D - currentPos, r, currentAngle, currentAngle + halfPi, 0.08 * scale);  // Increased line width
+        arcBrightness += arc * 1.5;  // Increased line brightness
+
+        // Removed point rendering to emphasize lines
+        // vec2 arcStart = currentPos + vec2(cos(currentAngle), sin(currentAngle)) * r;
+        // vec2 arcEnd = currentPos + vec2(cos(currentAngle + halfPi), sin(currentAngle + halfPi)) * r;
+        // arcBrightness += drawPoint(pos2D, arcStart, 0.015 * scale);
+        // arcBrightness += drawPoint(pos2D, arcEnd, 0.015 * scale);
         
         // Rotate for next segment
         currentAngle += halfPi;

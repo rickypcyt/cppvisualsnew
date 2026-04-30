@@ -46,7 +46,7 @@ vec4 renderRecursiveSubdivision(
     
     // Parameters from p5.js
     const float bb = 3.0;
-    const int maxSquares = 200;  // Reduced from 1000 for performance
+    const int maxSquares = 100;  // Reduced from 200 for performance
     const int subdivisions = 175;
     
     // Audio-reactive parameters
@@ -80,7 +80,7 @@ vec4 renderRecursiveSubdivision(
     int closestIndex = 0;
     
     // Initialize 4 base squares (2x2 grid)
-    float baseSize = 200.0;
+    float baseSize = 300.0;
     vec2 basePositions[4] = vec2[](
         vec2(-100.0, -100.0),
         vec2(100.0, -100.0),
@@ -100,7 +100,7 @@ vec4 renderRecursiveSubdivision(
         float size = baseSize;
         
         // Simulate quadtree subdivision
-        for (int s = 0; s < 5; s++) {  // Reduced from 8 to 5 for performance
+        for (int s = 0; s < 3; s++) {  // Reduced from 5 to 3 for performance
             float seed = hash21(vec2(float(i), float(s) + subdivisionSeed));
             if (seed < 0.4 && size > 10.0) {
                 // Subdivide

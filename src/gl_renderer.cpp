@@ -532,8 +532,7 @@ std::unique_ptr<IRenderer> RendererFactory::create(Backend backend) {
         case Backend::OPENGL:
             return std::make_unique<GLRenderer>();
         case Backend::VULKAN:
-            // VKRenderer declaration (forward declaration needed)
-            // For now, return nullptr - actual implementation would create VKRenderer
+            // VKRenderer not yet fully implemented - fall back to OpenGL
             std::cerr << "[RendererFactory] Vulkan renderer not yet fully implemented" << std::endl;
             std::cerr << "[RendererFactory] Falling back to OpenGL" << std::endl;
             return std::make_unique<GLRenderer>();

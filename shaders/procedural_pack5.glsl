@@ -107,7 +107,9 @@ vec3 runway_shade(vec3 p, vec3 dir, float surfaceHeight, float travel) {
     vec3 reflection = reflect(runway_lightDir, dir);
     float specular = pow(max(0.0, dot(reflection, -normal)), 8.0);
     vec3 base = runway_colorAccum * 0.25;
-    vec3 lighting = (diffuse * 0.5 + 0.2 + specular * vec3(1.0, 0.8, 0.5)) * 0.2;
+    // Use darker palette colors instead of white for specular
+    vec3 specColor = mix(uPrimaryColor * 0.6, uSecondaryColor * 0.6, uColorBlend);
+    vec3 lighting = (diffuse * 0.5 + 0.2 + specular * specColor) * 0.2;
     return base + lighting;
 }
 
@@ -142,7 +144,9 @@ vec3 runway_march(vec3 from, vec3 dir, float baseStep, float maxDist) {
     float fade = pow(clamp(travel / maxDist, 0.0, 1.0), 3.0);
     vec3 scanline = 2.0 * vec3(mod(runway_fragCoord.y, 4.0) * 0.1);
     color = mix(color, scanline, fade);
-    return color * vec3(0.9, 0.8, 1.0);
+    // Use darker palette colors instead of white-ish multiplier
+    vec3 finalMult = mix(uPrimaryColor * 0.7, uSecondaryColor * 0.7, uColorBlend);
+    return color * finalMult;
 }
 
 mat3 runway_lookat(vec3 dir, vec3 up) {

@@ -36,9 +36,9 @@ vec4 render3DWaveBoxes(
     float alpha = 0.0;
     
     // Parameters from p5.js
-    const int layerNum = 25;
+    const int layerNum = 12;  // Reduced from 25 for performance
     const float distance = 10.0;
-    const int boxNum = 40;
+    const int boxNum = 20;  // Reduced from 40 for performance
     const float amplitude = 50.0;
     const float waveSpeed = 1.0;
     

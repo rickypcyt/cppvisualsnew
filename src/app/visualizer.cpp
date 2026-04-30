@@ -937,6 +937,7 @@ Visualizer::Visualizer()
       showDeviceSelector_(false), showDiagnosticInfo_(false), showConsoleMode_(false),
       showImGuiVisualWindow_(true), imguiInitialized_(false), autoRandomizeColors_(true),
       colorRandomInterval_(12.0f), colorRandomTimer_(0.0f), deltaTime_(0.0f),
+      autoRandomizePresets_(false), presetRandomInterval_(10.0f), presetRandomTimer_(0.0f),
       rng_(std::random_device{}()), onsetColorCyclingEnabled_(true), onsetTriggerCount_(0),
       lastOnsetActive_(false), tempoMultiplier_(1.0f), scenePalettes_(),
       currentScenePaletteIndex_(-1), scenePaletteHueSeed_(0.0f),
@@ -1071,6 +1072,9 @@ bool Visualizer::initialize(int width, int height) {
     colorRandomInterval_ = settingsManager_->getColorRandomInterval();
     onsetColorCyclingEnabled_ = settingsManager_->getOnsetColorCyclingEnabled();
     autoRandomizeRgbChannels_ = settingsManager_->getAutoRandomizeRgbChannels();
+    rgbRandomInterval_ = settingsManager_->getRgbRandomInterval();
+    autoRandomizePresets_ = settingsManager_->getAutoRandomizePresets();
+    presetRandomInterval_ = settingsManager_->getPresetRandomInterval();
     manualBPMMode_ = settingsManager_->getManualBPMMode();
     manualBPM_ = settingsManager_->getManualBPM();
     
@@ -1217,6 +1221,29 @@ void Visualizer::buildScenePalettes() {
 
     scenePalettes_.push_back({"Sesión Verde", {0.10f, 0.32f, 0.18f}, {0.30f, 0.82f, 0.52f}, 0.56f});
 
+    // Dark presets
+    scenePalettes_.push_back({"Nocturno Azul", {0.02f, 0.04f, 0.12f}, {0.08f, 0.15f, 0.45f}, 0.55f});
+
+    scenePalettes_.push_back({"Abismo Negro", {0.01f, 0.01f, 0.03f}, {0.03f, 0.05f, 0.10f}, 0.40f});
+
+    scenePalettes_.push_back({"Cian Oscuro", {0.0f, 0.12f, 0.18f}, {0.0f, 0.35f, 0.55f}, 0.50f});
+
+    scenePalettes_.push_back({"Púrpura Noche", {0.08f, 0.02f, 0.15f}, {0.25f, 0.08f, 0.45f}, 0.45f});
+
+    scenePalettes_.push_back({"Negro Neon", {0.0f, 0.0f, 0.0f}, {0.1f, 0.0f, 0.3f}, 0.35f});
+
+    scenePalettes_.push_back({"Azul Profundo", {0.0f, 0.05f, 0.20f}, {0.0f, 0.15f, 0.50f}, 0.60f});
+
+    scenePalettes_.push_back({"Sombra Verde", {0.02f, 0.08f, 0.04f}, {0.05f, 0.25f, 0.12f}, 0.50f});
+
+    scenePalettes_.push_back({"Rojo Sangre", {0.15f, 0.01f, 0.02f}, {0.45f, 0.05f, 0.08f}, 0.45f});
+
+    scenePalettes_.push_back({"Ocre Oscuro", {0.12f, 0.06f, 0.02f}, {0.35f, 0.18f, 0.05f}, 0.50f});
+
+    scenePalettes_.push_back({"Plata Oscura", {0.05f, 0.05f, 0.06f}, {0.15f, 0.15f, 0.18f}, 0.45f});
+
+    scenePalettes_.push_back({"Azul Eléctrico", {0.0f, 0.0f, 0.1f}, {0.0f, 0.3f, 0.8f}, 0.40f});
+
     if (scenePalettes_.empty()) {
         currentScenePaletteIndex_ = -1;
         setDefaultScenePalette();
@@ -1313,13 +1340,16 @@ void Visualizer::updateDynamicScenePalette() {
         return;
     }
 
-    float hueDrift = deltaTime_ * std::clamp(0.08f + audioFeatures_.energy * 0.12f, 0.05f, 0.4f);
-    if (hueDrift <= 0.0f) {
-        return;
-    }
+    // Only update when color random timer reaches the interval
+    colorRandomTimer_ += deltaTime_;
+    if (colorRandomTimer_ >= colorRandomInterval_) {
+        colorRandomTimer_ = 0.0f;
 
-    scenePaletteHueSeed_ = std::fmod(scenePaletteHueSeed_ + hueDrift, 1.0f);
-    setDefaultScenePalette();
+        // Update hue seed based on audio features for variety
+        float hueChange = 0.1f + audioFeatures_.energy * 0.1f + audioFeatures_.bassEnergy * 0.05f;
+        scenePaletteHueSeed_ = std::fmod(scenePaletteHueSeed_ + hueChange, 1.0f);
+        setDefaultScenePalette();
+    }
 }
 
 void Visualizer::randomizeRgbChannels() {
@@ -1679,14 +1709,27 @@ void Visualizer::endFrame() {
         fpsUpdateTimer_ = 0.0f;
     }
 
-    if (colorAnimationEnabled_ && autoRandomizeColors_) {
+    // Random auto works independently of Animate colors
+    if (autoRandomizeColors_) {
         if (colorRandomInterval_ < 0.5f) {
             colorRandomInterval_ = 0.5f;
         }
         colorRandomTimer_ += deltaTime;
         if (colorRandomTimer_ >= colorRandomInterval_) {
             randomizeScenePalette();
-            colorRandomTimer_ = 0.0f;
+            colorRandomTimer_ = 0.0;
+        }
+    }
+
+    // Randomize presets at interval
+    if (autoRandomizePresets_) {
+        if (presetRandomInterval_ < 1.0f) {
+            presetRandomInterval_ = 1.0f;
+        }
+        presetRandomTimer_ += deltaTime;
+        if (presetRandomTimer_ >= presetRandomInterval_) {
+            cycleScenePaletteSequential();
+            presetRandomTimer_ = 0.0;
         }
     }
 
@@ -1705,22 +1748,8 @@ void Visualizer::endFrame() {
         lastOnsetActive_ = audioFeatures_.onset > 0.5f;
     }
     
-    // RGB channel randomization based on music (onsets)
+    // RGB channel randomization by time interval only
     if (colorAnimationEnabled_ && autoRandomizeRgbChannels_) {
-        bool onsetActive = audioFeatures_.onset > 0.5f;
-        if (onsetActive && !lastOnsetActive_) {
-            ++lastOnsetCount_;
-            // Randomize RGB channels every 3 onsets
-            if (lastOnsetCount_ >= 3) {
-                lastOnsetCount_ = 0;
-                randomizeRgbChannels();
-            }
-        } else if (!onsetActive) {
-            // Reset counter when there's no onset
-            lastOnsetCount_ = 0;
-        }
-        
-        // Also randomize by time interval
         rgbRandomTimer_ += deltaTime;
         if (rgbRandomTimer_ >= rgbRandomInterval_) {
             rgbRandomTimer_ = 0.0f;
@@ -2215,6 +2244,9 @@ void Visualizer::updateSettingsFromCurrentState() {
     settingsManager_->setColorRandomInterval(colorRandomInterval_);
     settingsManager_->setOnsetColorCyclingEnabled(onsetColorCyclingEnabled_);
     settingsManager_->setAutoRandomizeRgbChannels(autoRandomizeRgbChannels_);
+    settingsManager_->setRgbRandomInterval(rgbRandomInterval_);
+    settingsManager_->setAutoRandomizePresets(autoRandomizePresets_);
+    settingsManager_->setPresetRandomInterval(presetRandomInterval_);
     settingsManager_->setManualBPMMode(manualBPMMode_);
     settingsManager_->setManualBPM(manualBPM_);
     
@@ -3484,64 +3516,15 @@ void Visualizer::initializeRandomPostProcess() {
 }
 
 void Visualizer::selectRandomPostProcess() {
-    // If random favorites only mode is enabled, select from favorites
-    if (randomFavoritesOnly_) {
-        if (favorites_.empty()) {
-            std::cout << "[RANDOM POST] ERROR: No favorites available!" << std::endl;
-            return;
-        }
-
-        std::uniform_int_distribution<int> dist(0, favorites_.size() - 1);
-        size_t favIndex = dist(rng_);
-
-        // Avoid selecting the same favorite twice in a row
-        int attempts = 0;
-        while (favorites_.size() > 1 && attempts < 20) {
-            if (favorites_[favIndex].proceduralMode != proceduralLayerMode_) {
-                break;
-            }
-            favIndex = dist(rng_);
-            attempts++;
-        }
-
-        const auto& fav = favorites_[favIndex];
-        postProcessSlots_ = fav.postProcessSlots;
-        saveCurrentSettings();
-        std::cout << "[RANDOM POST] Selected favorite: " << fav.name << std::endl;
-        return;
-    }
-
-    // Normal random selection from all available modes
-    if (availablePostProcessModes_.empty()) return;
-
-    std::uniform_int_distribution<int> dist(0, availablePostProcessModes_.size() - 1);
-
-    // Randomize the specified number of slots
-    int slotsToRandomize = std::clamp(randomPostProcessSlotCount_, 1, kMaxPostProcessSlots);
-
-    for (int slotIndex = 0; slotIndex < slotsToRandomize && slotIndex < kMaxPostProcessSlots; ++slotIndex) {
-        int newIndex = availablePostProcessModes_[dist(rng_)];
-
-        // Avoid selecting the same mode twice in a row for the same slot
-        // (compare with current mode in that slot, or global if slot 0)
-        int currentMode = (slotIndex == 0) ? currentRandomPostProcess_ :
-                         ((slotIndex < kMaxPostProcessSlots) ? postProcessSlots_[slotIndex].mode : 0);
-
-        int attempts = 0;
-        while (availablePostProcessModes_.size() > 1 && newIndex == currentMode && attempts < 10) {
-            newIndex = availablePostProcessModes_[dist(rng_)];
-            ++attempts;
-        }
-
-        // Update the slot
-        postProcessSlots_[slotIndex].mode = newIndex;
-        postProcessSlots_[slotIndex].enabled = true; // Ensure slot is enabled
-
-        // Update the tracking variable for slot 0
-        if (slotIndex == 0) {
-            currentRandomPostProcess_ = newIndex;
+    // Set all active slots to None (mode 0) instead of selecting random effects
+    for (int slotIndex = 0; slotIndex < kMaxPostProcessSlots; ++slotIndex) {
+        if (postProcessSlots_[slotIndex].enabled) {
+            postProcessSlots_[slotIndex].mode = 0; // None
         }
     }
+    currentRandomPostProcess_ = 0;
+    saveCurrentSettings();
+    std::cout << "[RANDOM POST] Set all active slots to None" << std::endl;
 }
 
 void Visualizer::updateRandomPostProcess(float deltaTime) {
@@ -3597,79 +3580,12 @@ void Visualizer::initializeRandomProcedural() {
 }
 
 void Visualizer::selectRandomProcedural() {
-    // If random favorites only mode is enabled, select from favorites
-    if (randomFavoritesOnly_) {
-        if (favorites_.empty()) {
-            std::cout << "[RANDOM SELECT] ERROR: No favorites available!" << std::endl;
-            return;
-        }
-
-        std::uniform_int_distribution<int> dist(0, favorites_.size() - 1);
-        size_t favIndex = dist(rng_);
-
-        // Avoid selecting the same favorite twice in a row
-        int attempts = 0;
-        while (favorites_.size() > 1 && attempts < 20) {
-            if (favorites_[favIndex].proceduralMode != currentRandomProcedural_) {
-                break;
-            }
-            favIndex = dist(rng_);
-            attempts++;
-        }
-
-        const auto& fav = favorites_[favIndex];
-        currentRandomProcedural_ = fav.proceduralMode;
-        proceduralLayerMode_ = fav.proceduralMode;
-        proceduralLayerOpacity_ = fav.proceduralOpacity;
-        proceduralSlots_[0].colorAdjust = fav.proceduralColorAdjust;
-        postProcessSlots_ = fav.postProcessSlots;
-
-        // Sync procedural slot 0 with main mode
-        proceduralSlots_[0].mode = proceduralLayerMode_;
-        proceduralSlots_[0].opacity = proceduralLayerOpacity_;
-
-        saveCurrentSettings();
-        std::cout << "[RANDOM SELECT] Selected favorite: " << fav.name << " (mode " << currentRandomProcedural_ << ")" << std::endl;
-        return;
-    }
-
-    // Normal random selection from all available modes
-    std::cout << "[RANDOM SELECT] Called. Available modes: " << availableProceduralModes_.size() << std::endl;
-    if (availableProceduralModes_.empty()) {
-        std::cout << "[RANDOM SELECT] ERROR: No available modes!" << std::endl;
-        return;
-    }
-
-    // Get slot 2 mode to exclude from randomization
-    int slot2Mode = 0;
-    if (kMaxProceduralSlots > 1 && proceduralSlots_[1].enabled) {
-        slot2Mode = proceduralSlots_[1].mode;
-        std::cout << "[RANDOM SELECT] Slot 2 has mode " << slot2Mode << ", excluding from random pool" << std::endl;
-    }
-
-    std::uniform_int_distribution<int> dist(0, availableProceduralModes_.size() - 1);
-    int newIndex = availableProceduralModes_[dist(rng_)];
-
-    // Avoid selecting the same mode twice in a row, and avoid slot 2's mode
-    int attempts = 0;
-    while (availableProceduralModes_.size() > 1 && attempts < 20) {
-        bool isSameAsCurrent = (newIndex == currentRandomProcedural_);
-        bool isSlot2Mode = (slot2Mode > 0 && newIndex == slot2Mode);
-
-        if (!isSameAsCurrent && !isSlot2Mode) {
-            break; // Found a valid mode
-        }
-
-        newIndex = availableProceduralModes_[dist(rng_)];
-        attempts++;
-    }
-
-    currentRandomProcedural_ = newIndex;
-    std::cout << "[RANDOM SELECT] Selected mode: " << currentRandomProcedural_ << std::endl;
-
-    // Update Slot 1 (main procedural slot) instead of global mode
+    // Set main procedural slot to None (mode 0) instead of selecting random effect
     if (kMaxProceduralSlots > 0) {
-        applyMainProceduralMode(currentRandomProcedural_, "random-procedural");
+        applyMainProceduralMode(0, "random-procedural");
+        currentRandomProcedural_ = 0;
+        saveCurrentSettings();
+        std::cout << "[RANDOM SELECT] Set procedural slot to None" << std::endl;
     } else {
         std::cout << "[RANDOM SELECT] ERROR: No procedural slots available!" << std::endl;
     }

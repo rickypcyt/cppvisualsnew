@@ -32,7 +32,7 @@ void main() {
 }
 )";
 
-const std::array<const char*, 76> kProceduralShaderFiles = {
+const std::array<const char*, 77> kProceduralShaderFiles = {
     "procedural_header.glsl",
     "procedural_helpers.glsl",
     "procedural_shadertoy_bridge.glsl",
@@ -108,6 +108,7 @@ const std::array<const char*, 76> kProceduralShaderFiles = {
     "procedural_pack68.glsl",
     "procedural_pack69.glsl",
     "procedural_pack70.glsl",
+    "procedural_pack71.glsl",
     "procedural_main.glsl"
 };
 
@@ -121,7 +122,7 @@ void InitializeEffectRegistry() {
     GetEffectRegistry().scanShaderFiles(kShaderSearchRoots, files);
 }
 
-const std::array<const char*, 70> kProceduralPackFiles = {
+const std::array<const char*, 71> kProceduralPackFiles = {
     "procedural_pack1.glsl",
     "procedural_pack2.glsl",
     "procedural_pack3.glsl",
@@ -185,7 +186,8 @@ const std::array<const char*, 70> kProceduralPackFiles = {
     "procedural_pack67.glsl",
     "procedural_pack68.glsl",
     "procedural_pack69.glsl",
-    "procedural_pack70.glsl"
+    "procedural_pack70.glsl",
+    "procedural_pack71.glsl"
 };
 
 const char* kProceduralDebugMain = R"(

@@ -37,11 +37,9 @@ vec4 renderMatrixDigitalRain(vec2 st, float time, float tempo, float energy, flo
     pct *= randomCharMatrix(ipos, fpos);
     
     color = vec3(pct);
-    
-    // Apply matrix green tint mixed with user palette
-    vec3 matrixGreen = vec3(0.0, 1.0, 0.0);
-    vec3 baseColor = mix(uPrimaryColor, matrixGreen, 0.8);
-    
+
+    // Use user colors instead of hardcoded green
+    vec3 baseColor = mix(uPrimaryColor, uSecondaryColor, 0.5);
     color *= baseColor;
     
     return vec4(color, 1.0);

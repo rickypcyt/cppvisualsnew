@@ -30,18 +30,18 @@ vec4 renderIkedaGrid(vec2 st, float time, float tempo, float energy, float bass,
 
     vec3 color = vec3(0.0);
 
-    // Grid - intensity controlled by energy
+    // Grid - RGB lines with black background
     vec2 grid_st = st * 300.0;
-    color += vec3(0.5, 0.0, 0.0) * gridIkeda(grid_st, 0.01);
-    color += vec3(0.2, 0.0, 0.0) * gridIkeda(grid_st, 0.02);
-    color += vec3(0.2) * gridIkeda(grid_st, 0.1) * (0.5 + energy * 0.5);
+    color += vec3(1.0, 0.0, 0.0) * gridIkeda(grid_st, 0.01); // Red
+    color += vec3(0.0, 1.0, 0.0) * gridIkeda(grid_st, 0.02); // Green
+    color += vec3(0.0, 0.0, 1.0) * gridIkeda(grid_st, 0.1) * (0.5 + energy * 0.5); // Blue
 
-    // Crosses - react to bass
+    // Crosses - react to bass with RGB colors
     vec2 crosses_st = st + 0.5;
     crosses_st *= 3.0 * (1.0 + bass);
     vec2 crosses_st_f = fract(crosses_st);
     color *= 1.0 - crossIkeda(crosses_st_f, vec2(0.3, 0.3));
-    color += vec3(0.9) * crossIkeda(crosses_st_f, vec2(0.2, 0.2));
+    color += vec3(1.0, 1.0, 1.0) * crossIkeda(crosses_st_f, vec2(0.2, 0.2));
 
     // Digits - animation speed controlled by tempo
     vec2 blocks_st = floor(st * 6.0);
@@ -50,12 +50,21 @@ vec4 renderIkedaGrid(vec2 st, float time, float tempo, float energy, float bass,
     float time_f = fract(t);
     color.rgb += step(0.9, randomIkedaGrid(blocks_st + time_i)) * (1.0 - time_f);
 
-    // Mix with user palette
-    vec3 gridColor = mix(uPrimaryColor, vec3(0.8, 0.0, 0.0), 0.5);
-    vec3 accentColor = mix(uSecondaryColor, vec3(0.9, 0.9, 0.0), 0.3);
-    
-    color *= gridColor;
-    color += accentColor * high * 0.3;
+    // Calculate brightness for black background mixing
+    float brightness = dot(color, vec3(0.299, 0.587, 0.114));
+
+    // Black background - only show colors where brightness is significant
+    vec3 bgColor = vec3(0.0);
+    float mixFactor = smoothstep(0.1, 0.4, brightness);
+    color = mix(bgColor, color, mixFactor);
+
+    // Ensure black predominates by darkening
+    color *= 0.8;
+
+    // Audio reactivity per channel
+    color.r *= (1.0 + bass * 0.3);
+    color.g *= (1.0 + mid * 0.3);
+    color.b *= (1.0 + high * 0.3);
 
     return vec4(color, 1.0);
 }

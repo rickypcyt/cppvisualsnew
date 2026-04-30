@@ -65,11 +65,11 @@ vec4 renderIkedaDigits(vec2 st, float time, float tempo, float energy, float bas
     
     // Highlight effect
     color = mix(color, vec3(color.r, 0.0, 0.0), step(0.99, pct));
-    
-    // Mix with user palette
-    vec3 digitColor = mix(uPrimaryColor, vec3(0.0, 1.0, 0.0), 0.6);
-    vec3 bgColor = mix(uSecondaryColor, vec3(0.0, 0.0, 0.0), 0.8);
-    
+
+    // Use user colors instead of hardcoded green/black
+    vec3 digitColor = mix(uPrimaryColor, uSecondaryColor, 0.5);
+    vec3 bgColor = uSecondaryColor * 0.3;
+
     color *= digitColor;
     color += bgColor * (1.0 - length(color));
     
