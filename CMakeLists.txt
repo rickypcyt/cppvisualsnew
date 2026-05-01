@@ -179,10 +179,20 @@ endif()
 # FIND DEPENDENCIES
 # ============================================================================
 find_package(glfw3 REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
-pkg_check_modules(ALSA REQUIRED alsa)
 find_package(Threads REQUIRED)
+
+if(WIN32)
+    # Windows: Use vcpkg or manual installation for PortAudio
+    find_package(PortAudio REQUIRED)
+    if(NOT PortAudio_FOUND)
+        message(FATAL_ERROR "PortAudio not found. Install via vcpkg: vcpkg install portaudio")
+    endif()
+else()
+    # Linux/Unix: Use pkg-config
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
+    pkg_check_modules(ALSA REQUIRED alsa)
+endif()
 
 # Vulkan (optional for future migration)
 find_package(Vulkan QUIET)
@@ -223,11 +233,18 @@ endif()
 # ============================================================================
 
 # Core engine dependencies
-target_link_libraries(core_engine PUBLIC
-    ${PORTAUDIO_LIBRARIES}
-    ${ALSA_LIBRARIES}
-    Threads::Threads
-)
+if(WIN32)
+    target_link_libraries(core_engine PUBLIC
+        PortAudio::PortAudio
+        Threads::Threads
+    )
+else()
+    target_link_libraries(core_engine PUBLIC
+        ${PORTAUDIO_LIBRARIES}
+        ${ALSA_LIBRARIES}
+        Threads::Threads
+    )
+endif()
 
 # ImGui dependencies
 target_link_libraries(imgui PUBLIC
@@ -235,13 +252,21 @@ target_link_libraries(imgui PUBLIC
 )
 
 # OpenGL backend dependencies (pure OpenGL only)
-target_link_libraries(gl_backend PUBLIC
-    ${CMAKE_DL_LIBS}
-    glfw
-    ${GLEW_LIBRARIES}
-    ${OPENGL_LIBRARIES}
-    -lGL
-)
+if(WIN32)
+    target_link_libraries(gl_backend PUBLIC
+        glfw
+        ${GLEW_LIBRARIES}
+        ${OPENGL_LIBRARIES}
+    )
+else()
+    target_link_libraries(gl_backend PUBLIC
+        ${CMAKE_DL_LIBS}
+        glfw
+        ${GLEW_LIBRARIES}
+        ${OPENGL_LIBRARIES}
+        -lGL
+    )
+endif()
 
 # ============================================================================
 # EXECUTABLES
@@ -271,30 +296,47 @@ add_executable(validate_layers
     src/validate_layers.cpp
 )
 
-target_link_libraries(validate_layers PRIVATE
-    shader_system
-    m
-    pthread
-)
+if(WIN32)
+    target_link_libraries(validate_layers PRIVATE
+        shader_system
+    )
+else()
+    target_link_libraries(validate_layers PRIVATE
+        shader_system
+        m
+        pthread
+    )
+endif()
 
 # Layer integration tests (backend-agnostic)
 add_executable(test_layer_integration
     src/test_layer_integration.cpp
 )
 
-target_link_libraries(test_layer_integration PRIVATE
-    core_engine
-    shader_system
-    post_processing
-    modular_layer
-    m
-    pthread
-)
+if(WIN32)
+    target_link_libraries(test_layer_integration PRIVATE
+        core_engine
+        shader_system
+        post_processing
+        modular_layer
+    )
+else()
+    target_link_libraries(test_layer_integration PRIVATE
+        core_engine
+        shader_system
+        post_processing
+        modular_layer
+        m
+        pthread
+    )
+endif()
 
 # ============================================================================
 # COMPILER FLAGS
 # ============================================================================
-target_compile_options(audio_visualizer PRIVATE ${PORTAUDIO_CFLAGS_OTHER})
+if(NOT WIN32)
+    target_compile_options(audio_visualizer PRIVATE ${PORTAUDIO_CFLAGS_OTHER})
+endif()
 
 # ============================================================================
 # INCREMENTAL SHADER COPY SYSTEM

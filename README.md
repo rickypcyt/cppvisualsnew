@@ -33,9 +33,58 @@ El sistema se divide en cinco subsistemas principales:
 - **ImGui** - Interfaz de usuario inmediata (submódulo)
 - **nlohmann/json** - Serialización de configuración
 - **CMake** - Sistema de construcción (>=3.10)
-- ** ALSA** - Backend de audio Linux
+- **ALSA** - Backend de audio Linux (no requerido en Windows)
 
 ## Compilación
+
+### Windows
+
+#### Prerrequisitos
+1. **Visual Studio 2022** (con C++ support)
+2. **CMake** (>= 3.10) - Descargar desde https://cmake.org/download/
+3. **Git** - Para clonar el repositorio
+4. **vcpkg** - Gestor de paquetes de Microsoft para C++
+
+#### Instalación de vcpkg
+```powershell
+# Clonar vcpkg
+git clone https://github.com/Microsoft/vcpkg
+cd vcpkg
+
+# Ejecutar bootstrap
+.\bootstrap-vcpkg.bat
+
+# Integrar con Visual Studio
+.\vcpkg integrate install
+```
+
+#### Compilación
+Opción 1: Usar el script automático
+```cmd
+build_windows.bat
+```
+
+Opción 2: Compilación manual
+```powershell
+# Instalar dependencias
+vcpkg\vcpkg install glfw3 glew portaudio nlohmann-json --triplet x64-windows
+
+# Crear directorio de build
+mkdir build
+cd build
+
+# Configurar CMake con toolchain de vcpkg
+cmake .. -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake -A x64
+
+# Compilar
+cmake --build . --config Release
+```
+
+#### Ejecución
+```cmd
+cd build\Release
+audio_visualizer.exe
+```
 
 ### Ubuntu/Debian
 ```bash
