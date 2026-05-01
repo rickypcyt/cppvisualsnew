@@ -213,6 +213,9 @@ void Visualizer::shutdownImGui() {
 }
 
 void Visualizer::handleKeyboardInput() {
+    if (!imguiInitialized_) {
+        return;
+    }
     // Don't process hotkeys if a text input widget has focus
     if (ImGui::GetIO().WantTextInput) {
         return;
@@ -388,6 +391,12 @@ void Visualizer::renderImGui() {
         return;
     }
 
+    if (!localImGuiEnabled_) {
+        // When IPC meter window is active we skip the built-in ImGui canvas
+        // to avoid double rendering and keep the new UI as the single source.
+        return;
+    }
+
     // If using separate ImGui window with shared context, switch to it before rendering
     bool useSeparateWindow = (imguiWindow_ != nullptr);
     if (useSeparateWindow) {
@@ -485,6 +494,7 @@ void Visualizer::renderImGui() {
 
     // Render ImGui to the appropriate window
     {
+        maybeSendStateToIPC();
         PROFILE_SCOPE("imgui_render");
         ImGui::Render();
 

@@ -9,6 +9,7 @@
 #include <string>
 #include <array>
 #include <unordered_map>
+#include <chrono>
 #include "../audio_analyzer.h"
 #include "../shader.h"
 #include "../modular_layer.h"
@@ -16,6 +17,10 @@
 #include "../settings_manager.h"
 #include "../midi_controller.h"
 #include "../gpu_profiler.h"
+#include "../ipc/state_buffer.h"
+#include "../ipc/ipc_reader.h"
+#include "../ipc/ipc_client.h"
+#include "../ipc/visual_state.h"
 
 // Forward declarations for ImGui
 struct ImGuiIO;
@@ -137,6 +142,12 @@ public:
 
 private:
     void applyMainProceduralMode(int mode, const char* source = "unspecified", bool ensureVisible = true, bool updateZoom = true);
+
+    bool initializeIPC();
+    void shutdownIPC();
+    void applyVisualState(const VisualState& state);
+    VisualState collectCurrentState() const;
+    void maybeSendStateToIPC();
 
     // Helper to find next enabled shader mode (skips disabled shaders)
     int findNextEnabledMode(int currentMode, bool forward) const;
@@ -311,6 +322,12 @@ private:
     // MIDI controller
     std::unique_ptr<MidiController> midiController_;
     bool midiEnabled_ = false;
+    StateBuffer stateBuffer_;
+    std::unique_ptr<IPCReader> ipcReader_;
+    std::unique_ptr<IPCClient> ipcClient_;
+    VisualState lastAppliedState_;
+    std::chrono::steady_clock::time_point lastStateSendTime_;
+    std::chrono::milliseconds stateSendInterval_{33};
     std::array<PostProcessSlot, kMaxPostProcessSlots> postProcessSlots_;
     std::array<NameSlot, kMaxNameSlots> nameSlots_;
     std::array<ProceduralSlot, kMaxProceduralSlots> proceduralSlots_;
@@ -397,6 +414,7 @@ private:
 
     // ImGui state
     bool showImGuiWindow_;
+    bool localImGuiEnabled_ = false;
     bool showImGuiVisualWindow_;
     bool showImGuiColorsWindow_;
     bool showImGuiProceduralWindow_;

@@ -26,17 +26,9 @@ else
     exit 1
 fi
 
-echo "Starting Audio Visualizer with Prime Run..."
+echo "Starting Audio Visualizer..."
 
-# Check if prime-run is available
-if command -v prime-run &> /dev/null; then
-    echo "Using prime-run for NVIDIA GPU acceleration"
-    cd build
-    prime-run ./audio_visualizer "$@"
-    cd ..
-else
-    echo "prime-run not found, running normally"
-    cd build
-    ./audio_visualizer "$@"
-    cd ..
-fi
+# Try X11 backend first to avoid Wayland compositor vsync issues
+cd build
+SDL_VIDEODRIVER=x11 ./audio_visualizer "$@"
+cd ..

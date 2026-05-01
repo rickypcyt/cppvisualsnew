@@ -445,6 +445,24 @@ build CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: CXX_COMPILER
   OBJECT_FILE_DIR = CMakeFiles/app_layer.dir/src/app
   TARGET_SUPPORT_DIR = CMakeFiles/app_layer.dir
 
+build CMakeFiles/app_layer.dir/src/ipc/ipc_reader.cpp.o: CXX_COMPILER__app_layer_unscanned_Debug /home/ricky/coding/proyects/visuals/src/ipc/ipc_reader.cpp || cmake_object_order_depends_target_app_layer
+  CONFIG = Debug
+  DEP_FILE = CMakeFiles/app_layer.dir/src/ipc/ipc_reader.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -isystem /usr/include/SDL2
+  OBJECT_DIR = CMakeFiles/app_layer.dir
+  OBJECT_FILE_DIR = CMakeFiles/app_layer.dir/src/ipc
+  TARGET_SUPPORT_DIR = CMakeFiles/app_layer.dir
+
+build CMakeFiles/app_layer.dir/src/ipc/ipc_client.cpp.o: CXX_COMPILER__app_layer_unscanned_Debug /home/ricky/coding/proyects/visuals/src/ipc/ipc_client.cpp || cmake_object_order_depends_target_app_layer
+  CONFIG = Debug
+  DEP_FILE = CMakeFiles/app_layer.dir/src/ipc/ipc_client.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -isystem /usr/include/SDL2
+  OBJECT_DIR = CMakeFiles/app_layer.dir
+  OBJECT_FILE_DIR = CMakeFiles/app_layer.dir/src/ipc
+  TARGET_SUPPORT_DIR = CMakeFiles/app_layer.dir
+
 
 # =============================================================================
 # Link build statements for STATIC_LIBRARY target app_layer
@@ -453,7 +471,7 @@ build CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: CXX_COMPILER
 #############################################
 # Link the static library libapp_layer.a
 
-build libapp_layer.a: CXX_STATIC_LIBRARY_LINKER__app_layer_Debug CMakeFiles/app_layer.dir/src/app/visualizer.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_imgui.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_diagnostic.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o || libcore_engine.a libgl_backend.a libimgui.a libimgui_opengl3.a libimgui_sdl2.a libmodular_layer.a libpost_processing.a libshader_system.a
+build libapp_layer.a: CXX_STATIC_LIBRARY_LINKER__app_layer_Debug CMakeFiles/app_layer.dir/src/app/visualizer.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_imgui.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_diagnostic.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o CMakeFiles/app_layer.dir/src/ipc/ipc_reader.cpp.o CMakeFiles/app_layer.dir/src/ipc/ipc_client.cpp.o || libcore_engine.a libgl_backend.a libimgui.a libimgui_opengl3.a libimgui_sdl2.a libmodular_layer.a libpost_processing.a libshader_system.a
   CONFIG = Debug
   LANGUAGE_COMPILE_FLAGS = -g
   OBJECT_DIR = CMakeFiles/app_layer.dir

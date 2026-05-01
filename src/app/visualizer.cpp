@@ -45,6 +45,7 @@ constexpr int kDefaultPostProcessMode = 2;
 constexpr float kDefaultPostProcessStrength = 0.65f;
 constexpr int kKaleidoscopeSlotIndex = 1;
 constexpr float kDefaultKaleidoscopeStrength = 0.75f;
+constexpr const char* kIpcSocketPath = "/tmp/audio_visualizer.sock";
 
 std::array<float, 3> hsvToRgb(float h, float s, float v) {
     h = std::fmod(h, 1.0f);
@@ -1192,19 +1193,25 @@ bool Visualizer::initialize(int width, int height) {
     // Setup upscale quad
     setupUpscaleQuad();
     
-    // Initialize GPU timing queries for adaptive resolution
+    // Initialize GPU timing queries for adaptive resolution (disabled for performance)
     glGenQueries(1, &gpuQueryStart_);
     glGenQueries(1, &gpuQueryEnd_);
+    gpuQueryAvailable_ = false; // Disable to avoid overhead when not using adaptive resolution
 
-    std::cout << "[DEBUG] Setting up ImGui..." << std::endl;
-    if (setupImGui()) {
-        imguiInitialized_ = true;
+    if (localImGuiEnabled_) {
+        std::cout << "[DEBUG] Setting up ImGui..." << std::endl;
+        if (setupImGui()) {
+            imguiInitialized_ = true;
+        } else {
+            std::cout << "ImGui initialization failed, continuing without ImGui interface" << std::endl;
+            showImGuiWindow_ = false;
+            imguiInitialized_ = false;
+        }
+        std::cout << "[DEBUG] ImGui setup complete" << std::endl;
     } else {
-        std::cout << "ImGui initialization failed, continuing without ImGui interface" << std::endl;
         showImGuiWindow_ = false;
         imguiInitialized_ = false;
     }
-    std::cout << "[DEBUG] ImGui setup complete" << std::endl;
 
     std::cout << "[DEBUG] MIDI controller disabled by default (use the MIDI panel to connect manually)" << std::endl;
 
@@ -1225,7 +1232,94 @@ bool Visualizer::initialize(int width, int height) {
     saveCurrentSettings();
     std::cout << "[DEBUG] Initialization complete!" << std::endl;
 
+    if (!initializeIPC()) {
+        std::cerr << "[IPC] Unable to start IPC stack. Renderer will continue in single-process mode." << std::endl;
+    }
+
     return true;
+}
+
+bool Visualizer::initializeIPC() {
+    const VisualState currentState = collectCurrentState();
+    stateBuffer_.update(currentState);
+    lastAppliedState_ = currentState;
+    lastStateSendTime_ = std::chrono::steady_clock::now() - stateSendInterval_;
+
+    ipcReader_ = std::make_unique<IPCReader>(stateBuffer_);
+    if (!ipcReader_->start(kIpcSocketPath)) {
+        ipcReader_.reset();
+        std::cerr << "[IPC] Renderer socket failed to start" << std::endl;
+        return false;
+    }
+
+    ipcClient_ = std::make_unique<IPCClient>();
+    ipcClient_->connectTo(kIpcSocketPath);
+
+    return true;
+}
+
+void Visualizer::shutdownIPC() {
+    if (ipcReader_) {
+        ipcReader_->stop();
+        ipcReader_.reset();
+    }
+    if (ipcClient_) {
+        ipcClient_->disconnect();
+        ipcClient_.reset();
+    }
+}
+
+void Visualizer::applyVisualState(const VisualState& state) {
+    VisualState sanitized = state;
+    int maxMode = static_cast<int>(GetEffectRegistry().getMaxModeIndex());
+    sanitized.proceduralMode = std::clamp(sanitized.proceduralMode, 0, maxMode);
+
+    if (sanitized.proceduralMode != lastAppliedState_.proceduralMode) {
+        applyMainProceduralMode(sanitized.proceduralMode, "ipc", true, false);
+    }
+
+    if (std::abs(sanitized.intensity - lastAppliedState_.intensity) > 1e-5f) {
+        globalIntensityEnvelope_ = sanitized.intensity;
+    }
+
+    if (!postProcessSlots_.empty()) {
+        auto& slot = postProcessSlots_[0];
+        slot.enabled = sanitized.postFXEnabled;
+        slot.strength = std::clamp(sanitized.fx.bloom, 0.0f, 1.0f);
+        float chroma = std::clamp(sanitized.fx.chromatic, 0.0f, 1.5f);
+        slot.rgbAdjust = {chroma, chroma, chroma};
+        showPostProcess_ = slot.enabled && slot.strength > 0.0f;
+    }
+
+    lastAppliedState_ = sanitized;
+}
+
+VisualState Visualizer::collectCurrentState() const {
+    VisualState state;
+    state.proceduralMode = proceduralLayerMode_;
+    state.intensity = globalIntensityEnvelope_;
+    if (!postProcessSlots_.empty()) {
+        const auto& slot = postProcessSlots_[0];
+        state.fx.bloom = slot.strength;
+        state.fx.chromatic = slot.rgbAdjust[0];
+        state.postFXEnabled = slot.enabled;
+    }
+    return state;
+}
+
+void Visualizer::maybeSendStateToIPC() {
+    if (!ipcClient_) {
+        return;
+    }
+
+    auto now = std::chrono::steady_clock::now();
+    if (now - lastStateSendTime_ < stateSendInterval_) {
+        return;
+    }
+
+    if (ipcClient_->sendState(collectCurrentState())) {
+        lastStateSendTime_ = now;
+    }
 }
 
 void Visualizer::buildScenePalettes() {
@@ -1412,6 +1506,7 @@ void Visualizer::randomizeRgbChannels() {
 }
 
 void Visualizer::shutdown() {
+    shutdownIPC();
     // Clean up GPU sync objects
     if (mainFrameSync_) {
         glDeleteSync(mainFrameSync_);
@@ -1883,6 +1978,8 @@ void Visualizer::render() {
 
     // Update random post process
     updateRandomPostProcess(dt);
+
+    applyVisualState(stateBuffer_.get());
 
     // Update random procedural layer first, then sync Slot 1 so the render uses
     // the latest procedural mode for this frame.
@@ -2388,8 +2485,12 @@ bool Visualizer::setupOpenGL() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
     
-    // Wayland-specific hints for better performance
-    SDL_GL_SetSwapInterval(0); // Let compositor decide refresh rate (vsync controlled later)
+    // Aggressive vsync disable for Wayland/Hyprland
+    SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "1");
+    SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+    
+    // Disable vsync before creating window
+    SDL_GL_SetSwapInterval(0);
 
     // === CREATE MAIN VISUALS WINDOW ===
     std::cout << "[DEBUG] Creating main visuals window (" << windowWidth_ << "x" << windowHeight_ << ")..." << std::endl;
@@ -2435,27 +2536,37 @@ bool Visualizer::setupOpenGL() {
 
     glViewport(0, 0, windowWidth_, windowHeight_);
 
-    // === CREATE SEPARATE IMGUI CONTROLS WINDOW ===
-    std::cout << "[DEBUG] Creating ImGui controls window (" << imguiWindowWidth_ << "x" << imguiWindowHeight_ << ")..." << std::endl;
-    imguiWindow_ = SDL_CreateWindow("Audio Visualizer - Controls", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                     imguiWindowWidth_, imguiWindowHeight_, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
-    if (!imguiWindow_) {
-        std::cerr << "Failed to create ImGui window: " << SDL_GetError() << std::endl;
-        return false;
+    if (localImGuiEnabled_) {
+        // === CREATE SEPARATE IMGUI CONTROLS WINDOW ===
+        std::cout << "[DEBUG] Creating ImGui controls window (" << imguiWindowWidth_ << "x" << imguiWindowHeight_ << ")..." << std::endl;
+        imguiWindow_ = SDL_CreateWindow("Audio Visualizer - Controls", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                         imguiWindowWidth_, imguiWindowHeight_, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
+        if (!imguiWindow_) {
+            std::cerr << "Failed to create ImGui window: " << SDL_GetError() << std::endl;
+            return false;
+        }
+        std::cout << "[DEBUG] ImGui controls window created (input-only)" << std::endl;
+
+        // Position ImGui window to the right of main window
+        int mx, my;
+        SDL_GetWindowPosition(window_, &mx, &my);
+        SDL_SetWindowPosition(imguiWindow_, mx + windowWidth_ + 20, my);
+        SDL_ShowWindow(imguiWindow_);
+
+        std::cout << "[INFO] ImGui configured as separate window with shared OpenGL context" << std::endl;
+    } else {
+        imguiWindow_ = nullptr;
     }
-    std::cout << "[DEBUG] ImGui controls window created (input-only)" << std::endl;
-
-    // Position ImGui window to the right of main window
-    int mx, my;
-    SDL_GetWindowPosition(window_, &mx, &my);
-    SDL_SetWindowPosition(imguiWindow_, mx + windowWidth_ + 20, my);
-    SDL_ShowWindow(imguiWindow_);
-
-    std::cout << "[INFO] ImGui configured as separate window with shared OpenGL context" << std::endl;
 
     // Disable vsync to prevent compositor from pausing rendering when window not visible
     // This is critical for Hyprland/Wayland where frame callbacks stop on inactive workspaces
+    // Force vsync off for NVIDIA on Wayland (known driver issue)
     SDL_GL_SetSwapInterval(0);
+    // Double-check vsync is actually disabled (NVIDIA driver sometimes ignores first call)
+    if (SDL_GL_GetSwapInterval() != 0) {
+        SDL_GL_SetSwapInterval(0);
+        std::cout << "[WARN] Had to force vsync disable again (NVIDIA Wayland workaround)" << std::endl;
+    }
 
     // Detect available monitors for multi-monitor support
     detectMonitors();

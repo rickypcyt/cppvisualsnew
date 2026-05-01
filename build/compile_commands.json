@@ -139,6 +139,18 @@
 },
 {
   "directory": "/home/ricky/coding/proyects/visuals/build",
+  "command": "/usr/bin/clang++ -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -isystem /usr/include/SDL2 -g -std=gnu++17 -o CMakeFiles/app_layer.dir/src/ipc/ipc_reader.cpp.o -c /home/ricky/coding/proyects/visuals/src/ipc/ipc_reader.cpp",
+  "file": "/home/ricky/coding/proyects/visuals/src/ipc/ipc_reader.cpp",
+  "output": "/home/ricky/coding/proyects/visuals/build/CMakeFiles/app_layer.dir/src/ipc/ipc_reader.cpp.o"
+},
+{
+  "directory": "/home/ricky/coding/proyects/visuals/build",
+  "command": "/usr/bin/clang++ -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -isystem /usr/include/SDL2 -g -std=gnu++17 -o CMakeFiles/app_layer.dir/src/ipc/ipc_client.cpp.o -c /home/ricky/coding/proyects/visuals/src/ipc/ipc_client.cpp",
+  "file": "/home/ricky/coding/proyects/visuals/src/ipc/ipc_client.cpp",
+  "output": "/home/ricky/coding/proyects/visuals/build/CMakeFiles/app_layer.dir/src/ipc/ipc_client.cpp.o"
+},
+{
+  "directory": "/home/ricky/coding/proyects/visuals/build",
   "command": "/usr/bin/clang++ -I/home/ricky/coding/proyects/visuals/src -isystem /usr/include/SDL2 -g -std=gnu++17 -o CMakeFiles/gl_backend.dir/src/gl_renderer.cpp.o -c /home/ricky/coding/proyects/visuals/src/gl_renderer.cpp",
   "file": "/home/ricky/coding/proyects/visuals/src/gl_renderer.cpp",
   "output": "/home/ricky/coding/proyects/visuals/build/CMakeFiles/gl_backend.dir/src/gl_renderer.cpp.o"

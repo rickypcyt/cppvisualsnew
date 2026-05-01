@@ -23,7 +23,7 @@ public:
 
     bool initialize(int deviceIndex = -1) {
         // Initialize visualizer first so persisted settings (like input device) are loaded
-        if (!visualizer_.initialize(1280, 720)) {
+        if (!visualizer_.initialize(1920, 1080)) {
             std::cerr << "Failed to initialize visualizer" << std::endl;
             return false;
         }

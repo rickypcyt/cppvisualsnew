@@ -130,6 +130,8 @@ add_library(app_layer STATIC
     src/app/visualizer_console.cpp
     src/app/visualizer_diagnostic.cpp
     src/app/visualizer_procedural.cpp
+    src/ipc/ipc_reader.cpp
+    src/ipc/ipc_client.cpp
 )
 
 target_include_directories(app_layer PUBLIC
