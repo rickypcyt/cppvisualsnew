@@ -546,7 +546,7 @@ vec2 mapWithEye(vec3 p) {
     // Audio-reactive assembly/disassembly
     float audioEnergy = uBass * 0.5 + uMid * 0.3 + uHigh * 0.2;
     // Add base energy level so head is visible even without audio
-    float baseEnergy = 0.3; // Minimum energy level
+    float baseEnergy = 0.5; // Increased minimum energy level for better visibility
     audioEnergy = max(audioEnergy, baseEnergy);
     // Simplified smoothstep to clamp
     float assemblyFactor = clamp((audioEnergy - 0.1) / (0.8 - 0.1), 0., 1.);
@@ -631,7 +631,7 @@ vec4 renderSingleHead(vec2 st, float uTime, float uTempo, float uEnergy, float u
     float rayLength = 0.;
     float dist = 0.;
     bool bg = false;
-    vec3 col = vec3(.1);
+    vec3 col = vec3(.3);
     bool hitIsEye = false;
 
     // Optimized raymarching: reduced iterations with adaptive step

@@ -3,9 +3,18 @@
 #include <chrono>
 #include <memory>
 #include <cstring>
+#include <csignal>
+#include <atomic>
 #include "audio_engine.h"
 #include "app/visualizer.h"
 #include "renderer_interface.h"
+
+// Global flag for signal handling
+static std::atomic<bool> g_interrupted(false);
+
+void signalHandler(int signal) {
+    g_interrupted.store(true);
+}
 
 class AudioVisualizerApp {
 public:
@@ -62,7 +71,7 @@ public:
         static bool lastAudioEngineEnabled = false;
         static int lastDevice = -2;
 
-        while (!visualizer_.shouldClose()) {
+        while (!visualizer_.shouldClose() && !g_interrupted.load()) {
             bool currentAudioEngineEnabled = visualizer_.getAudioEngineEnabled();
             int currentDevice = visualizer_.getSelectedDevice();
             
@@ -109,6 +118,10 @@ private:
 };
 
 int main(int argc, char* argv[]) {
+    // Setup signal handlers for Ctrl+C and termination
+    std::signal(SIGINT, signalHandler);
+    std::signal(SIGTERM, signalHandler);
+
     try {
         AudioVisualizerApp app;
 

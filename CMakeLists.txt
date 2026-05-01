@@ -36,20 +36,20 @@ target_include_directories(imgui PUBLIC
 )
 
 # ============================================================================
-# IMGUI GLFW BACKEND (platform-specific)
+# IMGUI SDL2 BACKEND (platform-specific)
 # ============================================================================
-add_library(imgui_glfw STATIC
-    imgui/backends/imgui_impl_glfw.cpp
+add_library(imgui_sdl2 STATIC
+    imgui/backends/imgui_impl_sdl2.cpp
 )
 
-target_include_directories(imgui_glfw PUBLIC
+target_include_directories(imgui_sdl2 PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
 )
 
-target_link_libraries(imgui_glfw PUBLIC
+target_link_libraries(imgui_sdl2 PUBLIC
     imgui
-    glfw
+    SDL2::SDL2
 )
 
 # ============================================================================
@@ -144,7 +144,7 @@ target_link_libraries(app_layer PUBLIC
     modular_layer
     gl_backend
     imgui
-    imgui_glfw
+    imgui_sdl2
     imgui_opengl3
 )
 
@@ -178,7 +178,7 @@ endif()
 # ============================================================================
 # FIND DEPENDENCIES
 # ============================================================================
-find_package(glfw3 REQUIRED)
+find_package(SDL2 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
 pkg_check_modules(ALSA REQUIRED alsa)
@@ -231,13 +231,13 @@ target_link_libraries(core_engine PUBLIC
 
 # ImGui dependencies
 target_link_libraries(imgui PUBLIC
-    glfw
+    SDL2::SDL2
 )
 
 # OpenGL backend dependencies (pure OpenGL only)
 target_link_libraries(gl_backend PUBLIC
     ${CMAKE_DL_LIBS}
-    glfw
+    SDL2::SDL2
     ${GLEW_LIBRARIES}
     ${OPENGL_LIBRARIES}
     -lGL
@@ -257,7 +257,7 @@ target_link_libraries(audio_visualizer PRIVATE
     core_engine
     gl_backend
     imgui
-    imgui_glfw
+    imgui_sdl2
     imgui_opengl3
 )
 

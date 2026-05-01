@@ -125,7 +125,7 @@ build CMakeFiles/imgui.dir/imgui/imgui.cpp.o: CXX_COMPILER__imgui_unscanned_Debu
   CONFIG = Debug
   DEP_FILE = CMakeFiles/imgui.dir/imgui/imgui.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/imgui.dir
   OBJECT_FILE_DIR = CMakeFiles/imgui.dir/imgui
   TARGET_SUPPORT_DIR = CMakeFiles/imgui.dir
@@ -134,7 +134,7 @@ build CMakeFiles/imgui.dir/imgui/imgui_demo.cpp.o: CXX_COMPILER__imgui_unscanned
   CONFIG = Debug
   DEP_FILE = CMakeFiles/imgui.dir/imgui/imgui_demo.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/imgui.dir
   OBJECT_FILE_DIR = CMakeFiles/imgui.dir/imgui
   TARGET_SUPPORT_DIR = CMakeFiles/imgui.dir
@@ -143,7 +143,7 @@ build CMakeFiles/imgui.dir/imgui/imgui_draw.cpp.o: CXX_COMPILER__imgui_unscanned
   CONFIG = Debug
   DEP_FILE = CMakeFiles/imgui.dir/imgui/imgui_draw.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/imgui.dir
   OBJECT_FILE_DIR = CMakeFiles/imgui.dir/imgui
   TARGET_SUPPORT_DIR = CMakeFiles/imgui.dir
@@ -152,7 +152,7 @@ build CMakeFiles/imgui.dir/imgui/imgui_tables.cpp.o: CXX_COMPILER__imgui_unscann
   CONFIG = Debug
   DEP_FILE = CMakeFiles/imgui.dir/imgui/imgui_tables.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/imgui.dir
   OBJECT_FILE_DIR = CMakeFiles/imgui.dir/imgui
   TARGET_SUPPORT_DIR = CMakeFiles/imgui.dir
@@ -161,7 +161,7 @@ build CMakeFiles/imgui.dir/imgui/imgui_widgets.cpp.o: CXX_COMPILER__imgui_unscan
   CONFIG = Debug
   DEP_FILE = CMakeFiles/imgui.dir/imgui/imgui_widgets.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/imgui.dir
   OBJECT_FILE_DIR = CMakeFiles/imgui.dir/imgui
   TARGET_SUPPORT_DIR = CMakeFiles/imgui.dir
@@ -185,40 +185,40 @@ build libimgui.a: CXX_STATIC_LIBRARY_LINKER__imgui_Debug CMakeFiles/imgui.dir/im
   TARGET_SUPPORT_DIR = CMakeFiles/imgui.dir
 
 # =============================================================================
-# Object build statements for STATIC_LIBRARY target imgui_glfw
+# Object build statements for STATIC_LIBRARY target imgui_sdl2
 
 
 #############################################
-# Order-only phony target for imgui_glfw
+# Order-only phony target for imgui_sdl2
 
-build cmake_object_order_depends_target_imgui_glfw: phony || cmake_object_order_depends_target_imgui
+build cmake_object_order_depends_target_imgui_sdl2: phony || cmake_object_order_depends_target_imgui
 
-build CMakeFiles/imgui_glfw.dir/imgui/backends/imgui_impl_glfw.cpp.o: CXX_COMPILER__imgui_glfw_unscanned_Debug /home/ricky/coding/proyects/visuals/imgui/backends/imgui_impl_glfw.cpp || cmake_object_order_depends_target_imgui_glfw
+build CMakeFiles/imgui_sdl2.dir/imgui/backends/imgui_impl_sdl2.cpp.o: CXX_COMPILER__imgui_sdl2_unscanned_Debug /home/ricky/coding/proyects/visuals/imgui/backends/imgui_impl_sdl2.cpp || cmake_object_order_depends_target_imgui_sdl2
   CONFIG = Debug
-  DEP_FILE = CMakeFiles/imgui_glfw.dir/imgui/backends/imgui_impl_glfw.cpp.o.d
+  DEP_FILE = CMakeFiles/imgui_sdl2.dir/imgui/backends/imgui_impl_sdl2.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends
-  OBJECT_DIR = CMakeFiles/imgui_glfw.dir
-  OBJECT_FILE_DIR = CMakeFiles/imgui_glfw.dir/imgui/backends
-  TARGET_SUPPORT_DIR = CMakeFiles/imgui_glfw.dir
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -isystem /usr/include/SDL2
+  OBJECT_DIR = CMakeFiles/imgui_sdl2.dir
+  OBJECT_FILE_DIR = CMakeFiles/imgui_sdl2.dir/imgui/backends
+  TARGET_SUPPORT_DIR = CMakeFiles/imgui_sdl2.dir
 
 
 # =============================================================================
-# Link build statements for STATIC_LIBRARY target imgui_glfw
+# Link build statements for STATIC_LIBRARY target imgui_sdl2
 
 
 #############################################
-# Link the static library libimgui_glfw.a
+# Link the static library libimgui_sdl2.a
 
-build libimgui_glfw.a: CXX_STATIC_LIBRARY_LINKER__imgui_glfw_Debug CMakeFiles/imgui_glfw.dir/imgui/backends/imgui_impl_glfw.cpp.o || libimgui.a
+build libimgui_sdl2.a: CXX_STATIC_LIBRARY_LINKER__imgui_sdl2_Debug CMakeFiles/imgui_sdl2.dir/imgui/backends/imgui_impl_sdl2.cpp.o || libimgui.a
   CONFIG = Debug
   LANGUAGE_COMPILE_FLAGS = -g
-  OBJECT_DIR = CMakeFiles/imgui_glfw.dir
+  OBJECT_DIR = CMakeFiles/imgui_sdl2.dir
   POST_BUILD = :
   PRE_LINK = :
-  TARGET_FILE = libimgui_glfw.a
-  TARGET_PDB = imgui_glfw.a.dbg
-  TARGET_SUPPORT_DIR = CMakeFiles/imgui_glfw.dir
+  TARGET_FILE = libimgui_sdl2.a
+  TARGET_PDB = imgui_sdl2.a.dbg
+  TARGET_SUPPORT_DIR = CMakeFiles/imgui_sdl2.dir
 
 # =============================================================================
 # Object build statements for STATIC_LIBRARY target imgui_opengl3
@@ -233,7 +233,7 @@ build CMakeFiles/imgui_opengl3.dir/imgui/backends/imgui_impl_opengl3.cpp.o: CXX_
   CONFIG = Debug
   DEP_FILE = CMakeFiles/imgui_opengl3.dir/imgui/backends/imgui_impl_opengl3.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/imgui_opengl3.dir
   OBJECT_FILE_DIR = CMakeFiles/imgui_opengl3.dir/imgui/backends
   TARGET_SUPPORT_DIR = CMakeFiles/imgui_opengl3.dir
@@ -269,7 +269,7 @@ build CMakeFiles/shader_system.dir/src/shader.cpp.o: CXX_COMPILER__shader_system
   CONFIG = Debug
   DEP_FILE = CMakeFiles/shader_system.dir/src/shader.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/shader_system.dir
   OBJECT_FILE_DIR = CMakeFiles/shader_system.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/shader_system.dir
@@ -278,7 +278,7 @@ build CMakeFiles/shader_system.dir/src/shader_loader.cpp.o: CXX_COMPILER__shader
   CONFIG = Debug
   DEP_FILE = CMakeFiles/shader_system.dir/src/shader_loader.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/shader_system.dir
   OBJECT_FILE_DIR = CMakeFiles/shader_system.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/shader_system.dir
@@ -287,7 +287,7 @@ build CMakeFiles/shader_system.dir/src/layer_validator.cpp.o: CXX_COMPILER__shad
   CONFIG = Debug
   DEP_FILE = CMakeFiles/shader_system.dir/src/layer_validator.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/shader_system.dir
   OBJECT_FILE_DIR = CMakeFiles/shader_system.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/shader_system.dir
@@ -296,7 +296,7 @@ build CMakeFiles/shader_system.dir/src/render_queue.cpp.o: CXX_COMPILER__shader_
   CONFIG = Debug
   DEP_FILE = CMakeFiles/shader_system.dir/src/render_queue.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/shader_system.dir
   OBJECT_FILE_DIR = CMakeFiles/shader_system.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/shader_system.dir
@@ -332,7 +332,7 @@ build CMakeFiles/post_processing.dir/src/post_processor.cpp.o: CXX_COMPILER__pos
   CONFIG = Debug
   DEP_FILE = CMakeFiles/post_processing.dir/src/post_processor.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/post_processing.dir
   OBJECT_FILE_DIR = CMakeFiles/post_processing.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/post_processing.dir
@@ -368,7 +368,7 @@ build CMakeFiles/modular_layer.dir/src/modular_layer.cpp.o: CXX_COMPILER__modula
   CONFIG = Debug
   DEP_FILE = CMakeFiles/modular_layer.dir/src/modular_layer.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/modular_layer.dir
   OBJECT_FILE_DIR = CMakeFiles/modular_layer.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/modular_layer.dir
@@ -398,13 +398,13 @@ build libmodular_layer.a: CXX_STATIC_LIBRARY_LINKER__modular_layer_Debug CMakeFi
 #############################################
 # Order-only phony target for app_layer
 
-build cmake_object_order_depends_target_app_layer: phony || cmake_object_order_depends_target_core_engine cmake_object_order_depends_target_gl_backend cmake_object_order_depends_target_imgui cmake_object_order_depends_target_imgui_glfw cmake_object_order_depends_target_imgui_opengl3 cmake_object_order_depends_target_modular_layer cmake_object_order_depends_target_post_processing cmake_object_order_depends_target_shader_system
+build cmake_object_order_depends_target_app_layer: phony || cmake_object_order_depends_target_core_engine cmake_object_order_depends_target_gl_backend cmake_object_order_depends_target_imgui cmake_object_order_depends_target_imgui_opengl3 cmake_object_order_depends_target_imgui_sdl2 cmake_object_order_depends_target_modular_layer cmake_object_order_depends_target_post_processing cmake_object_order_depends_target_shader_system
 
 build CMakeFiles/app_layer.dir/src/app/visualizer.cpp.o: CXX_COMPILER__app_layer_unscanned_Debug /home/ricky/coding/proyects/visuals/src/app/visualizer.cpp || cmake_object_order_depends_target_app_layer
   CONFIG = Debug
   DEP_FILE = CMakeFiles/app_layer.dir/src/app/visualizer.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/app_layer.dir
   OBJECT_FILE_DIR = CMakeFiles/app_layer.dir/src/app
   TARGET_SUPPORT_DIR = CMakeFiles/app_layer.dir
@@ -413,7 +413,7 @@ build CMakeFiles/app_layer.dir/src/app/visualizer_imgui.cpp.o: CXX_COMPILER__app
   CONFIG = Debug
   DEP_FILE = CMakeFiles/app_layer.dir/src/app/visualizer_imgui.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/app_layer.dir
   OBJECT_FILE_DIR = CMakeFiles/app_layer.dir/src/app
   TARGET_SUPPORT_DIR = CMakeFiles/app_layer.dir
@@ -422,7 +422,7 @@ build CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o: CXX_COMPILER__a
   CONFIG = Debug
   DEP_FILE = CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/app_layer.dir
   OBJECT_FILE_DIR = CMakeFiles/app_layer.dir/src/app
   TARGET_SUPPORT_DIR = CMakeFiles/app_layer.dir
@@ -431,7 +431,7 @@ build CMakeFiles/app_layer.dir/src/app/visualizer_diagnostic.cpp.o: CXX_COMPILER
   CONFIG = Debug
   DEP_FILE = CMakeFiles/app_layer.dir/src/app/visualizer_diagnostic.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/app_layer.dir
   OBJECT_FILE_DIR = CMakeFiles/app_layer.dir/src/app
   TARGET_SUPPORT_DIR = CMakeFiles/app_layer.dir
@@ -440,7 +440,7 @@ build CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: CXX_COMPILER
   CONFIG = Debug
   DEP_FILE = CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/app_layer.dir
   OBJECT_FILE_DIR = CMakeFiles/app_layer.dir/src/app
   TARGET_SUPPORT_DIR = CMakeFiles/app_layer.dir
@@ -453,7 +453,7 @@ build CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o: CXX_COMPILER
 #############################################
 # Link the static library libapp_layer.a
 
-build libapp_layer.a: CXX_STATIC_LIBRARY_LINKER__app_layer_Debug CMakeFiles/app_layer.dir/src/app/visualizer.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_imgui.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_diagnostic.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o || libcore_engine.a libgl_backend.a libimgui.a libimgui_glfw.a libimgui_opengl3.a libmodular_layer.a libpost_processing.a libshader_system.a
+build libapp_layer.a: CXX_STATIC_LIBRARY_LINKER__app_layer_Debug CMakeFiles/app_layer.dir/src/app/visualizer.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_imgui.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_console.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_diagnostic.cpp.o CMakeFiles/app_layer.dir/src/app/visualizer_procedural.cpp.o || libcore_engine.a libgl_backend.a libimgui.a libimgui_opengl3.a libimgui_sdl2.a libmodular_layer.a libpost_processing.a libshader_system.a
   CONFIG = Debug
   LANGUAGE_COMPILE_FLAGS = -g
   OBJECT_DIR = CMakeFiles/app_layer.dir
@@ -476,7 +476,7 @@ build CMakeFiles/gl_backend.dir/src/gl_renderer.cpp.o: CXX_COMPILER__gl_backend_
   CONFIG = Debug
   DEP_FILE = CMakeFiles/gl_backend.dir/src/gl_renderer.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/gl_backend.dir
   OBJECT_FILE_DIR = CMakeFiles/gl_backend.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/gl_backend.dir
@@ -485,7 +485,7 @@ build CMakeFiles/gl_backend.dir/src/gl_shader_compiler.cpp.o: CXX_COMPILER__gl_b
   CONFIG = Debug
   DEP_FILE = CMakeFiles/gl_backend.dir/src/gl_shader_compiler.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/gl_backend.dir
   OBJECT_FILE_DIR = CMakeFiles/gl_backend.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/gl_backend.dir
@@ -494,7 +494,7 @@ build CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.o: CXX_COMPILER__gl_
   CONFIG = Debug
   DEP_FILE = CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/gl_backend.dir
   OBJECT_FILE_DIR = CMakeFiles/gl_backend.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/gl_backend.dir
@@ -503,7 +503,7 @@ build CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o: CXX_COMPILER__gl_backend
   CONFIG = Debug
   DEP_FILE = CMakeFiles/gl_backend.dir/src/gpu_profiler.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/gl_backend.dir
   OBJECT_FILE_DIR = CMakeFiles/gl_backend.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/gl_backend.dir
@@ -533,13 +533,13 @@ build libgl_backend.a: CXX_STATIC_LIBRARY_LINKER__gl_backend_Debug CMakeFiles/gl
 #############################################
 # Order-only phony target for audio_visualizer
 
-build cmake_object_order_depends_target_audio_visualizer: phony || cmake_object_order_depends_target_app_layer cmake_object_order_depends_target_core_engine cmake_object_order_depends_target_gl_backend cmake_object_order_depends_target_imgui cmake_object_order_depends_target_imgui_glfw cmake_object_order_depends_target_imgui_opengl3 cmake_object_order_depends_target_modular_layer cmake_object_order_depends_target_post_processing cmake_object_order_depends_target_shader_system
+build cmake_object_order_depends_target_audio_visualizer: phony || cmake_object_order_depends_target_app_layer cmake_object_order_depends_target_core_engine cmake_object_order_depends_target_gl_backend cmake_object_order_depends_target_imgui cmake_object_order_depends_target_imgui_opengl3 cmake_object_order_depends_target_imgui_sdl2 cmake_object_order_depends_target_modular_layer cmake_object_order_depends_target_post_processing cmake_object_order_depends_target_shader_system
 
 build CMakeFiles/audio_visualizer.dir/src/main.cpp.o: CXX_COMPILER__audio_visualizer_unscanned_Debug /home/ricky/coding/proyects/visuals/src/main.cpp || cmake_object_order_depends_target_audio_visualizer
   CONFIG = Debug
   DEP_FILE = CMakeFiles/audio_visualizer.dir/src/main.cpp.o.d
   FLAGS = -g -std=gnu++17 -pthread
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -I/home/ricky/coding/proyects/visuals/src/app -I/home/ricky/coding/proyects/visuals/imgui -I/home/ricky/coding/proyects/visuals/imgui/backends -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/audio_visualizer.dir
   OBJECT_FILE_DIR = CMakeFiles/audio_visualizer.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/audio_visualizer.dir
@@ -552,12 +552,12 @@ build CMakeFiles/audio_visualizer.dir/src/main.cpp.o: CXX_COMPILER__audio_visual
 #############################################
 # Link the executable audio_visualizer
 
-build audio_visualizer: CXX_EXECUTABLE_LINKER__audio_visualizer_Debug CMakeFiles/audio_visualizer.dir/src/main.cpp.o | libapp_layer.a libcore_engine.a libgl_backend.a libimgui.a libimgui_glfw.a libimgui_opengl3.a /usr/lib/libvulkan.so libimgui.a libpost_processing.a libmodular_layer.a libshader_system.a libgl_backend.a /usr/lib/libglfw.so.3.4 /usr/lib/libGLEW.so || libapp_layer.a libcore_engine.a libgl_backend.a libimgui.a libimgui_glfw.a libimgui_opengl3.a libmodular_layer.a libpost_processing.a libshader_system.a
+build audio_visualizer: CXX_EXECUTABLE_LINKER__audio_visualizer_Debug CMakeFiles/audio_visualizer.dir/src/main.cpp.o | libapp_layer.a libcore_engine.a libgl_backend.a libimgui.a libimgui_sdl2.a libimgui_opengl3.a /usr/lib/libvulkan.so libimgui.a libpost_processing.a libmodular_layer.a libshader_system.a libgl_backend.a /usr/lib/libSDL2-2.0.so.0.3200.66 /usr/lib/libGLEW.so || libapp_layer.a libcore_engine.a libgl_backend.a libimgui.a libimgui_opengl3.a libimgui_sdl2.a libmodular_layer.a libpost_processing.a libshader_system.a
   CONFIG = Debug
   DEP_FILE = CMakeFiles/audio_visualizer.dir/link.d
   FLAGS = -g
   LINK_FLAGS = -Xlinker --dependency-file=CMakeFiles/audio_visualizer.dir/link.d
-  LINK_LIBRARIES = libapp_layer.a  libcore_engine.a  libgl_backend.a  libimgui.a  libimgui_glfw.a  libimgui_opengl3.a  /usr/lib/libvulkan.so  -lportaudio  -lasound  -lm  -lpthread  -lasound  -lm  -lpthread  libimgui.a  libpost_processing.a  libmodular_layer.a  libshader_system.a  libgl_backend.a  -ldl  /usr/lib/libglfw.so.3.4  /usr/lib/libGLEW.so  -lGL
+  LINK_LIBRARIES = libapp_layer.a  libcore_engine.a  libgl_backend.a  libimgui.a  libimgui_sdl2.a  libimgui_opengl3.a  /usr/lib/libvulkan.so  -lportaudio  -lasound  -lm  -lpthread  -lasound  -lm  -lpthread  libimgui.a  libpost_processing.a  libmodular_layer.a  libshader_system.a  libgl_backend.a  -ldl  /usr/lib/libSDL2-2.0.so.0.3200.66  /usr/lib/libGLEW.so  -lGL
   OBJECT_DIR = CMakeFiles/audio_visualizer.dir
   POST_BUILD = :
   PRE_LINK = cd /home/ricky/coding/proyects/visuals/build && /usr/bin/cmake -E copy_directory /home/ricky/coding/proyects/visuals/shaders /home/ricky/coding/proyects/visuals/build/shaders && cd /home/ricky/coding/proyects/visuals/build
@@ -578,7 +578,7 @@ build CMakeFiles/validate_layers.dir/src/validate_layers.cpp.o: CXX_COMPILER__va
   CONFIG = Debug
   DEP_FILE = CMakeFiles/validate_layers.dir/src/validate_layers.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/validate_layers.dir
   OBJECT_FILE_DIR = CMakeFiles/validate_layers.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/validate_layers.dir
@@ -591,12 +591,12 @@ build CMakeFiles/validate_layers.dir/src/validate_layers.cpp.o: CXX_COMPILER__va
 #############################################
 # Link the executable validate_layers
 
-build validate_layers: CXX_EXECUTABLE_LINKER__validate_layers_Debug CMakeFiles/validate_layers.dir/src/validate_layers.cpp.o | libshader_system.a libgl_backend.a /usr/lib/libglfw.so.3.4 /usr/lib/libGLEW.so || libgl_backend.a libshader_system.a
+build validate_layers: CXX_EXECUTABLE_LINKER__validate_layers_Debug CMakeFiles/validate_layers.dir/src/validate_layers.cpp.o | libshader_system.a libgl_backend.a /usr/lib/libSDL2-2.0.so.0.3200.66 /usr/lib/libGLEW.so || libgl_backend.a libshader_system.a
   CONFIG = Debug
   DEP_FILE = CMakeFiles/validate_layers.dir/link.d
   FLAGS = -g
   LINK_FLAGS = -Xlinker --dependency-file=CMakeFiles/validate_layers.dir/link.d
-  LINK_LIBRARIES = libshader_system.a  -lm  -lpthread  libgl_backend.a  -ldl  /usr/lib/libglfw.so.3.4  /usr/lib/libGLEW.so  -lGL
+  LINK_LIBRARIES = libshader_system.a  -lm  -lpthread  libgl_backend.a  -ldl  /usr/lib/libSDL2-2.0.so.0.3200.66  /usr/lib/libGLEW.so  -lGL
   OBJECT_DIR = CMakeFiles/validate_layers.dir
   POST_BUILD = :
   PRE_LINK = cd /home/ricky/coding/proyects/visuals/build && /usr/bin/cmake -E copy_directory /home/ricky/coding/proyects/visuals/shaders /home/ricky/coding/proyects/visuals/build/shaders && cd /home/ricky/coding/proyects/visuals/build
@@ -617,7 +617,7 @@ build CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o: CX
   CONFIG = Debug
   DEP_FILE = CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o.d
   FLAGS = -g -std=gnu++17
-  INCLUDES = -I/home/ricky/coding/proyects/visuals/src
+  INCLUDES = -I/home/ricky/coding/proyects/visuals/src -isystem /usr/include/SDL2
   OBJECT_DIR = CMakeFiles/test_layer_integration.dir
   OBJECT_FILE_DIR = CMakeFiles/test_layer_integration.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/test_layer_integration.dir
@@ -630,12 +630,12 @@ build CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o: CX
 #############################################
 # Link the executable test_layer_integration
 
-build test_layer_integration: CXX_EXECUTABLE_LINKER__test_layer_integration_Debug CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o | libcore_engine.a libshader_system.a libpost_processing.a libmodular_layer.a libshader_system.a libgl_backend.a /usr/lib/libglfw.so.3.4 /usr/lib/libGLEW.so || libcore_engine.a libgl_backend.a libmodular_layer.a libpost_processing.a libshader_system.a
+build test_layer_integration: CXX_EXECUTABLE_LINKER__test_layer_integration_Debug CMakeFiles/test_layer_integration.dir/src/test_layer_integration.cpp.o | libcore_engine.a libshader_system.a libpost_processing.a libmodular_layer.a libshader_system.a libgl_backend.a /usr/lib/libSDL2-2.0.so.0.3200.66 /usr/lib/libGLEW.so || libcore_engine.a libgl_backend.a libmodular_layer.a libpost_processing.a libshader_system.a
   CONFIG = Debug
   DEP_FILE = CMakeFiles/test_layer_integration.dir/link.d
   FLAGS = -g
   LINK_FLAGS = -Xlinker --dependency-file=CMakeFiles/test_layer_integration.dir/link.d
-  LINK_LIBRARIES = libcore_engine.a  libshader_system.a  libpost_processing.a  libmodular_layer.a  -lm  -lpthread  -lportaudio  -lasound  -lm  -lpthread  libshader_system.a  libgl_backend.a  -ldl  /usr/lib/libglfw.so.3.4  /usr/lib/libGLEW.so  -lGL
+  LINK_LIBRARIES = libcore_engine.a  libshader_system.a  libpost_processing.a  libmodular_layer.a  -lm  -lpthread  -lportaudio  -lasound  -lm  -lpthread  libshader_system.a  libgl_backend.a  -ldl  /usr/lib/libSDL2-2.0.so.0.3200.66  /usr/lib/libGLEW.so  -lGL
   OBJECT_DIR = CMakeFiles/test_layer_integration.dir
   POST_BUILD = :
   PRE_LINK = cd /home/ricky/coding/proyects/visuals/build && /usr/bin/cmake -E copy_directory /home/ricky/coding/proyects/visuals/shaders /home/ricky/coding/proyects/visuals/build/shaders && cd /home/ricky/coding/proyects/visuals/build
@@ -678,9 +678,9 @@ build gl_backend: phony libgl_backend.a
 
 build imgui: phony libimgui.a
 
-build imgui_glfw: phony libimgui_glfw.a
-
 build imgui_opengl3: phony libimgui_opengl3.a
+
+build imgui_sdl2: phony libimgui_sdl2.a
 
 build modular_layer: phony libmodular_layer.a
 
@@ -696,7 +696,7 @@ build shader_system: phony libshader_system.a
 #############################################
 # Folder: /home/ricky/coding/proyects/visuals/build
 
-build all: phony libcore_engine.a libimgui.a libimgui_glfw.a libimgui_opengl3.a libshader_system.a libpost_processing.a libmodular_layer.a libapp_layer.a libgl_backend.a audio_visualizer validate_layers test_layer_integration
+build all: phony libcore_engine.a libimgui.a libimgui_sdl2.a libimgui_opengl3.a libshader_system.a libpost_processing.a libmodular_layer.a libapp_layer.a libgl_backend.a audio_visualizer validate_layers test_layer_integration
 
 # =============================================================================
 # Built-in targets
@@ -705,14 +705,14 @@ build all: phony libcore_engine.a libimgui.a libimgui_glfw.a libimgui_opengl3.a 
 #############################################
 # Re-run CMake if any of its inputs changed.
 
-build build.ninja /home/ricky/coding/proyects/visuals/build/cmake_install.cmake: RERUN_CMAKE | /home/ricky/coding/proyects/visuals/CMakeLists.txt /usr/lib/cmake/glfw3/glfw3Config.cmake /usr/lib/cmake/glfw3/glfw3ConfigVersion.cmake /usr/lib/cmake/glfw3/glfw3Targets-none.cmake /usr/lib/cmake/glfw3/glfw3Targets.cmake /usr/share/cmake/Modules/CMakeCInformation.cmake /usr/share/cmake/Modules/CMakeCXXInformation.cmake /usr/share/cmake/Modules/CMakeCommonLanguageInclude.cmake /usr/share/cmake/Modules/CMakeFindDependencyMacro.cmake /usr/share/cmake/Modules/CMakeGenericSystem.cmake /usr/share/cmake/Modules/CMakeInitializeConfigs.cmake /usr/share/cmake/Modules/CMakeLanguageInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInitialize.cmake /usr/share/cmake/Modules/CheckCSourceCompiles.cmake /usr/share/cmake/Modules/CheckIncludeFile.cmake /usr/share/cmake/Modules/CheckLibraryExists.cmake /usr/share/cmake/Modules/Compiler/CMakeCommonCompilerMacros.cmake /usr/share/cmake/Modules/Compiler/Clang-C.cmake /usr/share/cmake/Modules/Compiler/Clang-CXX.cmake /usr/share/cmake/Modules/Compiler/Clang.cmake /usr/share/cmake/Modules/Compiler/GNU.cmake /usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake /usr/share/cmake/Modules/FindPackageMessage.cmake /usr/share/cmake/Modules/FindPkgConfig.cmake /usr/share/cmake/Modules/FindThreads.cmake /usr/share/cmake/Modules/FindVulkan.cmake /usr/share/cmake/Modules/Internal/CMakeCLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CMakeCXXLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CMakeCommonLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake /usr/share/cmake/Modules/Linker/GNU-C.cmake /usr/share/cmake/Modules/Linker/GNU-CXX.cmake /usr/share/cmake/Modules/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU-C.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-Clang-C.cmake /usr/share/cmake/Modules/Platform/Linux-Clang-CXX.cmake /usr/share/cmake/Modules/Platform/Linux-GNU-C.cmake /usr/share/cmake/Modules/Platform/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-Initialize.cmake /usr/share/cmake/Modules/Platform/Linux.cmake /usr/share/cmake/Modules/Platform/UnixPaths.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonConfigVersion.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonTargets.cmake CMakeCache.txt CMakeFiles/4.3.2/CMakeCCompiler.cmake CMakeFiles/4.3.2/CMakeCXXCompiler.cmake CMakeFiles/4.3.2/CMakeSystem.cmake
+build build.ninja /home/ricky/coding/proyects/visuals/build/cmake_install.cmake: RERUN_CMAKE | /home/ricky/coding/proyects/visuals/CMakeLists.txt /usr/lib/cmake/SDL2/SDL2Config.cmake /usr/lib/cmake/SDL2/SDL2ConfigVersion.cmake /usr/lib/cmake/SDL2/SDL2Targets-none.cmake /usr/lib/cmake/SDL2/SDL2Targets.cmake /usr/lib/cmake/SDL2/SDL2mainTargets-none.cmake /usr/lib/cmake/SDL2/SDL2mainTargets.cmake /usr/share/cmake/Modules/CMakeCInformation.cmake /usr/share/cmake/Modules/CMakeCXXInformation.cmake /usr/share/cmake/Modules/CMakeCommonLanguageInclude.cmake /usr/share/cmake/Modules/CMakeGenericSystem.cmake /usr/share/cmake/Modules/CMakeInitializeConfigs.cmake /usr/share/cmake/Modules/CMakeLanguageInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInitialize.cmake /usr/share/cmake/Modules/CheckCSourceCompiles.cmake /usr/share/cmake/Modules/CheckIncludeFile.cmake /usr/share/cmake/Modules/CheckLibraryExists.cmake /usr/share/cmake/Modules/Compiler/CMakeCommonCompilerMacros.cmake /usr/share/cmake/Modules/Compiler/Clang-C.cmake /usr/share/cmake/Modules/Compiler/Clang-CXX.cmake /usr/share/cmake/Modules/Compiler/Clang.cmake /usr/share/cmake/Modules/Compiler/GNU.cmake /usr/share/cmake/Modules/FeatureSummary.cmake /usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake /usr/share/cmake/Modules/FindPackageMessage.cmake /usr/share/cmake/Modules/FindPkgConfig.cmake /usr/share/cmake/Modules/FindThreads.cmake /usr/share/cmake/Modules/FindVulkan.cmake /usr/share/cmake/Modules/Internal/CMakeCLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CMakeCXXLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CMakeCommonLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake /usr/share/cmake/Modules/Linker/GNU-C.cmake /usr/share/cmake/Modules/Linker/GNU-CXX.cmake /usr/share/cmake/Modules/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU-C.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-Clang-C.cmake /usr/share/cmake/Modules/Platform/Linux-Clang-CXX.cmake /usr/share/cmake/Modules/Platform/Linux-GNU-C.cmake /usr/share/cmake/Modules/Platform/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-Initialize.cmake /usr/share/cmake/Modules/Platform/Linux.cmake /usr/share/cmake/Modules/Platform/UnixPaths.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonConfigVersion.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonTargets.cmake CMakeCache.txt CMakeFiles/4.3.2/CMakeCCompiler.cmake CMakeFiles/4.3.2/CMakeCXXCompiler.cmake CMakeFiles/4.3.2/CMakeSystem.cmake
   pool = console
 
 
 #############################################
 # A missing CMake input file is not an error.
 
-build /home/ricky/coding/proyects/visuals/CMakeLists.txt /usr/lib/cmake/glfw3/glfw3Config.cmake /usr/lib/cmake/glfw3/glfw3ConfigVersion.cmake /usr/lib/cmake/glfw3/glfw3Targets-none.cmake /usr/lib/cmake/glfw3/glfw3Targets.cmake /usr/share/cmake/Modules/CMakeCInformation.cmake /usr/share/cmake/Modules/CMakeCXXInformation.cmake /usr/share/cmake/Modules/CMakeCommonLanguageInclude.cmake /usr/share/cmake/Modules/CMakeFindDependencyMacro.cmake /usr/share/cmake/Modules/CMakeGenericSystem.cmake /usr/share/cmake/Modules/CMakeInitializeConfigs.cmake /usr/share/cmake/Modules/CMakeLanguageInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInitialize.cmake /usr/share/cmake/Modules/CheckCSourceCompiles.cmake /usr/share/cmake/Modules/CheckIncludeFile.cmake /usr/share/cmake/Modules/CheckLibraryExists.cmake /usr/share/cmake/Modules/Compiler/CMakeCommonCompilerMacros.cmake /usr/share/cmake/Modules/Compiler/Clang-C.cmake /usr/share/cmake/Modules/Compiler/Clang-CXX.cmake /usr/share/cmake/Modules/Compiler/Clang.cmake /usr/share/cmake/Modules/Compiler/GNU.cmake /usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake /usr/share/cmake/Modules/FindPackageMessage.cmake /usr/share/cmake/Modules/FindPkgConfig.cmake /usr/share/cmake/Modules/FindThreads.cmake /usr/share/cmake/Modules/FindVulkan.cmake /usr/share/cmake/Modules/Internal/CMakeCLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CMakeCXXLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CMakeCommonLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake /usr/share/cmake/Modules/Linker/GNU-C.cmake /usr/share/cmake/Modules/Linker/GNU-CXX.cmake /usr/share/cmake/Modules/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU-C.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-Clang-C.cmake /usr/share/cmake/Modules/Platform/Linux-Clang-CXX.cmake /usr/share/cmake/Modules/Platform/Linux-GNU-C.cmake /usr/share/cmake/Modules/Platform/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-Initialize.cmake /usr/share/cmake/Modules/Platform/Linux.cmake /usr/share/cmake/Modules/Platform/UnixPaths.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonConfigVersion.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonTargets.cmake CMakeCache.txt CMakeFiles/4.3.2/CMakeCCompiler.cmake CMakeFiles/4.3.2/CMakeCXXCompiler.cmake CMakeFiles/4.3.2/CMakeSystem.cmake: phony
+build /home/ricky/coding/proyects/visuals/CMakeLists.txt /usr/lib/cmake/SDL2/SDL2Config.cmake /usr/lib/cmake/SDL2/SDL2ConfigVersion.cmake /usr/lib/cmake/SDL2/SDL2Targets-none.cmake /usr/lib/cmake/SDL2/SDL2Targets.cmake /usr/lib/cmake/SDL2/SDL2mainTargets-none.cmake /usr/lib/cmake/SDL2/SDL2mainTargets.cmake /usr/share/cmake/Modules/CMakeCInformation.cmake /usr/share/cmake/Modules/CMakeCXXInformation.cmake /usr/share/cmake/Modules/CMakeCommonLanguageInclude.cmake /usr/share/cmake/Modules/CMakeGenericSystem.cmake /usr/share/cmake/Modules/CMakeInitializeConfigs.cmake /usr/share/cmake/Modules/CMakeLanguageInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInitialize.cmake /usr/share/cmake/Modules/CheckCSourceCompiles.cmake /usr/share/cmake/Modules/CheckIncludeFile.cmake /usr/share/cmake/Modules/CheckLibraryExists.cmake /usr/share/cmake/Modules/Compiler/CMakeCommonCompilerMacros.cmake /usr/share/cmake/Modules/Compiler/Clang-C.cmake /usr/share/cmake/Modules/Compiler/Clang-CXX.cmake /usr/share/cmake/Modules/Compiler/Clang.cmake /usr/share/cmake/Modules/Compiler/GNU.cmake /usr/share/cmake/Modules/FeatureSummary.cmake /usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake /usr/share/cmake/Modules/FindPackageMessage.cmake /usr/share/cmake/Modules/FindPkgConfig.cmake /usr/share/cmake/Modules/FindThreads.cmake /usr/share/cmake/Modules/FindVulkan.cmake /usr/share/cmake/Modules/Internal/CMakeCLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CMakeCXXLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CMakeCommonLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake /usr/share/cmake/Modules/Linker/GNU-C.cmake /usr/share/cmake/Modules/Linker/GNU-CXX.cmake /usr/share/cmake/Modules/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU-C.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-Clang-C.cmake /usr/share/cmake/Modules/Platform/Linux-Clang-CXX.cmake /usr/share/cmake/Modules/Platform/Linux-GNU-C.cmake /usr/share/cmake/Modules/Platform/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-Initialize.cmake /usr/share/cmake/Modules/Platform/Linux.cmake /usr/share/cmake/Modules/Platform/UnixPaths.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonConfigVersion.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonTargets.cmake CMakeCache.txt CMakeFiles/4.3.2/CMakeCCompiler.cmake CMakeFiles/4.3.2/CMakeCXXCompiler.cmake CMakeFiles/4.3.2/CMakeSystem.cmake: phony
 
 
 #############################################

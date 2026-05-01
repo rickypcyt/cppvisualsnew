@@ -12,6 +12,30 @@
 #include <set>
 #include <vector>
 
+#include <imgui_impl_sdl2.h>
+
+// SDL2-MIGRATED: map SDLK_ constants to SDL scancodes so existing GLFW key calls work.
+static inline SDL_Scancode sdlkToScancode(int key) {
+    switch (key) {
+        case SDLK_TAB:    return SDL_SCANCODE_TAB;
+        case SDLK_LEFT:   return SDL_SCANCODE_LEFT;
+        case SDLK_RIGHT:  return SDL_SCANCODE_RIGHT;
+        case SDLK_UP:     return SDL_SCANCODE_UP;
+        case SDLK_DOWN:   return SDL_SCANCODE_DOWN;
+        case SDLK_ESCAPE: return SDL_SCANCODE_ESCAPE;
+        case SDLK_p:      return SDL_SCANCODE_P;
+        case SDLK_k:      return SDL_SCANCODE_K;
+        case SDLK_g:      return SDL_SCANCODE_G;
+        case SDLK_r:      return SDL_SCANCODE_R;
+        case SDLK_b:      return SDL_SCANCODE_B;
+        case SDLK_i:      return SDL_SCANCODE_I;
+        case SDLK_d:      return SDL_SCANCODE_D;
+        case SDLK_m:      return SDL_SCANCODE_M;
+        default:
+            return SDL_GetScancodeFromKey(static_cast<SDL_Keycode>(key));
+    }
+}
+
 namespace {
 constexpr int kPostProcessModeCount = 33;
 constexpr int kKaleidoscopeModeIndex = 29;
@@ -1182,19 +1206,6 @@ bool Visualizer::initialize(int width, int height) {
     }
     std::cout << "[DEBUG] ImGui setup complete" << std::endl;
 
-    // Set up scroll callback for mouse wheel zoom AFTER ImGui init
-    // Only zoom when mouse is over the ImGui window, not the main visualizer window
-    glfwSetScrollCallback(window_, [](GLFWwindow* window, double xoffset, double yoffset) {
-        Visualizer* vis = static_cast<Visualizer*>(glfwGetWindowUserPointer(window));
-        if (vis) {
-            // Only process zoom if ImGui wants to capture mouse (meaning mouse is over ImGui window)
-            ImGuiIO& io = ImGui::GetIO();
-            if (io.WantCaptureMouse) {
-                vis->handleMouseScroll(xoffset, yoffset);
-            }
-        }
-    });
-
     std::cout << "[DEBUG] MIDI controller disabled by default (use the MIDI panel to connect manually)" << std::endl;
 
     std::cout << "[DEBUG] Getting OpenGL info..." << std::endl;
@@ -1490,60 +1501,97 @@ void Visualizer::shutdown() {
 
     // Destroy ImGui window first (if it exists)
     if (imguiWindow_) {
-        glfwDestroyWindow(imguiWindow_);
+        SDL_DestroyWindow(imguiWindow_);
         imguiWindow_ = nullptr;
     }
 
     if (window_) {
-        glfwDestroyWindow(window_);
+        SDL_DestroyWindow(window_);
         window_ = nullptr;
     }
-    glfwTerminate();
+    SDL_Quit();
 }
 
 bool Visualizer::shouldClose() {
-    // Close if main visuals window is closed
-    if (window_ && glfwWindowShouldClose(window_)) {
-        return true;
+    // Check if window was destroyed externally (e.g., by Hyprland)
+    if (window_) {
+        Uint32 flags = SDL_GetWindowFlags(window_);
+        if (flags == 0) {
+            // Window was destroyed
+            quitRequested_ = true;
+        } else if (flags & SDL_WINDOW_HIDDEN) {
+            // Window was hidden by compositor
+            quitRequested_ = true;
+        }
     }
-    // Also close if ImGui controls window is closed (if it exists)
-    if (imguiWindow_ && glfwWindowShouldClose(imguiWindow_)) {
-        return true;
-    }
-    return false;
+    return quitRequested_;
 }
 
 void Visualizer::beginFrame() {
-    glfwPollEvents();
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        if (imguiInitialized_) {
+            ImGui_ImplSDL2_ProcessEvent(&event);
+        }
 
-    if (window_) {
-        int fbWidth = 0;
-        int fbHeight = 0;
-        glfwGetFramebufferSize(window_, &fbWidth, &fbHeight);
-        if (fbWidth > 0 && fbHeight > 0 && (fbWidth != windowWidth_ || fbHeight != windowHeight_)) {
-            windowWidth_ = fbWidth;
-            windowHeight_ = fbHeight;
-            
-            // Use fixed render resolution if decoupling is enabled
-            if (useResolutionDecoupling_) {
-                glViewport(0, 0, renderWidth_, renderHeight_);
-                proceduralLayer_.resize(renderWidth_, renderHeight_);
-                postProcessor_.resize(renderWidth_, renderHeight_);
-            } else {
-                glViewport(0, 0, windowWidth_, windowHeight_);
-                proceduralLayer_.resize(windowWidth_, windowHeight_);
-                postProcessor_.resize(windowWidth_, windowHeight_);
+        switch (event.type) {
+            case SDL_QUIT:
+                quitRequested_ = true;
+                break;
+            case SDL_WINDOWEVENT:
+                if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
+                    quitRequested_ = true;
+                }
+                // Handle Wayland compositor killing the window
+                if (event.window.event == SDL_WINDOWEVENT_HIDDEN) {
+                    quitRequested_ = true;
+                }
+                if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && window_) {
+                    Uint32 winId = SDL_GetWindowID(window_);
+                    if (event.window.windowID == winId) {
+                        int fbW = 0, fbH = 0;
+                        SDL_GL_GetDrawableSize(window_, &fbW, &fbH);
+                        if (fbW > 0 && fbH > 0 &&
+                            (fbW != windowWidth_ || fbH != windowHeight_)) {
+                            windowWidth_  = fbW;
+                            windowHeight_ = fbH;
+                            if (useResolutionDecoupling_) {
+                                glViewport(0, 0, renderWidth_, renderHeight_);
+                                proceduralLayer_.resize(renderWidth_, renderHeight_);
+                                postProcessor_.resize(renderWidth_, renderHeight_);
+                            } else {
+                                glViewport(0, 0, windowWidth_, windowHeight_);
+                                proceduralLayer_.resize(windowWidth_, windowHeight_);
+                                postProcessor_.resize(windowWidth_, windowHeight_);
+                            }
+                        }
+                    }
+                }
+                break;
+            case SDL_MOUSEWHEEL: {
+                ImGuiIO& io = ImGui::GetIO();
+                if (io.WantCaptureMouse) {
+                    handleMouseScroll(
+                        static_cast<double>(event.wheel.x),
+                        static_cast<double>(event.wheel.y));
+                }
+                break;
             }
+            default:
+                break;
         }
     }
 
     if (imguiInitialized_ && window_) {
         static double lastTabToggle = 0.0;
-        double now = glfwGetTime();
-        bool tabDown = isKeyPressed(GLFW_KEY_TAB);
-        ImGuiIO *io = ImGui::GetCurrentContext() ? &ImGui::GetIO() : nullptr;
-        bool allowToggle =
-            !tabDown ? false : (!io || !io->WantCaptureKeyboard || !showImGuiWindow_);
+        static double lastModeToggle = 0.0;
+        static double lastOpacityAdjust = 0.0;
+        static double lastPostProcessToggle = 0.0;
+        double now = SDL_GetTicks() / 1000.0;
+
+        bool tabDown = isKeyPressed(SDLK_TAB);
+        ImGuiIO* io = ImGui::GetCurrentContext() ? &ImGui::GetIO() : nullptr;
+        bool allowToggle = tabDown && (!io || !io->WantCaptureKeyboard || !showImGuiWindow_);
 
         if (allowToggle && (now - lastTabToggle) > 0.25) {
             showImGuiWindow_ = !showImGuiWindow_;
@@ -1551,102 +1599,84 @@ void Visualizer::beginFrame() {
                 showDeviceSelector_ = false;
                 showDiagnosticInfo_ = false;
                 showConsoleMode_ = false;
-                // Note: showCurrentEffects_ remains independent and is not affected by TAB
             }
             lastTabToggle = now;
         }
 
         if (!io || !io->WantCaptureKeyboard) {
-            static double lastModeToggle = 0.0;
-            static double lastOpacityAdjust = 0.0;
-            static double lastPostProcessToggle = 0.0;
             if ((now - lastModeToggle) > 0.15) {
-                if (isKeyPressed(GLFW_KEY_RIGHT)) {
-                    // Change Slot 1 mode - skip disabled shaders
-                    if (kMaxProceduralSlots > 0) {
-                        int currentMode = proceduralSlots_[0].mode;
-                        int newMode = findNextEnabledMode(currentMode, true); // forward
-                        if (newMode != currentMode) {
-                            applyMainProceduralMode(newMode, "keyboard-right");
-                        }
+                if (isKeyPressed(SDLK_RIGHT) && kMaxProceduralSlots > 0) {
+                    int newMode = findNextEnabledMode(proceduralSlots_[0].mode, true);
+                    if (newMode != proceduralSlots_[0].mode) {
+                        applyMainProceduralMode(newMode, "keyboard-right");
                     }
-                    lastModeToggle = now;
-                } else if (isKeyPressed(GLFW_KEY_LEFT)) {
-                    // Change Slot 1 mode - skip disabled shaders
-                    if (kMaxProceduralSlots > 0) {
-                        int currentMode = proceduralSlots_[0].mode;
-                        int newMode = findNextEnabledMode(currentMode, false); // backward
-                        if (newMode != currentMode) {
-                            applyMainProceduralMode(newMode);
-                        }
+                } else if (isKeyPressed(SDLK_LEFT) && kMaxProceduralSlots > 0) {
+                    int newMode = findNextEnabledMode(proceduralSlots_[0].mode, false);
+                    if (newMode != proceduralSlots_[0].mode) {
+                        applyMainProceduralMode(newMode);
                     }
-                    lastModeToggle = now;
                 }
+                lastModeToggle = now;
             }
 
             if ((now - lastOpacityAdjust) > 0.12) {
                 constexpr float kOpacityStep = 0.05f;
                 bool adjusted = false;
-                if (isKeyPressed(GLFW_KEY_UP)) {
-                    // Change Slot 1 opacity
-                    if (kMaxProceduralSlots > 0) {
-                        proceduralSlots_[0].opacity += kOpacityStep;
-                        proceduralLayerOpacity_ = proceduralSlots_[0].opacity;
-                        proceduralSlots_[0].enabled = true; // Always ensure Slot 1 is enabled
-                        showProceduralLayer_ = true;
-                    }
+                if (isKeyPressed(SDLK_UP) && kMaxProceduralSlots > 0) {
+                    proceduralSlots_[0].opacity += kOpacityStep;
+                    proceduralLayerOpacity_ = proceduralSlots_[0].opacity;
+                    proceduralSlots_[0].enabled = true;
+                    showProceduralLayer_ = true;
                     adjusted = true;
-                } else if (isKeyPressed(GLFW_KEY_DOWN)) {
-                    // Change Slot 1 opacity
-                    if (kMaxProceduralSlots > 0) {
-                        proceduralSlots_[0].opacity -= kOpacityStep;
-                        proceduralLayerOpacity_ = proceduralSlots_[0].opacity;
-                        proceduralSlots_[0].enabled = true; // Always ensure Slot 1 is enabled
-                        showProceduralLayer_ = true;
-                    }
+                } else if (isKeyPressed(SDLK_DOWN) && kMaxProceduralSlots > 0) {
+                    proceduralSlots_[0].opacity -= kOpacityStep;
+                    proceduralLayerOpacity_ = proceduralSlots_[0].opacity;
+                    proceduralSlots_[0].enabled = true;
+                    showProceduralLayer_ = true;
                     adjusted = true;
                 }
 
                 if (adjusted) {
                     if (kMaxProceduralSlots > 0) {
-                        // Clamp Slot 1 opacity
-                        if (proceduralSlots_[0].opacity < 0.0f) {
-                            proceduralSlots_[0].opacity = 0.0f;
-                        } else if (proceduralSlots_[0].opacity > 1.0f) {
-                            proceduralSlots_[0].opacity = 1.0f;
-                        }
+                        proceduralSlots_[0].opacity = std::clamp(
+                            proceduralSlots_[0].opacity, 0.0f, 1.0f);
                         proceduralLayerOpacity_ = proceduralSlots_[0].opacity;
                     } else {
-                        // Fallback to global opacity
-                        if (proceduralLayerOpacity_ < 0.0f) {
-                            proceduralLayerOpacity_ = 0.0f;
-                        } else if (proceduralLayerOpacity_ > 1.0f) {
-                            proceduralLayerOpacity_ = 1.0f;
-                        }
+                        proceduralLayerOpacity_ = std::clamp(
+                            proceduralLayerOpacity_, 0.0f, 1.0f);
                     }
                     lastOpacityAdjust = now;
                 }
             }
 
-            if ((now - lastPostProcessToggle) > 0.25) {
-                if (isKeyPressed(GLFW_KEY_P)) {
-                    // Enable slot 1 (index 0) and cycle its mode forward
-                    auto& slot = postProcessSlots_[0];
-                    slot.enabled = true;
-                    slot.mode = (slot.mode + 1) % kPostProcessModeCount;
-                    if (slot.mode == 0) {
-                        slot.mode = 1; // Skip mode 0 (no effect)
-                    }
-                    slot.strength = 1.0f;
-                    slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
-                    lastPostProcessToggle = now;
-                }
-                // 'O' key now controls corner orbs instead of post-processing
+            if ((now - lastPostProcessToggle) > 0.25 && isKeyPressed(SDLK_p)) {
+                auto& slot = postProcessSlots_[0];
+                slot.enabled = true;
+                slot.mode = (slot.mode + 1) % kPostProcessModeCount;
+                if (slot.mode == 0) slot.mode = 1;
+                slot.strength = 1.0f;
+                slot.rgbAdjust = {1.0f, 1.0f, 1.0f};
+                lastPostProcessToggle = now;
             }
         }
     }
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    // DEBUG: Test OpenGL context with red background
+    // Ensure OpenGL context is current on main window
+    SDL_GL_MakeCurrent(window_, glContext_);
+
+    // DEBUG: Check if OpenGL is actually active
+    static bool checkedGL = false;
+    if (!checkedGL) {
+        const char* version = (const char*)glGetString(GL_VERSION);
+        const char* vendor = (const char*)glGetString(GL_VENDOR);
+        std::cout << "[DEBUG] OpenGL context check - Version: " << (version ? version : "NULL")
+                  << " Vendor: " << (vendor ? vendor : "NULL") << std::endl;
+        checkedGL = true;
+    }
+
+    // DEBUG: Test OpenGL context with red background
+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
@@ -1656,11 +1686,14 @@ void Visualizer::endFrame() {
     // Fences are only used for profiling/debugging now
     
     // Process Wayland events before swap to reduce blocking
-    glfwPollEvents();
-    
-    // Profile glfwSwapBuffers to detect presentation stalls
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        // Events are handled in main loop, just drain queue here
+    }
+
+    // Profile SDL_GL_SwapWindow to detect presentation stalls
     auto swapStart = std::chrono::high_resolution_clock::now();
-    glfwSwapBuffers(window_);
+    SDL_GL_SwapWindow(window_);
     auto swapEnd = std::chrono::high_resolution_clock::now();
     float swapTime = std::chrono::duration<float, std::milli>(swapEnd - swapStart).count();
     
@@ -1914,7 +1947,7 @@ void Visualizer::render() {
             }
             
             // Check cooldown period (prevent rapid oscillation)
-            double currentTime = glfwGetTime();
+            double currentTime = SDL_GetTicks() / 1000.0;
             bool inCooldown = (currentTime - lastScaleChangeTime_) < (scaleCooldownMs_ / 1000.0);
             
             // Adaptive scaling logic with hysteresis bands
@@ -2067,22 +2100,36 @@ void Visualizer::render() {
         renderGUI();
     }
 
+    // DEBUG: Set red background in main window
+    SDL_GL_MakeCurrent(window_, glContext_);
+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
     // FASE 0.1: Calculate frame time CPU and FPS
     auto frameEnd = std::chrono::high_resolution_clock::now();
     frameTimeCPU_ = std::chrono::duration<float, std::milli>(frameEnd - frameStart).count();
     // Use real frame time (deltaTime_) for FPS calculation, not just CPU time
-    fps_ = (deltaTime_ > 0.0f) ? (1.0f / deltaTime_) : 0.0f;
+    // Filter out invalid FPS values (deltaTime too small or too large)
+    float calculatedFps = (deltaTime_ > 0.0001f && deltaTime_ < 1.0f) ? (1.0f / deltaTime_) : 0.0f;
+    fps_ = calculatedFps;
 
     // Accumulate session statistics
     totalFramesRendered_++;
     totalSessionTime_ += deltaTime_; // Use real frame time, not just CPU
-    avgSessionFPS_ = (avgSessionFPS_ * (totalFramesRendered_ - 1) + fps_) / totalFramesRendered_;
-    avgSessionCPUTime_ = (avgSessionCPUTime_ * (totalFramesRendered_ - 1) + frameTimeCPU_) / totalFramesRendered_;
-    if (gpuQueryAvailable_) {
-        avgSessionGPUTime_ = (avgSessionGPUTime_ * (totalFramesRendered_ - 1) + lastGpuFrameTimeMs_) / totalFramesRendered_;
+
+    // Only update FPS stats after a few frames to avoid startup skew
+    if (totalFramesRendered_ > 5) {
+        avgSessionFPS_ = (avgSessionFPS_ * (totalFramesRendered_ - 1) + fps_) / totalFramesRendered_;
+        avgSessionCPUTime_ = (avgSessionCPUTime_ * (totalFramesRendered_ - 1) + frameTimeCPU_) / totalFramesRendered_;
+        if (gpuQueryAvailable_) {
+            avgSessionGPUTime_ = (avgSessionGPUTime_ * (totalFramesRendered_ - 1) + lastGpuFrameTimeMs_) / totalFramesRendered_;
+        }
+        // Filter min/max FPS to reasonable ranges
+        if (fps_ > 0.0f && fps_ < 10000.0f) {
+            if (fps_ < minFPS_) minFPS_ = fps_;
+            if (fps_ > maxFPS_) maxFPS_ = fps_;
+        }
     }
-    if (fps_ < minFPS_) minFPS_ = fps_;
-    if (fps_ > maxFPS_) maxFPS_ = fps_;
     
     // Accumulate CPU time statistics
     avgRenderTime = (avgRenderTime * sampleCount + frameTimeCPU_) / (sampleCount + 1);
@@ -2115,7 +2162,7 @@ void Visualizer::handleVisualizationShortcuts() {
     }
 
     constexpr double kToggleCooldown = 0.35;
-    double now = glfwGetTime();
+    double now = SDL_GetTicks() / 1000.0;
 
     static double lastOrbsToggle = 0.0;
     static double lastKaleidoToggle = 0.0;
@@ -2132,11 +2179,11 @@ void Visualizer::handleVisualizationShortcuts() {
 
     // Post-processing effects are handled in render() to avoid conflicts
     
-    bool kaleidoKeyDown = isKeyPressed(GLFW_KEY_K);
-    bool gKeyDown = isKeyPressed(GLFW_KEY_G);
-    bool rKeyDown = isKeyPressed(GLFW_KEY_R);
-    bool bKeyDown = isKeyPressed(GLFW_KEY_B);
-    bool iKeyDown = isKeyPressed(GLFW_KEY_I);
+    bool kaleidoKeyDown = isKeyPressed(SDLK_k);
+    bool gKeyDown = isKeyPressed(SDLK_g);
+    bool rKeyDown = isKeyPressed(SDLK_r);
+    bool bKeyDown = isKeyPressed(SDLK_b);
+    bool iKeyDown = isKeyPressed(SDLK_i);
 
     auto updatePostProcessState = [this]() {
         bool anyActive = false;
@@ -2339,40 +2386,43 @@ void Visualizer::printStatisticsOnShutdown() {
 }
 
 bool Visualizer::setupOpenGL() {
-    std::cout << "[DEBUG] Initializing OpenGL..." << std::endl;
+    std::cout << "[DEBUG] Initializing SDL2 and OpenGL..." << std::endl;
 
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        std::cerr << "Failed to initialize SDL2: " << SDL_GetError() << std::endl;
         return false;
     }
-    std::cout << "[DEBUG] GLFW initialized successfully" << std::endl;
+    std::cout << "[DEBUG] SDL2 initialized successfully" << std::endl;
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2); // Use OpenGL 2.1 for compatibility
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE); // Don't force core profile
-    glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE); // Keep fullscreen window rendering when losing focus
+    // Set OpenGL attributes
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2); // Use OpenGL 2.1 for compatibility
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
     
     // Wayland-specific hints for better performance
-    glfwWindowHint(GLFW_REFRESH_RATE, GLFW_DONT_CARE); // Let compositor decide refresh rate
-    glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE); // Make window visible immediately
-
-    // Try with OpenGL ES if desktop OpenGL fails
-    bool useGLES = false;
+    SDL_GL_SetSwapInterval(0); // Let compositor decide refresh rate (vsync controlled later)
 
     // === CREATE MAIN VISUALS WINDOW ===
     std::cout << "[DEBUG] Creating main visuals window (" << windowWidth_ << "x" << windowHeight_ << ")..." << std::endl;
-    window_ = glfwCreateWindow(windowWidth_, windowHeight_, "Audio Visualizer - Visuals", nullptr, nullptr);
+    window_ = SDL_CreateWindow("Audio Visualizer - Visuals", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                windowWidth_, windowHeight_, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
     if (!window_) {
-        std::cerr << "Failed to create main GLFW window" << std::endl;
+        std::cerr << "Failed to create main SDL2 window: " << SDL_GetError() << std::endl;
+        SDL_Quit();
         return false;
     }
     std::cout << "[DEBUG] Main visuals window created successfully" << std::endl;
 
-    glfwMakeContextCurrent(window_);
-    std::cout << "[DEBUG] OpenGL context made current on main window" << std::endl;
+    glContext_ = SDL_GL_CreateContext(window_);
+    if (!glContext_) {
+        std::cerr << "Failed to create OpenGL context: " << SDL_GetError() << std::endl;
+        SDL_DestroyWindow(window_);
+        SDL_Quit();
+        return false;
+    }
 
-    // Set window user pointer for callbacks
-    glfwSetWindowUserPointer(window_, this);
+    SDL_GL_MakeCurrent(window_, glContext_);
+    std::cout << "[DEBUG] OpenGL context made current on main window" << std::endl;
 
     // Initialize GLEW with experimental features
     glewExperimental = GL_TRUE;
@@ -2399,26 +2449,26 @@ bool Visualizer::setupOpenGL() {
     // === CREATE SEPARATE IMGUI CONTROLS WINDOW ===
     // Shared OpenGL context with main window
     std::cout << "[DEBUG] Creating ImGui controls window (" << imguiWindowWidth_ << "x" << imguiWindowHeight_ << ")..." << std::endl;
-    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-    glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
-    imguiWindow_ = glfwCreateWindow(imguiWindowWidth_, imguiWindowHeight_, "Audio Visualizer - Controls", nullptr, window_);
+    imguiWindow_ = SDL_CreateWindow("Audio Visualizer - Controls", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                     imguiWindowWidth_, imguiWindowHeight_, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
     if (!imguiWindow_) {
-        std::cerr << "Failed to create ImGui window" << std::endl;
+        std::cerr << "Failed to create ImGui window: " << SDL_GetError() << std::endl;
         return false;
     }
     std::cout << "[DEBUG] ImGui controls window created successfully" << std::endl;
 
+    // Share OpenGL context with main window (SDL handles this automatically when windows share the same context)
     // Position ImGui window to the right of main window
     int mx, my;
-    glfwGetWindowPos(window_, &mx, &my);
-    glfwSetWindowPos(imguiWindow_, mx + windowWidth_ + 20, my);
-    glfwShowWindow(imguiWindow_);
+    SDL_GetWindowPosition(window_, &mx, &my);
+    SDL_SetWindowPosition(imguiWindow_, mx + windowWidth_ + 20, my);
+    SDL_ShowWindow(imguiWindow_);
 
     std::cout << "[INFO] ImGui configured as separate window (multi-monitor ready)" << std::endl;
 
     // Disable vsync to prevent compositor from pausing rendering when window not visible
     // This is critical for Hyprland/Wayland where frame callbacks stop on inactive workspaces
-    glfwSwapInterval(0);
+    SDL_GL_SetSwapInterval(0);
 
     // Detect available monitors for multi-monitor support
     detectMonitors();
@@ -2431,13 +2481,9 @@ bool Visualizer::setupOpenGL() {
 }
 
 bool Visualizer::isKeyPressed(int key) const {
-    if (window_ && glfwGetKey(window_, key) == GLFW_PRESS) {
-        return true;
-    }
-    if (imguiWindow_ && glfwGetKey(imguiWindow_, key) == GLFW_PRESS) {
-        return true;
-    }
-    return false;
+    const Uint8* state = SDL_GetKeyboardState(nullptr);
+    SDL_Scancode sc = sdlkToScancode(key);
+    return sc != SDL_SCANCODE_UNKNOWN && state[sc] != 0;
 }
 
 bool Visualizer::setupGeometry() {
@@ -2989,9 +3035,9 @@ void Visualizer::setupDeviceList() {
 
 void Visualizer::renderGUI() {
     // Check for 'D' key toggle (only for device menu when ImGui is not initialized)
-    if (isKeyPressed(GLFW_KEY_D)) {
+    if (isKeyPressed(SDLK_d)) {
         static double lastPress = 0.0;
-        double currentTime = glfwGetTime();
+        double currentTime = SDL_GetTicks() / 1000.0;
         if (currentTime - lastPress > 0.5) { // 500ms debounce
             showDeviceMenu_ = !showDeviceMenu_;
             lastPress = currentTime;
@@ -3048,7 +3094,7 @@ bool Visualizer::showDeviceSelector() {
     }
 
     // Handle ESC
-    if (isKeyPressed(GLFW_KEY_ESCAPE)) {
+    if (isKeyPressed(SDLK_ESCAPE)) {
         showDeviceMenu_ = false;
     }
 
@@ -4595,352 +4641,217 @@ void Visualizer::setPostProcessEffectEnabled(int modeIndex, bool enabled) {
 void Visualizer::detectMonitors() {
     monitors_.clear();
     monitorNames_.clear();
-    
-    int count;
-    GLFWmonitor** glfwMonitors = glfwGetMonitors(&count);
-    
-    if (!glfwMonitors || count == 0) {
-        std::cerr << "[MONITOR] No monitors detected" << std::endl;
+
+    int count = SDL_GetNumVideoDisplays();
+    if (count < 1) {
+        std::cerr << "[MONITOR] No displays detected: " << SDL_GetError() << std::endl;
         return;
     }
-    
-    std::cout << "[MONITOR] Detected " << count << " monitor(s):" << std::endl;
-    
+    std::cout << "[MONITOR] Detected " << count << " display(s):" << std::endl;
+
     for (int i = 0; i < count; ++i) {
-        GLFWmonitor* monitor = glfwMonitors[i];
-        monitors_.push_back(monitor);
-        
-        const char* name = glfwGetMonitorName(monitor);
+        monitors_.push_back(i);
+        const char* name = SDL_GetDisplayName(i);
         monitorNames_.push_back(name ? name : "Unknown");
-        
-        int x, y;
-        glfwGetMonitorPos(monitor, &x, &y);
-        
-        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-        int width = mode ? mode->width : 0;
-        int height = mode ? mode->height : 0;
-        
-        std::cout << "  [" << i << "] " << monitorNames_.back() 
-                  << " @ (" << x << "," << y << ") " 
-                  << width << "x" << height << std::endl;
+
+        SDL_Rect bounds{};
+        SDL_GetDisplayBounds(i, &bounds);
+        std::cout << "  [" << i << "] " << monitorNames_.back()
+                  << " @ (" << bounds.x << "," << bounds.y << ") "
+                  << bounds.w << "x" << bounds.h << std::endl;
     }
-    
-    // Find which monitor the window is currently on
+
     if (window_) {
-        int wx, wy;
-        glfwGetWindowPos(window_, &wx, &wy);
-        
-        for (size_t i = 0; i < monitors_.size(); ++i) {
-            int mx, my;
-            glfwGetMonitorPos(monitors_[i], &mx, &my);
-            const GLFWvidmode* mode = glfwGetVideoMode(monitors_[i]);
-            
-            if (wx >= mx && wx < mx + mode->width &&
-                wy >= my && wy < my + mode->height) {
-                currentMonitorIndex_ = static_cast<int>(i);
-                break;
-            }
-        }
+        currentMonitorIndex_ = SDL_GetWindowDisplayIndex(window_);
+        if (currentMonitorIndex_ < 0) currentMonitorIndex_ = 0;
     }
-    
-    std::cout << "[MONITOR] Current monitor index: " << currentMonitorIndex_ << std::endl;
+    std::cout << "[MONITOR] Current display index: " << currentMonitorIndex_ << std::endl;
 }
 
 void Visualizer::moveToMonitor(int monitorIndex) {
-    if (!window_ || monitorIndex < 0 || monitorIndex >= static_cast<int>(monitors_.size())) {
-        std::cerr << "[MONITOR] Invalid monitor index: " << monitorIndex << std::endl;
+    if (!window_ || monitorIndex < 0 ||
+        monitorIndex >= static_cast<int>(monitors_.size())) {
+        std::cerr << "[MONITOR] Invalid display index: " << monitorIndex << std::endl;
         return;
     }
-    
-    GLFWmonitor* target = monitors_[monitorIndex];
-    int mx, my;
-    glfwGetMonitorPos(target, &mx, &my);
-    const GLFWvidmode* mode = glfwGetVideoMode(target);
-    
-    if (!mode) {
-        std::cerr << "[MONITOR] Failed to get video mode for monitor " << monitorIndex << std::endl;
-        return;
-    }
-    
-    std::cout << "[MONITOR] Moving window to monitor " << monitorIndex 
+
+    SDL_Rect bounds{};
+    SDL_GetDisplayBounds(monitorIndex, &bounds);
+
+    std::cout << "[MONITOR] Moving window to display " << monitorIndex
               << " (" << monitorNames_[monitorIndex] << ")" << std::endl;
-    
-    // For Hyprland, we set windowed mode first, then position
-    // The compositor will handle the actual placement
-    glfwSetWindowMonitor(window_, nullptr, mx + 50, my + 50, 
-                         windowWidth_, windowHeight_, 0);
-    
+
+    SDL_SetWindowFullscreen(window_, 0);
+    SDL_SetWindowPosition(window_, bounds.x + 50, bounds.y + 50);
+
     currentMonitorIndex_ = monitorIndex;
-    
-    // Position ImGui window relative to main window
+
     if (imguiWindow_ && !multiMonitorMode_) {
-        glfwSetWindowPos(imguiWindow_, mx + windowWidth_ + 100, my + 50);
+        SDL_SetWindowPosition(imguiWindow_, bounds.x + windowWidth_ + 100, bounds.y + 50);
     }
 }
 
 void Visualizer::toggleMultiMonitorMode() {
     multiMonitorMode_ = !multiMonitorMode_;
-    
-    if (monitors_.size() < 2) {
-        std::cout << "[MONITOR] Multi-monitor mode requires 2+ monitors" << std::endl;
+
+    if (static_cast<int>(monitors_.size()) < 2) {
+        std::cout << "[MONITOR] Multi-monitor mode requires 2+ displays" << std::endl;
         multiMonitorMode_ = false;
         return;
     }
-    
+
     if (multiMonitorMode_) {
-        // Enable multi-monitor: render on external (last monitor), controls on primary
         std::cout << "[MONITOR] Enabling multi-monitor mode" << std::endl;
-        
-        // Move main window to external monitor (last one)
         int externalIndex = static_cast<int>(monitors_.size()) - 1;
-        moveToMonitor(externalIndex);
-        
-        // Optionally fullscreen the external monitor window
-        GLFWmonitor* external = monitors_[externalIndex];
-        const GLFWvidmode* mode = glfwGetVideoMode(external);
-        
-        // Store window size before fullscreen
-        windowWidth_ = mode->width;
-        windowHeight_ = mode->height;
-        
-        glfwSetWindowMonitor(window_, external, 0, 0, mode->width, mode->height, mode->refreshRate);
-        
-        // Position ImGui window on primary monitor
+
+        SDL_Rect extBounds{};
+        SDL_GetDisplayBounds(externalIndex, &extBounds);
+
+        SDL_DisplayMode mode{};
+        SDL_GetCurrentDisplayMode(externalIndex, &mode);
+
+        windowWidth_  = mode.w;
+        windowHeight_ = mode.h;
+
+        SDL_SetWindowPosition(window_, extBounds.x, extBounds.y);
+        SDL_SetWindowFullscreen(window_, SDL_WINDOW_FULLSCREEN_DESKTOP);
+
         if (imguiWindow_) {
-            int px, py;
-            glfwGetMonitorPos(monitors_[0], &px, &py);
-            const GLFWvidmode* primaryMode = glfwGetVideoMode(monitors_[0]);
-            
-            // Center ImGui window on primary monitor
-            int imguiX = px + (primaryMode->width - imguiWindowWidth_) / 2;
-            int imguiY = py + (primaryMode->height - imguiWindowHeight_) / 2;
-            glfwSetWindowPos(imguiWindow_, imguiX, imguiY);
-            glfwShowWindow(imguiWindow_);
+            SDL_Rect primaryBounds{};
+            SDL_GetDisplayBounds(0, &primaryBounds);
+
+            int ix = primaryBounds.x + (primaryBounds.w - imguiWindowWidth_) / 2;
+            int iy = primaryBounds.y + (primaryBounds.h - imguiWindowHeight_) / 2;
+            SDL_SetWindowFullscreen(imguiWindow_, 0);
+            SDL_SetWindowPosition(imguiWindow_, ix, iy);
+            SDL_ShowWindow(imguiWindow_);
         }
-        
         std::cout << "[MONITOR] Render on external, controls on primary" << std::endl;
     } else {
-        // Disable multi-monitor: return to single window mode
         std::cout << "[MONITOR] Disabling multi-monitor mode" << std::endl;
-        
-        // Exit fullscreen if in it
-        GLFWmonitor* monitor = glfwGetWindowMonitor(window_);
-        if (monitor) {
-            glfwSetWindowMonitor(window_, nullptr, 100, 100, 1280, 720, 0);
-        }
-        
-        // Move both windows to primary monitor
-        if (!monitors_.empty()) {
-            moveToMonitor(0);
-        }
+        SDL_SetWindowFullscreen(window_, 0);
+        if (!monitors_.empty()) moveToMonitor(0);
     }
 }
 
 void Visualizer::renderMonitorSelector() {
-    if (monitors_.empty()) {
-        detectMonitors();
-    }
-    
+    if (monitors_.empty()) detectMonitors();
+
     if (ImGui::CollapsingHeader("🖥️ Multi-Monitor Setup")) {
-        ImGui::Text("Detected %zu monitor(s):", monitors_.size());
-        
-        for (size_t i = 0; i < monitors_.size(); ++i) {
-            bool isCurrent = (currentMonitorIndex_ == static_cast<int>(i));
-            bool isSelected = ImGui::RadioButton(
-                (std::to_string(i) + ": " + monitorNames_[i]).c_str(), 
-                &currentMonitorIndex_, static_cast<int>(i));
-            
-            if (isSelected && !isCurrent) {
-                moveToMonitor(static_cast<int>(i));
+        ImGui::Text("Detected %zu display(s):", monitors_.size());
+
+        for (int i = 0; i < static_cast<int>(monitors_.size()); ++i) {
+            SDL_Rect bounds{};
+            SDL_GetDisplayBounds(i, &bounds);
+            std::string label = std::to_string(i) + ": " + monitorNames_[i]
+                              + " (" + std::to_string(bounds.w) + "x"
+                              + std::to_string(bounds.h) + ")";
+
+            bool isSelected = (currentMonitorIndex_ == i);
+            if (ImGui::RadioButton(label.c_str(), isSelected)) {
+                if (!isSelected) moveToMonitor(i);
             }
         }
-        
+
         ImGui::Separator();
-        
-        if (monitors_.size() >= 2) {
+
+        if (static_cast<int>(monitors_.size()) >= 2) {
             const char* modeLabel = multiMonitorMode_ ? "Disable" : "Enable";
             if (ImGui::Button((std::string(modeLabel) + " Multi-Monitor Mode").c_str())) {
                 toggleMultiMonitorMode();
             }
-            
             if (multiMonitorMode_) {
-                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.5f, 1.0f), 
+                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.5f, 1.0f),
                     "Active: Render on external, controls on laptop");
             }
         } else {
-            ImGui::TextDisabled("Connect 2+ monitors for multi-display mode");
+            ImGui::TextDisabled("Connect 2+ displays for multi-display mode");
         }
-        
+
         ImGui::Separator();
         ImGui::TextWrapped("Tip: Press 'M' to toggle multi-monitor mode quickly");
     }
 }
 
 // Fullscreen support implementations
+bool Visualizer::isMainWindowFullscreen() const {
+    if (!window_) return false;
+    Uint32 flags = SDL_GetWindowFlags(window_);
+    return (flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)) != 0;
+}
+
+bool Visualizer::isImGuiWindowFullscreen() const {
+    if (!imguiWindow_) return false;
+    Uint32 flags = SDL_GetWindowFlags(imguiWindow_);
+    return (flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)) != 0;
+}
+
 void Visualizer::toggleMainWindowFullscreen() {
     if (!window_) return;
 
-    GLFWmonitor* currentMonitor = glfwGetWindowMonitor(window_);
-    if (currentMonitor) {
-        // Currently fullscreen - switch to windowed
-        glfwSetWindowMonitor(window_, nullptr, 
-                             windowedPosX_, windowedPosY_, 
-                             windowedWidth_, windowedHeight_, 0);
+    if (isMainWindowFullscreen()) {
+        SDL_SetWindowFullscreen(window_, 0);
+        SDL_SetWindowSize(window_, windowedWidth_, windowedHeight_);
+        SDL_SetWindowPosition(window_, windowedPosX_, windowedPosY_);
         std::cout << "[FULLSCREEN] Main window: switched to windowed mode" << std::endl;
     } else {
-        // Currently windowed - save position/size and go fullscreen
-        glfwGetWindowPos(window_, &windowedPosX_, &windowedPosY_);
-        glfwGetWindowSize(window_, &windowedWidth_, &windowedHeight_);
-        
-        // Get the monitor the window is currently on
-        int wx, wy;
-        glfwGetWindowPos(window_, &wx, &wy);
-        
-        GLFWmonitor* targetMonitor = nullptr;
-        for (size_t i = 0; i < monitors_.size(); ++i) {
-            int mx, my;
-            glfwGetMonitorPos(monitors_[i], &mx, &my);
-            const GLFWvidmode* mode = glfwGetVideoMode(monitors_[i]);
-            if (wx >= mx && wx < mx + mode->width && wy >= my && wy < my + mode->height) {
-                targetMonitor = monitors_[i];
-                break;
-            }
-        }
-        
-        // Fallback to primary monitor if not found
-        if (!targetMonitor) {
-            targetMonitor = glfwGetPrimaryMonitor();
-        }
-        
-        if (targetMonitor) {
-            const GLFWvidmode* mode = glfwGetVideoMode(targetMonitor);
-            glfwSetWindowMonitor(window_, targetMonitor, 0, 0, 
-                                 mode->width, mode->height, mode->refreshRate);
-            std::cout << "[FULLSCREEN] Main window: switched to fullscreen on monitor" << std::endl;
-        }
+        SDL_GetWindowPosition(window_, &windowedPosX_, &windowedPosY_);
+        SDL_GetWindowSize(window_, &windowedWidth_, &windowedHeight_);
+
+        int displayIndex = SDL_GetWindowDisplayIndex(window_);
+        SDL_SetWindowFullscreen(window_, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        std::cout << "[FULLSCREEN] Main window: switched to fullscreen on display "
+                  << displayIndex << std::endl;
     }
 }
 
 void Visualizer::toggleImGuiWindowFullscreen() {
     if (!imguiWindow_) return;
 
-    GLFWmonitor* currentMonitor = glfwGetWindowMonitor(imguiWindow_);
-    if (currentMonitor) {
-        // Currently fullscreen - switch to windowed
-        glfwSetWindowMonitor(imguiWindow_, nullptr, 
-                             imguiWindowedPosX_, imguiWindowedPosY_, 
-                             imguiWindowedWidth_, imguiWindowedHeight_, 0);
+    if (isImGuiWindowFullscreen()) {
+        SDL_SetWindowFullscreen(imguiWindow_, 0);
+        SDL_SetWindowSize(imguiWindow_, imguiWindowedWidth_, imguiWindowedHeight_);
+        SDL_SetWindowPosition(imguiWindow_, imguiWindowedPosX_, imguiWindowedPosY_);
         std::cout << "[FULLSCREEN] ImGui window: switched to windowed mode" << std::endl;
     } else {
-        // Currently windowed - save position/size and go fullscreen
-        glfwGetWindowPos(imguiWindow_, &imguiWindowedPosX_, &imguiWindowedPosY_);
-        glfwGetWindowSize(imguiWindow_, &imguiWindowedWidth_, &imguiWindowedHeight_);
-        
-        // Get the monitor the window is currently on
-        int wx, wy;
-        glfwGetWindowPos(imguiWindow_, &wx, &wy);
-        
-        GLFWmonitor* targetMonitor = nullptr;
-        for (size_t i = 0; i < monitors_.size(); ++i) {
-            int mx, my;
-            glfwGetMonitorPos(monitors_[i], &mx, &my);
-            const GLFWvidmode* mode = glfwGetVideoMode(monitors_[i]);
-            if (wx >= mx && wx < mx + mode->width && wy >= my && wy < my + mode->height) {
-                targetMonitor = monitors_[i];
-                break;
-            }
-        }
-        
-        // Fallback to primary monitor if not found
-        if (!targetMonitor) {
-            targetMonitor = glfwGetPrimaryMonitor();
-        }
-        
-        if (targetMonitor) {
-            const GLFWvidmode* mode = glfwGetVideoMode(targetMonitor);
-            glfwSetWindowMonitor(imguiWindow_, targetMonitor, 0, 0, 
-                                 mode->width, mode->height, mode->refreshRate);
-            std::cout << "[FULLSCREEN] ImGui window: switched to fullscreen on monitor" << std::endl;
-        }
+        SDL_GetWindowPosition(imguiWindow_, &imguiWindowedPosX_, &imguiWindowedPosY_);
+        SDL_GetWindowSize(imguiWindow_, &imguiWindowedWidth_, &imguiWindowedHeight_);
+        SDL_SetWindowFullscreen(imguiWindow_, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        std::cout << "[FULLSCREEN] ImGui window: switched to fullscreen" << std::endl;
     }
 }
 
-bool Visualizer::isMainWindowFullscreen() const {
-    if (!window_) return false;
-    return glfwGetWindowMonitor(window_) != nullptr;
-}
-
-bool Visualizer::isImGuiWindowFullscreen() const {
-    if (!imguiWindow_) return false;
-    return glfwGetWindowMonitor(imguiWindow_) != nullptr;
-}
-
 void Visualizer::toggleBothWindowsFullscreen() {
-    // Check current state from main window
     bool currentlyFullscreen = isMainWindowFullscreen();
-    
+
     if (currentlyFullscreen) {
-        // Exit fullscreen - return to windowed mode
         std::cout << "[FULLSCREEN] Exiting fullscreen" << std::endl;
-        
-        // Exit fullscreen on main window
-        GLFWmonitor* monitor = glfwGetWindowMonitor(window_);
-        if (monitor) {
-            glfwSetWindowMonitor(window_, nullptr, 100, 100, 1280, 720, 0);
-        }
-        
-        // Exit fullscreen on ImGui window
-        if (imguiWindow_ && glfwGetWindowMonitor(imguiWindow_)) {
-            glfwSetWindowMonitor(imguiWindow_, nullptr, 100, 100, imguiWindowWidth_, imguiWindowHeight_, 0);
-        }
-        
-        // Move both windows to primary monitor
-        if (!monitors_.empty()) {
-            moveToMonitor(0);
-        }
+        SDL_SetWindowFullscreen(window_, 0);
+        if (imguiWindow_) SDL_SetWindowFullscreen(imguiWindow_, 0);
+        if (!monitors_.empty()) moveToMonitor(0);
     } else {
-        // Enter fullscreen - use multi-monitor layout if available
         std::cout << "[FULLSCREEN] Entering fullscreen" << std::endl;
-        
-        if (monitors_.size() >= 2) {
-            // Multi-monitor layout: renderer on external, controls on primary
+        if (static_cast<int>(monitors_.size()) >= 2) {
             int externalIndex = static_cast<int>(monitors_.size()) - 1;
-            GLFWmonitor* external = monitors_[externalIndex];
-            const GLFWvidmode* externalMode = glfwGetVideoMode(external);
-            
-            // Save current window size before fullscreen
-            glfwGetWindowSize(window_, &windowWidth_, &windowHeight_);
-            
-            // Fullscreen main window on external monitor
-            glfwSetWindowMonitor(window_, external, 0, 0, externalMode->width, externalMode->height, externalMode->refreshRate);
-            
-            // Position ImGui window on primary monitor centered (windowed mode)
+            SDL_Rect extBounds{};
+            SDL_GetDisplayBounds(externalIndex, &extBounds);
+
+            SDL_SetWindowPosition(window_, extBounds.x, extBounds.y);
+            SDL_SetWindowFullscreen(window_, SDL_WINDOW_FULLSCREEN_DESKTOP);
+
             if (imguiWindow_) {
-                int px, py;
-                glfwGetMonitorPos(monitors_[0], &px, &py);
-                const GLFWvidmode* primaryMode = glfwGetVideoMode(monitors_[0]);
-                
-                int imguiX = px + (primaryMode->width - imguiWindowWidth_) / 2;
-                int imguiY = py + (primaryMode->height - imguiWindowHeight_) / 2;
-                
-                // Ensure ImGui window is in windowed mode
-                if (glfwGetWindowMonitor(imguiWindow_)) {
-                    glfwSetWindowMonitor(imguiWindow_, nullptr, imguiX, imguiY, imguiWindowWidth_, imguiWindowHeight_, 0);
-                } else {
-                    glfwSetWindowPos(imguiWindow_, imguiX, imguiY);
-                }
-                glfwShowWindow(imguiWindow_);
+                SDL_Rect primaryBounds{};
+                SDL_GetDisplayBounds(0, &primaryBounds);
+                int ix = primaryBounds.x + (primaryBounds.w - imguiWindowWidth_) / 2;
+                int iy = primaryBounds.y + (primaryBounds.h - imguiWindowHeight_) / 2;
+                SDL_SetWindowFullscreen(imguiWindow_, 0);
+                SDL_SetWindowPosition(imguiWindow_, ix, iy);
+                SDL_ShowWindow(imguiWindow_);
             }
-            
-            std::cout << "[FULLSCREEN] Renderer on external monitor, controls on primary" << std::endl;
+            std::cout << "[FULLSCREEN] Renderer on external, controls on primary" << std::endl;
         } else {
-            // Single monitor: fullscreen only renderer, keep ImGui windowed
             toggleMainWindowFullscreen();
-            
-            // Ensure ImGui window stays in windowed mode
-            if (imguiWindow_ && glfwGetWindowMonitor(imguiWindow_)) {
-                glfwSetWindowMonitor(imguiWindow_, nullptr, 100, 100, imguiWindowWidth_, imguiWindowHeight_, 0);
-            }
+            if (imguiWindow_) SDL_SetWindowFullscreen(imguiWindow_, 0);
         }
     }
 }

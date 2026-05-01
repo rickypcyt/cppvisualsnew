@@ -4908,3 +4908,170 @@ events:
       CMAKE_SYSTEM_LIBRARY_PATH:
         - "/usr/lib/X11"
 ...
+
+---
+events:
+  -
+    kind: "find_package-v1"
+    backtrace:
+      - "CMakeLists.txt:181 (find_package)"
+    name: "SDL2"
+    configs:
+      -
+        filename: "SDL2.cps"
+        kind: "cps"
+      -
+        filename: "sdl2.cps"
+        kind: "cps"
+      -
+        filename: "SDL2Config.cmake"
+        kind: "cmake"
+      -
+        filename: "sdl2-config.cmake"
+        kind: "cmake"
+    version_request:
+      exact: false
+    settings:
+      required: "required_explicit"
+      quiet: false
+      global: false
+      policy_scope: true
+      bypass_provider: false
+      names:
+        - "SDL2"
+      path_suffixes:
+        - ""
+      paths:
+        CMAKE_FIND_USE_CMAKE_PATH: true
+        CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+        CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+        CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+        CMAKE_FIND_USE_INSTALL_PREFIX: true
+        CMAKE_FIND_USE_PACKAGE_ROOT_PATH: true
+        CMAKE_FIND_USE_CMAKE_PACKAGE_REGISTRY: true
+        CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY: true
+        CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
+    candidates:
+      -
+        path: "/home/ricky/coding/proyects/visuals/build/CMakeFiles/pkgRedirects/SDL2Config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/ricky/coding/proyects/visuals/build/CMakeFiles/pkgRedirects/sdl2-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/ricky/coding/proyects/visuals/build/CMakeFiles/pkgRedirects/lib/cps/SDL2.cps"
+        mode: "cps"
+        reason: "no_exist"
+      -
+        path: "/home/ricky/coding/proyects/visuals/build/CMakeFiles/pkgRedirects/lib/cps/sdl2.cps"
+        mode: "cps"
+        reason: "no_exist"
+      -
+        path: "/home/ricky/coding/proyects/visuals/build/CMakeFiles/pkgRedirects/share/cps/SDL2.cps"
+        mode: "cps"
+        reason: "no_exist"
+      -
+        path: "/home/ricky/coding/proyects/visuals/build/CMakeFiles/pkgRedirects/share/cps/sdl2.cps"
+        mode: "cps"
+        reason: "no_exist"
+      -
+        path: "/usr/local/SDL2Config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/usr/local/sdl2-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/usr/local/lib/cps/SDL2.cps"
+        mode: "cps"
+        reason: "no_exist"
+      -
+        path: "/usr/local/lib/cps/sdl2.cps"
+        mode: "cps"
+        reason: "no_exist"
+      -
+        path: "/usr/local/share/cps/SDL2.cps"
+        mode: "cps"
+        reason: "no_exist"
+      -
+        path: "/usr/local/share/cps/sdl2.cps"
+        mode: "cps"
+        reason: "no_exist"
+      -
+        path: "/usr/SDL2Config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/usr/sdl2-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/usr/lib/cps/SDL2.cps"
+        mode: "cps"
+        reason: "no_exist"
+      -
+        path: "/usr/lib/cps/sdl2.cps"
+        mode: "cps"
+        reason: "no_exist"
+      -
+        path: "/usr/share/cps/SDL2.cps"
+        mode: "cps"
+        reason: "no_exist"
+      -
+        path: "/usr/share/cps/sdl2.cps"
+        mode: "cps"
+        reason: "no_exist"
+      -
+        path: "/usr/lib/cmake/SDL2_ttf/SDL2Config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/usr/lib/cmake/SDL2_ttf/sdl2-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/usr/lib/cmake/SDL2_net/SDL2Config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/usr/lib/cmake/SDL2_net/sdl2-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/usr/lib/cmake/SDL2_mixer/SDL2Config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/usr/lib/cmake/SDL2_mixer/sdl2-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/usr/lib/cmake/SDL2_image/SDL2Config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/usr/lib/cmake/SDL2_image/sdl2-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+    found:
+      path: "/usr/lib/cmake/SDL2/SDL2Config.cmake"
+      mode: "config"
+      version: "2.32.66"
+    search_context:
+      ENV{PATH}:
+        - "/usr/local/bin"
+        - "/usr/bin"
+      CMAKE_INSTALL_PREFIX: "/usr/local"
+      CMAKE_SYSTEM_PREFIX_PATH:
+        - "/usr/local"
+        - "/usr"
+        - "/"
+        - "/usr"
+        - "/usr/local"
+        - "/usr/X11R6"
+        - "/usr/pkg"
+        - "/opt"
+...

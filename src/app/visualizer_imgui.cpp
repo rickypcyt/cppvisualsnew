@@ -11,11 +11,11 @@
 #include <sstream>
 #include <iomanip>
 
-#include <imgui_impl_glfw.h>
+#include <imgui_impl_sdl2.h>
 #include <imgui_impl_opengl3.h>
 
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include <SDL2/SDL.h>
 
 #include "shader_loader.h"
 
@@ -150,7 +150,7 @@ const char* const Visualizer::kPostProcessModes[] = {
 
 bool Visualizer::setupImGui() {
     // Use the separate ImGui controls window if available, otherwise fall back to main window
-    GLFWwindow* imguiTargetWindow = imguiWindow_ ? imguiWindow_ : window_;
+    SDL_Window* imguiTargetWindow = imguiWindow_ ? imguiWindow_ : window_;
 
     if (!imguiTargetWindow) {
         std::cerr << "ImGui initialization failed: no window available" << std::endl;
@@ -176,8 +176,8 @@ bool Visualizer::setupImGui() {
     style.Alpha = 0.9f;
 
     // Initialize ImGui with callbacks - we'll chain our scroll handling
-    if (!ImGui_ImplGlfw_InitForOpenGL(imguiTargetWindow, true)) {
-        std::cerr << "ImGui initialization failed: ImGui_ImplGlfw_InitForOpenGL" << std::endl;
+    if (!ImGui_ImplSDL2_InitForOpenGL(imguiTargetWindow, glContext_)) {
+        std::cerr << "ImGui initialization failed: ImGui_ImplSDL2_InitForOpenGL" << std::endl;
         ImGui::DestroyContext();
         return false;
     }
@@ -185,7 +185,7 @@ bool Visualizer::setupImGui() {
     const char* glsl_version = "#version 130";
     if (!ImGui_ImplOpenGL3_Init(glsl_version)) {
         std::cerr << "ImGui initialization failed: ImGui_ImplOpenGL3_Init" << std::endl;
-        ImGui_ImplGlfw_Shutdown();
+        ImGui_ImplSDL2_Shutdown();
         ImGui::DestroyContext();
         return false;
     }
@@ -208,7 +208,7 @@ void Visualizer::shutdownImGui() {
     }
     
     ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
 }
 
@@ -219,9 +219,9 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'D' key toggle
-    if (isKeyPressed(GLFW_KEY_D)) {
+    if (isKeyPressed(SDLK_d)) {
         static double lastPress = 0.0;
-        double currentTime = glfwGetTime();
+        double currentTime = SDL_GetTicks() / 1000.0;
         if (currentTime - lastPress > 0.5) { // 500ms debounce
             showImGuiWindow_ = !showImGuiWindow_;
             saveCurrentSettings();
@@ -231,9 +231,9 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'I' key toggle for diagnostic mode
-    if (isKeyPressed(GLFW_KEY_I)) {
+    if (isKeyPressed(SDLK_i)) {
         static double lastPress = 0.0;
-        double currentTime = glfwGetTime();
+        double currentTime = SDL_GetTicks() / 1000.0;
         if (currentTime - lastPress > 0.5) { // 500ms debounce
             showCurrentEffects_ = !showCurrentEffects_;
             saveCurrentSettings();
@@ -243,9 +243,9 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'C' key toggle for console mode
-    if (isKeyPressed(GLFW_KEY_C)) {
+    if (isKeyPressed(SDLK_c)) {
         static double lastPress = 0.0;
-        double currentTime = glfwGetTime();
+        double currentTime = SDL_GetTicks() / 1000.0;
         if (currentTime - lastPress > 0.5) { // 500ms debounce
             proceduralLayerDebug_ = !proceduralLayerDebug_;
             saveCurrentSettings();
@@ -255,7 +255,7 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'O' key for post-processing effects when device menu is closed
-    bool oKeyPressed = isKeyPressed(GLFW_KEY_O);
+    bool oKeyPressed = isKeyPressed(SDLK_o);
     bool deviceMenuOpen = showDeviceMenu_;
     
     // Debug: Show device menu state and O key detection
@@ -269,7 +269,7 @@ void Visualizer::handleKeyboardInput() {
     
     if (!deviceMenuOpen && oKeyPressed) {
         static double lastOPress = 0.0;
-        double currentTime = glfwGetTime();
+        double currentTime = SDL_GetTicks() / 1000.0;
         if (currentTime - lastOPress > 0.5) { // 500ms debounce
             // Enable slot 1 (index 0) and cycle its mode backward
             auto& slot = postProcessSlots_[0];
@@ -286,7 +286,7 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'X' key toggle for corner orbs when device menu is closed
-    bool xKeyPressed = isKeyPressed(GLFW_KEY_X);
+    bool xKeyPressed = isKeyPressed(SDLK_x);
     
     // Debug: Show X key detection
     static bool lastXKeyState = false;
@@ -299,7 +299,7 @@ void Visualizer::handleKeyboardInput() {
     
     if (xKeyPressed) {
         static double lastXPress = 0.0;
-        double currentTime = glfwGetTime();
+        double currentTime = SDL_GetTicks() / 1000.0;
         if (currentTime - lastXPress > 0.5) { // 500ms debounce
             showCornerOrbs_ = !showCornerOrbs_;
             saveCurrentSettings(); // Save like ImGui does
@@ -309,9 +309,9 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'R' key to reload post-processing shaders
-    if (isKeyPressed(GLFW_KEY_R)) {
+    if (isKeyPressed(SDLK_r)) {
         static double lastPress = 0.0;
-        double currentTime = glfwGetTime();
+        double currentTime = SDL_GetTicks() / 1000.0;
         if (currentTime - lastPress > 0.5) { // 500ms debounce
             postProcessor_.reloadShaders();
             std::cout << "Post-processing shaders reloaded via R key" << std::endl;
@@ -320,9 +320,9 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'K' key to activate kaleidoscope mode
-    if (isKeyPressed(GLFW_KEY_K)) {
+    if (isKeyPressed(SDLK_k)) {
         static double lastPress = 0.0;
-        double currentTime = glfwGetTime();
+        double currentTime = SDL_GetTicks() / 1000.0;
         if (currentTime - lastPress > 0.5) { // 500ms debounce
             applyMainProceduralMode(29); // kKaleidoscopeModeIndex
             std::cout << "Kaleidoscope mode activated via K key" << std::endl;
@@ -331,9 +331,9 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'M' key to toggle multi-monitor mode
-    if (isKeyPressed(GLFW_KEY_M)) {
+    if (isKeyPressed(SDLK_m)) {
         static double lastPress = 0.0;
-        double currentTime = glfwGetTime();
+        double currentTime = SDL_GetTicks() / 1000.0;
         if (currentTime - lastPress > 0.5) { // 500ms debounce
             toggleMultiMonitorMode();
             std::cout << "Multi-monitor mode toggled via M key" << std::endl;
@@ -342,9 +342,9 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for F11 to toggle fullscreen on BOTH windows simultaneously
-    if (isKeyPressed(GLFW_KEY_F11)) {
+    if (isKeyPressed(SDLK_F11)) {
         static double lastF11Press = 0.0;
-        double currentTime = glfwGetTime();
+        double currentTime = SDL_GetTicks() / 1000.0;
         if (currentTime - lastF11Press > 0.5) { // 500ms debounce
             toggleBothWindowsFullscreen();
             lastF11Press = currentTime;
@@ -352,9 +352,9 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for F10 to toggle ImGui window fullscreen
-    if (isKeyPressed(GLFW_KEY_F10)) {
+    if (isKeyPressed(SDLK_F10)) {
         static double lastF10Press = 0.0;
-        double currentTime = glfwGetTime();
+        double currentTime = SDL_GetTicks() / 1000.0;
         if (currentTime - lastF10Press > 0.5) { // 500ms debounce
             toggleImGuiWindowFullscreen();
             lastF10Press = currentTime;
@@ -362,9 +362,9 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for F9 to toggle only the main rendering window fullscreen
-    if (isKeyPressed(GLFW_KEY_F9)) {
+    if (isKeyPressed(SDLK_F9)) {
         static double lastF9Press = 0.0;
-        double currentTime = glfwGetTime();
+        double currentTime = SDL_GetTicks() / 1000.0;
         if (currentTime - lastF9Press > 0.5) { // 500ms debounce
             toggleMainWindowFullscreen();
             lastF9Press = currentTime;
@@ -372,17 +372,17 @@ void Visualizer::handleKeyboardInput() {
     }
 
     // Check for 'H' key to toggle clean mode (hide ALL UI for max performance)
-    if (isKeyPressed(GLFW_KEY_H)) {
+    if (isKeyPressed(SDLK_h)) {
         static double lastHPress = 0.0;
-        double currentTime = glfwGetTime();
+        double currentTime = SDL_GetTicks() / 1000.0;
         if (currentTime - lastHPress > 0.5) { // 500ms debounce
             cleanMode_ = !cleanMode_;
             std::cout << "Clean mode toggled via H key: " << (cleanMode_ ? "ENABLED (UI hidden)" : "DISABLED (UI visible)") << std::endl;
             if (imguiWindow_) {
                 if (cleanMode_) {
-                    glfwHideWindow(imguiWindow_);
+                    SDL_HideWindow(imguiWindow_);
                 } else {
-                    glfwShowWindow(imguiWindow_);
+                    SDL_ShowWindow(imguiWindow_);
                 }
             }
             lastHPress = currentTime;
@@ -401,14 +401,18 @@ void Visualizer::renderImGui() {
     // If using separate ImGui window, switch context before rendering
     bool useSeparateWindow = (imguiWindow_ != nullptr);
     if (useSeparateWindow) {
-        glfwMakeContextCurrent(imguiWindow_);
+        SDL_GL_MakeCurrent(imguiWindow_, glContext_);
     }
 
     // Start the Dear ImGui frame
     {
         PROFILE_SCOPE("imgui_new_frame");
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            ImGui_ImplSDL2_ProcessEvent(&event);
+        }
         ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
     }
     
@@ -497,7 +501,7 @@ void Visualizer::renderImGui() {
         if (useSeparateWindow) {
             // Render to separate ImGui window
             int display_w, display_h;
-            glfwGetFramebufferSize(imguiWindow_, &display_w, &display_h);
+            SDL_GL_GetDrawableSize(imguiWindow_, &display_w, &display_h);
             glViewport(0, 0, display_w, display_h);
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -506,10 +510,10 @@ void Visualizer::renderImGui() {
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
             GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_IMGUI_RENDER);
 
-            glfwSwapBuffers(imguiWindow_);
+            SDL_GL_SwapWindow(imguiWindow_);
 
             // Restore context to main window
-            glfwMakeContextCurrent(window_);
+            SDL_GL_MakeCurrent(window_, glContext_);
         } else {
             // Render as overlay on main window
             GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_IMGUI_RENDER);
@@ -2578,7 +2582,7 @@ void Visualizer::blitImGuiFBOToWindow() {
     
     // Get window size
     int fbWidth, fbHeight;
-    glfwGetFramebufferSize(imguiWindow_, &fbWidth, &fbHeight);
+    SDL_GL_GetDrawableSize(imguiWindow_, &fbWidth, &fbHeight);
     
     // Ensure FBO matches window size
     if (fbWidth != imguiFBOWidth_ || fbHeight != imguiFBOHeight_) {
@@ -2587,7 +2591,7 @@ void Visualizer::blitImGuiFBOToWindow() {
     
     // Switch to ImGui window context
     GPUProfiler::getInstance().beforeContextSwitch();
-    glfwMakeContextCurrent(imguiWindow_);
+    SDL_GL_MakeCurrent(imguiWindow_, glContext_);
     GPUProfiler::getInstance().afterContextSwitch();
     
     // Blit FBO to imgui window's default framebuffer
@@ -2609,9 +2613,9 @@ void Visualizer::blitImGuiFBOToWindow() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     GPUProfiler::getInstance().beforeSwap();
     
-    // Profile glfwSwapBuffers for ImGui window
+    // Profile SDL_GL_SwapWindow for ImGui window
     auto swapStart = std::chrono::high_resolution_clock::now();
-    glfwSwapBuffers(imguiWindow_);
+    SDL_GL_SwapWindow(imguiWindow_);
     auto swapEnd = std::chrono::high_resolution_clock::now();
     float swapTime = std::chrono::duration<float, std::milli>(swapEnd - swapStart).count();
     
@@ -2652,6 +2656,6 @@ void Visualizer::blitImGuiFBOToWindow() {
 
     // Switch back to main window context
     GPUProfiler::getInstance().beforeContextSwitch();
-    glfwMakeContextCurrent(window_);
+    SDL_GL_MakeCurrent(window_, glContext_);
     GPUProfiler::getInstance().afterContextSwitch();
 }

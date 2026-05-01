@@ -3,7 +3,7 @@
 
 #include "renderer_interface.h"
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include <SDL2/SDL.h>
 #include <memory>
 #include <unordered_map>
 #include <string>
@@ -151,12 +151,13 @@ public:
     bool supportsComputeShaders() const override;
 
     // OpenGL-specific access (for migration period)
-    GLFWwindow* getWindow() const { return window_; }
+    SDL_Window* getWindow() const { return window_; }
     int getWidth() const { return width_; }
     int getHeight() const { return height_; }
 
 private:
-    GLFWwindow* window_;
+    SDL_Window* window_;
+    SDL_GLContext glContext_;
     int width_;
     int height_;
     bool shaderHotReload_;

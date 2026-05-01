@@ -2,7 +2,8 @@
 #define VISUALIZER_H
 
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
 #include <memory>
 #include <random>
 #include <string>
@@ -85,9 +86,7 @@ public:
     void shutdownImGui();
     void renderImGui();
     void handleKeyboardInput();
-    static void handleScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
     void handleMouseScroll(double xoffset, double yoffset);
-    static void handleImGuiFramebufferSizeCallback(GLFWwindow* window, int width, int height);
     bool isKeyPressed(int key) const;
 
     // Multi-monitor support
@@ -189,8 +188,9 @@ private:
         std::array<uint8_t, WIDTH * HEIGHT> next{};
     };
 
-    GLFWwindow* window_;           // Main visuals window
-    GLFWwindow* imguiWindow_;      // Separate ImGui controls window
+    SDL_Window* window_;           // Main visuals window
+    SDL_Window* imguiWindow_;      // Separate ImGui controls window
+    SDL_GLContext glContext_;      // OpenGL context (shared between windows)
     int windowWidth_;
     int windowHeight_;
     int imguiWindowWidth_ = 500;   // ImGui window default width
@@ -475,10 +475,12 @@ private:
     int lastProceduralModeApplied_ = 0;
 
     // Multi-monitor support
-    std::vector<GLFWmonitor*> monitors_;
+    std::vector<int> monitors_;         // SDL display indices
     std::vector<std::string> monitorNames_;
     int currentMonitorIndex_ = 0;
     bool multiMonitorMode_ = false;  // true = render on external, controls on laptop
+
+    bool quitRequested_ = false;
 
     CoreState core_;
     std::vector<GearNode> gears_;

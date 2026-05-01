@@ -381,25 +381,35 @@ bool GLRenderer::initialize(int width, int height, const std::string& windowTitl
 }
 
 bool GLRenderer::initializeWindow(int width, int height, const std::string& title) {
-    if (!glfwInit()) {
-        std::cerr << "[GLRenderer] Failed to initialize GLFW" << std::endl;
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        std::cerr << "[GLRenderer] Failed to initialize SDL2: " << SDL_GetError() << std::endl;
         return false;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_SAMPLES, 4);
+    // Set OpenGL attributes
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
-    window_ = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+    window_ = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (!window_) {
-        std::cerr << "[GLRenderer] Failed to create GLFW window" << std::endl;
-        glfwTerminate();
+        std::cerr << "[GLRenderer] Failed to create SDL2 window: " << SDL_GetError() << std::endl;
+        SDL_Quit();
         return false;
     }
 
-    glfwMakeContextCurrent(window_);
-    glfwSwapInterval(0); // Disable VSync for uncapped FPS
+    glContext_ = SDL_GL_CreateContext(window_);
+    if (!glContext_) {
+        std::cerr << "[GLRenderer] Failed to create OpenGL context: " << SDL_GetError() << std::endl;
+        SDL_DestroyWindow(window_);
+        SDL_Quit();
+        return false;
+    }
+
+    SDL_GL_MakeCurrent(window_, glContext_);
+    SDL_GL_SetSwapInterval(0); // Disable VSync for uncapped FPS
 
     return true;
 }
@@ -418,15 +428,25 @@ bool GLRenderer::initializeGL() {
 }
 
 void GLRenderer::shutdown() {
+    if (glContext_) {
+        SDL_GL_DeleteContext(glContext_);
+        glContext_ = nullptr;
+    }
     if (window_) {
-        glfwDestroyWindow(window_);
+        SDL_DestroyWindow(window_);
         window_ = nullptr;
     }
-    glfwTerminate();
+    SDL_Quit();
 }
 
 bool GLRenderer::shouldClose() {
-    return window_ && glfwWindowShouldClose(window_);
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void GLRenderer::beginFrame() {
@@ -440,7 +460,7 @@ void GLRenderer::endFrame() {
 
 void GLRenderer::swapBuffers() {
     if (window_) {
-        glfwSwapBuffers(window_);
+        SDL_GL_SwapWindow(window_);
     }
 }
 

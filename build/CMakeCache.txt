@@ -243,6 +243,9 @@ PKG_CONFIG_ARGN:STRING=
 //pkg-config executable
 PKG_CONFIG_EXECUTABLE:FILEPATH=/usr/bin/pkg-config
 
+//The directory containing a CMake configuration file for SDL2.
+SDL2_DIR:PATH=/usr/lib/cmake/SDL2
+
 //Path to a program.
 Vulkan_GLSLANG_VALIDATOR_EXECUTABLE:FILEPATH=/usr/bin/glslangValidator
 
@@ -256,25 +259,28 @@ Vulkan_INCLUDE_DIR:PATH=/usr/include
 Vulkan_LIBRARY:FILEPATH=/usr/lib/libvulkan.so
 
 //Dependencies for the target
-app_layer_LIB_DEPENDS:STATIC=general;core_engine;general;shader_system;general;post_processing;general;modular_layer;general;gl_backend;general;imgui;general;imgui_glfw;general;imgui_opengl3;
+app_layer_LIB_DEPENDS:STATIC=general;core_engine;general;shader_system;general;post_processing;general;modular_layer;general;gl_backend;general;imgui;general;imgui_sdl2;general;imgui_opengl3;
 
 //Dependencies for the target
 core_engine_LIB_DEPENDS:STATIC=general;portaudio;general;asound;general;m;general;pthread;general;asound;
 
 //Dependencies for the target
-gl_backend_LIB_DEPENDS:STATIC=general;dl;general;glfw;general;/usr/lib/libGLEW.so;general;-lGL;
+gl_backend_LIB_DEPENDS:STATIC=general;dl;general;SDL2::SDL2;general;/usr/lib/libGLEW.so;general;-lGL;
 
 //The directory containing a CMake configuration file for glfw3.
 glfw3_DIR:PATH=/usr/lib/cmake/glfw3
 
 //Dependencies for the target
-imgui_LIB_DEPENDS:STATIC=general;glfw;
+imgui_LIB_DEPENDS:STATIC=general;SDL2::SDL2;
 
 //Dependencies for the target
 imgui_glfw_LIB_DEPENDS:STATIC=general;imgui;general;glfw;
 
 //Dependencies for the target
 imgui_opengl3_LIB_DEPENDS:STATIC=general;imgui;
+
+//Dependencies for the target
+imgui_sdl2_LIB_DEPENDS:STATIC=general;imgui;general;SDL2::SDL2;
 
 //Dependencies for the target
 modular_layer_LIB_DEPENDS:STATIC=general;shader_system;general;gl_backend;

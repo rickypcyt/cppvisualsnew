@@ -41,4 +41,19 @@ esac
 echo "Variables de entorno OpenGL:"
 env | grep -E "(DRI_PRIME|MESA_LOADER|__NV_|EGL)" | sort
 
+# Build the project
+if [ -d "build" ]; then
+    cd build
+    if cmake --build . -j$(nproc); then
+        echo "Build successful!"
+    else
+        echo "Build failed!"
+        exit 1
+    fi
+    cd ..
+else
+    echo "Build directory not found!"
+    exit 1
+fi
+
 ./build/audio_visualizer
