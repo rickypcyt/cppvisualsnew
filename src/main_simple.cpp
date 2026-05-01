@@ -27,7 +27,7 @@ public:
         }
 
         // Initialize visualizer (without ImGui)
-        if (!visualizer_.initialize(1280, 720)) {
+        if (!visualizer_.initialize(1920, 1080)) {
             std::cerr << "Failed to initialize visualizer" << std::endl;
             return false;
         }

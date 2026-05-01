@@ -74,9 +74,6 @@ bool AudioEngine::initialize(int deviceIndex) {
     currentSampleRate_.store(static_cast<float>(capture_->getSampleRate()));
     analyzer_->setSampleRate(currentSampleRate_.load());
 
-    std::cout << "[AudioEngine] Initialized with device: " << getCurrentDeviceName()
-              << " at " << currentSampleRate_.load() << " Hz" << std::endl;
-
     return true;
 }
 
@@ -88,7 +85,6 @@ void AudioEngine::shutdown() {
     }
     
     running_.store(false);
-    std::cout << "[AudioEngine] Shutdown complete" << std::endl;
 }
 
 bool AudioEngine::start() {
@@ -112,7 +108,6 @@ bool AudioEngine::start() {
     // Start processing thread
     processingThread_ = std::thread(&AudioEngine::processingLoop, this);
     
-    std::cout << "[AudioEngine] Started" << std::endl;
     return true;
 }
 
@@ -130,8 +125,6 @@ void AudioEngine::stop() {
 
     capture_->stop();
     running_.store(false);
-    
-    std::cout << "[AudioEngine] Stopped" << std::endl;
 }
 
 std::vector<AudioDeviceInfo> AudioEngine::listDevices() const {
@@ -288,8 +281,6 @@ bool AudioEngine::hasNewData() {
 }
 
 void AudioEngine::processingLoop() {
-    std::cout << "[AudioEngine] Processing thread started" << std::endl;
-    
     while (!shouldStop_.load()) {
         auto frameStart = Clock::now();
         
@@ -309,8 +300,6 @@ void AudioEngine::processingLoop() {
             std::this_thread::sleep_for(std::chrono::microseconds(100));
         }
     }
-    
-    std::cout << "[AudioEngine] Processing thread stopped" << std::endl;
 }
 
 void AudioEngine::processAudioFrame(const std::vector<float>& audioBuffer) {

@@ -402,6 +402,13 @@ void Visualizer::renderImGui() {
         return;
     }
 
+    // Rate limiting: only render ImGui if dirty or periodically
+    imguiUpdateTimer_ += deltaTime_;
+    if (!imguiDirty_ && imguiUpdateTimer_ < imguiUpdateInterval_) {
+        return;
+    }
+    imguiUpdateTimer_ = 0.0f;
+
     // Detect fullscreen mode on main window
     bool mainWindowFullscreen = false;
     if (window_) {
@@ -1933,6 +1940,23 @@ void Visualizer::renderDiagnosticImGui() {
     ImGui::Text("Waveform Buffer Size: %zu samples", waveformBuffer_.size());
     ImGui::Text("Window Size: %dx%d", windowWidth_, windowHeight_);
     ImGui::Text("Time: %.2f seconds", time_);
+    
+    ImGui::Separator();
+    // GPU Information
+    const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    const char* vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+    const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    
+    ImGui::Text("🎮 GPU Information:");
+    ImGui::Text("Renderer: %s", renderer ? renderer : "Unknown");
+    ImGui::Text("Vendor: %s", vendor ? vendor : "Unknown");
+    ImGui::Text("OpenGL Version: %s", version ? version : "Unknown");
+    
+    // Check if using AMD GPU via environment variable
+    const char* driPrime = std::getenv("DRI_PRIME");
+    if (driPrime && std::string(driPrime) == "1") {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "DRI_PRIME=1 (AMD GPU forced)");
+    }
 
     ImGui::End();
 }
@@ -2665,7 +2689,6 @@ void Visualizer::blitImGuiFBOToWindow() {
     // Log ImGui statistics every 60 frames
     static int imguiStatCounter = 0;
     if (imguiStatCounter++ % 60 == 0 && imguiSampleCount > 0) {
-        std::cout << "[PERF] ImGui window - Swap: " << avgImguiSwapTime << "ms avg, Stalls: " << imguiStallCount << "/" << imguiSampleCount << std::endl;
         avgImguiSwapTime = 0.0f;
         imguiSampleCount = 0;
         imguiStallCount = 0;

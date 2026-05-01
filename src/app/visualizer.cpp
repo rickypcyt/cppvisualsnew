@@ -783,11 +783,6 @@ void Visualizer::renderCornerOrbs() {
         return;
     }
 
-    static int debugCounter = 0;
-    if (debugCounter++ % 300 == 0) { // Print every 5 seconds at 60fps
-        std::cout << "Rendering corner orbs - showCornerOrbs_: " << showCornerOrbs_ << std::endl;
-    }
-
     GLboolean depthWasEnabled = glIsEnabled(GL_DEPTH_TEST);
     if (depthWasEnabled) {
         glDisable(GL_DEPTH_TEST);
@@ -801,15 +796,6 @@ void Visualizer::renderCornerOrbs() {
     // Save current color mask and restore full RGB for corner orbs
     GLboolean previousMask[4];
     glGetBooleanv(GL_COLOR_WRITEMASK, previousMask);
-    
-    // Debug: Show RGB channel state (reuse existing debugCounter)
-    if (debugCounter++ % 300 == 0) { // Print every 5 seconds at 60fps
-        std::cout << "RGB Channels enabled: R=" << rgbChannelEnabled_[0] 
-                  << " G=" << rgbChannelEnabled_[1] 
-                  << " B=" << rgbChannelEnabled_[2] << std::endl;
-        std::cout << "Current colors: Primary={" << scenePrimaryColor_[0] << "," << scenePrimaryColor_[1] << "," << scenePrimaryColor_[2] 
-                  << "} Secondary={" << sceneSecondaryColor_[0] << "," << sceneSecondaryColor_[1] << "," << sceneSecondaryColor_[2] << "}" << std::endl;
-    }
     
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -929,7 +915,7 @@ void Visualizer::renderCore() {
 }
 
 Visualizer::Visualizer()
-    : window_(nullptr), imguiWindow_(nullptr), windowWidth_(800), windowHeight_(600), time_(0.0f), quadVAO_(0),
+    : window_(nullptr), imguiWindow_(nullptr), windowWidth_(1920), windowHeight_(1080), time_(0.0f), quadVAO_(0),
       quadVBO_(0), waveformVAO_(0), waveformVBO_(0), coreVAO_(0), coreVBO_(0), coreVertexCount_(0),
       sparkVAO_(0), sparkVBO_(0), sparkVertexCount_(0), cornerVAO_(0), cornerVBO_(0),
       cornerVertexCount_(0), audioFeatures_{}, selectedDevice_(-1), showDeviceMenu_(false),
@@ -986,7 +972,6 @@ Visualizer::~Visualizer() {
     if (settingsManager_) {
         updateSettingsFromCurrentState();
         settingsManager_->saveSettings();
-        std::cout << "[SHUTDOWN] Settings saved to disk" << std::endl;
     }
     shutdown();
 }
@@ -1121,44 +1106,44 @@ bool Visualizer::initialize(int width, int height) {
         proceduralLayer_.enableHotReload(true);
     }
 
-    std::cout << "[DEBUG] Initializing post processor..." << std::endl;
+    std::cout << "Initializing post processor..." << std::endl;
     if (!postProcessor_.initialize(windowWidth_, windowHeight_)) {
         std::cout << "Post processor initialization failed" << std::endl;
     }
-    std::cout << "[DEBUG] Post processor initialized" << std::endl;
+    std::cout << "Post processor initialized" << std::endl;
 
-    std::cout << "[DEBUG] Loading main shaders..." << std::endl;
+    std::cout << "Loading main shaders..." << std::endl;
     if (!loadShaders()) {
         std::cout << "Failed to load shaders, using fallback rendering" << std::endl;
         shader_.reset(); // Will trigger fallback triangle
     }
-    std::cout << "[DEBUG] Main shaders loaded" << std::endl;
+    std::cout << "Main shaders loaded" << std::endl;
     useModernPipeline_ = shader_ != nullptr;
 
-    std::cout << "[DEBUG] Loading core shader..." << std::endl;
+    std::cout << "Loading core shader..." << std::endl;
     if (!loadCoreShader()) {
         coreShader_.reset();
     }
-    std::cout << "[DEBUG] Core shader loaded" << std::endl;
+    std::cout << "Core shader loaded" << std::endl;
 
-    std::cout << "[DEBUG] Loading spark shader..." << std::endl;
+    std::cout << "Loading spark shader..." << std::endl;
     if (!loadSparkShader()) {
         sparkShader_.reset();
     }
-    std::cout << "[DEBUG] Spark shader loaded" << std::endl;
+    std::cout << "Spark shader loaded" << std::endl;
 
-    std::cout << "[DEBUG] Loading corner shader..." << std::endl;
+    std::cout << "Loading corner shader..." << std::endl;
     if (!loadCornerShader()) {
         cornerShader_.reset();
     }
-    std::cout << "[DEBUG] Corner shader loaded" << std::endl;
+    std::cout << "Corner shader loaded" << std::endl;
 
     // Load upscale shader for resolution decoupling
-    std::cout << "[DEBUG] Loading upscale shader..." << std::endl;
+    std::cout << "Loading upscale shader..." << std::endl;
     if (!loadUpscaleShader()) {
         upscaleShader_.reset();
     }
-    std::cout << "[DEBUG] Upscale shader loaded" << std::endl;
+    std::cout << "Upscale shader loaded" << std::endl;
     
     // Setup upscale quad
     setupUpscaleQuad();
@@ -1167,7 +1152,7 @@ bool Visualizer::initialize(int width, int height) {
     glGenQueries(1, &gpuQueryStart_);
     glGenQueries(1, &gpuQueryEnd_);
 
-    std::cout << "[DEBUG] Setting up ImGui..." << std::endl;
+    std::cout << "Setting up ImGui..." << std::endl;
     if (setupImGui()) {
         imguiInitialized_ = true;
     } else {
@@ -1175,7 +1160,7 @@ bool Visualizer::initialize(int width, int height) {
         showImGuiWindow_ = false;
         imguiInitialized_ = false;
     }
-    std::cout << "[DEBUG] ImGui setup complete" << std::endl;
+    std::cout << "ImGui setup complete" << std::endl;
 
     // Set up scroll callback for mouse wheel zoom AFTER ImGui init
     // Only zoom when mouse is over the ImGui window, not the main visualizer window
@@ -1190,24 +1175,24 @@ bool Visualizer::initialize(int width, int height) {
         }
     });
 
-    std::cout << "[DEBUG] MIDI controller disabled by default (use the MIDI panel to connect manually)" << std::endl;
+    std::cout << "MIDI controller disabled by default (use the MIDI panel to connect manually)" << std::endl;
 
-    std::cout << "[DEBUG] Getting OpenGL info..." << std::endl;
+    std::cout << "Getting OpenGL info..." << std::endl;
     const char *renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
     rendererName_ = renderer ? renderer : "Unknown";
 
     const char *version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
     openglVersion_ = version ? version : "Unknown";
-    std::cout << "[DEBUG] OpenGL info: " << rendererName_ << " - " << openglVersion_ << std::endl;
+    std::cout << "OpenGL info: " << rendererName_ << " - " << openglVersion_ << std::endl;
 
-    std::cout << "[DEBUG] Initializing dynamic systems..." << std::endl;
+    std::cout << "Initializing dynamic systems..." << std::endl;
     initializeDynamicSystems();
-    std::cout << "[DEBUG] Dynamic systems initialized" << std::endl;
+    std::cout << "Dynamic systems initialized" << std::endl;
 
-    std::cout << "[DEBUG] Saving initial settings..." << std::endl;
+    std::cout << "Saving initial settings..." << std::endl;
     // Save initial settings
     saveCurrentSettings();
-    std::cout << "[DEBUG] Initialization complete!" << std::endl;
+    std::cout << "Initialization complete!" << std::endl;
 
     return true;
 }
@@ -1666,7 +1651,6 @@ void Visualizer::endFrame() {
     // Log aggregated statistics every 60 frames (1 second at 60fps)
     static int statCounter = 0;
     if (statCounter++ % 60 == 0 && sampleCount > 0) {
-        std::cout << "[PERF] Main window - Swap: " << avgSwapTime << "ms avg" << std::endl;
         avgSwapTime = 0.0f;
         sampleCount = 0;
     }
@@ -1696,15 +1680,13 @@ void Visualizer::endFrame() {
     // Debug: log deltaTime
     static int deltaTimeDebugCounter = 0;
     if (deltaTimeDebugCounter++ % 60 == 0) {
-        std::cout << "DEBUG deltaTime: " << globalDeltaTime << "s (" << (globalDeltaTime * 1000.0f) << "ms)" << std::endl;
     }
-    
+        
     // Update legacy FPS counter (for backward compatibility)
     frameCount_++;
     fpsUpdateTimer_ += globalDeltaTime;
     if (fpsUpdateTimer_ >= 0.5f) { // Update every 0.5 seconds
         currentFPS_ = frameCount_ / fpsUpdateTimer_;
-        std::cout << "FPS: " << currentFPS_ << " | Window: " << windowWidth_ << "x" << windowHeight_ << " | Frames: " << frameCount_ << std::endl;
         frameCount_ = 0;
         fpsUpdateTimer_ = 0.0f;
     }
@@ -2069,16 +2051,6 @@ void Visualizer::render() {
     // Log CPU time statistics every 60 frames (detailed breakdown)
     static int cpuStatCounter = 0;
     if (cpuStatCounter++ % 60 == 0 && sampleCount > 0) {
-        std::cout << "[CPU] Total: " << avgRenderTime << "ms avg | Procedural: " << avgProceduralTime 
-                  << "ms | Post-Effects: " << avgPostEffectTime << "ms | FPS: " << fps_;
-        if (useResolutionDecoupling_) {
-            std::cout << " | Resolution: " << renderWidth_ << "x" << renderHeight_ 
-                      << " (" << (resolutionScale_ * 100.0f) << "%)";
-        }
-        if (gpuQueryAvailable_) {
-            std::cout << " | GPU: " << lastGpuFrameTimeMs_ << "ms";
-        }
-        std::cout << std::endl;
         avgRenderTime = 0.0f;
         avgProceduralTime = 0.0f;
         avgPostEffectTime = 0.0f;
@@ -2183,16 +2155,7 @@ void Visualizer::handleVisualizationShortcuts() {
 void Visualizer::updateSettingsFromCurrentState() {
     if (!settingsManager_) return;
 
-    std::cout << "[SAVE DEBUG] Syncing Visualizer -> SettingsManager"
-              << " proceduralLayerMode_=" << proceduralLayerMode_
-              << " slot0.mode=" << (kMaxProceduralSlots > 0 ? proceduralSlots_[0].mode : -1)
-              << " slot0.enabled=" << (kMaxProceduralSlots > 0 ? proceduralSlots_[0].enabled : false)
-              << " slot0.opacity=" << (kMaxProceduralSlots > 0 ? proceduralSlots_[0].opacity : 0.0f)
-              << std::endl;
-
     if (kMaxProceduralSlots > 0 && proceduralSlots_[0].mode != proceduralLayerMode_) {
-        std::cout << "[SAVE DEBUG] Forcing slot0.mode to match proceduralLayerMode_ before save: "
-                  << proceduralSlots_[0].mode << " -> " << proceduralLayerMode_ << std::endl;
         proceduralSlots_[0].mode = proceduralLayerMode_;
     }
     
@@ -2265,16 +2228,11 @@ void Visualizer::updateSettingsFromCurrentState() {
         settingsManager_->setPostProcessEffectEnabled(modeIndex, enabled);
     }
 
-    std::cout << "[SAVE DEBUG] SettingsManager updated"
-              << " proceduralLayerMode=" << settingsManager_->getProceduralLayerMode()
-              << " slot0.mode=" << (settingsManager_->getProceduralSlots().empty() ? -1 : settingsManager_->getProceduralSlots()[0].mode)
-              << std::endl;
 }
 
 void Visualizer::saveCurrentSettings() {
-    std::cout << "[SAVE DEBUG] saveCurrentSettings() called" << std::endl;
-    settingsDirty_ = true;
-    std::cout << "[SAVE DEBUG] Marked settings dirty; deferring disk write until shutdown" << std::endl;
+    updateSettingsFromCurrentState();
+    settingsManager_->saveSettings();
 }
 
 void Visualizer::flushPendingSettings() {
@@ -2283,7 +2241,6 @@ void Visualizer::flushPendingSettings() {
     }
 
     settingsFlushInProgress_ = true;
-    std::cout << "[SAVE DEBUG] Flushing pending settings to disk" << std::endl;
     updateSettingsFromCurrentState();
     settingsManager_->saveSettings();
     settingsDirty_ = false;
@@ -2291,13 +2248,13 @@ void Visualizer::flushPendingSettings() {
 }
 
 bool Visualizer::setupOpenGL() {
-    std::cout << "[DEBUG] Initializing OpenGL..." << std::endl;
+    std::cout << "Initializing OpenGL..." << std::endl;
 
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return false;
     }
-    std::cout << "[DEBUG] GLFW initialized successfully" << std::endl;
+    std::cout << "GLFW initialized successfully" << std::endl;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2); // Use OpenGL 2.1 for compatibility
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -2308,16 +2265,16 @@ bool Visualizer::setupOpenGL() {
     bool useGLES = false;
 
     // === CREATE MAIN VISUALS WINDOW ===
-    std::cout << "[DEBUG] Creating main visuals window (" << windowWidth_ << "x" << windowHeight_ << ")..." << std::endl;
+    std::cout << "Creating main visuals window (" << windowWidth_ << "x" << windowHeight_ << ")..." << std::endl;
     window_ = glfwCreateWindow(windowWidth_, windowHeight_, "Audio Visualizer - Visuals", nullptr, nullptr);
     if (!window_) {
         std::cerr << "Failed to create main GLFW window" << std::endl;
         return false;
     }
-    std::cout << "[DEBUG] Main visuals window created successfully" << std::endl;
+    std::cout << "Main visuals window created successfully" << std::endl;
 
     glfwMakeContextCurrent(window_);
-    std::cout << "[DEBUG] OpenGL context made current on main window" << std::endl;
+    std::cout << "OpenGL context made current on main window" << std::endl;
 
     // Set window user pointer for callbacks
     glfwSetWindowUserPointer(window_, this);
@@ -2347,13 +2304,13 @@ bool Visualizer::setupOpenGL() {
     // === CREATE SEPARATE IMGUI CONTROLS WINDOW ===
     // The second window shares the context with the first window
     glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE); // Don't steal focus when showing controls window
-    std::cout << "[DEBUG] Creating ImGui controls window (" << imguiWindowWidth_ << "x" << imguiWindowHeight_ << ")..." << std::endl;
+    std::cout << "Creating ImGui controls window (" << imguiWindowWidth_ << "x" << imguiWindowHeight_ << ")..." << std::endl;
     imguiWindow_ = glfwCreateWindow(imguiWindowWidth_, imguiWindowHeight_, "Audio Visualizer - Controls", nullptr, window_);
     if (!imguiWindow_) {
         std::cerr << "Failed to create ImGui GLFW window, continuing without controls window" << std::endl;
         // Continue without the controls window - non-critical
     } else {
-        std::cout << "[DEBUG] ImGui controls window created successfully" << std::endl;
+        std::cout << "ImGui controls window created successfully" << std::endl;
 
         // Position ImGui window to the right of the main window
         int mainX, mainY;
@@ -3197,9 +3154,6 @@ void Visualizer::renderProceduralLayer() {
             // Slot 0 uses proceduralLayerMode_ for backward compatibility
             slotMode = std::clamp(proceduralLayerMode_, 0, GetEffectRegistry().getMaxModeIndex());
             if (verboseProceduralLogs && proceduralSlots_[0].mode != slotMode) {
-                std::cout << "[PROC RENDER] Divergence detected: slot0.mode="
-                          << proceduralSlots_[0].mode << " but proceduralLayerMode_="
-                          << proceduralLayerMode_ << " -> mirroring global into slot0" << std::endl;
                 proceduralSlots_[0].mode = slotMode;
             }
             proceduralLayerOpacity_ = slot.opacity;
@@ -3214,9 +3168,6 @@ void Visualizer::renderProceduralLayer() {
             && std::abs(lastRenderLoggedOpacity_ - slot.opacity) < 1e-4f;
         
         if (verboseProceduralLogs && !alreadyLogged) {
-            std::cout << "[PROC RENDER] Slot " << i
-                      << " mode=" << slotMode
-                      << " opacity=" << slot.opacity << std::endl;
             lastRenderLoggedBaseActive_ = true;
             lastRenderLoggedMode_ = slotMode;
             lastRenderLoggedOpacity_ = slot.opacity;
@@ -3230,10 +3181,6 @@ void Visualizer::renderProceduralLayer() {
     if (!firstSlotRendered) {
         lastRenderLoggedBaseActive_ = false;
         std::array<float, 3> neutralAdjust{1.0f, 1.0f, 1.0f};
-        if (verboseProceduralLogs) {
-            std::cout << "[PROC RENDER] No active slots, falling back to proceduralLayerMode_="
-                      << proceduralLayerMode_ << " opacity=" << proceduralLayerOpacity_ << std::endl;
-        }
         renderSlot(proceduralLayerMode_, proceduralLayerOpacity_, neutralAdjust, true);
     }
 }
@@ -3516,15 +3463,24 @@ void Visualizer::initializeRandomPostProcess() {
 }
 
 void Visualizer::selectRandomPostProcess() {
-    // Set all active slots to None (mode 0) instead of selecting random effects
+    // Select a random post process effect from available modes
+    if (availablePostProcessModes_.empty()) {
+        std::cout << "[RANDOM POST] No available modes to select from" << std::endl;
+        return;
+    }
+
+    std::uniform_int_distribution<int> dist(0, availablePostProcessModes_.size() - 1);
+    int randomMode = availablePostProcessModes_[dist(rng_)];
+
+    // Apply to all active slots
     for (int slotIndex = 0; slotIndex < kMaxPostProcessSlots; ++slotIndex) {
         if (postProcessSlots_[slotIndex].enabled) {
-            postProcessSlots_[slotIndex].mode = 0; // None
+            postProcessSlots_[slotIndex].mode = randomMode;
         }
     }
-    currentRandomPostProcess_ = 0;
+    currentRandomPostProcess_ = randomMode;
     saveCurrentSettings();
-    std::cout << "[RANDOM POST] Set all active slots to None" << std::endl;
+    std::cout << "[RANDOM POST] Selected random effect: " << randomMode << std::endl;
 }
 
 void Visualizer::updateRandomPostProcess(float deltaTime) {
@@ -3580,14 +3536,22 @@ void Visualizer::initializeRandomProcedural() {
 }
 
 void Visualizer::selectRandomProcedural() {
-    // Set main procedural slot to None (mode 0) instead of selecting random effect
+    // Select a random procedural effect from available modes
+    if (availableProceduralModes_.empty()) {
+        std::cout << "[RANDOM PROC] No available modes to select from" << std::endl;
+        return;
+    }
+
+    std::uniform_int_distribution<int> dist(0, availableProceduralModes_.size() - 1);
+    int randomMode = availableProceduralModes_[dist(rng_)];
+
     if (kMaxProceduralSlots > 0) {
-        applyMainProceduralMode(0, "random-procedural");
-        currentRandomProcedural_ = 0;
+        applyMainProceduralMode(randomMode, "random-procedural");
+        currentRandomProcedural_ = randomMode;
         saveCurrentSettings();
-        std::cout << "[RANDOM SELECT] Set procedural slot to None" << std::endl;
+        std::cout << "[RANDOM PROC] Selected random effect: " << randomMode << std::endl;
     } else {
-        std::cout << "[RANDOM SELECT] ERROR: No procedural slots available!" << std::endl;
+        std::cout << "[RANDOM PROC] ERROR: No procedural slots available!" << std::endl;
     }
 }
 
@@ -3608,15 +3572,8 @@ void Visualizer::syncProceduralLayerWithSlot1() {
         lastSyncedSlot0Mode_ = proceduralLayerMode_;
         lastSyncedSlot0Opacity_ = opacity;
 
-        if (verboseProceduralLogs) {
-            std::cout << "[SYNC DEBUG] Before sync: proceduralSlots_[0].mode=" << proceduralSlots_[0].mode
-                      << " proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
-        }
         proceduralLayerOpacity_ = opacity;
-        if (verboseProceduralLogs && proceduralLayerMode_ != proceduralSlots_[0].mode) {
-            std::cout << "[SYNC DEBUG] Divergence detected: slot0.mode=" << proceduralSlots_[0].mode
-                      << " but proceduralLayerMode_=" << proceduralLayerMode_
-                      << " -> mirroring global into slot0" << std::endl;
+        if (proceduralLayerMode_ != proceduralSlots_[0].mode) {
             proceduralSlots_[0].mode = proceduralLayerMode_;
         }
         proceduralLayer_.setMode(proceduralLayerMode_);
@@ -3632,10 +3589,7 @@ void Visualizer::syncProceduralLayerWithSlot1() {
         //     proceduralLayer_.setCameraOffset(0.0f, 0.0f);
         // }
         showProceduralLayer_ = true;
-        if (verboseProceduralLogs) {
-            std::cout << "[SYNC DEBUG] After sync: proceduralLayerMode_=" << proceduralLayerMode_ << std::endl;
-        }
-    } else {
+            } else {
         lastSyncedSlot0Enabled_ = false;
         // Fallback to global values if Slot 1 is disabled
         proceduralLayer_.setMode(proceduralLayerMode_);
@@ -3672,7 +3626,6 @@ void Visualizer::updateRandomCornerOrbs(float deltaTime) {
     if (randomCornerOrbsTimer_ >= randomCornerOrbsInterval_) {
         showCornerOrbs_ = (rand() % 2) == 1;
         saveCurrentSettings();
-        std::cout << "[RANDOM] Corner Orbs: " << (showCornerOrbs_ ? "ENABLED" : "DISABLED") << std::endl;
         randomCornerOrbsTimer_ = 0.0f;
     }
 }
@@ -3708,7 +3661,6 @@ void Visualizer::applyFavorite(size_t index) {
     proceduralSlots_[0].opacity = proceduralLayerOpacity_;
 
     saveCurrentSettings();
-    std::cout << "[FAVORITES] Applied favorite: " << preset.name << std::endl;
 }
 
 void Visualizer::removeFavorite(size_t index) {
@@ -3776,61 +3728,111 @@ void Visualizer::setupMIDIMappings() {
     midiController_->bindControl(1, [this](float value) {
         visualSensitivity_ = 0.2f + value * 2.8f; // 0.2 to 3.0
     });
-    
+
     midiController_->bindControl(2, [this](float value) {
         audioInputGain_ = 0.1f + value * 4.9f; // 0.1 to 5.0
     });
-    
+
     midiController_->bindControl(3, [this](float value) {
         proceduralLayerOpacity_ = value;
     });
-    
+
     midiController_->bindControl(4, [this](float value) {
         postProcessStrength_ = value;
     });
-    
+
     // CC 5-8: Color controls
     midiController_->bindControl(5, [this](float value) {
         scenePrimaryColor_[0] = value; // Red
     });
-    
+
     midiController_->bindControl(6, [this](float value) {
         scenePrimaryColor_[1] = value; // Green
     });
-    
+
     midiController_->bindControl(7, [this](float value) {
         scenePrimaryColor_[2] = value; // Blue
     });
-    
+
     midiController_->bindControl(8, [this](float value) {
         scenePaletteBlend_ = value;
     });
-    
-    // CC 9-12: Post-processing slots
-    for (int i = 0; i < 4; i++) {
-        midiController_->bindControl(9 + i, [this, i](float value) {
-            if (i < postProcessSlots_.size()) {
-                postProcessSlots_[i].strength = value;
-            }
-        });
-    }
-    
-    // CC 13-16: Procedural slots
-    for (int i = 0; i < 4; i++) {
-        midiController_->bindControl(13 + i, [this, i](float value) {
-            if (i < proceduralSlots_.size()) {
-                proceduralSlots_[i].opacity = value;
-            }
-        });
-    }
-    
-    // CC 17: Manual BPM
-    midiController_->bindControl(17, [this](float value) {
-        manualBPM_ = 5.0f + value * 195.0f; // 5 to 200 BPM
+
+    // First 7 top knobs - Important parameters
+    // CC 74: Visual sensitivity
+    midiController_->bindControl(74, [this](float value) {
+        visualSensitivity_ = 0.2f + value * 2.8f; // 0.2 to 3.0
     });
-    
-    // CC 18: Toggle manual BPM mode
+
+    // CC 71: Audio input gain
+    midiController_->bindControl(71, [this](float value) {
+        audioInputGain_ = 0.1f + value * 4.9f; // 0.1 to 5.0
+    });
+
+    // CC 76: Procedural layer opacity
+    midiController_->bindControl(76, [this](float value) {
+        proceduralLayerOpacity_ = value;
+        if (!proceduralSlots_.empty()) {
+            proceduralSlots_[0].opacity = value;
+            proceduralSlots_[0].enabled = value > 0.01f;
+        }
+        showProceduralLayer_ = value > 0.01f;
+    });
+
+    // CC 77: Post process strength
+    midiController_->bindControl(77, [this](float value) {
+        postProcessStrength_ = value;
+    });
+
+    // CC 93: Scene palette blend
+    midiController_->bindControl(93, [this](float value) {
+        scenePaletteBlend_ = std::clamp(value, 0.0f, 1.0f);
+        proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+    });
+
+    // CC 73: Scene palette hue seed
+    midiController_->bindControl(73, [this](float value) {
+        currentScenePaletteIndex_ = -1;
+        scenePaletteHueSeed_ = std::clamp(value, 0.0f, 1.0f);
+        setDefaultScenePalette();
+    });
+
+    // CC 75: Manual BPM
+    midiController_->bindControl(75, [this](float value) {
+        manualBPM_ = 5.0f + value * 195.0f; // 5 to 200 BPM
+        manualBPMMode_ = true; // Auto-enable manual BPM when using this knob
+    });
+
+    // Bottom 7 knobs - Additional important parameters
+    // CC 18: Toggle auto randomize RGB channels
     midiController_->bindControl(18, [this](float value) {
+        static bool lastState = false;
+        bool currentState = value > 0.5f;
+        if (currentState && !lastState) {
+            autoRandomizeRgbChannels_ = !autoRandomizeRgbChannels_;
+            std::cout << "CC 18: Auto randomize RGB channels " << (autoRandomizeRgbChannels_ ? "ON" : "OFF") << std::endl;
+        }
+        lastState = currentState;
+    });
+
+    // CC 19: Post process strength (opacity)
+    midiController_->bindControl(19, [this](float value) {
+        postProcessStrength_ = value;
+    });
+
+    // CC 16: Toggle color animation
+    midiController_->bindControl(16, [this](float value) {
+        static bool lastState = false;
+        bool currentState = value > 0.5f;
+        if (currentState && !lastState) {
+            colorAnimationEnabled_ = !colorAnimationEnabled_;
+            std::cout << "CC 16: Color animation " << (colorAnimationEnabled_ ? "ON" : "OFF") << std::endl;
+        }
+        lastState = currentState;
+    });
+
+    // CC 17: Toggle manual BPM mode
+    midiController_->bindControl(17, [this](float value) {
         static bool lastState = false;
         bool currentState = value > 0.5f;
         if (currentState && !lastState) {
@@ -3839,7 +3841,8 @@ void Visualizer::setupMIDIMappings() {
         lastState = currentState;
     });
 
-    midiController_->bindControl(19, [this](float value) {
+    // CC 91: Toggle show procedural layer
+    midiController_->bindControl(91, [this](float value) {
         static bool lastState = false;
         bool currentState = value > 0.5f;
         if (currentState && !lastState) {
@@ -3848,11 +3851,18 @@ void Visualizer::setupMIDIMappings() {
         lastState = currentState;
     });
 
-    midiController_->bindControl(71, [this](float value) {
-        scenePaletteBlend_ = std::clamp(value, 0.0f, 1.0f);
-        proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+    // CC 79: Toggle auto randomize colors
+    midiController_->bindControl(79, [this](float value) {
+        static bool lastState = false;
+        bool currentState = value > 0.5f;
+        if (currentState && !lastState) {
+            autoRandomizeColors_ = !autoRandomizeColors_;
+            std::cout << "CC 79: Auto randomize colors " << (autoRandomizeColors_ ? "ON" : "OFF") << std::endl;
+        }
+        lastState = currentState;
     });
 
+    // CC 72: Procedural layer opacity (alternate)
     midiController_->bindControl(72, [this](float value) {
         proceduralLayerOpacity_ = value;
         if (!proceduralSlots_.empty()) {
@@ -3862,23 +3872,23 @@ void Visualizer::setupMIDIMappings() {
         showProceduralLayer_ = value > 0.01f;
     });
 
-    midiController_->bindControl(73, [this](float value) {
-        randomPostProcessInterval_ = 2.0f + value * 28.0f; // 2s - 30s
-    });
-
-    midiController_->bindControl(74, [this](float value) {
-        currentScenePaletteIndex_ = -1;
-        scenePaletteHueSeed_ = std::clamp(value, 0.0f, 1.0f);
-        setDefaultScenePalette();
-    });
-
-    midiController_->bindControl(75, [this](float value) {
-        randomProceduralInterval_ = 2.0f + value * 28.0f; // 2s - 30s
-    });
-
-    midiController_->bindControl(79, [this](float value) {
-        colorRandomInterval_ = 2.0f + value * 28.0f; // 2s - 30s
-    });
+    // CC 9-12: Post-processing slots
+    for (int i = 0; i < 4; i++) {
+        midiController_->bindControl(9 + i, [this, i](float value) {
+            if (i < postProcessSlots_.size()) {
+                postProcessSlots_[i].strength = value;
+            }
+        });
+    }
+    
+    // CC 13-15: Procedural slots (CC 16 used for bottom knob)
+    for (int i = 0; i < 3; i++) {
+        midiController_->bindControl(13 + i, [this, i](float value) {
+            if (i < proceduralSlots_.size()) {
+                proceduralSlots_[i].opacity = value;
+            }
+        });
+    }
 
     auto bindPostProcessSlot = [this, updatePostProcessState](int cc, int slotIndex) {
         midiController_->bindControl(cc, [this, slotIndex, updatePostProcessState](float value) mutable {
@@ -3988,14 +3998,216 @@ void Visualizer::setupMIDIMappings() {
         lastState = currentState;
     });
 
+    // MIDI Note bindings for Channel 9, Notes 36-43 (bottom row pads/buttons)
+    // Note 36: Toggle auto randomize colors
+    midiController_->bindNote(9, 36, [this]() {
+        autoRandomizeColors_ = !autoRandomizeColors_;
+        std::cout << "[NOTE] Ch9 Note36: Auto Randomize Colors -> " << (autoRandomizeColors_ ? "ON" : "OFF") << std::endl;
+    });
+
+    // Note 37: Cycle scene palette
+    midiController_->bindNote(9, 37, [this]() {
+        int previousPalette = currentScenePaletteIndex_;
+        cycleScenePaletteSequential();
+        std::cout << "[NOTE] Ch9 Note37: Cycle Scene Palette -> " << currentScenePaletteIndex_ << " (was " << previousPalette << ")" << std::endl;
+    });
+
+    // Note 38: Random procedural effect
+    midiController_->bindNote(9, 38, [this]() {
+        int previousMode = proceduralLayerMode_;
+        selectRandomProcedural();
+        std::cout << "[NOTE] Ch9 Note38: Random Procedural Effect -> " << proceduralLayerMode_ << " (was " << previousMode << ")" << std::endl;
+    });
+
+    // Note 39: Random post process effect
+    midiController_->bindNote(9, 39, [this, updatePostProcessState]() {
+        int previousMode = postProcessSlots_.empty() ? 0 : postProcessSlots_[0].mode;
+        selectRandomPostProcess();
+        updatePostProcessState();
+        int currentMode = postProcessSlots_.empty() ? 0 : postProcessSlots_[0].mode;
+        std::cout << "[NOTE] Ch9 Note39: Random Post Process Effect -> " << currentMode << " (was " << previousMode << ")" << std::endl;
+    });
+
+    // Note 40: Toggle procedural layer
+    midiController_->bindNote(9, 40, [this]() {
+        showProceduralLayer_ = !showProceduralLayer_;
+        std::cout << "[NOTE] Ch9 Note40: Procedural Layer -> " << (showProceduralLayer_ ? "ON" : "OFF") << std::endl;
+    });
+
+    // Note 41: Toggle post process
+    midiController_->bindNote(9, 41, [this, updatePostProcessState]() {
+        showPostProcess_ = !showPostProcess_;
+        updatePostProcessState();
+        std::cout << "[NOTE] Ch9 Note41: Post Process -> " << (showPostProcess_ ? "ON" : "OFF") << std::endl;
+    });
+
+    // Note 42: Toggle manual BPM mode
+    midiController_->bindNote(9, 42, [this]() {
+        manualBPMMode_ = !manualBPMMode_;
+        std::cout << "[NOTE] Ch9 Note42: Manual BPM Mode -> " << (manualBPMMode_ ? "ON" : "OFF") << std::endl;
+    });
+
+    // Note 43: Toggle color animation
+    midiController_->bindNote(9, 43, [this]() {
+        colorAnimationEnabled_ = !colorAnimationEnabled_;
+        std::cout << "[NOTE] Ch9 Note43: Color Animation -> " << (colorAnimationEnabled_ ? "ON" : "OFF") << std::endl;
+    });
+
+    // CC 22-29: Additional toggle buttons
+    // CC 22: Next procedural effect
+    midiController_->bindControl(22, [this](float value) {
+        static bool lastState = false;
+        bool currentState = value > 0.5f;
+        if (currentState && !lastState) {
+            proceduralLayerMode_ = (proceduralLayerMode_ + 1) % 50; // Cycle through 0-49
+            if (!proceduralSlots_.empty()) {
+                proceduralSlots_[0].mode = proceduralLayerMode_;
+                proceduralSlots_[0].enabled = true;
+            }
+            std::cout << "[BUTTON] CC 22: Next Procedural Effect -> Mode " << proceduralLayerMode_ << std::endl;
+        }
+        lastState = currentState;
+    });
+
+    // CC 23: Next post process effect
+    midiController_->bindControl(23, [this](float value) {
+        static bool lastState = false;
+        bool currentState = value > 0.5f;
+        if (currentState && !lastState) {
+            if (!postProcessSlots_.empty()) {
+                postProcessSlots_[0].mode = (postProcessSlots_[0].mode + 1) % 33; // Cycle through 0-32
+                postProcessSlots_[0].enabled = postProcessSlots_[0].mode > 0;
+            }
+            int currentMode = postProcessSlots_.empty() ? 0 : postProcessSlots_[0].mode;
+            std::cout << "[BUTTON] CC 23: Next Post Process Effect -> Mode " << currentMode << std::endl;
+        }
+        lastState = currentState;
+    });
+
+    // CC 24: Next scene palette
+    midiController_->bindControl(24, [this](float value) {
+        static bool lastState = false;
+        bool currentState = value > 0.5f;
+        if (currentState && !lastState) {
+            int previousPalette = currentScenePaletteIndex_;
+            cycleScenePaletteSequential();
+            std::cout << "[BUTTON] CC 24: Next Scene Palette -> " << currentScenePaletteIndex_ << " (was " << previousPalette << ")" << std::endl;
+        }
+        lastState = currentState;
+    });
+
+    // CC 25: Toggle bloom
+    midiController_->bindControl(25, [this](float value) {
+        static bool lastState = false;
+        bool currentState = value > 0.5f;
+        if (currentState && !lastState) {
+            coreShowBloom_ = !coreShowBloom_;
+            std::cout << "[BUTTON] CC 25: Bloom -> " << (coreShowBloom_ ? "ON" : "OFF") << std::endl;
+        }
+        lastState = currentState;
+    });
+
+    // CC 26: Toggle sparkles
+    midiController_->bindControl(26, [this](float value) {
+        static bool lastState = false;
+        bool currentState = value > 0.5f;
+        if (currentState && !lastState) {
+            coreShowSparkles_ = !coreShowSparkles_;
+            std::cout << "[BUTTON] CC 26: Sparkles -> " << (coreShowSparkles_ ? "ON" : "OFF") << std::endl;
+        }
+        lastState = currentState;
+    });
+
+    // CC 27: Toggle waveform overlay
+    midiController_->bindControl(27, [this](float value) {
+        static bool lastState = false;
+        bool currentState = value > 0.5f;
+        if (currentState && !lastState) {
+            showWaveformOverlay_ = !showWaveformOverlay_;
+            std::cout << "[BUTTON] CC 27: Waveform Overlay -> " << (showWaveformOverlay_ ? "ON" : "OFF") << std::endl;
+        }
+        lastState = currentState;
+    });
+
+    // CC 28: Toggle auto procedural randomization
+    midiController_->bindControl(28, [this](float value) {
+        static bool lastState = false;
+        bool currentState = value > 0.5f;
+        if (currentState && !lastState) {
+            randomProceduralEnabled_ = !randomProceduralEnabled_;
+            std::cout << "[BUTTON] CC 28: Auto Procedural Random -> " << (randomProceduralEnabled_ ? "ON" : "OFF") << std::endl;
+        }
+        lastState = currentState;
+    });
+
+    // CC 29: Toggle auto post process randomization
+    midiController_->bindControl(29, [this](float value) {
+        static bool lastState = false;
+        bool currentState = value > 0.5f;
+        if (currentState && !lastState) {
+            randomPostProcessEnabled_ = !randomPostProcessEnabled_;
+            std::cout << "[BUTTON] CC 29: Auto Post Process Random -> " << (randomPostProcessEnabled_ ? "ON" : "OFF") << std::endl;
+        }
+        lastState = currentState;
+    });
+
     std::cout << "MIDI mappings configured" << std::endl;
 }
 
 void Visualizer::renderMIDIControls() {
+    // Apply dynamic MIDI mappings first
+    updateDynamicMIDIMappings();
+
     // Get current time for this frame
     auto now = std::chrono::steady_clock::now();
-    
+
     if (!ImGui::CollapsingHeader("🎛️ MIDI Controls")) return;
+
+    // MIDI Mapping Guide
+    if (ImGui::CollapsingHeader("📋 MIDI Mapping Guide", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::TextColored(ImVec4(0.3f, 1.0f, 0.5f, 1.0f), "=== TOP 7 KNOBS ===");
+        ImGui::Text("CC 74: Visual Sensitivity (0.2 - 3.0)");
+        ImGui::Text("CC 71: Audio Input Gain (0.1 - 5.0)");
+        ImGui::Text("CC 76: Procedural Layer Opacity");
+        ImGui::Text("CC 77: Post Process Strength");
+        ImGui::Text("CC 93: Scene Palette Blend");
+        ImGui::Text("CC 73: Scene Palette Hue Seed");
+        ImGui::Text("CC 75: Manual BPM (5 - 200)");
+
+        ImGui::Separator();
+        ImGui::TextColored(ImVec4(0.3f, 1.0f, 0.5f, 1.0f), "=== BOTTOM 7 KNOBS ===");
+        ImGui::Text("CC 18: Toggle Auto Randomize RGB Channels");
+        ImGui::Text("CC 19: Post Process Strength (Opacity)");
+        ImGui::Text("CC 16: Toggle Color Animation");
+        ImGui::Text("CC 17: Toggle Manual BPM Mode");
+        ImGui::Text("CC 91: Toggle Show Procedural Layer");
+        ImGui::Text("CC 79: Toggle Auto Randomize Colors");
+        ImGui::Text("CC 72: Procedural Layer Opacity");
+
+        ImGui::Separator();
+        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.3f, 1.0f), "=== MAIN BUTTONS CC 22-29 ===");
+        ImGui::Text("CC 22: Next Procedural Effect");
+        ImGui::Text("CC 23: Next Post Process Effect");
+        ImGui::Text("CC 24: Next Scene Palette");
+        ImGui::Text("CC 25: Toggle Bloom");
+        ImGui::Text("CC 26: Toggle Sparkles");
+        ImGui::Text("CC 27: Toggle Waveform Overlay");
+        ImGui::Text("CC 28: Toggle Auto Procedural Random");
+        ImGui::Text("CC 29: Toggle Auto Post Process Random");
+
+        ImGui::Separator();
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.8f, 1.0f), "=== EXTRAS - CHANNEL 9 NOTES 36-43 ===");
+        ImGui::Text("Note 36: Toggle Auto Randomize Colors");
+        ImGui::Text("Note 37: Cycle Scene Palette");
+        ImGui::Text("Note 38: Random Procedural Effect");
+        ImGui::Text("Note 39: Random Post Process Effect");
+        ImGui::Text("Note 40: Toggle Procedural Layer");
+        ImGui::Text("Note 41: Toggle Post Process");
+        ImGui::Text("Note 42: Toggle Manual BPM Mode");
+        ImGui::Text("Note 43: Toggle Color Animation");
+    }
+
+    ImGui::Separator();
     
     // Static variables for MIDI learning and monitoring
     static int lastMovedCC = -1;
@@ -4021,53 +4233,139 @@ void Visualizer::renderMIDIControls() {
         }
         
         ImGui::Separator();
-        ImGui::Text("Live MIDI Input Stream:");
         
-        // Create a scrolling buffer for recent MIDI messages
-        static std::vector<std::pair<std::string, std::chrono::steady_clock::time_point>> midiMessages;
-        static const int MAX_MESSAGES = 50;
+        // Display statistics
+        auto stats = midiController_->getStatistics();
+        ImGui::Text("📊 Statistics: Total: %d | Msg/sec: %d | Note On: %d | Note Off: %d | CC: %d | Pitch: %d | Other: %d",
+                   stats.totalMessages, stats.messagesPerSecond, stats.noteOnCount, 
+                   stats.noteOffCount, stats.controlChangeCount, stats.pitchBendCount, stats.otherCount);
         
-        // Add new messages from the learning system
-        for (int cc = 1; cc <= 127; cc++) {
-            float currentValue = midiController_->getControlValue(cc);
-            static std::vector<float> previousValues(128, -1.0f);
-            
-            if (previousValues[cc] >= 0.0f && std::abs(currentValue - previousValues[cc]) > 0.01f) {
-                lastMovedCC = cc;
-                lastMovedValue = currentValue;
-                lastMoveTime = now;
-                
-                // Add to message buffer
-                std::string msg = "CC " + std::to_string(cc) + " → " + 
-                                 std::to_string(static_cast<int>(currentValue * 127)) + 
-                                 " (" + std::to_string(currentValue).substr(0, 4) + ")";
-                
-                midiMessages.push_back({msg, now});
-                
-                // Keep only recent messages
-                while (midiMessages.size() > MAX_MESSAGES) {
-                    midiMessages.erase(midiMessages.begin());
-                }
-            }
-            previousValues[cc] = currentValue;
+        ImGui::Separator();
+        
+        // Filter options
+        static bool filterNoteOn = true;
+        static bool filterNoteOff = true;
+        static bool filterCC = true;
+        static bool filterPitchBend = true;
+        static bool filterOther = true;
+        
+        ImGui::Text("Event Filters:");
+        ImGui::Checkbox("Note On", &filterNoteOn); ImGui::SameLine();
+        ImGui::Checkbox("Note Off", &filterNoteOff); ImGui::SameLine();
+        ImGui::Checkbox("CC", &filterCC); ImGui::SameLine();
+        ImGui::Checkbox("Pitch Bend", &filterPitchBend); ImGui::SameLine();
+        ImGui::Checkbox("Other", &filterOther);
+        
+        ImGui::SameLine();
+        if (ImGui::Button("Clear History")) {
+            midiController_->clearMessageHistory();
         }
         
-        // Display messages with color coding
-        ImGui::BeginChild("MIDIMessages", ImVec2(0, 120), true);
-        for (const auto& msgPair : midiMessages) {
-            auto age = now - msgPair.second;
-            float alpha = std::max(0.0f, 1.0f - std::chrono::duration<float>(age).count() / 5.0f); // Fade over 5 seconds
-            
-            if (alpha > 0.01f) {
-                ImVec4 color = ImVec4(0.0f, 1.0f, 0.0f, alpha); // Green with fade
-                ImGui::PushStyleColor(ImGuiCol_Text, color);
-                ImGui::Text("%s", msgPair.first.c_str());
-                ImGui::PopStyleColor();
+        ImGui::Separator();
+        ImGui::Text("Live MIDI Input Stream (All Event Types):");
+        
+        // Get message history from controller
+        auto messages = midiController_->getMessageHistory(100);
+        
+        // Helper function to get event type name and color
+        auto getEventTypeInfo = [](MidiEventType type) -> std::pair<const char*, ImVec4> {
+            switch (type) {
+                case MidiEventType::NOTE_ON: return {"NOTE ON", ImVec4(1.0f, 0.3f, 0.3f, 1.0f)};
+                case MidiEventType::NOTE_OFF: return {"NOTE OFF", ImVec4(0.8f, 0.3f, 0.3f, 1.0f)};
+                case MidiEventType::CONTROL_CHANGE: return {"CC", ImVec4(0.3f, 1.0f, 0.3f, 1.0f)};
+                case MidiEventType::PITCH_BEND: return {"PITCH", ImVec4(0.3f, 0.8f, 1.0f, 1.0f)};
+                case MidiEventType::CHANNEL_PRESSURE: return {"CHAN PRESS", ImVec4(1.0f, 0.8f, 0.3f, 1.0f)};
+                case MidiEventType::PROGRAM_CHANGE: return {"PROG", ImVec4(0.8f, 0.5f, 1.0f, 1.0f)};
+                case MidiEventType::POLY_AFTERTOUCH: return {"POLY AT", ImVec4(1.0f, 0.5f, 0.8f, 1.0f)};
+                case MidiEventType::SYSEX: return {"SYSEX", ImVec4(0.8f, 0.8f, 0.8f, 1.0f)};
+                default: return {"UNKNOWN", ImVec4(0.5f, 0.5f, 0.5f, 1.0f)};
             }
+        };
+        
+        // Display messages with filtering
+        ImGui::BeginChild("MIDIMessages", ImVec2(0, 150), true);
+        for (const auto& msg : messages) {
+            // Apply filters
+            bool show = false;
+            switch (msg.type) {
+                case MidiEventType::NOTE_ON: show = filterNoteOn; break;
+                case MidiEventType::NOTE_OFF: show = filterNoteOff; break;
+                case MidiEventType::CONTROL_CHANGE: show = filterCC; break;
+                case MidiEventType::PITCH_BEND: show = filterPitchBend; break;
+                default: show = filterOther; break;
+            }
+            
+            if (!show) continue;
+            
+            auto [typeName, color] = getEventTypeInfo(msg.type);
+            
+            // Calculate age for fade effect
+            auto age = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - std::chrono::steady_clock::time_point(std::chrono::milliseconds(static_cast<long long>(msg.timestamp))));
+            float alpha = std::max(0.3f, 1.0f - age.count() / 5000.0f);
+            color.w = alpha;
+            
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            
+            // Format message based on type
+            std::string msgStr;
+            if (msg.type == MidiEventType::CONTROL_CHANGE) {
+                msgStr = std::string(typeName) + " Ch" + std::to_string(msg.channel) + 
+                         " CC" + std::to_string(msg.data1) + " → " + std::to_string(msg.data2);
+            } else if (msg.type == MidiEventType::NOTE_ON || msg.type == MidiEventType::NOTE_OFF) {
+                msgStr = std::string(typeName) + " Ch" + std::to_string(msg.channel) + 
+                         " Note" + std::to_string(msg.data1) + " Vel" + std::to_string(msg.data2);
+            } else if (msg.type == MidiEventType::PITCH_BEND) {
+                msgStr = std::string(typeName) + " Ch" + std::to_string(msg.channel) + 
+                         " → " + std::to_string(msg.getPitchBendValue());
+            } else {
+                msgStr = std::string(typeName) + " Ch" + std::to_string(msg.channel);
+            }
+            
+            ImGui::Text("%s", msgStr.c_str());
+            ImGui::PopStyleColor();
         }
         ImGui::EndChild();
         
+        // CC Value Timeline visualization
+        ImGui::Separator();
+        ImGui::Text("CC Value Timeline (Last 16 CCs):");
+        
+        static std::vector<std::vector<float>> ccTimeline(16);
+        static const int TIMELINE_SIZE = 100;
+        
+        // Initialize timeline if needed
+        for (auto& timeline : ccTimeline) {
+            if (timeline.empty()) {
+                timeline.resize(TIMELINE_SIZE, 0.0f);
+            }
+        }
+        
+        // Update timeline with current values
+        static int timelineIndex = 0;
+        for (int cc = 0; cc < 16; cc++) {
+            ccTimeline[cc][timelineIndex] = midiController_->getControlValue(cc + 1);
+        }
+        timelineIndex = (timelineIndex + 1) % TIMELINE_SIZE;
+        
+        // Draw timeline using ImGui's PlotLines
+        for (int cc = 0; cc < 16; cc++) {
+            ImGui::PushID(cc);
+            float value = midiController_->getControlValue(cc + 1);
+            ImVec4 color = ImVec4(value, value * 0.5f, 1.0f - value, 1.0f);
+            
+            ImGui::PlotLines("", ccTimeline[cc].data(), TIMELINE_SIZE, timelineIndex, 
+                           ("CC " + std::to_string(cc + 1)).c_str(), 
+                           0.0f, 1.0f, ImVec2(0, 30));
+            
+            if ((cc + 1) % 4 != 0) {
+                ImGui::SameLine();
+            }
+            ImGui::PopID();
+        }
+        
         // Show current values for first 16 CC controls
+        ImGui::Separator();
         ImGui::Text("Current CC Values (1-16):");
         for (int cc = 1; cc <= 16; cc++) {
             float value = midiController_->getControlValue(cc);
@@ -4081,16 +4379,23 @@ void Visualizer::renderMIDIControls() {
             } else {
                 ImGui::Text("CC %2d: %.3f [ ]", cc, value);
             }
+            
+            if (cc % 4 != 0) ImGui::SameLine();
         }
         
         // Show current activity status
-        if ((now - lastMoveTime) < std::chrono::milliseconds(500)) {
+        ImGui::Separator();
+        auto currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        double timeSinceLastActivity = currentTime - stats.lastActivityTime;
+        
+        if (timeSinceLastActivity < 500) {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
             ImGui::Text("🟢 MIDI ACTIVE - Receiving data");
             ImGui::PopStyleColor();
         } else {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
-            ImGui::Text("🟡 MIDI IDLE - No recent input");
+            ImGui::Text("🟡 MIDI IDLE - Last activity: %.1fs ago", timeSinceLastActivity / 1000.0);
             ImGui::PopStyleColor();
         }
         
@@ -4254,168 +4559,253 @@ void Visualizer::renderMIDIControls() {
         
         // MIDI Mapper Section
         if (ImGui::CollapsingHeader("🎹 MIDI Mapper")) {
-            ImGui::Text("Move MIDI controls to see their values:");
-            ImGui::Text("Current CC Values:");
+            // Helper function to get category color
+            auto getCategoryColor = [](MIDICategory category) -> ImVec4 {
+                switch (category) {
+                    case MIDICategory::GLOBAL: return ImVec4(1.0f, 0.8f, 0.2f, 1.0f);  // Yellow
+                    case MIDICategory::COLOR: return ImVec4(1.0f, 0.3f, 0.3f, 1.0f);   // Red
+                    case MIDICategory::POST_PROCESS: return ImVec4(0.3f, 1.0f, 0.3f, 1.0f); // Green
+                    case MIDICategory::PROCEDURAL: return ImVec4(0.3f, 0.8f, 1.0f, 1.0f); // Cyan
+                    case MIDICategory::CORE_EFFECTS: return ImVec4(0.8f, 0.3f, 1.0f, 1.0f); // Purple
+                    case MIDICategory::RANDOMIZATION: return ImVec4(1.0f, 0.5f, 0.8f, 1.0f); // Pink
+                    case MIDICategory::TOGGLE: return ImVec4(0.8f, 0.8f, 0.3f, 1.0f);   // Yellow-ish
+                    default: return ImVec4(0.5f, 0.5f, 0.5f, 1.0f);                 // Gray
+                }
+            };
             
-            // Create a grid of CC values for easy visualization
-            const int cols = 8;
-            for (int cc = 1; cc <= 24; cc++) {
-                float value = midiController_->getControlValue(cc);
-                bool isActive = midiController_->isControlActive(cc);
+            // Category filter checkboxes
+            static bool filterGlobal = true;
+            static bool filterColor = true;
+            static bool filterPostProcess = true;
+            static bool filterProcedural = true;
+            static bool filterCoreEffects = true;
+            static bool filterRandomization = true;
+            static bool filterToggle = true;
+            static bool filterUnmapped = true;
+            static bool showOnlyActive = false;
+            
+            ImGui::Text("Category Filters:");
+            ImGui::Checkbox("Global", &filterGlobal); ImGui::SameLine();
+            ImGui::Checkbox("Color", &filterColor); ImGui::SameLine();
+            ImGui::Checkbox("Post-Process", &filterPostProcess); ImGui::SameLine();
+            ImGui::Checkbox("Procedural", &filterProcedural);
+            
+            ImGui::Checkbox("Core Effects", &filterCoreEffects); ImGui::SameLine();
+            ImGui::Checkbox("Randomization", &filterRandomization); ImGui::SameLine();
+            ImGui::Checkbox("Toggle", &filterToggle); ImGui::SameLine();
+            ImGui::Checkbox("Unmapped", &filterUnmapped);
+            
+            ImGui::Checkbox("Show Only Active", &showOnlyActive);
+            
+            ImGui::Separator();
+            
+            // Search bar
+            static char searchBuffer[64] = "";
+            ImGui::Text("Search:");
+            ImGui::SameLine();
+            ImGui::InputText("##midi_search", searchBuffer, sizeof(searchBuffer));
+            ImGui::SameLine();
+            if (ImGui::Button("Clear")) {
+                searchBuffer[0] = '\0';
+            }
+            
+            ImGui::Separator();
+            
+            // Statistics
+            int mappedCount = 0;
+            int activeCount = 0;
+            for (int cc = 1; cc <= 127; cc++) {
+                if (getMIDIMappingName(cc)) mappedCount++;
+                if (midiController_->isControlActive(cc)) activeCount++;
+            }
+            ImGui::Text("Mapped: %d/127 | Active: %d/127", mappedCount, activeCount);
+            
+            ImGui::Separator();
+            
+            // Only render CCs if the section is actually visible (ImGui optimization)
+            if (ImGui::IsItemVisible()) {
+                // Scrollable CC grid showing all 127 CCs
+                ImGui::BeginChild("MIDIMapperScroll", ImVec2(0, 400), true);
                 
-                // Highlight recently moved CC
-                bool isRecentlyMoved = (cc == lastMovedCC) && 
-                    ((std::chrono::steady_clock::now() - lastMoveTime) < std::chrono::seconds(2));
+                const int cols = 8;
+                int displayedCount = 0;
                 
-                // Color based on value and recent movement
-                ImVec4 color = ImVec4(value, value * 0.5f, 1.0f - value, 1.0f);
-                if (isRecentlyMoved) {
-                    color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // Bright green for recently moved
-                } else if (isActive) {
-                    color.x = 0.2f;
-                    color.y = 0.8f;
-                    color.z = 0.2f;
-                }
+                // Optimization: Only iterate through CCs that are actually mapped or active
+                // This reduces iterations from 127 to ~35 for typical usage
+                static std::vector<int> relevantCCs;
+                static bool relevantCCsCached = false;
                 
-                ImGui::PushStyleColor(ImGuiCol_Text, color);
-                
-                if ((cc - 1) % cols != 0) {
-                    ImGui::SameLine();
-                }
-                
-                ImGui::BeginGroup();
-                ImGui::Text("CC%02d", cc);
-                ImGui::ProgressBar(value, ImVec2(40, 8));
-                ImGui::Text("%.2f", value);
-                ImGui::EndGroup();
-                
-                ImGui::PopStyleColor();
-                
-                // Tooltip with mapping info
-                if (ImGui::IsItemHovered()) {
-                    ImGui::BeginTooltip();
-                    ImGui::Text("Control Change %d", cc);
-                    ImGui::Text("Value: %.3f", value);
-                    ImGui::Text("Status: %s", isActive ? "Mapped" : "Unmapped");
-                    
-                    // Show what this CC controls
-                    const char* mapping = getMIDIMappingName(cc);
-                    if (mapping) {
-                        ImGui::Text("Mapped to: %s", mapping);
+                if (!relevantCCsCached) {
+                    relevantCCs.clear();
+                    for (int cc = 1; cc <= 127; cc++) {
+                        if (getMIDIMappingName(cc) || midiController_->isControlActive(cc)) {
+                            relevantCCs.push_back(cc);
+                        }
                     }
-                    ImGui::EndTooltip();
+                    relevantCCsCached = true;
                 }
+                
+                for (int cc : relevantCCs) {
+                    float value = midiController_->getControlValue(cc);
+                    bool isActive = midiController_->isControlActive(cc);
+                    auto mappingInfo = getMIDIMappingInfo(cc);
+                    
+                    // Apply filters
+                    bool show = true;
+                    
+                    // Category filter
+                    switch (mappingInfo.category) {
+                        case MIDICategory::GLOBAL: show = filterGlobal; break;
+                        case MIDICategory::COLOR: show = filterColor; break;
+                        case MIDICategory::POST_PROCESS: show = filterPostProcess; break;
+                        case MIDICategory::PROCEDURAL: show = filterProcedural; break;
+                        case MIDICategory::CORE_EFFECTS: show = filterCoreEffects; break;
+                        case MIDICategory::RANDOMIZATION: show = filterRandomization; break;
+                        case MIDICategory::TOGGLE: show = filterToggle; break;
+                        case MIDICategory::NONE: show = filterUnmapped; break;
+                    }
+                    
+                    // Active filter
+                    if (showOnlyActive && !isActive) show = false;
+                    
+                    // Search filter
+                    if (show && searchBuffer[0] != '\0' && mappingInfo.name) {
+                        std::string searchLower = searchBuffer;
+                        std::string nameLower = mappingInfo.name;
+                        std::transform(searchLower.begin(), searchLower.end(), searchLower.begin(), ::tolower);
+                        std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), ::tolower);
+                        if (nameLower.find(searchLower) == std::string::npos) {
+                            show = false;
+                        }
+                    }
+                    
+                    if (!show) continue;
+                    
+                    displayedCount++;
+                    
+                    // Highlight recently moved CC
+                    bool isRecentlyMoved = (cc == lastMovedCC) && 
+                        ((std::chrono::steady_clock::now() - lastMoveTime) < std::chrono::seconds(2));
+                    
+                    // Color based on category
+                    ImVec4 color = getCategoryColor(mappingInfo.category);
+                    if (isRecentlyMoved) {
+                        color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // Bright green for recently moved
+                    } else if (isActive) {
+                        color.x *= 0.5f;
+                        color.y *= 0.5f;
+                        color.z *= 0.5f;
+                    } else if (mappingInfo.category == MIDICategory::NONE) {
+                        color = ImVec4(0.4f, 0.4f, 0.4f, 1.0f); // Dim gray for unmapped
+                    }
+                    
+                    ImGui::PushStyleColor(ImGuiCol_Text, color);
+                    
+                    if (displayedCount > 1 && (displayedCount - 1) % cols != 0) {
+                        ImGui::SameLine();
+                    }
+                    
+                    ImGui::BeginGroup();
+                    ImGui::Text("CC%03d", cc);
+                    ImGui::ProgressBar(value, ImVec2(50, 6));
+                    ImGui::Text("%.2f", value);
+                    ImGui::EndGroup();
+                    
+                    ImGui::PopStyleColor();
+                    
+                    // Tooltip with mapping info
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("Control Change %d", cc);
+                        ImGui::Text("Value: %.3f (raw: %d)", value, static_cast<int>(value * 127));
+                        ImGui::Text("Status: %s", isActive ? "Active" : "Inactive");
+                        
+                        if (mappingInfo.name) {
+                            ImGui::Separator();
+                            ImGui::Text("Mapped to: %s", mappingInfo.name);
+                            if (mappingInfo.description) {
+                                ImGui::Text("Description: %s", mappingInfo.description);
+                            }
+                            
+                            // Show category
+                            const char* categoryName = "Unknown";
+                            switch (mappingInfo.category) {
+                                case MIDICategory::GLOBAL: categoryName = "Global"; break;
+                                case MIDICategory::COLOR: categoryName = "Color"; break;
+                                case MIDICategory::POST_PROCESS: categoryName = "Post-Process"; break;
+                                case MIDICategory::PROCEDURAL: categoryName = "Procedural"; break;
+                                case MIDICategory::CORE_EFFECTS: categoryName = "Core Effects"; break;
+                                case MIDICategory::RANDOMIZATION: categoryName = "Randomization"; break;
+                                case MIDICategory::TOGGLE: categoryName = "Toggle"; break;
+                                default: categoryName = "Unmapped"; break;
+                            }
+                            ImGui::Text("Category: %s", categoryName);
+                        } else {
+                            ImGui::Text("Status: Unmapped");
+                        }
+                        ImGui::EndTooltip();
+                    }
+                }
+                
+                ImGui::EndChild();
+                
+                ImGui::Text("Displayed: %d controls", displayedCount);
             }
         }
         
-        ImGui::Separator();
-        ImGui::Text("Quick Status:");
-        
-        // Show some key control values in a more compact way
-        ImGui::Columns(4, "MIDIValues");
-        ImGui::Text("CC 1"); ImGui::NextColumn();
-        ImGui::Text("CC 2"); ImGui::NextColumn();
-        ImGui::Text("CC 3"); ImGui::NextColumn();
-        ImGui::Text("CC 4"); ImGui::NextColumn();
-        
-        ImGui::Text("%.2f", midiController_->getControlValue(1)); ImGui::NextColumn();
-        ImGui::Text("%.2f", midiController_->getControlValue(2)); ImGui::NextColumn();
-        ImGui::Text("%.2f", midiController_->getControlValue(3)); ImGui::NextColumn();
-        ImGui::Text("%.2f", midiController_->getControlValue(4)); ImGui::NextColumn();
-        ImGui::Separator();
-        
-        ImGui::Text("CC 5-7 (RGB)"); ImGui::NextColumn();
-        ImGui::Text("CC 8"); ImGui::NextColumn();
-        ImGui::Text("CC 17"); ImGui::NextColumn();
-        ImGui::Text("CC 18"); ImGui::NextColumn();
-        
-        ImGui::Text("%.2f,%.2f,%.2f", 
-                   midiController_->getControlValue(5),
-                   midiController_->getControlValue(6),
-                   midiController_->getControlValue(7)); ImGui::NextColumn();
-        ImGui::Text("%.2f", midiController_->getControlValue(8)); ImGui::NextColumn();
-        ImGui::Text("%.0f", 60.0f + midiController_->getControlValue(17) * 140.0f); ImGui::NextColumn();
-        ImGui::Text("%s", midiController_->getControlValue(18) > 0.5f ? "ON" : "OFF"); ImGui::NextColumn();
-        ImGui::Columns(1);
-        
-        ImGui::Separator();
-        ImGui::Text("MIDI Control Mapping:");
-        ImGui::Text("CC 1: Visual Sensitivity");
-        ImGui::Text("CC 2: Audio Input Gain");
-        ImGui::Text("CC 3: Procedural Layer Opacity");
-        ImGui::Text("CC 4: Post Process Strength");
-        ImGui::Text("CC 5-7: Primary Color (RGB)");
-        ImGui::Text("CC 8: Color Palette Blend");
-        ImGui::Text("CC 9-12: Post Process Slots Strength 1-4");
-        ImGui::Text("CC 13-16: Procedural Slots Opacity 1-4");
-        ImGui::Text("CC 17: Manual BPM (60-200)");
-        ImGui::Text("CC 18: Toggle Manual BPM Mode");
-        ImGui::Text("CC 19: Toggle Procedural Layer");
-        ImGui::Text("CC 22: Toggle Core Bloom");
-        ImGui::Text("CC 23: Toggle Core Sparkles");
-        ImGui::Text("CC 24: Toggle Core Runes");
-        ImGui::Text("CC 25: Toggle Core Spokes");
-        ImGui::Text("CC 26: Toggle Corner Orbs");
-        ImGui::Text("CC 27: Toggle Procedural Layer Visibility");
-        ImGui::Text("CC 28: Randomize Scene Palette");
-        ImGui::Text("CC 29: Random Post Process Effect");
-        ImGui::Text("CC 71: Scene Palette Blend");
-        ImGui::Text("CC 72: Procedural Layer Opacity (live)");
-        ImGui::Text("CC 73: Random Post Process Interval");
-        ImGui::Text("CC 74: Scene Palette Hue Seed");
-        ImGui::Text("CC 75: Random Procedural Interval");
-        ImGui::Text("CC 76-77: Post Process Slots Strength 1-2");
-        ImGui::Text("CC 79: Color Random Interval");
-        ImGui::Text("CC 91: Post Process Slot Strength 3");
-        ImGui::Text("CC 93: Post Process Slot Strength 4");
-        ImGui::Text("CC 113: Toggle Waveform Overlay");
-        ImGui::Text("CC 115: Toggle Post Processing");
+        // Dynamic MIDI Mapping Configuration
+        renderMIDIMappingUI();
     }
 }
 
 // Helper function to get MIDI mapping names
 const char* Visualizer::getMIDIMappingName(int cc) {
+    auto info = getMIDIMappingInfo(cc);
+    return info.name;
+}
+
+Visualizer::MIDIMappingInfo Visualizer::getMIDIMappingInfo(int cc) {
     switch (cc) {
-        case 1: return "Visual Sensitivity";
-        case 2: return "Audio Input Gain";
-        case 3: return "Procedural Layer Opacity";
-        case 4: return "Post Process Strength";
-        case 5: return "Primary Color (Red)";
-        case 6: return "Primary Color (Green)";
-        case 7: return "Primary Color (Blue)";
-        case 8: return "Color Palette Blend";
-        case 9: return "Post Process Slot 1";
-        case 10: return "Post Process Slot 2";
-        case 11: return "Post Process Slot 3";
-        case 12: return "Post Process Slot 4";
-        case 13: return "Procedural Slot 1";
-        case 14: return "Procedural Slot 2";
-        case 15: return "Procedural Slot 3";
-        case 16: return "Procedural Slot 4";
-        case 17: return "Manual BPM";
-        case 18: return "Toggle Manual BPM";
-        case 19: return "Toggle Procedural Layer";
-        case 22: return "Toggle Core Bloom";
-        case 23: return "Toggle Core Sparkles";
-        case 24: return "Toggle Core Runes";
-        case 25: return "Toggle Core Spokes";
-        case 26: return "Toggle Corner Orbs";
-        case 27: return "Toggle Procedural Layer Visibility";
-        case 28: return "Randomize Scene Palette";
-        case 29: return "Random Post Process Effect";
-        case 71: return "Scene Palette Blend";
-        case 72: return "Procedural Layer Opacity";
-        case 73: return "Random Post Process Interval";
-        case 74: return "Scene Palette Hue Seed";
-        case 75: return "Random Procedural Interval";
-        case 76: return "Post Process Slot 1 Strength";
-        case 77: return "Post Process Slot 2 Strength";
-        case 79: return "Color Random Interval";
-        case 91: return "Post Process Slot 3 Strength";
-        case 93: return "Post Process Slot 4 Strength";
-        case 113: return "Toggle Waveform Overlay";
-        case 115: return "Toggle Post Processing";
-        default: return nullptr;
+        case 1: return {"Visual Sensitivity", MIDICategory::GLOBAL, "Adjusts visual sensitivity to audio"};
+        case 2: return {"Audio Input Gain", MIDICategory::GLOBAL, "Adjusts audio input gain"};
+        case 3: return {"Procedural Layer Opacity", MIDICategory::PROCEDURAL, "Opacity of procedural layer"};
+        case 4: return {"Post Process Strength", MIDICategory::POST_PROCESS, "Overall post-processing strength"};
+        case 5: return {"Primary Color (Red)", MIDICategory::COLOR, "Red channel of primary color"};
+        case 6: return {"Primary Color (Green)", MIDICategory::COLOR, "Green channel of primary color"};
+        case 7: return {"Primary Color (Blue)", MIDICategory::COLOR, "Blue channel of primary color"};
+        case 8: return {"Color Palette Blend", MIDICategory::COLOR, "Blend between primary and secondary colors"};
+        case 9: return {"Post Process Slot 1", MIDICategory::POST_PROCESS, "Strength of post-process slot 1"};
+        case 10: return {"Post Process Slot 2", MIDICategory::POST_PROCESS, "Strength of post-process slot 2"};
+        case 11: return {"Post Process Slot 3", MIDICategory::POST_PROCESS, "Strength of post-process slot 3"};
+        case 12: return {"Post Process Slot 4", MIDICategory::POST_PROCESS, "Strength of post-process slot 4"};
+        case 13: return {"Procedural Slot 1", MIDICategory::PROCEDURAL, "Opacity of procedural slot 1"};
+        case 14: return {"Procedural Slot 2", MIDICategory::PROCEDURAL, "Opacity of procedural slot 2"};
+        case 15: return {"Procedural Slot 3", MIDICategory::PROCEDURAL, "Opacity of procedural slot 3"};
+        case 16: return {"Procedural Slot 4", MIDICategory::PROCEDURAL, "Opacity of procedural slot 4"};
+        case 17: return {"Manual BPM", MIDICategory::GLOBAL, "Manual BPM control (60-200)"};
+        case 18: return {"Toggle Manual BPM", MIDICategory::TOGGLE, "Toggle manual BPM mode"};
+        case 19: return {"Toggle Procedural Layer", MIDICategory::TOGGLE, "Toggle procedural layer on/off"};
+        case 22: return {"Toggle Core Bloom", MIDICategory::CORE_EFFECTS, "Toggle core bloom effect"};
+        case 23: return {"Toggle Core Sparkles", MIDICategory::CORE_EFFECTS, "Toggle core sparkles effect"};
+        case 24: return {"Toggle Core Runes", MIDICategory::CORE_EFFECTS, "Toggle core runes effect"};
+        case 25: return {"Toggle Core Spokes", MIDICategory::CORE_EFFECTS, "Toggle core spokes effect"};
+        case 26: return {"Toggle Corner Orbs", MIDICategory::CORE_EFFECTS, "Toggle corner orbs effect"};
+        case 27: return {"Toggle Procedural Layer Visibility", MIDICategory::TOGGLE, "Toggle procedural layer visibility"};
+        case 28: return {"Randomize Scene Palette", MIDICategory::RANDOMIZATION, "Randomize scene palette"};
+        case 29: return {"Random Post Process Effect", MIDICategory::RANDOMIZATION, "Randomize post-process effect"};
+        case 71: return {"Scene Palette Blend", MIDICategory::COLOR, "Scene palette blend amount"};
+        case 72: return {"Procedural Layer Opacity", MIDICategory::PROCEDURAL, "Live procedural layer opacity"};
+        case 73: return {"Random Post Process Interval", MIDICategory::RANDOMIZATION, "Interval for random post-process"};
+        case 74: return {"Scene Palette Hue Seed", MIDICategory::COLOR, "Scene palette hue seed"};
+        case 75: return {"Random Procedural Interval", MIDICategory::RANDOMIZATION, "Interval for random procedural"};
+        case 76: return {"Post Process Slot 1 Strength", MIDICategory::POST_PROCESS, "Strength of post-process slot 1"};
+        case 77: return {"Post Process Slot 2 Strength", MIDICategory::POST_PROCESS, "Strength of post-process slot 2"};
+        case 79: return {"Color Random Interval", MIDICategory::RANDOMIZATION, "Interval for color randomization"};
+        case 91: return {"Post Process Slot 3 Strength", MIDICategory::POST_PROCESS, "Strength of post-process slot 3"};
+        case 93: return {"Post Process Slot 4 Strength", MIDICategory::POST_PROCESS, "Strength of post-process slot 4"};
+        case 113: return {"Toggle Waveform Overlay", MIDICategory::TOGGLE, "Toggle waveform overlay"};
+        case 115: return {"Toggle Post Processing", MIDICategory::TOGGLE, "Toggle post-processing on/off"};
+        default: return {nullptr, MIDICategory::NONE, nullptr};
     }
 }
 
@@ -4423,6 +4813,270 @@ void Visualizer::reloadProceduralShaders() {
     std::cout << "Reloading procedural shaders..." << std::endl;
     proceduralLayer_.reloadShaders();
     std::cout << "Shaders reloaded successfully!" << std::endl;
+}
+
+std::vector<std::string> Visualizer::getMappableParameters() const {
+    return {
+        "Visual Sensitivity",
+        "Audio Input Gain",
+        "Procedural Layer Opacity",
+        "Post Process Strength",
+        "Primary Color R",
+        "Primary Color G",
+        "Primary Color B",
+        "Color Palette Blend",
+        "Manual BPM",
+        "Toggle Procedural Layer",
+        "Toggle Core Bloom",
+        "Toggle Core Sparkles",
+        "Toggle Core Runes",
+        "Toggle Core Spokes",
+        "Toggle Corner Orbs",
+        "Toggle Waveform Overlay",
+        "Toggle Post Processing",
+        "Scene Palette Blend",
+        "Scene Palette Hue Seed",
+        "Random Post Process Interval",
+        "Random Procedural Interval",
+        "Color Random Interval"
+    };
+}
+
+void Visualizer::renderMIDIMappingUI() {
+    if (ImGui::CollapsingHeader("🎚️ MIDI Mapping Configuration")) {
+        ImGui::Text("Assign MIDI CCs to parameters:");
+        ImGui::Separator();
+        
+        // MIDI Logging
+        static char logFilename[256] = "midi_log.txt";
+        static bool loggingEnabled = false;
+        
+        ImGui::Text("MIDI Logging (to identify CC numbers):");
+        ImGui::InputText("Log File", logFilename, sizeof(logFilename));
+        ImGui::SameLine();
+        
+        if (loggingEnabled) {
+            if (ImGui::Button("Stop Logging")) {
+                midiController_->disableMIDILogging();
+                loggingEnabled = false;
+            }
+        } else {
+            if (ImGui::Button("Start Logging")) {
+                midiController_->enableMIDILogging(logFilename);
+                loggingEnabled = midiController_->isMIDILoggingEnabled();
+            }
+        }
+        
+        if (loggingEnabled) {
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "🔴 Recording...");
+        }
+        
+        ImGui::Separator();
+        
+        // Load/Save buttons
+        static char mappingFilename[256] = "midi_mappings.json";
+        ImGui::InputText("Filename", mappingFilename, sizeof(mappingFilename));
+        ImGui::SameLine();
+        if (ImGui::Button("Load")) {
+            if (midiController_->loadMappingsFromFile(mappingFilename)) {
+                ImGui::Text("Loaded successfully!");
+            } else {
+                ImGui::Text("Failed to load");
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Save")) {
+            if (midiController_->saveMappingsToFile(mappingFilename)) {
+                ImGui::Text("Saved successfully!");
+            } else {
+                ImGui::Text("Failed to save");
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Clear All")) {
+            midiController_->clearAllMappings();
+        }
+        
+        ImGui::Separator();
+        
+        // Show current mappings
+        auto mappings = midiController_->getAllMappings();
+        ImGui::Text("Current Mappings (%zu):", mappings.size());
+        
+        for (const auto& mapping : mappings) {
+            ImGui::Text("%s -> CC %d", mapping.parameterName.c_str(), mapping.ccNumber);
+        }
+        
+        ImGui::Separator();
+        
+        // New mapping UI
+        static int selectedParamIndex = 0;
+        static int selectedCC = 1;
+        static bool isToggle = false;
+        
+        auto parameters = getMappableParameters();
+        
+        ImGui::Text("Add New Mapping:");
+        
+        ImGui::Text("Parameter:");
+        const char* currentParam = parameters[selectedParamIndex].c_str();
+        if (ImGui::BeginCombo("##param", currentParam)) {
+            for (size_t i = 0; i < parameters.size(); i++) {
+                bool isSelected = (selectedParamIndex == i);
+                if (ImGui::Selectable(parameters[i].c_str(), isSelected)) {
+                    selectedParamIndex = i;
+                }
+                if (isSelected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+        
+        ImGui::Text("CC Number:");
+        ImGui::SliderInt("##cc", &selectedCC, 1, 127);
+        
+        ImGui::Checkbox("Toggle Mode", &isToggle);
+        
+        if (ImGui::Button("Add Mapping")) {
+            midiController_->setMapping(parameters[selectedParamIndex], selectedCC, isToggle);
+        }
+        
+        ImGui::Separator();
+        
+        // CC learning mode - move a knob to assign it
+        static bool learningMode = false;
+        static int learningParamIndex = 0;
+        
+        ImGui::Checkbox("Learning Mode", &learningMode);
+        if (learningMode) {
+            ImGui::Text("Move a MIDI knob to assign it to:");
+            const char* learningParam = parameters[learningParamIndex].c_str();
+            if (ImGui::BeginCombo("##learning_param", learningParam)) {
+                for (size_t i = 0; i < parameters.size(); i++) {
+                    bool isSelected = (learningParamIndex == i);
+                    if (ImGui::Selectable(parameters[i].c_str(), isSelected)) {
+                        learningParamIndex = i;
+                    }
+                    if (isSelected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            
+            // Find recently moved CC
+            for (int cc = 1; cc <= 127; cc++) {
+                if (midiController_->isControlActive(cc)) {
+                    midiController_->setMapping(parameters[learningParamIndex], cc);
+                    ImGui::Text("Assigned CC %d to %s", cc, parameters[learningParamIndex].c_str());
+                    learningMode = false;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void Visualizer::applyDynamicMIDIMapping(int ccNumber, float value) {
+    std::string parameterName = midiController_->getParameterForCC(ccNumber);
+    if (parameterName.empty()) {
+        return; // No mapping for this CC
+    }
+    
+    auto mapping = midiController_->getMapping(parameterName);
+    if (mapping.ccNumber != ccNumber) {
+        return; // Mapping doesn't match
+    }
+    
+    // Apply value based on min/max range
+    float scaledValue = mapping.minValue + value * (mapping.maxValue - mapping.minValue);
+    
+    // Apply to the appropriate parameter
+    if (parameterName == "Visual Sensitivity") {
+        setVisualSensitivity(scaledValue);
+    } else if (parameterName == "Audio Input Gain") {
+        setAudioInputGain(scaledValue);
+    } else if (parameterName == "Procedural Layer Opacity") {
+        proceduralLayerOpacity_ = scaledValue;
+        if (!proceduralSlots_.empty()) {
+            proceduralSlots_[0].opacity = scaledValue;
+        }
+    } else if (parameterName == "Post Process Strength") {
+        // Apply to all post-process slots
+        for (auto& slot : postProcessSlots_) {
+            slot.strength = scaledValue;
+        }
+    } else if (parameterName == "Primary Color R") {
+        scenePrimaryColor_[0] = scaledValue;
+        proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+    } else if (parameterName == "Primary Color G") {
+        scenePrimaryColor_[1] = scaledValue;
+        proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+    } else if (parameterName == "Primary Color B") {
+        scenePrimaryColor_[2] = scaledValue;
+        proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+    } else if (parameterName == "Color Palette Blend") {
+        scenePaletteBlend_ = scaledValue;
+        proceduralLayer_.setColorPalette(scenePrimaryColor_.data(), sceneSecondaryColor_.data(), scenePaletteBlend_);
+    } else if (parameterName == "Manual BPM") {
+        tempoMultiplier_ = 60.0f + scaledValue * 140.0f; // 60-200 BPM
+    } else if (parameterName == "Toggle Procedural Layer") {
+        if (mapping.isToggle && value > 0.5f) {
+            showProceduralLayer_ = !showProceduralLayer_;
+        }
+    } else if (parameterName == "Toggle Core Bloom") {
+        if (mapping.isToggle && value > 0.5f) {
+            coreShowBloom_ = !coreShowBloom_;
+        }
+    } else if (parameterName == "Toggle Core Sparkles") {
+        if (mapping.isToggle && value > 0.5f) {
+            coreShowSparkles_ = !coreShowSparkles_;
+        }
+    } else if (parameterName == "Toggle Core Runes") {
+        if (mapping.isToggle && value > 0.5f) {
+            coreShowRunes_ = !coreShowRunes_;
+        }
+    } else if (parameterName == "Toggle Core Spokes") {
+        if (mapping.isToggle && value > 0.5f) {
+            coreShowSpokes_ = !coreShowSpokes_;
+        }
+    } else if (parameterName == "Toggle Corner Orbs") {
+        if (mapping.isToggle && value > 0.5f) {
+            showCornerOrbs_ = !showCornerOrbs_;
+        }
+    } else if (parameterName == "Toggle Waveform Overlay") {
+        if (mapping.isToggle && value > 0.5f) {
+            showWaveformOverlay_ = !showWaveformOverlay_;
+        }
+    } else if (parameterName == "Toggle Post Processing") {
+        if (mapping.isToggle && value > 0.5f) {
+            showPostProcess_ = !showPostProcess_;
+        }
+    } else if (parameterName == "Scene Palette Blend") {
+        scenePaletteBlend_ = scaledValue;
+    } else if (parameterName == "Scene Palette Hue Seed") {
+        scenePaletteHueSeed_ = scaledValue;
+    } else if (parameterName == "Random Post Process Interval") {
+        presetRandomInterval_ = scaledValue;
+    } else if (parameterName == "Random Procedural Interval") {
+        randomProceduralInterval_ = scaledValue;
+    } else if (parameterName == "Color Random Interval") {
+        colorRandomInterval_ = scaledValue;
+    }
+    
+    saveCurrentSettings();
+}
+
+void Visualizer::updateDynamicMIDIMappings() {
+    // Check all active CCs and apply dynamic mappings
+    for (int cc = 1; cc <= 127; cc++) {
+        if (midiController_->isControlActive(cc)) {
+            float value = midiController_->getControlValue(cc);
+            applyDynamicMIDIMapping(cc, value);
+        }
+    }
 }
 
 void Visualizer::applyMainProceduralMode(int mode, const char* source, bool ensureVisible, bool updateZoom) {
@@ -4476,12 +5130,6 @@ void Visualizer::applyMainProceduralMode(int mode, const char* source, bool ensu
     if (ensureVisible) {
         showProceduralLayer_ = true;
     }
-
-    std::cout << "[PROC MODE APPLY] source=" << origin
-              << " appliedSlot0=" << ((kMaxProceduralSlots > 0) ? proceduralSlots_[0].mode : -1)
-              << " appliedLayer=" << proceduralLayerMode_
-              << " visible=" << showProceduralLayer_
-              << " zoom=" << (updateZoom ? "updated" : "unchanged") << std::endl;
 }
 
 bool Visualizer::isProceduralShaderEnabled(int modeIndex) const {

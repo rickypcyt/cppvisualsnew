@@ -513,13 +513,10 @@ bool ModularLayer::ensureShader() {
     }
 
     proceduralShader_ = std::make_unique<Shader>();
-    std::cout << "[SHADER DEBUG] Compiling procedural shader with " << fragmentSource.size() << " bytes" << std::endl;
     if (!proceduralShader_->loadFromSource(kQuadVertexShader, fragmentSource)) {
-        std::cerr << "ModularLayer: failed to compile procedural shader" << std::endl;
-        proceduralShader_.reset();
+                proceduralShader_.reset();
         return false;
     }
-    std::cout << "[SHADER DEBUG] Procedural shader compiled successfully" << std::endl;
     return true;
 }
 
@@ -572,8 +569,7 @@ void ModularLayer::render(const LayerContext& context, bool clearFramebuffer) {
             case 46: modeName = "Eiyeron Deform"; break;
             default: modeName = "Other"; break;
         }
-        std::cout << "[LAYER] Mode=" << mode_ << " (" << modeName << ")" << std::endl;
-        lastLoggedMode = mode_;
+                lastLoggedMode = mode_;
     }
 
     Shader* activeShader = nullptr;
@@ -639,11 +635,9 @@ void ModularLayer::render(const LayerContext& context, bool clearFramebuffer) {
     if (activeShader == proceduralShader_.get()) {
         static int lastModeLogged = -1;
         if (mode_ != lastModeLogged) {
-            std::cout << "[SHADER DEBUG] Setting uMode=" << mode_ << std::endl;
-            lastModeLogged = mode_;
+                        lastModeLogged = mode_;
         }
         activeShader->setUniform1i("uMode", mode_);
-        // Camera uniforms
         activeShader->setUniform1f("uCameraZoom", cameraZoom_);
         activeShader->setUniform1f("uCameraOffsetX", cameraOffsetX_);
         activeShader->setUniform1f("uCameraOffsetY", cameraOffsetY_);

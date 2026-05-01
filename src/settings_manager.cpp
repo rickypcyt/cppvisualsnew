@@ -531,12 +531,6 @@ bool SettingsManager::saveSettings(const std::string& filename) {
 
         std::string actualFilename = filename.empty() ? getDefaultSettingsPath() : filename;
 
-        std::cout << "[SETTINGS SAVE] proceduralLayerMode=" << proceduralLayerMode_
-                  << " slot0.mode=" << (proceduralSlots_.empty() ? -1 : proceduralSlots_[0].mode)
-                  << " slot0.enabled=" << (proceduralSlots_.empty() ? false : proceduralSlots_[0].enabled)
-                  << std::endl;
-
-        // Save audio settings
         j["audio"]["selectedDevice"] = selectedDevice_;
         j["audio"]["inputGain"] = audioInputGain_;
         j["audio"]["visualSensitivity"] = visualSensitivity_;
@@ -714,7 +708,6 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         }
 
         file << j.dump(4); // Pretty print with 4 spaces indentation
-        std::cout << "Settings saved successfully to: " << actualFilename << std::endl;
         return true;
 
     } catch (const std::exception& e) {

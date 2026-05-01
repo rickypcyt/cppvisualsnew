@@ -25,13 +25,9 @@ void EffectRegistry::parseShaderFile(const std::filesystem::path& path,
         if (metadata && metadata->isValid()) {
             // Check for duplicates
             if (effects_.find(metadata->modeIndex) != effects_.end()) {
-                std::cerr << "EffectRegistry: Warning: Duplicate mode index " 
-                         << metadata->modeIndex << " (" << metadata->name 
-                         << " vs " << effects_[metadata->modeIndex].name << ")" << std::endl;
+                // Silently skip duplicates
             }
             effects_[metadata->modeIndex] = *metadata;
-            std::cout << "EffectRegistry: Registered effect [" << metadata->modeIndex 
-                     << "] \"" << metadata->name << "\" from " << shaderFileName << std::endl;
         }
     }
 }
@@ -126,9 +122,7 @@ void EffectRegistry::scanShaderFiles(const std::vector<std::string>& searchRoots
 
     std::cout << "EffectRegistry: Loaded " << effects_.size() << " effects from " 
              << shaderFiles.size() << " shader files" << std::endl;
-}
-
-// Get sorted list of effects (sorted by modeIndex)
+}// Get sorted list of effects (sorted by modeIndex)
 std::vector<EffectMetadata> EffectRegistry::getAllEffects() const {
     std::vector<EffectMetadata> result;
     result.reserve(effects_.size());

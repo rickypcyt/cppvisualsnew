@@ -22,7 +22,7 @@ ShaderHandle GLShaderCompiler::compileProgram(
         fragDump << fragmentSource;
         fragDump.close();
     } else {
-        std::cerr << "[SHADER DEBUG] Warning: Could not write debug_shader.frag" << std::endl;
+        std::cerr << "Warning: Could not write debug_shader.frag" << std::endl;
     }
 
     // Compile vertex shader

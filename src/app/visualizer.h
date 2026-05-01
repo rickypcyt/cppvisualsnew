@@ -227,8 +227,8 @@ private:
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
     
     // Render resolution decoupling (for fill-rate optimization)
-    int renderWidth_ = 1280;   // Fixed internal render resolution
-    int renderHeight_ = 720;
+    int renderWidth_ = 1920;   // Fixed internal render resolution (1080p)
+    int renderHeight_ = 1080;
     bool useResolutionDecoupling_ = false;  // Enable/disable for testing (disabled to always render at full resolution)
     
     // Adaptive Resolution Scaling System (GPU Budget Control)
@@ -382,6 +382,10 @@ private:
     bool imguiDirty_ = true;  // Flag to indicate ImGui window needs redraw
     bool cleanMode_ = false;  // Clean mode: hides ALL UI for maximum performance
     
+    // ImGui update rate limiting
+    float imguiUpdateInterval_ = 0.033f;  // Update ImGui at 30 FPS max (33ms)
+    float imguiUpdateTimer_ = 0.0f;
+    
     // ImGui FBO optimization - render to FBO using main context to avoid context switching stalls
     GLuint imguiFBO_ = 0;
     GLuint imguiFBOTexture_ = 0;
@@ -520,6 +524,32 @@ private:
     void setupMIDIMappings();
     void renderMIDIControls();
     const char* getMIDIMappingName(int cc);
+    
+    // MIDI mapping categories
+    enum class MIDICategory {
+        NONE,
+        GLOBAL,
+        COLOR,
+        POST_PROCESS,
+        PROCEDURAL,
+        CORE_EFFECTS,
+        RANDOMIZATION,
+        TOGGLE
+    };
+    
+    struct MIDIMappingInfo {
+        const char* name;
+        MIDICategory category;
+        const char* description;
+    };
+    
+    MIDIMappingInfo getMIDIMappingInfo(int cc);
+    
+    // Dynamic MIDI mapping UI
+    void renderMIDIMappingUI();
+    std::vector<std::string> getMappableParameters() const;
+    void applyDynamicMIDIMapping(int ccNumber, float value);
+    void updateDynamicMIDIMappings();
 
     // ImGui rendering methods
     void renderMainImGuiWindow();
