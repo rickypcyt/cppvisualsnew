@@ -275,8 +275,8 @@ CMakeFiles/shader_system.dir/clean:
 # Target rules for target CMakeFiles/post_processing.dir
 
 # All Build rule for target.
-CMakeFiles/post_processing.dir/all: CMakeFiles/shader_system.dir/all
 CMakeFiles/post_processing.dir/all: CMakeFiles/gl_backend.dir/all
+CMakeFiles/post_processing.dir/all: CMakeFiles/shader_system.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/post_processing.dir/build.make CMakeFiles/post_processing.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/post_processing.dir/build.make CMakeFiles/post_processing.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=32,33 "Built target post_processing"
@@ -308,8 +308,8 @@ CMakeFiles/post_processing.dir/clean:
 # Target rules for target CMakeFiles/modular_layer.dir
 
 # All Build rule for target.
-CMakeFiles/modular_layer.dir/all: CMakeFiles/shader_system.dir/all
 CMakeFiles/modular_layer.dir/all: CMakeFiles/gl_backend.dir/all
+CMakeFiles/modular_layer.dir/all: CMakeFiles/shader_system.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/modular_layer.dir/build.make CMakeFiles/modular_layer.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/modular_layer.dir/build.make CMakeFiles/modular_layer.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=30,31 "Built target modular_layer"
@@ -341,14 +341,14 @@ CMakeFiles/modular_layer.dir/clean:
 # Target rules for target CMakeFiles/app_layer.dir
 
 # All Build rule for target.
-CMakeFiles/app_layer.dir/all: CMakeFiles/shader_system.dir/all
+CMakeFiles/app_layer.dir/all: CMakeFiles/gl_backend.dir/all
 CMakeFiles/app_layer.dir/all: CMakeFiles/post_processing.dir/all
+CMakeFiles/app_layer.dir/all: CMakeFiles/modular_layer.dir/all
+CMakeFiles/app_layer.dir/all: CMakeFiles/imgui_glfw.dir/all
 CMakeFiles/app_layer.dir/all: CMakeFiles/core_engine.dir/all
 CMakeFiles/app_layer.dir/all: CMakeFiles/imgui.dir/all
-CMakeFiles/app_layer.dir/all: CMakeFiles/modular_layer.dir/all
-CMakeFiles/app_layer.dir/all: CMakeFiles/gl_backend.dir/all
-CMakeFiles/app_layer.dir/all: CMakeFiles/imgui_glfw.dir/all
 CMakeFiles/app_layer.dir/all: CMakeFiles/imgui_opengl3.dir/all
+CMakeFiles/app_layer.dir/all: CMakeFiles/shader_system.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/app_layer.dir/build.make CMakeFiles/app_layer.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/app_layer.dir/build.make CMakeFiles/app_layer.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=1,2,3,4,5,6 "Built target app_layer"
@@ -412,15 +412,15 @@ CMakeFiles/gl_backend.dir/clean:
 # Target rules for target CMakeFiles/audio_visualizer.dir
 
 # All Build rule for target.
-CMakeFiles/audio_visualizer.dir/all: CMakeFiles/shader_system.dir/all
-CMakeFiles/audio_visualizer.dir/all: CMakeFiles/post_processing.dir/all
-CMakeFiles/audio_visualizer.dir/all: CMakeFiles/core_engine.dir/all
-CMakeFiles/audio_visualizer.dir/all: CMakeFiles/imgui.dir/all
-CMakeFiles/audio_visualizer.dir/all: CMakeFiles/modular_layer.dir/all
 CMakeFiles/audio_visualizer.dir/all: CMakeFiles/app_layer.dir/all
 CMakeFiles/audio_visualizer.dir/all: CMakeFiles/gl_backend.dir/all
+CMakeFiles/audio_visualizer.dir/all: CMakeFiles/post_processing.dir/all
+CMakeFiles/audio_visualizer.dir/all: CMakeFiles/modular_layer.dir/all
 CMakeFiles/audio_visualizer.dir/all: CMakeFiles/imgui_glfw.dir/all
+CMakeFiles/audio_visualizer.dir/all: CMakeFiles/core_engine.dir/all
+CMakeFiles/audio_visualizer.dir/all: CMakeFiles/imgui.dir/all
 CMakeFiles/audio_visualizer.dir/all: CMakeFiles/imgui_opengl3.dir/all
+CMakeFiles/audio_visualizer.dir/all: CMakeFiles/shader_system.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/audio_visualizer.dir/build.make CMakeFiles/audio_visualizer.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=7,8 "Built target audio_visualizer"
@@ -452,8 +452,8 @@ CMakeFiles/audio_visualizer.dir/clean:
 # Target rules for target CMakeFiles/validate_layers.dir
 
 # All Build rule for target.
-CMakeFiles/validate_layers.dir/all: CMakeFiles/shader_system.dir/all
 CMakeFiles/validate_layers.dir/all: CMakeFiles/gl_backend.dir/all
+CMakeFiles/validate_layers.dir/all: CMakeFiles/shader_system.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/validate_layers.dir/build.make CMakeFiles/validate_layers.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/validate_layers.dir/build.make CMakeFiles/validate_layers.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=41,42 "Built target validate_layers"
@@ -485,11 +485,11 @@ CMakeFiles/validate_layers.dir/clean:
 # Target rules for target CMakeFiles/test_layer_integration.dir
 
 # All Build rule for target.
-CMakeFiles/test_layer_integration.dir/all: CMakeFiles/shader_system.dir/all
-CMakeFiles/test_layer_integration.dir/all: CMakeFiles/post_processing.dir/all
-CMakeFiles/test_layer_integration.dir/all: CMakeFiles/core_engine.dir/all
-CMakeFiles/test_layer_integration.dir/all: CMakeFiles/modular_layer.dir/all
 CMakeFiles/test_layer_integration.dir/all: CMakeFiles/gl_backend.dir/all
+CMakeFiles/test_layer_integration.dir/all: CMakeFiles/post_processing.dir/all
+CMakeFiles/test_layer_integration.dir/all: CMakeFiles/modular_layer.dir/all
+CMakeFiles/test_layer_integration.dir/all: CMakeFiles/core_engine.dir/all
+CMakeFiles/test_layer_integration.dir/all: CMakeFiles/shader_system.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_layer_integration.dir/build.make CMakeFiles/test_layer_integration.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ricky/coding/proyects/visuals/build/CMakeFiles --progress-num=39,40 "Built target test_layer_integration"
