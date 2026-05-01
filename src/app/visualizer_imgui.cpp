@@ -920,8 +920,8 @@ void Visualizer::renderColorsWindow() {
         ImGui::Spacing();
         ImGui::Text("Interval (seconds):");
         ImGui::SetNextItemWidth(160.0f);
-        if (ImGui::SliderFloat("##preset_random_interval", &presetInterval, 1.0f, 60.0f, "%.1fs")) {
-            presetInterval = std::max(1.0f, presetInterval);
+        if (ImGui::SliderFloat("##preset_random_interval", &presetInterval, 1.0f, 60.0f, "%.1f")) {
+            presetInterval = std::clamp(presetInterval, 1.0f, 60.0f);
             settingsManager_->setPresetRandomInterval(presetInterval);
             saveCurrentSettings();
         }
@@ -981,8 +981,8 @@ void Visualizer::renderColorsWindow() {
         ImGui::Spacing();
         ImGui::Text("Interval (seconds):");
         ImGui::SetNextItemWidth(160.0f);
-        if (ImGui::SliderFloat("##rgb_random_interval", &rgbInterval, 1.0f, 30.0f, "%.1fs")) {
-            rgbInterval = std::max(1.0f, rgbInterval);
+        if (ImGui::SliderFloat("##rgb_random_interval", &rgbInterval, 1.0f, 30.0f, "%.1f")) {
+            rgbInterval = std::clamp(rgbInterval, 1.0f, 30.0f);
             settingsManager_->setRgbRandomInterval(rgbInterval);
             saveCurrentSettings();
         }
@@ -1275,26 +1275,30 @@ void Visualizer::renderProceduralWindow() {
                 if (slot.enabled) {
                     ImGui::Text("Effect Mode:");
                     
-                    // Only allow text/marquee modes (56, 58, 59, 60, 61)
+                    // Only allow text/marquee modes (56, 58, 59, 60, 61, 98, 99, 100, 101)
                     const char* nameEffects[] = {
                         "None",
                         "Hello World Grid",
                         "LITN Grid", 
                         "HANNAH ADAMS Grid",
                         "ANOTHER CODE Grid",
-                        "LUPERFUT Grid"
+                        "LUPERFUT Grid",
+                        "CRISTIAN CAMILO Grid",
+                        "JUANMI PAGAN Grid",
+                        "TIZIANO STERPA Grid",
+                        "BØHM Grid"
                     };
-                    const int nameModes[] = {0, 56, 58, 59, 60, 61};
+                    const int nameModes[] = {0, 56, 58, 59, 60, 61, 98, 99, 100, 101};
                     
                     int currentModeIndex = 0;
-                    for (int i = 0; i < 6; ++i) {
+                    for (int i = 0; i < 10; ++i) {
                         if (slot.mode == nameModes[i]) {
                             currentModeIndex = i;
                             break;
                         }
                     }
                     
-                    if (ImGui::Combo("##name_mode", &currentModeIndex, nameEffects, 6)) {
+                    if (ImGui::Combo("##name_mode", &currentModeIndex, nameEffects, 10)) {
                         slot.mode = nameModes[currentModeIndex];
                         saveCurrentSettings();
                     }
@@ -1654,6 +1658,8 @@ void Visualizer::renderPostProcessWindow() {
     ImGui::Checkbox("Random Only From Favorites", &randomFavoritesOnly_);
     if (prevPostRandomFavoritesOnly != randomFavoritesOnly_) {
         saveCurrentSettings();
+        initializeRandomPostProcess();
+        initializeRandomProcedural();
     }
     if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Random cycle will only select from saved favorites");

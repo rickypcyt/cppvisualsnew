@@ -203,6 +203,14 @@ void main() {
         color = renderNoiseParticles(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     } else if (uMode == 97) {
         color = renderLavaFluidFloor(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 98) {
+        color = renderCristianCamiloGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 99) {
+        color = renderJuanmiPaganGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 100) {
+        color = renderTizianoSterpaGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
+    } else if (uMode == 101) {
+        color = renderBohmGrid(st, uTime, uTempo, uEnergy, uBass, uMid, uHigh);
     }
     
     // Invalid modes will show black/pink error color

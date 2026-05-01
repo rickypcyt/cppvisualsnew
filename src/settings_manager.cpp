@@ -143,8 +143,8 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             if (ui.contains("proceduralLayerOpacity")) proceduralLayerOpacity_ = ui["proceduralLayerOpacity"];
             if (ui.contains("proceduralLayerMode")) {
                 int loadedMode = ui["proceduralLayerMode"];
-                // Clamp to valid range (0-97 for all modes)
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 97);
+                // Clamp to valid range (0-101 for all modes)
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 101);
                 loadedMainModeFromUi = true;
             }
             std::cout << "[SETTINGS LOAD] UI layer mode=" << proceduralLayerMode_;
@@ -277,12 +277,12 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                 } else {
                     // Fallback to index
                     int loadedMode = j["ui"]["proceduralLayerMode"];
-                    proceduralLayerMode_ = std::clamp(loadedMode, 0, 97);
+                    proceduralLayerMode_ = std::clamp(loadedMode, 0, 99);
                 }
             } else {
                 // Legacy: load by index
                 int loadedMode = j["ui"]["proceduralLayerMode"];
-                proceduralLayerMode_ = std::clamp(loadedMode, 0, 97);
+                proceduralLayerMode_ = std::clamp(loadedMode, 0, 99);
             }
         }
 

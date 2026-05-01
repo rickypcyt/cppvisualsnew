@@ -10,6 +10,7 @@
 #include <iostream>
 #include <random>
 #include <set>
+#include <unordered_set>
 #include <vector>
 
 namespace {
@@ -1976,6 +1977,9 @@ void Visualizer::render() {
         renderCornerOrbs();
     }
 
+    // Render names slots OUTSIDE Post FX (text/marquee effects) - same level as corner orbs
+    renderNamesLayer();
+
     if (usePost) {
         postProcessor_.endCapture();
 
@@ -2013,9 +2017,6 @@ void Visualizer::render() {
             // Apply upscale using the post-processor's output texture
             renderUpscaledToWindow();
         }
-
-        // Render names slots OUTSIDE Post FX (text/marquee effects)
-        renderNamesLayer();
     }
     
     // End GPU timing query
@@ -3219,11 +3220,18 @@ void Visualizer::renderNamesLayer() {
     proceduralLayer_.setDebugPreview(proceduralLayerDebug_);
 
     auto renderSlot = [&](int mode, float opacity, const std::array<float, 3>& colorAdjust, bool clearFramebuffer = true) {
+        // Use dynamic color palette based on scenePaletteHueSeed_ instead of fixed RGB
+        float baseHue = std::fmod(scenePaletteHueSeed_, 1.0f);
+        float accentHue = std::fmod(baseHue + 0.27f, 1.0f);
+        
+        auto dynamicPrimary = hsvToRgb(baseHue, 0.78f, 0.95f);
+        auto dynamicSecondary = hsvToRgb(accentHue, 0.65f, 0.88f);
+        
         float adjustedPrimary[3];
         float adjustedSecondary[3];
         for (int i = 0; i < 3; ++i) {
-            adjustedPrimary[i] = std::clamp(scenePrimaryColor_[i] * colorAdjust[i], 0.0f, 1.0f);
-            adjustedSecondary[i] = std::clamp(sceneSecondaryColor_[i] * colorAdjust[i], 0.0f, 1.0f);
+            adjustedPrimary[i] = std::clamp(dynamicPrimary[i] * colorAdjust[i], 0.0f, 1.0f);
+            adjustedSecondary[i] = std::clamp(dynamicSecondary[i] * colorAdjust[i], 0.0f, 1.0f);
         }
 
         proceduralLayer_.setMode(std::clamp(mode, 0, GetEffectRegistry().getMaxModeIndex()));
@@ -3435,12 +3443,38 @@ void Visualizer::renderLife(float animatedTime) const {
 
 // Random Post Process Methods
 void Visualizer::initializeRandomPostProcess() {
-    // Initialize available post process modes (exclude "None" and "Random Cycle", and disabled effects)
+    // Initialize available post process modes
     availablePostProcessModes_.clear();
-    for (int i = 1; i < kPostProcessModeCount - 1; ++i) { // Skip "None"(0) and "Random Cycle"(last)
-        // Only add enabled effects
-        if (isPostProcessEffectEnabled(i)) {
-            availablePostProcessModes_.push_back(i);
+    
+    if (randomFavoritesOnly_ && !favorites_.empty()) {
+        // Filter by favorites - extract post process modes from favorites
+        std::unordered_set<int> favoritePostModes;
+        for (const auto& fav : favorites_) {
+            for (const auto& slot : fav.postProcessSlots) {
+                if (slot.mode > 0 && slot.mode < kPostProcessModeCount - 1) {
+                    favoritePostModes.insert(slot.mode);
+                }
+            }
+        }
+        
+        for (int mode : favoritePostModes) {
+            availablePostProcessModes_.push_back(mode);
+        }
+        std::cout << "[RANDOM POST] Using favorites only: " << availablePostProcessModes_.size() << " modes" << std::endl;
+    } else {
+        // Use all enabled effects when random cycle is ON, or all effects when random cycle is OFF
+        if (randomPostProcessEnabled_) {
+            // Random cycle is ON: only use enabled effects
+            for (int i = 1; i < kPostProcessModeCount - 1; ++i) { // Skip "None"(0) and "Random Cycle"(last)
+                if (isPostProcessEffectEnabled(i)) {
+                    availablePostProcessModes_.push_back(i);
+                }
+            }
+        } else {
+            // Random cycle is OFF: use all effects regardless of enabled status
+            for (int i = 1; i < kPostProcessModeCount - 1; ++i) { // Skip "None"(0) and "Random Cycle"(last)
+                availablePostProcessModes_.push_back(i);
+            }
         }
     }
     
@@ -3515,21 +3549,50 @@ void Visualizer::updateRandomPostProcess(float deltaTime) {
 
 // Random Procedural Layer Methods
 void Visualizer::initializeRandomProcedural() {
-    // Initialize available procedural modes (exclude "None" and disabled shaders)
+    // Initialize available procedural modes
     availableProceduralModes_.clear();
-    auto effects = GetEffectRegistry().getAllEffects();
-    std::cout << "[RANDOM INIT] Total effects from registry: " << effects.size() << std::endl;
-    for (const auto& effect : effects) {
-        if (effect.modeIndex <= 0) {
-            continue;
+    
+    if (randomFavoritesOnly_ && !favorites_.empty()) {
+        // Filter by favorites - extract procedural modes from favorites
+        std::unordered_set<int> favoriteProceduralModes;
+        for (const auto& fav : favorites_) {
+            if (fav.proceduralMode > 0) {
+                favoriteProceduralModes.insert(fav.proceduralMode);
+            }
         }
+        
+        for (int mode : favoriteProceduralModes) {
+            availableProceduralModes_.push_back(mode);
+        }
+        std::cout << "[RANDOM PROC] Using favorites only: " << availableProceduralModes_.size() << " modes" << std::endl;
+    } else {
+        // Use all enabled effects when random cycle is ON, or all effects when random cycle is OFF
+        if (randomProceduralEnabled_) {
+            // Random cycle is ON: only use enabled effects
+            auto effects = GetEffectRegistry().getAllEffects();
+            std::cout << "[RANDOM INIT] Total effects from registry: " << effects.size() << std::endl;
+            for (const auto& effect : effects) {
+                if (effect.modeIndex <= 0) {
+                    continue;
+                }
 
-        // Check if shader is enabled (default to true if not in map)
-        auto it = proceduralShaderEnabled_.find(effect.modeIndex);
-        bool enabled = (it == proceduralShaderEnabled_.end()) ? true : it->second;
-        std::cout << "[RANDOM INIT] Mode " << effect.modeIndex << " (" << effect.name << "): " << (enabled ? "enabled" : "disabled") << std::endl;
-        if (enabled) {
-            availableProceduralModes_.push_back(effect.modeIndex);
+                // Check if shader is enabled (default to true if not in map)
+                auto it = proceduralShaderEnabled_.find(effect.modeIndex);
+                bool enabled = (it == proceduralShaderEnabled_.end()) ? true : it->second;
+                std::cout << "[RANDOM INIT] Mode " << effect.modeIndex << " (" << effect.name << "): " << (enabled ? "enabled" : "disabled") << std::endl;
+                if (enabled) {
+                    availableProceduralModes_.push_back(effect.modeIndex);
+                }
+            }
+        } else {
+            // Random cycle is OFF: use all effects regardless of enabled status
+            auto effects = GetEffectRegistry().getAllEffects();
+            std::cout << "[RANDOM INIT] Random cycle OFF - using all effects" << std::endl;
+            for (const auto& effect : effects) {
+                if (effect.modeIndex > 0) {
+                    availableProceduralModes_.push_back(effect.modeIndex);
+                }
+            }
         }
     }
     
