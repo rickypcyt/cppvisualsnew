@@ -567,7 +567,8 @@ void Visualizer::renderImGui() {
     }
 
     // Blit FBO to ImGui window and swap buffers (no fences to avoid stalls)
-    if (!blockControlsForFullscreen && renderControlsWindow) {
+    // Skip blitting when ImGui is fullscreen to avoid expensive context switch (60ms+ stall)
+    if (!blockControlsForFullscreen && renderControlsWindow && !controlsFullscreen) {
         PROFILE_SCOPE("imgui_blit_to_window");
         blitImGuiFBOToWindow();
     }
