@@ -398,7 +398,13 @@ void Visualizer::renderImGui() {
         return;
     }
 
-    // Start the Dear ImGui frame (rendered as overlay on main window)
+    // If using separate ImGui window, switch context before rendering
+    bool useSeparateWindow = (imguiWindow_ != nullptr);
+    if (useSeparateWindow) {
+        glfwMakeContextCurrent(imguiWindow_);
+    }
+
+    // Start the Dear ImGui frame
     {
         PROFILE_SCOPE("imgui_new_frame");
         ImGui_ImplOpenGL3_NewFrame();
@@ -489,13 +495,33 @@ void Visualizer::renderImGui() {
         ImGui::Render();
 
         if (useSeparateWindow) {
-            // RendenerScLlyUa GplOpenGL3_ et(ucontext Gw(tc ivelhecp(PUProfiler::ZONE_IMGUI_RENDER);
-{
-        PROFIuEfSfePW"lgwMrrent"
-    } elImsPtuZ
+            // Render to separate ImGui window
+            int display_w, display_h;
+            glfwGetFramebufferSize(imguiWindow_, &display_w, &display_h);
+            glViewport(0, 0, display_w, display_h);
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
 
- Visualizer::renderMainImGuiWindow() {
-ImGui::Begin("Info", &showImGuiWindow_, ImGuiWindowFlags_AlwaysAutoResize);
+            GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_IMGUI_RENDER);
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_IMGUI_RENDER);
+
+            glfwSwapBuffers(imguiWindow_);
+
+            // Restore context to main window
+            glfwMakeContextCurrent(window_);
+        } else {
+            // Render as overlay on main window
+            GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_IMGUI_RENDER);
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_IMGUI_RENDER);
+        }
+    }
+}
+
+void Visualizer::renderMainImGuiWindow() {
+    ImGui::Begin("Info", &showImGuiWindow_, ImGuiWindowFlags_AlwaysAutoResize);
+
     ImGui::Text("🎤 Current Device:");
     std::string deviceName = "System Default";
     bool currentInternal = false;

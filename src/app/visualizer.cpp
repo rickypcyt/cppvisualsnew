@@ -2396,11 +2396,25 @@ bool Visualizer::setupOpenGL() {
 
     glViewport(0, 0, windowWidth_, windowHeight_);
 
-    // === IMGUI RENDERED AS OVERLAY ON MAIN WINDOW ===
-    // Single window approach to avoid expensive context switch overhead
-    // Multi-monitor support: move main window to desired monitor using 'M' key
-    imguiWindow_ = nullptr;
-    std::cout << "[INFO] ImGui configured as overlay on main window (no context switch overhead)" << std::endl;
+    // === CREATE SEPARATE IMGUI CONTROLS WINDOW ===
+    // Shared OpenGL context with main window
+    std::cout << "[DEBUG] Creating ImGui controls window (" << imguiWindowWidth_ << "x" << imguiWindowHeight_ << ")..." << std::endl;
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
+    imguiWindow_ = glfwCreateWindow(imguiWindowWidth_, imguiWindowHeight_, "Audio Visualizer - Controls", nullptr, window_);
+    if (!imguiWindow_) {
+        std::cerr << "Failed to create ImGui window" << std::endl;
+        return false;
+    }
+    std::cout << "[DEBUG] ImGui controls window created successfully" << std::endl;
+
+    // Position ImGui window to the right of main window
+    int mx, my;
+    glfwGetWindowPos(window_, &mx, &my);
+    glfwSetWindowPos(imguiWindow_, mx + windowWidth_ + 20, my);
+    glfwShowWindow(imguiWindow_);
+
+    std::cout << "[INFO] ImGui configured as separate window (multi-monitor ready)" << std::endl;
 
     // Disable vsync to prevent compositor from pausing rendering when window not visible
     // This is critical for Hyprland/Wayland where frame callbacks stop on inactive workspaces
