@@ -20,6 +20,22 @@
 // Forward declarations for ImGui
 struct ImGuiIO;
 
+// GL State snapshot for ImGui isolation
+struct GLState {
+    GLint program;
+    GLint vao;
+    GLint fbo;
+    GLint activeTexture;
+    GLint viewport[4];
+    GLboolean blend;
+    GLboolean depthTest;
+    GLboolean cullFace;
+    GLint blendSrcRGB;
+    GLint blendDstRGB;
+    GLint blendSrcAlpha;
+    GLint blendDstAlpha;
+};
+
 class Visualizer {
 public:
     // Static mode name arrays - single source of truth
@@ -114,6 +130,10 @@ public:
 
     // Get zoom for shader mode (checks saved zoom first, falls back to shader default)
     float getZoomForShaderMode(int modeIndex) const;
+
+    // OpenGL state management for ImGui isolation
+    GLState saveGLState();
+    void restoreGLState(const GLState& s);
 
 private:
     void applyMainProceduralMode(int mode, const char* source = "unspecified", bool ensureVisible = true, bool updateZoom = true);

@@ -1583,26 +1583,16 @@ void Visualizer::beginFrame() {
     }
 
     if (imguiInitialized_ && window_) {
-        static double lastTabToggle = 0.0;
         static double lastModeToggle = 0.0;
         static double lastOpacityAdjust = 0.0;
         static double lastPostProcessToggle = 0.0;
         double now = SDL_GetTicks() / 1000.0;
 
-        bool tabDown = isKeyPressed(SDLK_TAB);
+        // TAB toggle removed to keep both windows always visible
+        // Ensure ImGui window is always visible
+        showImGuiWindow_ = true;
+
         ImGuiIO* io = ImGui::GetCurrentContext() ? &ImGui::GetIO() : nullptr;
-        bool allowToggle = tabDown && (!io || !io->WantCaptureKeyboard || !showImGuiWindow_);
-
-        if (allowToggle && (now - lastTabToggle) > 0.25) {
-            showImGuiWindow_ = !showImGuiWindow_;
-            if (!showImGuiWindow_) {
-                showDeviceSelector_ = false;
-                showDiagnosticInfo_ = false;
-                showConsoleMode_ = false;
-            }
-            lastTabToggle = now;
-        }
-
         if (!io || !io->WantCaptureKeyboard) {
             if ((now - lastModeToggle) > 0.15) {
                 if (isKeyPressed(SDLK_RIGHT) && kMaxProceduralSlots > 0) {
@@ -1662,8 +1652,7 @@ void Visualizer::beginFrame() {
     }
 
     // DEBUG: Test OpenGL context with red background
-    // Ensure OpenGL context is current on main window
-    SDL_GL_MakeCurrent(window_, glContext_);
+    // Position ImGui window to the right of main window (controls only)
 
     // DEBUG: Check if OpenGL is actually active
     static bool checkedGL = false;
@@ -1674,17 +1663,16 @@ void Visualizer::beginFrame() {
                   << " Vendor: " << (vendor ? vendor : "NULL") << std::endl;
         checkedGL = true;
     }
-
-    // DEBUG: Test OpenGL context with red background
-    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void Visualizer::endFrame() {
     // FIX: Remove GPU fences from frame pacing to eliminate double synchronization
     // swapBuffers is the only sync point needed for frame pacing
     // Fences are only used for profiling/debugging now
-    
+
+    // Ensure OpenGL context is current on main window before swap
+    SDL_GL_MakeCurrent(window_, glContext_);
+
     // Process Wayland events before swap to reduce blocking
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -1840,6 +1828,9 @@ void Visualizer::updateAudioBuffer(const std::vector<float> &audioBuffer) {
 }
 
 void Visualizer::render() {
+    // Ensure OpenGL context is current on main window before rendering
+    SDL_GL_MakeCurrent(window_, glContext_);
+
     // FASE 0.1: Frame timing CPU
     auto frameStart = std::chrono::high_resolution_clock::now();
 
@@ -2007,7 +1998,7 @@ void Visualizer::render() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, renderW, renderH);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
     GLboolean previousMask[4];
@@ -2093,17 +2084,15 @@ void Visualizer::render() {
     // GPU profiler: Main render end
     GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_MAIN_RENDER);
 
-    if (imguiInitialized_ && showImGuiWindow_) {
+    if (imguiInitialized_) {
         PROFILE_SCOPE("render_imgui");
         renderImGui();
+        // Restore framebuffer and viewport for main window after ImGui render
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, windowWidth_, windowHeight_);
     } else if (!imguiInitialized_) {
         renderGUI();
     }
-
-    // DEBUG: Set red background in main window
-    SDL_GL_MakeCurrent(window_, glContext_);
-    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
 
     // FASE 0.1: Calculate frame time CPU and FPS
     auto frameEnd = std::chrono::high_resolution_clock::now();
@@ -2447,24 +2436,22 @@ bool Visualizer::setupOpenGL() {
     glViewport(0, 0, windowWidth_, windowHeight_);
 
     // === CREATE SEPARATE IMGUI CONTROLS WINDOW ===
-    // Shared OpenGL context with main window
     std::cout << "[DEBUG] Creating ImGui controls window (" << imguiWindowWidth_ << "x" << imguiWindowHeight_ << ")..." << std::endl;
     imguiWindow_ = SDL_CreateWindow("Audio Visualizer - Controls", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                     imguiWindowWidth_, imguiWindowHeight_, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
+                                     imguiWindowWidth_, imguiWindowHeight_, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
     if (!imguiWindow_) {
         std::cerr << "Failed to create ImGui window: " << SDL_GetError() << std::endl;
         return false;
     }
-    std::cout << "[DEBUG] ImGui controls window created successfully" << std::endl;
+    std::cout << "[DEBUG] ImGui controls window created (input-only)" << std::endl;
 
-    // Share OpenGL context with main window (SDL handles this automatically when windows share the same context)
     // Position ImGui window to the right of main window
     int mx, my;
     SDL_GetWindowPosition(window_, &mx, &my);
     SDL_SetWindowPosition(imguiWindow_, mx + windowWidth_ + 20, my);
     SDL_ShowWindow(imguiWindow_);
 
-    std::cout << "[INFO] ImGui configured as separate window (multi-monitor ready)" << std::endl;
+    std::cout << "[INFO] ImGui configured as separate window with shared OpenGL context" << std::endl;
 
     // Disable vsync to prevent compositor from pausing rendering when window not visible
     // This is critical for Hyprland/Wayland where frame callbacks stop on inactive workspaces
@@ -4859,7 +4846,7 @@ void Visualizer::toggleBothWindowsFullscreen() {
 // Get zoom for shader mode (checks saved zoom first, falls back to shader default)
 float Visualizer::getZoomForShaderMode(int modeIndex) const {
     if (modeIndex <= 0) return 1.0f;
-    
+
     // First check if there's a saved zoom value in settings
     if (settingsManager_) {
         float savedZoom = settingsManager_->getProceduralZoom(modeIndex);
@@ -4867,11 +4854,52 @@ float Visualizer::getZoomForShaderMode(int modeIndex) const {
             return savedZoom;
         }
     }
-    
+
     // Fall back to shader's default zoom
     auto effectMeta = GetEffectRegistry().getEffectByMode(modeIndex);
     if (effectMeta) {
         return effectMeta->defaultZoom;
     }
     return 1.0f;
+}
+
+GLState Visualizer::saveGLState() {
+    GLState s;
+
+    glGetIntegerv(GL_CURRENT_PROGRAM, &s.program);
+    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &s.vao);
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &s.fbo);
+    glGetIntegerv(GL_ACTIVE_TEXTURE, &s.activeTexture);
+    glGetIntegerv(GL_VIEWPORT, s.viewport);
+
+    s.blend = glIsEnabled(GL_BLEND);
+    s.depthTest = glIsEnabled(GL_DEPTH_TEST);
+    s.cullFace = glIsEnabled(GL_CULL_FACE);
+
+    glGetIntegerv(GL_BLEND_SRC_RGB, &s.blendSrcRGB);
+    glGetIntegerv(GL_BLEND_DST_RGB, &s.blendDstRGB);
+    glGetIntegerv(GL_BLEND_SRC_ALPHA, &s.blendSrcAlpha);
+    glGetIntegerv(GL_BLEND_DST_ALPHA, &s.blendDstAlpha);
+
+    return s;
+}
+
+void Visualizer::restoreGLState(const GLState& s) {
+    glUseProgram(s.program);
+    glBindVertexArray(s.vao);
+    glBindFramebuffer(GL_FRAMEBUFFER, s.fbo);
+    glActiveTexture(s.activeTexture);
+
+    if (s.blend) glEnable(GL_BLEND);
+    else glDisable(GL_BLEND);
+
+    if (s.depthTest) glEnable(GL_DEPTH_TEST);
+    else glDisable(GL_DEPTH_TEST);
+
+    if (s.cullFace) glEnable(GL_CULL_FACE);
+    else glDisable(GL_CULL_FACE);
+
+    glBlendFuncSeparate(s.blendSrcRGB, s.blendDstRGB, s.blendSrcAlpha, s.blendDstAlpha);
+
+    glViewport(s.viewport[0], s.viewport[1], s.viewport[2], s.viewport[3]);
 }

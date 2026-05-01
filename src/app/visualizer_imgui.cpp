@@ -218,17 +218,7 @@ void Visualizer::handleKeyboardInput() {
         return;
     }
 
-    // Check for 'D' key toggle
-    if (isKeyPressed(SDLK_d)) {
-        static double lastPress = 0.0;
-        double currentTime = SDL_GetTicks() / 1000.0;
-        if (currentTime - lastPress > 0.5) { // 500ms debounce
-            showImGuiWindow_ = !showImGuiWindow_;
-            saveCurrentSettings();
-            std::cout << "ImGui window toggled via D key: " << (showImGuiWindow_ ? "SHOWN" : "HIDDEN") << std::endl;
-            lastPress = currentTime;
-        }
-    }
+    // D key toggle removed to keep ImGui window always visible
 
     // Check for 'I' key toggle for diagnostic mode
     if (isKeyPressed(SDLK_i)) {
@@ -398,7 +388,7 @@ void Visualizer::renderImGui() {
         return;
     }
 
-    // If using separate ImGui window, switch context before rendering
+    // If using separate ImGui window with shared context, switch to it before rendering
     bool useSeparateWindow = (imguiWindow_ != nullptr);
     if (useSeparateWindow) {
         SDL_GL_MakeCurrent(imguiWindow_, glContext_);
@@ -498,27 +488,17 @@ void Visualizer::renderImGui() {
         PROFILE_SCOPE("imgui_render");
         ImGui::Render();
 
+        // Render ImGui in current context
+        GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_IMGUI_RENDER);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_IMGUI_RENDER);
+
+        // If separate ImGui window exists, swap to it
         if (useSeparateWindow) {
-            // Render to separate ImGui window
-            int display_w, display_h;
-            SDL_GL_GetDrawableSize(imguiWindow_, &display_w, &display_h);
-            glViewport(0, 0, display_w, display_h);
-            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
-
-            GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_IMGUI_RENDER);
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-            GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_IMGUI_RENDER);
-
             SDL_GL_SwapWindow(imguiWindow_);
 
-            // Restore context to main window
+            // Restore context to main window after ImGui render
             SDL_GL_MakeCurrent(window_, glContext_);
-        } else {
-            // Render as overlay on main window
-            GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_IMGUI_RENDER);
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-            GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_IMGUI_RENDER);
         }
     }
 }
