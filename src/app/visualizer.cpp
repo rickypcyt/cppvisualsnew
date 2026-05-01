@@ -2070,11 +2070,12 @@ void Visualizer::render() {
     // FASE 0.1: Calculate frame time CPU and FPS
     auto frameEnd = std::chrono::high_resolution_clock::now();
     frameTimeCPU_ = std::chrono::duration<float, std::milli>(frameEnd - frameStart).count();
-    fps_ = 1000.0f / frameTimeCPU_;
-    
+    // Use real frame time (deltaTime_) for FPS calculation, not just CPU time
+    fps_ = (deltaTime_ > 0.0f) ? (1.0f / deltaTime_) : 0.0f;
+
     // Accumulate session statistics
     totalFramesRendered_++;
-    totalSessionTime_ += frameTimeCPU_ / 1000.0; // Convert to seconds
+    totalSessionTime_ += deltaTime_; // Use real frame time, not just CPU
     avgSessionFPS_ = (avgSessionFPS_ * (totalFramesRendered_ - 1) + fps_) / totalFramesRendered_;
     avgSessionCPUTime_ = (avgSessionCPUTime_ * (totalFramesRendered_ - 1) + frameTimeCPU_) / totalFramesRendered_;
     if (gpuQueryAvailable_) {
@@ -2396,10 +2397,10 @@ bool Visualizer::setupOpenGL() {
     glViewport(0, 0, windowWidth_, windowHeight_);
 
     // === IMGUI RENDERED AS OVERLAY ON MAIN WINDOW ===
-    // No separate window to avoid expensive context switch and blit (96ms+ overhead)
-    // ImGui will be rendered directly on main window at the end of each frame
-    imguiWindow_ = nullptr; // Disable separate window
-    std::cout << "[INFO] ImGui configured as overlay on main window (no separate window)" << std::endl;
+    // Single window approach to avoid expensive context switch overhead
+    // Multi-monitor support: move main window to desired monitor using 'M' key
+    imguiWindow_ = nullptr;
+    std::cout << "[INFO] ImGui configured as overlay on main window (no context switch overhead)" << std::endl;
 
     // Disable vsync to prevent compositor from pausing rendering when window not visible
     // This is critical for Hyprland/Wayland where frame callbacks stop on inactive workspaces

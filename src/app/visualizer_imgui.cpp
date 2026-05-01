@@ -483,19 +483,19 @@ void Visualizer::renderImGui() {
         renderShaderPresetsWindow();
     }
 
-    // Render ImGui directly to main framebuffer (no FBO, no blit, no context switch)
+    // Render ImGui to the appropriate window
     {
         PROFILE_SCOPE("imgui_render");
         ImGui::Render();
-        GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_IMGUI_RENDER);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_IMGUI_RENDER);
-    }
-}
 
-void Visualizer::renderMainImGuiWindow() {
-    ImGui::Begin("Info", &showImGuiWindow_, ImGuiWindowFlags_AlwaysAutoResize);
+        if (useSeparateWindow) {
+            // RendenerScLlyUa GplOpenGL3_ et(ucontext Gw(tc ivelhecp(PUProfiler::ZONE_IMGUI_RENDER);
+{
+        PROFIuEfSfePW"lgwMrrent"
+    } elImsPtuZ
 
+ Visualizer::renderMainImGuiWindow() {
+ImGui::Begin("Info", &showImGuiWindow_, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text("🎤 Current Device:");
     std::string deviceName = "System Default";
     bool currentInternal = false;
