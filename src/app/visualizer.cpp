@@ -2305,6 +2305,11 @@ bool Visualizer::setupOpenGL() {
     // === CREATE SEPARATE IMGUI CONTROLS WINDOW ===
     // The second window shares the context with the first window
     glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE); // Don't steal focus when showing controls window
+
+    // CRITICAL for hybrid laptops: Force same GPU to avoid 100ms+ cross-GPU context switches
+    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+
     std::cout << "Creating ImGui controls window (" << imguiWindowWidth_ << "x" << imguiWindowHeight_ << ")..." << std::endl;
     imguiWindow_ = glfwCreateWindow(imguiWindowWidth_, imguiWindowHeight_, "Audio Visualizer - Controls", nullptr, window_);
     if (!imguiWindow_) {
@@ -2312,6 +2317,14 @@ bool Visualizer::setupOpenGL() {
         // Continue without the controls window - non-critical
     } else {
         std::cout << "ImGui controls window created successfully" << std::endl;
+
+        // Check which GPU the ImGui window is using (critical for hybrid systems)
+        glfwMakeContextCurrent(imguiWindow_);
+        const char* imguiVendor = (const char*)glGetString(GL_VENDOR);
+        const char* imguiRenderer = (const char*)glGetString(GL_RENDERER);
+        std::cout << "[GPU] ImGui Window Vendor: " << imguiVendor << std::endl;
+        std::cout << "[GPU] ImGui Window Renderer: " << imguiRenderer << std::endl;
+        glfwMakeContextCurrent(window_);
 
         // Position ImGui window to the right of the main window
         int mainX, mainY;

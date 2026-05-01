@@ -402,6 +402,11 @@ void Visualizer::renderImGui() {
         return;
     }
 
+    // Skip rendering if ImGui window is hidden or not visible (eliminates 120ms+ context switch overhead)
+    if (imguiWindow_ && !glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE)) {
+        return;
+    }
+
     // Rate limiting: only render ImGui if dirty or periodically
     imguiUpdateTimer_ += deltaTime_;
     if (!imguiDirty_ && imguiUpdateTimer_ < imguiUpdateInterval_) {
