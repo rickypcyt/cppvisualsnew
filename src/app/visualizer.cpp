@@ -923,7 +923,7 @@ Visualizer::Visualizer()
       showDeviceSelector_(false), showDiagnosticInfo_(false), showConsoleMode_(false),
       showImGuiVisualWindow_(true), imguiInitialized_(false), autoRandomizeColors_(true),
       colorRandomInterval_(12.0f), colorRandomTimer_(0.0f), deltaTime_(0.0f),
-      autoRandomizePresets_(false), presetRandomInterval_(10.0f), presetRandomTimer_(0.0f),
+      autoRandomizePresets_(false), presetRandomInterval_(3.0f), presetRandomTimer_(0.0f),
       rng_(std::random_device{}()), onsetColorCyclingEnabled_(true), onsetTriggerCount_(0),
       lastOnsetActive_(false), tempoMultiplier_(1.0f), scenePalettes_(),
       currentScenePaletteIndex_(-1), scenePaletteHueSeed_(0.0f),
@@ -3463,24 +3463,43 @@ void Visualizer::initializeRandomPostProcess() {
 }
 
 void Visualizer::selectRandomPostProcess() {
-    // Select a random post process effect from available modes
+    // Select different random post process effects for each active slot
     if (availablePostProcessModes_.empty()) {
         std::cout << "[RANDOM POST] No available modes to select from" << std::endl;
         return;
     }
 
     std::uniform_int_distribution<int> dist(0, availablePostProcessModes_.size() - 1);
-    int randomMode = availablePostProcessModes_[dist(rng_)];
+    std::vector<int> selectedModes;
+    bool hasActiveSlots = false;
 
-    // Apply to all active slots
+    // Assign different random effects to each active slot
     for (int slotIndex = 0; slotIndex < kMaxPostProcessSlots; ++slotIndex) {
         if (postProcessSlots_[slotIndex].enabled) {
+            int randomMode;
+            // Try to find a mode that's not already selected
+            int attempts = 0;
+            do {
+                randomMode = availablePostProcessModes_[dist(rng_)];
+                attempts++;
+            } while (std::find(selectedModes.begin(), selectedModes.end(), randomMode) != selectedModes.end() 
+                     && attempts < 10 && selectedModes.size() < availablePostProcessModes_.size());
+            
             postProcessSlots_[slotIndex].mode = randomMode;
+            postProcessSlots_[slotIndex].strength = 1.0f; // Ensure strength is set
+            selectedModes.push_back(randomMode);
+            currentRandomPostProcess_ = randomMode;
+            hasActiveSlots = true;
+            std::cout << "[RANDOM POST] Slot " << slotIndex << " -> Mode " << randomMode << std::endl;
         }
     }
-    currentRandomPostProcess_ = randomMode;
+    
+    // Enable post process rendering if we have active slots
+    if (hasActiveSlots) {
+        showPostProcess_ = true;
+    }
+    
     saveCurrentSettings();
-    std::cout << "[RANDOM POST] Selected random effect: " << randomMode << std::endl;
 }
 
 void Visualizer::updateRandomPostProcess(float deltaTime) {

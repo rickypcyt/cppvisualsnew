@@ -306,10 +306,10 @@ private:
 
     bool onsetColorCyclingEnabled_ = true;
     bool autoRandomizeRgbChannels_ = false;
-    float rgbRandomInterval_ = 5.0f;
+    float rgbRandomInterval_ = 3.0f;
 
     bool autoRandomizePresets_ = false;
-    float presetRandomInterval_ = 10.0f;
+    float presetRandomInterval_ = 3.0f;
 
     // RGB channel settings
     std::array<bool, 3> rgbChannelEnabled_{true, true, true};
