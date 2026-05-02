@@ -229,10 +229,10 @@ private:
     // Render resolution decoupling (for fill-rate optimization)
     int renderWidth_ = 1920;   // Fixed internal render resolution (1080p)
     int renderHeight_ = 1080;
-    bool useResolutionDecoupling_ = true;  // Enable for performance on slow hardware
+    bool useResolutionDecoupling_ = true;  // Disable to always render at full resolution
     
     // Adaptive Resolution Scaling System (GPU Budget Control)
-    bool adaptiveResolutionEnabled_ = true;  // Enable dynamic resolution scaling (enabled to improve performance on slow hardware)
+    bool adaptiveResolutionEnabled_ = true;  // Disable to always render at full resolution
     float targetFrameTimeMs_ = 16.67f;       // Target 60 FPS (16.67ms)
     float gpuFrameBudgetMs_ = 14.0f;         // GPU budget (leave headroom for CPU/present)
     float gpuFrameBudgetLow_ = 8.0f;         // Lower threshold for scaling up (wider hysteresis band: 14-8=6ms)

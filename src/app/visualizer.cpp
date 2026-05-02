@@ -1152,6 +1152,14 @@ bool Visualizer::initialize(int width, int height) {
     // Initialize GPU timing queries for adaptive resolution
     glGenQueries(1, &gpuQueryStart_);
     glGenQueries(1, &gpuQueryEnd_);
+    
+    // Log resolution decoupling and adaptive resolution status
+    std::cout << "[Resolution System] Resolution Decoupling: " << (useResolutionDecoupling_ ? "ENABLED" : "DISABLED") << std::endl;
+    std::cout << "[Resolution System] Adaptive Resolution: " << (adaptiveResolutionEnabled_ ? "ENABLED" : "DISABLED") << std::endl;
+    if (useResolutionDecoupling_) {
+        std::cout << "[Resolution System] Initial Scale: " << (resolutionScale_ * 100.0f) << "% (" << renderWidth_ << "x" << renderHeight_ << ")" << std::endl;
+        std::cout << "[Resolution System] Window Resolution: " << windowWidth_ << "x" << windowHeight_ << std::endl;
+    }
 
     std::cout << "Setting up ImGui..." << std::endl;
     if (setupImGui()) {
@@ -1902,7 +1910,8 @@ void Visualizer::render() {
                         consecutiveSlowFrames_ = 0;
                         lastScaleChangeTime_ = currentTime;
                         std::cout << "[Adaptive Resolution] Scaling DOWN to " << (resolutionScale_ * 100.0f) 
-                                  << "% (GPU filtered: " << gpuTimeFiltered_ << "ms, raw: " << gpuTimeForScaling << "ms > budget: " << gpuFrameBudgetMs_ << "ms)" << std::endl;
+                                  << "% (" << renderWidth_ << "x" << renderHeight_ << ") - GPU filtered: " << gpuTimeFiltered_ 
+                                  << "ms, raw: " << gpuTimeForScaling << "ms > budget: " << gpuFrameBudgetMs_ << "ms" << std::endl;
                     }
                 } else if (gpuTimeFiltered_ < gpuFrameBudgetLow_) {
                     // GPU workload well under budget - consider scaling up (separate band for hysteresis)
@@ -1914,22 +1923,29 @@ void Visualizer::render() {
                         consecutiveFastFrames_ = 0;
                         lastScaleChangeTime_ = currentTime;
                         std::cout << "[Adaptive Resolution] Scaling UP to " << (resolutionScale_ * 100.0f) 
-                                  << "% (GPU filtered: " << gpuTimeFiltered_ << "ms, raw: " << gpuTimeForScaling << "ms < low threshold: " << gpuFrameBudgetLow_ << "ms)" << std::endl;
+                                  << "% (" << renderWidth_ << "x" << renderHeight_ << ") - GPU filtered: " << gpuTimeFiltered_ 
+                                  << "ms, raw: " << gpuTimeForScaling << "ms < low threshold: " << gpuFrameBudgetLow_ << "ms" << std::endl;
                     }
-                } else {
-                    // Within acceptable hysteresis band, reset counters
-                    consecutiveSlowFrames_ = 0;
-                    consecutiveFastFrames_ = 0;
                 }
             }
         }
         
         // Apply resolution scale to render dimensions
-        renderWidth_ = static_cast<int>(windowWidth_ * resolutionScale_);
-        renderHeight_ = static_cast<int>(windowHeight_ * resolutionScale_);
+        int newRenderWidth = static_cast<int>(windowWidth_ * resolutionScale_);
+        int newRenderHeight = static_cast<int>(windowHeight_ * resolutionScale_);
         // Ensure even dimensions for GPU compatibility
-        renderWidth_ = (renderWidth_ / 2) * 2;
-        renderHeight_ = (renderHeight_ / 2) * 2;
+        newRenderWidth = (newRenderWidth / 2) * 2;
+        newRenderHeight = (newRenderHeight / 2) * 2;
+        
+        // Log resolution changes
+        if (newRenderWidth != renderWidth_ || newRenderHeight != renderHeight_) {
+            std::cout << "[Resolution System] Resolution changed: " << renderWidth_ << "x" << renderHeight_ 
+                      << " -> " << newRenderWidth << "x" << newRenderHeight 
+                      << " (scale: " << (resolutionScale_ * 100.0f) << "%)" << std::endl;
+        }
+        
+        renderWidth_ = newRenderWidth;
+        renderHeight_ = newRenderHeight;
     }
     
     int renderW = useResolutionDecoupling_ ? renderWidth_ : windowWidth_;
