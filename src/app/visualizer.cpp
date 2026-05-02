@@ -1152,14 +1152,6 @@ bool Visualizer::initialize(int width, int height) {
     // Initialize GPU timing queries for adaptive resolution
     glGenQueries(1, &gpuQueryStart_);
     glGenQueries(1, &gpuQueryEnd_);
-    
-    // Log resolution decoupling and adaptive resolution status
-    std::cout << "[Resolution System] Resolution Decoupling: " << (useResolutionDecoupling_ ? "ENABLED" : "DISABLED") << std::endl;
-    std::cout << "[Resolution System] Adaptive Resolution: " << (adaptiveResolutionEnabled_ ? "ENABLED" : "DISABLED") << std::endl;
-    if (useResolutionDecoupling_) {
-        std::cout << "[Resolution System] Initial Scale: " << (resolutionScale_ * 100.0f) << "% (" << renderWidth_ << "x" << renderHeight_ << ")" << std::endl;
-        std::cout << "[Resolution System] Window Resolution: " << windowWidth_ << "x" << windowHeight_ << std::endl;
-    }
 
     std::cout << "Setting up ImGui..." << std::endl;
     if (setupImGui()) {
@@ -1202,6 +1194,23 @@ bool Visualizer::initialize(int width, int height) {
     // Save initial settings
     saveCurrentSettings();
     std::cout << "Initialization complete!" << std::endl;
+    
+    // Log initial resolution configuration
+    if (useResolutionDecoupling_) {
+        std::cout << "[Resolution Decoupling] ENABLED" << std::endl;
+        std::cout << "[Resolution Decoupling] Window: " << windowWidth_ << "x" << windowHeight_ << std::endl;
+        std::cout << "[Resolution Decoupling] Initial render resolution: " << renderWidth_ << "x" << renderHeight_ 
+                  << " (scale: " << (resolutionScale_ * 100.0f) << "%)" << std::endl;
+        if (adaptiveResolutionEnabled_) {
+            std::cout << "[Adaptive Resolution] ENABLED - Target: " << targetFrameTimeMs_ << "ms (" 
+                      << (1000.0f / targetFrameTimeMs_) << " FPS), GPU budget: " << gpuFrameBudgetMs_ << "ms" << std::endl;
+        } else {
+            std::cout << "[Adaptive Resolution] DISABLED" << std::endl;
+        }
+    } else {
+        std::cout << "[Resolution Decoupling] DISABLED - Rendering at window resolution: " 
+                  << windowWidth_ << "x" << windowHeight_ << std::endl;
+    }
 
     return true;
 }
@@ -1910,22 +1919,11 @@ void Visualizer::render() {
                         consecutiveSlowFrames_ = 0;
                         lastScaleChangeTime_ = currentTime;
                         std::cout << "[Adaptive Resolution] Scaling DOWN to " << (resolutionScale_ * 100.0f) 
-                                  << "% (" << renderWidth_ << "x" << renderHeight_ << ") - GPU filtered: " << gpuTimeFiltered_ 
-                                  << "ms, raw: " << gpuTimeForScaling << "ms > budget: " << gpuFrameBudgetMs_ << "ms" << std::endl;
+                                  << "% (" << (static_cast<int>(windowWidth_ * resolutionScale_)) << "x" 
+                                  << (static_cast<int>(windowHeight_ * resolutionScale_)) << ") "
+                                  << "GPU: " << gpuTimeFiltered_ << "ms > budget: " << gpuFrameBudgetMs_ << "ms" << std::endl;
                     }
                 } else if (gpuTimeFiltered_ < gpuFrameBudgetLow_) {
-                    // GPU workload well under budget - consider scaling up (separate band for hysteresis)
-                    consecutiveFastFrames_++;
-                    consecutiveSlowFrames_ = 0;
-                    
-                    if (consecutiveFastFrames_ >= kScaleUpThreshold && resolutionScale_ < maxResolutionScale_) {
-                        resolutionScale_ = std::min(maxResolutionScale_, resolutionScale_ + resolutionScaleStep_);
-                        consecutiveFastFrames_ = 0;
-                        lastScaleChangeTime_ = currentTime;
-                        std::cout << "[Adaptive Resolution] Scaling UP to " << (resolutionScale_ * 100.0f) 
-                                  << "% (" << renderWidth_ << "x" << renderHeight_ << ") - GPU filtered: " << gpuTimeFiltered_ 
-                                  << "ms, raw: " << gpuTimeForScaling << "ms < low threshold: " << gpuFrameBudgetLow_ << "ms" << std::endl;
-                    }
                 }
             }
         }
@@ -1939,9 +1937,11 @@ void Visualizer::render() {
         
         // Log resolution changes
         if (newRenderWidth != renderWidth_ || newRenderHeight != renderHeight_) {
-            std::cout << "[Resolution System] Resolution changed: " << renderWidth_ << "x" << renderHeight_ 
-                      << " -> " << newRenderWidth << "x" << newRenderHeight 
-                      << " (scale: " << (resolutionScale_ * 100.0f) << "%)" << std::endl;
+            std::cout << "[Resolution Decoupling] Render resolution changed: " 
+                      << renderWidth_ << "x" << renderHeight_ << " -> " 
+                      << newRenderWidth << "x" << newRenderHeight 
+                      << " (scale: " << (resolutionScale_ * 100.0f) << "%, window: " 
+                      << windowWidth_ << "x" << windowHeight_ << ")" << std::endl;
         }
         
         renderWidth_ = newRenderWidth;
@@ -2579,6 +2579,9 @@ void Visualizer::renderUpscaledToWindow() {
     if (!upscaleShader_ || upscaleVAO_ == 0) {
         return;
     }
+    
+    // CRITICAL: Set viewport to full window resolution before upscaling
+    glViewport(0, 0, windowWidth_, windowHeight_);
     
     upscaleShader_->use();
     
