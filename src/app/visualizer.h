@@ -229,15 +229,15 @@ private:
     // Render resolution decoupling (for fill-rate optimization)
     int renderWidth_ = 1920;   // Fixed internal render resolution (1080p)
     int renderHeight_ = 1080;
-    bool useResolutionDecoupling_ = false;  // Enable/disable for testing (disabled to always render at full resolution)
+    bool useResolutionDecoupling_ = true;  // Enable for performance on slow hardware
     
     // Adaptive Resolution Scaling System (GPU Budget Control)
-    bool adaptiveResolutionEnabled_ = false;  // Enable dynamic resolution scaling (disabled to always render at full resolution)
+    bool adaptiveResolutionEnabled_ = true;  // Enable dynamic resolution scaling (enabled to improve performance on slow hardware)
     float targetFrameTimeMs_ = 16.67f;       // Target 60 FPS (16.67ms)
     float gpuFrameBudgetMs_ = 14.0f;         // GPU budget (leave headroom for CPU/present)
     float gpuFrameBudgetLow_ = 8.0f;         // Lower threshold for scaling up (wider hysteresis band: 14-8=6ms)
-    float resolutionScale_ = 1.0f;           // Current resolution scale (0.5 - 1.0)
-    float minResolutionScale_ = 0.5f;        // Minimum scale (720p -> 360p)
+    float resolutionScale_ = 0.5f;           // Start at 50% resolution for better performance
+    float minResolutionScale_ = 0.3f;        // Minimum scale (720p -> 216p for very slow hardware)
     float maxResolutionScale_ = 1.0f;        // Maximum scale (native)
     float resolutionScaleStep_ = 0.05f;      // Step size for scaling adjustments
     int consecutiveSlowFrames_ = 0;        // Count of frames exceeding budget
@@ -362,7 +362,7 @@ private:
     int uniformCallsPerFrame_ = 0;
     int textureBindsPerFrame_ = 0;
     int shaderSwitchesPerFrame_ = 0;
-    bool showPerformanceWindow_ = false;
+    bool showPerformanceWindow_ = true;  // Enable by default to diagnose performance issues
     bool cpuBottleneckActive_ = false;  // Hysteresis state for bottleneck detection
 
     // ImGui state

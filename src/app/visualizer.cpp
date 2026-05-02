@@ -934,7 +934,7 @@ Visualizer::Visualizer()
       rgbRandomInterval_(8.0f), lastRgbRandomTime_(0.0f), lastOnsetCount_(0), coreShowSpokes_(true), coreShowRunes_(true),
       coreShowSparkles_(true), coreShowBloom_(true), showCornerOrbs_(true),
       showProceduralLayer_(true), proceduralLayerDebug_(false), proceduralLayerOpacity_(0.85f),
-      showPostProcess_(true),
+      showPostProcess_(false),
       proceduralLayerMode_(1), audioInputGain_(1.0f), visualSensitivity_(1.0f),
       settingsManager_(std::make_unique<SettingsManager>()),
     midiController_(std::make_unique<MidiController>()),
