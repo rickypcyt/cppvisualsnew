@@ -3455,10 +3455,10 @@ void Visualizer::renderLife(float animatedTime) const {
 }
 
 // Random Post Process Methods
-void Visualizer::initializeRandomPostProcess() {
-    // Initialize available post process modes
+void Visualizer::selectRandomPostProcess() {
+    // Select different random post process effects for each active slot
     availablePostProcessModes_.clear();
-    
+
     if (randomFavoritesOnly_ && !favorites_.empty()) {
         // Filter by favorites - extract post process modes from favorites
         std::unordered_set<int> favoritePostModes;
@@ -3469,7 +3469,7 @@ void Visualizer::initializeRandomPostProcess() {
                 }
             }
         }
-        
+
         for (int mode : favoritePostModes) {
             availablePostProcessModes_.push_back(mode);
         }
@@ -3490,43 +3490,24 @@ void Visualizer::initializeRandomPostProcess() {
             }
         }
     }
-    
-    randomPostProcessTimer_ = 0.0f;
-    
-    // Get current mode from Slot 1
-    if (kMaxPostProcessSlots > 0) {
-        currentRandomPostProcess_ = postProcessSlots_[0].mode;
-    } else {
-        currentRandomPostProcess_ = 0;
-    }
-    
-    if (!availablePostProcessModes_.empty() && 
-        (currentRandomPostProcess_ == 0 || currentRandomPostProcess_ >= kPostProcessModeCount ||
-         !isPostProcessEffectEnabled(currentRandomPostProcess_))) {
-        // If current mode is invalid or disabled, select a random one
-        std::uniform_int_distribution<int> dist(0, availablePostProcessModes_.size() - 1);
-        currentRandomPostProcess_ = availablePostProcessModes_[dist(rng_)];
-    }
-}
 
-void Visualizer::selectRandomPostProcess() {
-    // Select different random post process effects for each active slot
-    if (availablePostProcessModes_.empty()) {
-        std::cout << "[RANDOM POST] No available modes to select from" << std::endl;
-        return;
-    }
+    // Clear accumulation buffers to prevent ghosting when changing effects
+    postProcessor_.clearAccumulation();
 
-    std::uniform_int_distribution<int> dist(0, availablePostProcessModes_.size() - 1);
-    std::vector<int> selectedModes;
     bool hasActiveSlots = false;
+    std::vector<int> selectedModes;
+    int slotCount = (randomPostProcessSlotCount_ > 0) ? randomPostProcessSlotCount_ : 1;
 
-    // Assign different random effects to each active slot
-    for (int slotIndex = 0; slotIndex < kMaxPostProcessSlots; ++slotIndex) {
-        if (postProcessSlots_[slotIndex].enabled) {
-            int randomMode;
-            // Try to find a mode that's not already selected
+    for (int slotIndex = 0; slotIndex < std::min(slotCount, kMaxPostProcessSlots); ++slotIndex) {
+        if (!postProcessSlots_[slotIndex].enabled) {
+            continue;
+        }
+
+        if (!availablePostProcessModes_.empty()) {
+            int randomMode = 0;
             int attempts = 0;
             do {
+                std::uniform_int_distribution<int> dist(0, availablePostProcessModes_.size() - 1);
                 randomMode = availablePostProcessModes_[dist(rng_)];
                 attempts++;
             } while (std::find(selectedModes.begin(), selectedModes.end(), randomMode) != selectedModes.end() 
@@ -3551,12 +3532,66 @@ void Visualizer::selectRandomPostProcess() {
 
 void Visualizer::updateRandomPostProcess(float deltaTime) {
     if (!randomPostProcessEnabled_) return;
-    
+
     randomPostProcessTimer_ += deltaTime;
-    
+
     if (randomPostProcessTimer_ >= randomPostProcessInterval_) {
         selectRandomPostProcess();
         randomPostProcessTimer_ = 0.0f;
+    }
+}
+
+void Visualizer::initializeRandomPostProcess() {
+    // Initialize available post process modes
+    availablePostProcessModes_.clear();
+
+    if (randomFavoritesOnly_ && !favorites_.empty()) {
+        // Filter by favorites - extract post process modes from favorites
+        std::unordered_set<int> favoritePostModes;
+        for (const auto& fav : favorites_) {
+            for (const auto& slot : fav.postProcessSlots) {
+                if (slot.mode > 0 && slot.mode < kPostProcessModeCount - 1) {
+                    favoritePostModes.insert(slot.mode);
+                }
+            }
+        }
+
+        for (int mode : favoritePostModes) {
+            availablePostProcessModes_.push_back(mode);
+        }
+        std::cout << "[RANDOM POST] Using favorites only: " << availablePostProcessModes_.size() << " modes" << std::endl;
+    } else {
+        // Use all enabled effects when random cycle is ON, or all effects when random cycle is OFF
+        if (randomPostProcessEnabled_) {
+            // Random cycle is ON: only use enabled effects
+            for (int i = 1; i < kPostProcessModeCount - 1; ++i) { // Skip "None"(0) and "Random Cycle"(last)
+                if (isPostProcessEffectEnabled(i)) {
+                    availablePostProcessModes_.push_back(i);
+                }
+            }
+        } else {
+            // Random cycle is OFF: use all effects regardless of enabled status
+            for (int i = 1; i < kPostProcessModeCount - 1; ++i) { // Skip "None"(0) and "Random Cycle"(last)
+                availablePostProcessModes_.push_back(i);
+            }
+        }
+    }
+
+    randomPostProcessTimer_ = 0.0f;
+
+    // Get current mode from Slot 1
+    if (kMaxPostProcessSlots > 0) {
+        currentRandomPostProcess_ = postProcessSlots_[0].mode;
+    } else {
+        currentRandomPostProcess_ = 0;
+    }
+
+    if (!availablePostProcessModes_.empty() &&
+        (currentRandomPostProcess_ == 0 || currentRandomPostProcess_ >= kPostProcessModeCount ||
+         !isPostProcessEffectEnabled(currentRandomPostProcess_))) {
+        // If current mode is invalid or disabled, select a random one
+        std::uniform_int_distribution<int> dist(0, availablePostProcessModes_.size() - 1);
+        currentRandomPostProcess_ = availablePostProcessModes_[dist(rng_)];
     }
 }
 
@@ -3579,48 +3614,30 @@ void Visualizer::initializeRandomProcedural() {
         }
         std::cout << "[RANDOM PROC] Using favorites only: " << availableProceduralModes_.size() << " modes" << std::endl;
     } else {
-        // Use all enabled effects when random cycle is ON, or all effects when random cycle is OFF
-        if (randomProceduralEnabled_) {
-            // Random cycle is ON: only use enabled effects
-            auto effects = GetEffectRegistry().getAllEffects();
-            std::cout << "[RANDOM INIT] Total effects from registry: " << effects.size() << std::endl;
-            for (const auto& effect : effects) {
-                if (effect.modeIndex <= 0) {
-                    continue;
-                }
-
-                // Check if shader is enabled (default to true if not in map)
-                auto it = proceduralShaderEnabled_.find(effect.modeIndex);
-                bool enabled = (it == proceduralShaderEnabled_.end()) ? true : it->second;
-                std::cout << "[RANDOM INIT] Mode " << effect.modeIndex << " (" << effect.name << "): " << (enabled ? "enabled" : "disabled") << std::endl;
-                if (enabled) {
-                    availableProceduralModes_.push_back(effect.modeIndex);
-                }
+        // Always use enabled effects (both for random cycle and manual selection)
+        auto effects = GetEffectRegistry().getAllEffects();
+        for (const auto& effect : effects) {
+            if (effect.modeIndex <= 0) {
+                continue;
             }
-        } else {
-            // Random cycle is OFF: use all effects regardless of enabled status
-            auto effects = GetEffectRegistry().getAllEffects();
-            std::cout << "[RANDOM INIT] Random cycle OFF - using all effects" << std::endl;
-            for (const auto& effect : effects) {
-                if (effect.modeIndex > 0) {
-                    availableProceduralModes_.push_back(effect.modeIndex);
-                }
+
+            // Check if shader is enabled (default to false if not in map - only explicitly enabled effects)
+            auto it = proceduralShaderEnabled_.find(effect.modeIndex);
+            bool enabled = (it == proceduralShaderEnabled_.end()) ? false : it->second;
+            if (enabled) {
+                availableProceduralModes_.push_back(effect.modeIndex);
             }
         }
     }
     
-    std::cout << "[RANDOM INIT] Available modes count: " << availableProceduralModes_.size() << std::endl;
-    
     randomProceduralTimer_ = 0.0f;
-    
+
     // Get current mode from Slot 1
     if (kMaxProceduralSlots > 0) {
         currentRandomProcedural_ = proceduralSlots_[0].mode;
     } else {
         currentRandomProcedural_ = proceduralLayerMode_;
     }
-    
-    std::cout << "[RANDOM INIT] Current mode: " << currentRandomProcedural_ << std::endl;
     
     if (!availableProceduralModes_.empty() && currentRandomProcedural_ == 0) {
         // If current mode is invalid, select a random one
@@ -3693,14 +3710,17 @@ void Visualizer::syncProceduralLayerWithSlot1() {
 
 void Visualizer::updateRandomProcedural(float deltaTime) {
     if (!randomProceduralEnabled_) return;
-    
+
     // Ensure modes are initialized (in case registry wasn't ready at startup)
-    if (availableProceduralModes_.empty()) {
+    // Only attempt initialization once per empty state to avoid performance issues
+    static bool initializationAttempted = false;
+    if (availableProceduralModes_.empty() && !initializationAttempted) {
         initializeRandomProcedural();
+        initializationAttempted = true;
     }
-    
+
     randomProceduralTimer_ += deltaTime;
-    
+
     if (randomProceduralTimer_ >= randomProceduralInterval_) {
         if (proceduralLayerDebug_) {
             std::cout << "[RANDOM DEBUG] Selecting random procedural (current=" << currentRandomProcedural_ << ")" << std::endl;
@@ -4172,6 +4192,8 @@ void Visualizer::setupMIDIMappings() {
             if (!postProcessSlots_.empty()) {
                 postProcessSlots_[0].mode = (postProcessSlots_[0].mode + 1) % 33; // Cycle through 0-32
                 postProcessSlots_[0].enabled = postProcessSlots_[0].mode > 0;
+                // Clear accumulation buffers to prevent ghosting when changing effects
+                postProcessor_.clearAccumulation();
             }
             int currentMode = postProcessSlots_.empty() ? 0 : postProcessSlots_[0].mode;
             std::cout << "[BUTTON] CC 23: Next Post Process Effect -> Mode " << currentMode << std::endl;
@@ -5232,7 +5254,7 @@ bool Visualizer::isProceduralShaderEnabled(int modeIndex) const {
     if (it != proceduralShaderEnabled_.end()) {
         return it->second;
     }
-    return true; // Default to enabled if not explicitly set
+    return false; // Default to disabled if not explicitly set
 }
 
 void Visualizer::setProceduralShaderEnabled(int modeIndex, bool enabled) {
@@ -5290,15 +5312,18 @@ bool Visualizer::isPostProcessEffectEnabled(int modeIndex) const {
     if (it != postProcessEffectEnabled_.end()) {
         return it->second;
     }
-    // Default to enabled if not in map
-    return true;
+    // Default to disabled if not in map
+    return false;
 }
 
 void Visualizer::setPostProcessEffectEnabled(int modeIndex, bool enabled) {
     postProcessEffectEnabled_[modeIndex] = enabled;
-    
-    // If disabling the current mode in slot 0, switch to None
+
+    // If disabling an effect, clear accumulation buffers to prevent ghosting
     if (!enabled) {
+        postProcessor_.clearAccumulation();
+
+        // If disabling the current mode in slot 0, switch to None
         if (postProcessSlots_[0].mode == modeIndex) {
             postProcessSlots_[0].mode = 0;
             saveCurrentSettings();

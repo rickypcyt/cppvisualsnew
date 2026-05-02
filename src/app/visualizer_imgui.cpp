@@ -32,12 +32,12 @@ struct EffectListForImGui {
         modeIndices.clear();
         ptrs.clear();
         enabledStates.clear();
-        
+
         // Always add "None" at index 0 with mode 0
         names.push_back("None");
         modeIndices.push_back(0);
         enabledStates.push_back(true);
-        
+
         if (!registry.empty()) {
             auto effects = registry.getAllEffects();
             for (const auto& effect : effects) {
@@ -54,7 +54,7 @@ struct EffectListForImGui {
                 }
             }
         }
-        
+
         // Build pointer array
         ptrs.clear();
         for (const auto& name : names) {
@@ -1579,7 +1579,12 @@ void Visualizer::renderPostProcessWindow() {
                     for (int mode : selectableModes) {
                         bool selected = (slot.mode == mode);
                         if (ImGui::Selectable(kPostProcessModes[mode], selected)) {
+                            int previousMode = slot.mode;
                             slot.mode = mode;
+                            // Clear accumulation buffers to prevent ghosting when changing effects
+                            if (previousMode != mode) {
+                                postProcessor_.clearAccumulation();
+                            }
                             saveCurrentSettings();
                         }
                         if (selected) {

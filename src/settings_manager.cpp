@@ -38,6 +38,21 @@ SettingsManager::SettingsManager() {
 
     // RGB channels always enabled by default
     rgbChannelEnabled_ = {true, true, true};
+
+    // Initialize all procedural shaders as enabled by default
+    // (user can disable them in the UI management section)
+    auto effects = GetEffectRegistry().getAllEffects();
+    for (const auto& effect : effects) {
+        if (effect.modeIndex > 0) {
+            proceduralShaderEnabled_[effect.modeIndex] = true;
+        }
+    }
+
+    // Initialize all post-processing effects as enabled by default
+    // Post-processing modes are 0-32 (33 total, with 0 = None)
+    for (int i = 1; i < 33; ++i) {
+        postProcessEffectEnabled_[i] = true;
+    }
 }
 
 SettingsManager::~SettingsManager() = default;
@@ -451,6 +466,16 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                 int modeIndex = std::stoi(key);
                 proceduralShaderEnabled_[modeIndex] = value.get<bool>();
             }
+            // If the file had enabled states but map is empty after loading,
+            // it means the file had an empty section - initialize all as enabled
+            if (proceduralShaderEnabled_.empty()) {
+                auto effects = GetEffectRegistry().getAllEffects();
+                for (const auto& effect : effects) {
+                    if (effect.modeIndex > 0) {
+                        proceduralShaderEnabled_[effect.modeIndex] = true;
+                    }
+                }
+            }
         }
 
         // Load per-post-processing-effect enabled states
@@ -460,6 +485,13 @@ bool SettingsManager::loadSettings(const std::string& filename) {
             for (auto& [key, value] : effectStates.items()) {
                 int modeIndex = std::stoi(key);
                 postProcessEffectEnabled_[modeIndex] = value.get<bool>();
+            }
+            // If the file had enabled states but map is empty after loading,
+            // initialize all post-processing effects as enabled by default
+            if (postProcessEffectEnabled_.empty()) {
+                for (int i = 1; i < 33; ++i) {
+                    postProcessEffectEnabled_[i] = true;
+                }
             }
         }
 
@@ -746,7 +778,7 @@ bool SettingsManager::getProceduralShaderEnabled(int modeIndex) const {
     if (it != proceduralShaderEnabled_.end()) {
         return it->second;
     }
-    return true; // Default to enabled if not explicitly set
+    return false; // Default to disabled if not explicitly set
 }
 
 void SettingsManager::setProceduralShaderEnabled(int modeIndex, bool enabled) {
@@ -829,7 +861,7 @@ bool SettingsManager::getPostProcessEffectEnabled(int modeIndex) const {
     if (it != postProcessEffectEnabled_.end()) {
         return it->second;
     }
-    return true; // Default to enabled if not explicitly set
+    return false; // Default to disabled if not explicitly set
 }
 
 void SettingsManager::setPostProcessEffectEnabled(int modeIndex, bool enabled) {
