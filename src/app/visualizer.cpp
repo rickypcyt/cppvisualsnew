@@ -2290,6 +2290,9 @@ bool Visualizer::setupOpenGL() {
     }
     std::cout << "Main visuals window created successfully" << std::endl;
 
+    // Explicitly show the main window
+    glfwShowWindow(window_);
+
     glfwMakeContextCurrent(window_);
     std::cout << "OpenGL context made current on main window" << std::endl;
 
@@ -2342,6 +2345,9 @@ bool Visualizer::setupOpenGL() {
         std::cout << "[GPU] ImGui Window Renderer: " << imguiRenderer << std::endl;
         glfwMakeContextCurrent(window_);
 
+        // Explicitly show ImGui window
+        glfwShowWindow(imguiWindow_);
+
         // Position ImGui window to the right of the main window
         int mainX, mainY;
         glfwGetWindowPos(window_, &mainX, &mainY);
@@ -2365,7 +2371,7 @@ bool Visualizer::setupOpenGL() {
 
         // Initialize FBO with correct initial size (matches window)
         resizeImGuiFBO(imguiWindowWidth_, imguiWindowHeight_);
-        
+
         // Disable vsync on ImGui window to prevent swapbuffers blocking (22ms stall)
         // This is critical for dual-window performance
         glfwMakeContextCurrent(imguiWindow_);

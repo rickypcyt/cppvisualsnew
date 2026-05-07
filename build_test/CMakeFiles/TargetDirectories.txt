@@ -1,5 +1,0 @@
-/home/ricky/coding/proyects/visuals/build_test/CMakeFiles/audio_visualizer.dir
-/home/ricky/coding/proyects/visuals/build_test/CMakeFiles/validate_layers.dir
-/home/ricky/coding/proyects/visuals/build_test/CMakeFiles/test_layer_integration.dir
-/home/ricky/coding/proyects/visuals/build_test/CMakeFiles/edit_cache.dir
-/home/ricky/coding/proyects/visuals/build_test/CMakeFiles/rebuild_cache.dir

@@ -2,8 +2,8 @@
 #define GL_RENDERER_H
 
 #include "renderer_interface.h"
+#include "gl_context.h"
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include <memory>
 #include <unordered_map>
 #include <string>
@@ -151,19 +151,18 @@ public:
     bool supportsComputeShaders() const override;
 
     // OpenGL-specific access (for migration period)
-    GLFWwindow* getWindow() const { return window_; }
+    GLContext* getContext() const { return context_.get(); }
     int getWidth() const { return width_; }
     int getHeight() const { return height_; }
 
 private:
-    GLFWwindow* window_;
+    std::unique_ptr<GLContext> context_;
     int width_;
     int height_;
     bool shaderHotReload_;
     std::string windowTitle_;
 
     bool initializeGL();
-    bool initializeWindow(int width, int height, const std::string& title);
 };
 
 #endif // GL_RENDERER_H

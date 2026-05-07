@@ -87,6 +87,7 @@ public:
     static void handleScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
     void handleMouseScroll(double xoffset, double yoffset);
     static void handleImGuiFramebufferSizeCallback(GLFWwindow* window, int width, int height);
+    static void handleMainFramebufferSizeCallback(GLFWwindow* window, int width, int height);
     bool isKeyPressed(int key) const;
 
     // Multi-monitor support

@@ -2663,12 +2663,12 @@ void Visualizer::blitImGuiFBOToWindow() {
     if (fbWidth != imguiFBOWidth_ || fbHeight != imguiFBOHeight_) {
         resizeImGuiFBO(fbWidth, fbHeight);
     }
-    
+
     // Switch to ImGui window context
     GPUProfiler::getInstance().beforeContextSwitch();
     glfwMakeContextCurrent(imguiWindow_);
     GPUProfiler::getInstance().afterContextSwitch();
-    
+
     // Blit FBO to imgui window's default framebuffer
     glBindFramebuffer(GL_READ_FRAMEBUFFER, imguiFBO_);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);

@@ -6,6 +6,12 @@
 #include <vulkan/vulkan.h>
 
 // ============================================================
+// GLRenderer Implementation
+// ============================================================
+
+GLRenderer::GLRenderer() : context_(nullptr), width_(0), height_(0), shaderHotReload_(false) {}
+
+// ============================================================
 // GLShader Implementation
 // ============================================================
 
@@ -357,8 +363,6 @@ bool GLFramebuffer::isComplete() const {
 // GLRenderer Implementation
 // ============================================================
 
-GLRenderer::GLRenderer() : window_(nullptr), width_(0), height_(0), shaderHotReload_(false) {}
-
 GLRenderer::~GLRenderer() {
     shutdown();
 }
@@ -368,65 +372,48 @@ bool GLRenderer::initialize(int width, int height, const std::string& windowTitl
     height_ = height;
     windowTitle_ = windowTitle;
 
-    if (!initializeWindow(width, height, windowTitle)) {
+    // Initialize GLFW globally (only once)
+    if (!GLContext::initializeGLFW()) {
         return false;
     }
+
+    // Create GL context with window
+    context_ = std::make_unique<GLContext>();
+    if (!context_->createWindow(width, height, windowTitle)) {
+        std::cerr << "[GLRenderer] Failed to create GL context" << std::endl;
+        return false;
+    }
+
+    // Make context current and initialize GLEW
+    context_->makeCurrent();
 
     if (!initializeGL()) {
         return false;
     }
 
+    // Disable VSync for uncapped FPS
+    context_->setVSync(false);
+
     std::cout << "[GLRenderer] Initialized: " << getVersionString() << std::endl;
     return true;
 }
 
-bool GLRenderer::initializeWindow(int width, int height, const std::string& title) {
-    if (!glfwInit()) {
-        std::cerr << "[GLRenderer] Failed to initialize GLFW" << std::endl;
-        return false;
-    }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_SAMPLES, 4);
-
-    window_ = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-    if (!window_) {
-        std::cerr << "[GLRenderer] Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return false;
-    }
-
-    glfwMakeContextCurrent(window_);
-    glfwSwapInterval(0); // Disable VSync for uncapped FPS
-
-    return true;
-}
-
 bool GLRenderer::initializeGL() {
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) {
-        std::cerr << "[GLRenderer] Failed to initialize GLEW" << std::endl;
-        return false;
-    }
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     return true;
 }
 
 void GLRenderer::shutdown() {
-    if (window_) {
-        glfwDestroyWindow(window_);
-        window_ = nullptr;
+    if (context_) {
+        context_->destroyWindow();
+        context_.reset();
     }
-    glfwTerminate();
+    GLContext::shutdownGLFW();
 }
 
 bool GLRenderer::shouldClose() {
-    return window_ && glfwWindowShouldClose(window_);
+    return context_ && context_->shouldClose();
 }
 
 void GLRenderer::beginFrame() {
@@ -439,8 +426,8 @@ void GLRenderer::endFrame() {
 }
 
 void GLRenderer::swapBuffers() {
-    if (window_) {
-        glfwSwapBuffers(window_);
+    if (context_) {
+        context_->swapBuffers();
     }
 }
 
@@ -507,17 +494,18 @@ void GLRenderer::setShaderHotReload(bool enabled) {
 }
 
 std::string GLRenderer::getVersionString() const {
-    const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-    return std::string("OpenGL ") + (version ? version : "Unknown") + " - " + (renderer ? renderer : "Unknown");
+    if (context_) {
+        return std::string("OpenGL ") + context_->getGLVersion() + " - " + context_->getGLRenderer();
+    }
+    return "OpenGL - Unknown";
 }
 
 bool GLRenderer::supportsComputeShaders() const {
     // OpenGL 4.3+ supports compute shaders
-    const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    if (version) {
+    if (context_) {
+        std::string version = context_->getGLVersion();
         int major = 0, minor = 0;
-        sscanf(version, "%d.%d", &major, &minor);
+        sscanf(version.c_str(), "%d.%d", &major, &minor);
         return major > 4 || (major == 4 && minor >= 3);
     }
     return false;

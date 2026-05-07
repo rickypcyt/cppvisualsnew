@@ -656,6 +656,30 @@ src/gl_command_executor.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gl_backend.dir/build.make CMakeFiles/gl_backend.dir/src/gl_command_executor.cpp.s
 .PHONY : src/gl_command_executor.cpp.s
 
+src/gl_context.o: src/gl_context.cpp.o
+.PHONY : src/gl_context.o
+
+# target to build an object file
+src/gl_context.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gl_backend.dir/build.make CMakeFiles/gl_backend.dir/src/gl_context.cpp.o
+.PHONY : src/gl_context.cpp.o
+
+src/gl_context.i: src/gl_context.cpp.i
+.PHONY : src/gl_context.i
+
+# target to preprocess a source file
+src/gl_context.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gl_backend.dir/build.make CMakeFiles/gl_backend.dir/src/gl_context.cpp.i
+.PHONY : src/gl_context.cpp.i
+
+src/gl_context.s: src/gl_context.cpp.s
+.PHONY : src/gl_context.s
+
+# target to generate assembly for a file
+src/gl_context.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gl_backend.dir/build.make CMakeFiles/gl_backend.dir/src/gl_context.cpp.s
+.PHONY : src/gl_context.cpp.s
+
 src/gl_renderer.o: src/gl_renderer.cpp.o
 .PHONY : src/gl_renderer.o
 
@@ -1060,6 +1084,9 @@ help:
 	@echo "... src/gl_command_executor.o"
 	@echo "... src/gl_command_executor.i"
 	@echo "... src/gl_command_executor.s"
+	@echo "... src/gl_context.o"
+	@echo "... src/gl_context.i"
+	@echo "... src/gl_context.s"
 	@echo "... src/gl_renderer.o"
 	@echo "... src/gl_renderer.i"
 	@echo "... src/gl_renderer.s"

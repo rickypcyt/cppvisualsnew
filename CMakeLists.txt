@@ -152,6 +152,7 @@ target_link_libraries(app_layer PUBLIC
 # OPENGL BACKEND LIBRARY (pure OpenGL rendering only)
 # ============================================================================
 add_library(gl_backend STATIC
+    src/gl_context.cpp
     src/gl_renderer.cpp
     src/gl_shader_compiler.cpp
     src/gl_command_executor.cpp
