@@ -167,6 +167,12 @@ bool SettingsManager::loadSettings(const std::string& filename) {
                 std::cout << " effectName=" << ui["proceduralLayerEffectName"].get<std::string>();
             }
             std::cout << std::endl;
+
+            // Load ImGui performance optimization options
+            if (ui.contains("imguiReduceWindowSize")) imguiReduceWindowSize_ = ui["imguiReduceWindowSize"];
+            if (ui.contains("imguiGpuCopyBlit")) imguiGpuCopyBlit_ = ui["imguiGpuCopyBlit"];
+            if (ui.contains("imguiDisableForPerf")) imguiDisableForPerf_ = ui["imguiDisableForPerf"];
+            if (ui.contains("imguiConditionalRender")) imguiConditionalRender_ = ui["imguiConditionalRender"];
         }
 
         // Load post-processing settings
@@ -585,6 +591,12 @@ bool SettingsManager::saveSettings(const std::string& filename) {
         if (!mainEffectName.empty()) {
             j["ui"]["proceduralLayerEffectName"] = mainEffectName;
         }
+
+        // Save ImGui performance optimization options
+        j["ui"]["imguiReduceWindowSize"] = imguiReduceWindowSize_;
+        j["ui"]["imguiGpuCopyBlit"] = imguiGpuCopyBlit_;
+        j["ui"]["imguiDisableForPerf"] = imguiDisableForPerf_;
+        j["ui"]["imguiConditionalRender"] = imguiConditionalRender_;
 
         // Save post-processing settings
         for (size_t i = 0; i < postProcessSlots_.size(); ++i) {

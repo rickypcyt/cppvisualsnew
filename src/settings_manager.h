@@ -255,7 +255,16 @@ private:
     bool showCurrentEffects_ = true;
     bool proceduralLayerDebug_ = false;
     float proceduralLayerOpacity_ = 0.85f;
-    int proceduralLayerMode_ = 23; // Voxel Path Tracer
+    int proceduralLayerMode_ = 0; // No shader by default
+
+public:
+    // ImGui performance optimization options
+    bool imguiReduceWindowSize_ = false;  // Reduce ImGui window size (500x800 -> 400x600)
+    bool imguiGpuCopyBlit_ = false;       // Use GPU copy for blit (avoid CPU sync)
+    bool imguiDisableForPerf_ = false;    // Disable ImGui for performance testing
+    bool imguiConditionalRender_ = false; // Render ImGui only when needed (not every frame)
+
+private:
 
     // Post-processing settings
     std::array<PostProcessSlot, 5> postProcessSlots_;

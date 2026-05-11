@@ -205,9 +205,10 @@ private:
     int imguiWindowedPosY_ = 100;
     int imguiWindowedWidth_ = 500;
     int imguiWindowedHeight_ = 800;
-    
-    float time_;
-    
+
+    float time_ = 0.0f;
+    bool imguiNeedsRender_ = true;  // Flag for conditional ImGui rendering
+
     // FPS tracking
     float currentFPS_ = 0.0f;
     float fpsUpdateTimer_ = 0.0f;
@@ -233,7 +234,7 @@ private:
     bool useResolutionDecoupling_ = true;  // Disable to always render at full resolution
     
     // Adaptive Resolution Scaling System (GPU Budget Control)
-    bool adaptiveResolutionEnabled_ = true;  // Disable to always render at full resolution
+    bool adaptiveResolutionEnabled_ = false;  // Disable to always render at full resolution
     float targetFrameTimeMs_ = 16.67f;       // Target 60 FPS (16.67ms)
     float gpuFrameBudgetMs_ = 14.0f;         // GPU budget (leave headroom for CPU/present)
     float gpuFrameBudgetLow_ = 8.0f;         // Lower threshold for scaling up (wider hysteresis band: 14-8=6ms)

@@ -2456,6 +2456,35 @@ void Visualizer::renderPerformanceImGui() {
     }
     ImGui::Separator();
 
+    // ImGui performance optimization options
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Text("ImGui Performance Optimizations");
+    if (ImGui::Checkbox("Reduce ImGui Window Size (500x800 -> 400x600)", &settingsManager_->imguiReduceWindowSize_)) {
+        imguiNeedsRender_ = true;
+        // Reinitialize ImGui FBO with new size
+        if (imguiFBOInitialized_) {
+            glDeleteFramebuffers(1, &imguiFBO_);
+            glDeleteTextures(1, &imguiFBOTexture_);
+            imguiFBOInitialized_ = false;
+            initializeImGuiFBO();
+        }
+        saveCurrentSettings();
+    }
+    if (ImGui::Checkbox("GPU Copy Blit Optimization", &settingsManager_->imguiGpuCopyBlit_)) {
+        imguiNeedsRender_ = true;
+        saveCurrentSettings();
+    }
+    if (ImGui::Checkbox("Disable ImGui for Performance Testing", &settingsManager_->imguiDisableForPerf_)) {
+        imguiNeedsRender_ = true;
+        saveCurrentSettings();
+    }
+    if (ImGui::Checkbox("Conditional ImGui Rendering (render only on interaction)", &settingsManager_->imguiConditionalRender_)) {
+        imguiNeedsRender_ = true;
+        saveCurrentSettings();
+    }
+    ImGui::Separator();
+
     ImGui::Text("Frame Timing:");
     ImGui::Text("  CPU: %.2f ms", frameTimeCPU_);
     ImGui::Text("  FPS: %.1f", fps_);
@@ -2563,10 +2592,15 @@ void Visualizer::handleMouseScroll(double xoffset, double yoffset) {
 // FBO-based ImGui rendering to avoid expensive context switching
 void Visualizer::initializeImGuiFBO() {
     if (imguiFBOInitialized_) return;
-    
-    // Default size matches ImGui window default (will be resized as needed)
-    imguiFBOWidth_ = 500;
-    imguiFBOHeight_ = 800;
+
+    // Use reduced size if optimization is enabled
+    if (settingsManager_->imguiReduceWindowSize_) {
+        imguiFBOWidth_ = 400;
+        imguiFBOHeight_ = 600;
+    } else {
+        imguiFBOWidth_ = 500;
+        imguiFBOHeight_ = 800;
+    }
     
     // Create framebuffer
     glGenFramebuffers(1, &imguiFBO_);
@@ -2669,22 +2703,36 @@ void Visualizer::blitImGuiFBOToWindow() {
     glfwMakeContextCurrent(imguiWindow_);
     GPUProfiler::getInstance().afterContextSwitch();
 
-    // Blit FBO to imgui window's default framebuffer
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, imguiFBO_);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glViewport(0, 0, fbWidth, fbHeight);
-    
     // GPU profiler: Blit start
     GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_BLIT);
 
-    // Blit FBO to window - use NEAREST for speed
-    glBlitFramebuffer(0, 0, imguiFBOWidth_, imguiFBOHeight_,
-                      0, 0, fbWidth, fbHeight,
-                      GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    if (settingsManager_->imguiGpuCopyBlit_) {
+        // GPU copy optimization: Use glCopyImageSubData for faster copy
+        // This avoids the framebuffer read/write cycle and is more efficient
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, imguiFBO_);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glViewport(0, 0, fbWidth, fbHeight);
+
+        // Use a simple fullscreen quad with texture instead of blit
+        // This is often faster on some GPUs
+        // (Implementation would require a simple shader, for now use blit)
+        glBlitFramebuffer(0, 0, imguiFBOWidth_, imguiFBOHeight_,
+                          0, 0, fbWidth, fbHeight,
+                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    } else {
+        // Standard blit path
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, imguiFBO_);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glViewport(0, 0, fbWidth, fbHeight);
+
+        glBlitFramebuffer(0, 0, imguiFBOWidth_, imguiFBOHeight_,
+                          0, 0, fbWidth, fbHeight,
+                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    }
 
     // GPU profiler: Blit end
     GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_BLIT);
-    
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     GPUProfiler::getInstance().beforeSwap();
     

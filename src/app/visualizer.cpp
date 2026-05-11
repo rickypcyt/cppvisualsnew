@@ -953,9 +953,9 @@ Visualizer::Visualizer()
     
     // Note: initializeRandomPostProcess() is called later in initialize() after loading enabled states
     
-    // Ensure Slot 1 is always enabled by default
+    // Slot 1 disabled by default
     if (kMaxProceduralSlots > 0) {
-        proceduralSlots_[0].enabled = true;
+        proceduralSlots_[0].enabled = false;
         if (proceduralSlots_[0].mode == 0) {
             proceduralSlots_[0].mode = proceduralLayerMode_; // Use current mode if slot mode is invalid
         }
@@ -1172,6 +1172,7 @@ bool Visualizer::initialize(int width, int height) {
             ImGuiIO& io = ImGui::GetIO();
             if (io.WantCaptureMouse) {
                 vis->handleMouseScroll(xoffset, yoffset);
+                vis->imguiNeedsRender_ = true;  // Mark ImGui as needing render on interaction
             }
         }
     });
@@ -2049,9 +2050,21 @@ void Visualizer::render() {
     // GPU profiler: Main render end
     GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_MAIN_RENDER);
 
-    if (imguiInitialized_ && showImGuiWindow_) {
+    // Check if ImGui should be rendered
+    bool shouldRenderImGui = imguiInitialized_ && showImGuiWindow_;
+    if (settingsManager_->imguiDisableForPerf_) {
+        shouldRenderImGui = false;
+    }
+
+    // Conditional rendering: only render if needed
+    if (settingsManager_->imguiConditionalRender_ && shouldRenderImGui) {
+        shouldRenderImGui = imguiNeedsRender_;
+    }
+
+    if (shouldRenderImGui) {
         PROFILE_SCOPE("render_imgui");
         renderImGui();
+        imguiNeedsRender_ = false;  // Reset flag after rendering
     } else if (!imguiInitialized_) {
         renderGUI();
     }
