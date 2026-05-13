@@ -1990,8 +1990,13 @@ void Visualizer::render() {
 
     renderIdleSpinner(time_);
 
+    // Render corner orbs at full window resolution (before post-processing)
     if (showCornerOrbs_) {
+        // Set viewport to full window resolution for corner orbs
+        glViewport(0, 0, windowWidth_, windowHeight_);
         renderCornerOrbs();
+        // Restore viewport to render resolution for subsequent passes
+        glViewport(0, 0, renderWidth_, renderHeight_);
     }
 
     // Render names slots OUTSIDE Post FX (text/marquee effects) - same level as corner orbs
@@ -2388,16 +2393,13 @@ bool Visualizer::setupOpenGL() {
         // Disable vsync on ImGui window to prevent swapbuffers blocking (22ms stall)
         // This is critical for dual-window performance
         glfwMakeContextCurrent(imguiWindow_);
-        glfwSwapInterval(0);
+        glfwSwapInterval(1);
         glfwMakeContextCurrent(window_);
     }
 
-    // Make main window current again
-    glfwMakeContextCurrent(window_);
-
-    // Disable vsync to prevent compositor from pausing rendering when window not visible
-    // This is critical for Hyprland/Wayland where frame callbacks stop on inactive workspaces
-    glfwSwapInterval(0);
+    // Enable vsync to limit FPS to monitor refresh rate (usually 60Hz)
+    // This prevents excessive GPU usage and power consumption
+    glfwSwapInterval(1);
 
     // Detect available monitors for multi-monitor support
     detectMonitors();

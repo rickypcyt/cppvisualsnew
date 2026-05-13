@@ -13,6 +13,11 @@ fi
 
 # Build the project
 if [ -d "build" ]; then
+    # Check if CMake has been configured (build.ninja exists)
+    if [ ! -f "build/build.ninja" ] && [ ! -f "build/Makefile" ]; then
+        echo "CMake not configured, running initial configuration..."
+        cmake -B build -DCMAKE_BUILD_TYPE=Release
+    fi
     cd build
     if cmake --build . -j$(nproc); then
         echo "Build successful!"

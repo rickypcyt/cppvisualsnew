@@ -229,8 +229,8 @@ private:
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
     
     // Render resolution decoupling (for fill-rate optimization)
-    int renderWidth_ = 1920;   // Fixed internal render resolution (1080p)
-    int renderHeight_ = 1080;
+    int renderWidth_ = 426;   // Fixed internal render resolution (240p 16:9)
+    int renderHeight_ = 240;
     bool useResolutionDecoupling_ = true;  // Disable to always render at full resolution
     
     // Adaptive Resolution Scaling System (GPU Budget Control)
@@ -385,7 +385,7 @@ private:
     bool cleanMode_ = false;  // Clean mode: hides ALL UI for maximum performance
     
     // ImGui update rate limiting
-    float imguiUpdateInterval_ = 0.033f;  // Update ImGui at 30 FPS max (33ms)
+    float imguiUpdateInterval_ = 0.1f;  // Update ImGui at 10 FPS max (100ms) - reduced to minimize context switch stalls
     float imguiUpdateTimer_ = 0.0f;
     
     // ImGui FBO optimization - render to FBO using main context to avoid context switching stalls
