@@ -770,9 +770,24 @@ uniform vec2 uSourceResolution;
 uniform vec2 uTargetResolution;
 
 void main() {
-    // Simple bilinear sampling - OpenGL's built-in interpolation handles this
-    // when we set texture parameters to LINEAR
-    vec3 color = texture(uSourceTexture, vTexCoord).rgb;
+    // Calculate aspect ratios
+    float sourceAspect = uSourceResolution.x / uSourceResolution.y;
+    float targetAspect = uTargetResolution.x / uTargetResolution.y;
+
+    // Adjust texture coordinates to maintain aspect ratio (letterbox/pillarbox elimination)
+    vec2 uv = vTexCoord;
+    if (sourceAspect > targetAspect) {
+        // Source is wider than target - crop sides
+        float scale = targetAspect / sourceAspect;
+        uv.x = (uv.x - 0.5) / scale + 0.5;
+    } else {
+        // Source is taller than target - crop top/bottom
+        float scale = sourceAspect / targetAspect;
+        uv.y = (uv.y - 0.5) / scale + 0.5;
+    }
+
+    // Sample with adjusted coordinates
+    vec3 color = texture(uSourceTexture, uv).rgb;
     FragColor = vec4(color, 1.0);
 }
 )";
@@ -1198,10 +1213,14 @@ bool Visualizer::initialize(int width, int height) {
     
     // Log initial resolution configuration
     if (useResolutionDecoupling_) {
+        // Calculate actual scale based on render resolution vs window resolution
+        float actualScale = static_cast<float>(renderWidth_) / static_cast<float>(windowWidth_);
+        resolutionScale_ = actualScale;  // Update to match actual resolution
+
         std::cout << "[Resolution Decoupling] ENABLED" << std::endl;
         std::cout << "[Resolution Decoupling] Window: " << windowWidth_ << "x" << windowHeight_ << std::endl;
-        std::cout << "[Resolution Decoupling] Initial render resolution: " << renderWidth_ << "x" << renderHeight_ 
-                  << " (scale: " << (resolutionScale_ * 100.0f) << "%)" << std::endl;
+        std::cout << "[Resolution Decoupling] Initial render resolution: " << renderWidth_ << "x" << renderHeight_
+                  << " (scale: " << (actualScale * 100.0f) << "%)" << std::endl;
         if (adaptiveResolutionEnabled_) {
             std::cout << "[Adaptive Resolution] ENABLED - Target: " << targetFrameTimeMs_ << "ms (" 
                       << (1000.0f / targetFrameTimeMs_) << " FPS), GPU budget: " << gpuFrameBudgetMs_ << "ms" << std::endl;
@@ -1798,6 +1817,14 @@ void Visualizer::updateAudioBuffer(const std::vector<float> &audioBuffer) {
 }
 
 void Visualizer::render() {
+    // FIRST THING: Ensure main window context is current (cheap if already current)
+    // This is the async context switch from the previous frame's ImGui blit
+    if (glfwGetCurrentContext() != window_) {
+        GPUProfiler::getInstance().beforeContextSwitch();
+        glfwMakeContextCurrent(window_);
+        GPUProfiler::getInstance().afterContextSwitch();
+    }
+
     // FASE 0.1: Frame timing CPU
     auto frameStart = std::chrono::high_resolution_clock::now();
 
@@ -2340,62 +2367,10 @@ bool Visualizer::setupOpenGL() {
     glViewport(0, 0, windowWidth_, windowHeight_);
 
     // === CREATE SEPARATE IMGUI CONTROLS WINDOW ===
-    // The second window shares the context with the first window
-    glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE); // Don't steal focus when showing controls window
-
-    // CRITICAL for hybrid laptops: Force same GPU to avoid 100ms+ cross-GPU context switches
-    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
-
-    std::cout << "Creating ImGui controls window (" << imguiWindowWidth_ << "x" << imguiWindowHeight_ << ")..." << std::endl;
-    imguiWindow_ = glfwCreateWindow(imguiWindowWidth_, imguiWindowHeight_, "Audio Visualizer - Controls", nullptr, window_);
-    if (!imguiWindow_) {
-        std::cerr << "Failed to create ImGui GLFW window, continuing without controls window" << std::endl;
-        // Continue without the controls window - non-critical
-    } else {
-        std::cout << "ImGui controls window created successfully" << std::endl;
-
-        // Check which GPU the ImGui window is using (critical for hybrid systems)
-        glfwMakeContextCurrent(imguiWindow_);
-        const char* imguiVendor = (const char*)glGetString(GL_VENDOR);
-        const char* imguiRenderer = (const char*)glGetString(GL_RENDERER);
-        std::cout << "[GPU] ImGui Window Vendor: " << imguiVendor << std::endl;
-        std::cout << "[GPU] ImGui Window Renderer: " << imguiRenderer << std::endl;
-        glfwMakeContextCurrent(window_);
-
-        // Explicitly show ImGui window
-        glfwShowWindow(imguiWindow_);
-
-        // Position ImGui window to the right of the main window
-        int mainX, mainY;
-        glfwGetWindowPos(window_, &mainX, &mainY);
-        glfwSetWindowPos(imguiWindow_, mainX + windowWidth_ + 50, mainY);
-
-        // Set up scroll callback for mouse wheel zoom in ImGui window
-        glfwSetScrollCallback(imguiWindow_, [](GLFWwindow* window, double xoffset, double yoffset) {
-            Visualizer* vis = static_cast<Visualizer*>(glfwGetWindowUserPointer(window));
-            if (vis) {
-                vis->handleMouseScroll(xoffset, yoffset);
-            }
-        });
-
-        // Set up framebuffer size callback for FBO resize (event-based, no polling)
-        glfwSetFramebufferSizeCallback(imguiWindow_, [](GLFWwindow* window, int width, int height) {
-            Visualizer* vis = static_cast<Visualizer*>(glfwGetWindowUserPointer(window));
-            if (vis) {
-                vis->resizeImGuiFBO(width, height);
-            }
-        });
-
-        // Initialize FBO with correct initial size (matches window)
-        resizeImGuiFBO(imguiWindowWidth_, imguiWindowHeight_);
-
-        // Disable vsync on ImGui window to prevent swapbuffers blocking (22ms stall)
-        // This is critical for dual-window performance
-        glfwMakeContextCurrent(imguiWindow_);
-        glfwSwapInterval(1);
-        glfwMakeContextCurrent(window_);
-    }
+    // OVERLAY MODE: ImGui will render as overlay on main window
+    // No separate ImGui window - eliminates context switching and Wayland issues
+    imguiWindow_ = nullptr;  // Explicitly set to null for overlay mode
+    std::cout << "ImGui configured as overlay on main window" << std::endl;
 
     // Enable vsync to limit FPS to monitor refresh rate (usually 60Hz)
     // This prevents excessive GPU usage and power consumption
@@ -5563,41 +5538,19 @@ void Visualizer::toggleMainWindowFullscreen() {
     GLFWmonitor* currentMonitor = glfwGetWindowMonitor(window_);
     if (currentMonitor) {
         // Currently fullscreen - switch to windowed
-        glfwSetWindowMonitor(window_, nullptr, 
-                             windowedPosX_, windowedPosY_, 
+        glfwSetWindowMonitor(window_, nullptr,
+                             windowedPosX_, windowedPosY_,
                              windowedWidth_, windowedHeight_, 0);
         std::cout << "[FULLSCREEN] Main window: switched to windowed mode" << std::endl;
     } else {
-        // Currently windowed - save position/size and go fullscreen
+        // Currently windowed - save position/size
         glfwGetWindowPos(window_, &windowedPosX_, &windowedPosY_);
         glfwGetWindowSize(window_, &windowedWidth_, &windowedHeight_);
-        
-        // Get the monitor the window is currently on
-        int wx, wy;
-        glfwGetWindowPos(window_, &wx, &wy);
-        
-        GLFWmonitor* targetMonitor = nullptr;
-        for (size_t i = 0; i < monitors_.size(); ++i) {
-            int mx, my;
-            glfwGetMonitorPos(monitors_[i], &mx, &my);
-            const GLFWvidmode* mode = glfwGetVideoMode(monitors_[i]);
-            if (wx >= mx && wx < mx + mode->width && wy >= my && wy < my + mode->height) {
-                targetMonitor = monitors_[i];
-                break;
-            }
-        }
-        
-        // Fallback to primary monitor if not found
-        if (!targetMonitor) {
-            targetMonitor = glfwGetPrimaryMonitor();
-        }
-        
-        if (targetMonitor) {
-            const GLFWvidmode* mode = glfwGetVideoMode(targetMonitor);
-            glfwSetWindowMonitor(window_, targetMonitor, 0, 0, 
-                                 mode->width, mode->height, mode->refreshRate);
-            std::cout << "[FULLSCREEN] Main window: switched to fullscreen on monitor" << std::endl;
-        }
+
+        // In Wayland, use maximize instead of setWindowMonitor to avoid stalls
+        // glfwSetWindowMonitor causes 28-60ms stalls on NVIDIA/Wayland
+        glfwMaximizeWindow(window_);
+        std::cout << "[FULLSCREEN] Main window: maximized (Wayland-compatible)" << std::endl;
     }
 }
 
@@ -5607,52 +5560,31 @@ void Visualizer::toggleImGuiWindowFullscreen() {
     GLFWmonitor* currentMonitor = glfwGetWindowMonitor(imguiWindow_);
     if (currentMonitor) {
         // Currently fullscreen - switch to windowed
-        glfwSetWindowMonitor(imguiWindow_, nullptr, 
-                             imguiWindowedPosX_, imguiWindowedPosY_, 
+        glfwSetWindowMonitor(imguiWindow_, nullptr,
+                             imguiWindowedPosX_, imguiWindowedPosY_,
                              imguiWindowedWidth_, imguiWindowedHeight_, 0);
         std::cout << "[FULLSCREEN] ImGui window: switched to windowed mode" << std::endl;
     } else {
-        // Currently windowed - save position/size and go fullscreen
+        // Currently windowed - save position/size
         glfwGetWindowPos(imguiWindow_, &imguiWindowedPosX_, &imguiWindowedPosY_);
         glfwGetWindowSize(imguiWindow_, &imguiWindowedWidth_, &imguiWindowedHeight_);
-        
-        // Get the monitor the window is currently on
-        int wx, wy;
-        glfwGetWindowPos(imguiWindow_, &wx, &wy);
-        
-        GLFWmonitor* targetMonitor = nullptr;
-        for (size_t i = 0; i < monitors_.size(); ++i) {
-            int mx, my;
-            glfwGetMonitorPos(monitors_[i], &mx, &my);
-            const GLFWvidmode* mode = glfwGetVideoMode(monitors_[i]);
-            if (wx >= mx && wx < mx + mode->width && wy >= my && wy < my + mode->height) {
-                targetMonitor = monitors_[i];
-                break;
-            }
-        }
-        
-        // Fallback to primary monitor if not found
-        if (!targetMonitor) {
-            targetMonitor = glfwGetPrimaryMonitor();
-        }
-        
-        if (targetMonitor) {
-            const GLFWvidmode* mode = glfwGetVideoMode(targetMonitor);
-            glfwSetWindowMonitor(imguiWindow_, targetMonitor, 0, 0, 
-                                 mode->width, mode->height, mode->refreshRate);
-            std::cout << "[FULLSCREEN] ImGui window: switched to fullscreen on monitor" << std::endl;
-        }
+
+        // In Wayland, use maximize instead of setWindowMonitor to avoid stalls
+        glfwMaximizeWindow(imguiWindow_);
+        std::cout << "[FULLSCREEN] ImGui window: maximized (Wayland-compatible)" << std::endl;
     }
 }
 
 bool Visualizer::isMainWindowFullscreen() const {
     if (!window_) return false;
-    return glfwGetWindowMonitor(window_) != nullptr;
+    // In Wayland, check if maximized instead of monitor
+    return glfwGetWindowMonitor(window_) != nullptr || glfwGetWindowAttrib(window_, GLFW_MAXIMIZED);
 }
 
 bool Visualizer::isImGuiWindowFullscreen() const {
     if (!imguiWindow_) return false;
-    return glfwGetWindowMonitor(imguiWindow_) != nullptr;
+    // In Wayland, check if maximized instead of monitor
+    return glfwGetWindowMonitor(imguiWindow_) != nullptr || glfwGetWindowAttrib(imguiWindow_, GLFW_MAXIMIZED);
 }
 
 void Visualizer::toggleBothWindowsFullscreen() {

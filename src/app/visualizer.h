@@ -229,9 +229,9 @@ private:
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
     
     // Render resolution decoupling (for fill-rate optimization)
-    int renderWidth_ = 426;   // Fixed internal render resolution (240p 16:9)
-    int renderHeight_ = 240;
-    bool useResolutionDecoupling_ = true;  // Disable to always render at full resolution
+    int renderWidth_ = 1280;   // Fixed internal render resolution (720p 16:9)
+    int renderHeight_ = 720;
+    bool useResolutionDecoupling_ = false;  // Disable to always render at full resolution
     
     // Adaptive Resolution Scaling System (GPU Budget Control)
     bool adaptiveResolutionEnabled_ = false;  // Disable to always render at full resolution
@@ -389,16 +389,17 @@ private:
     float imguiUpdateTimer_ = 0.0f;
     
     // ImGui FBO optimization - render to FBO using main context to avoid context switching stalls
-    GLuint imguiFBO_ = 0;
-    GLuint imguiFBOTexture_ = 0;
-    GLuint imguiFBODepth_ = 0;
-    int imguiFBOWidth_ = 0;
-    int imguiFBOHeight_ = 0;
-    bool imguiFBOInitialized_ = false;
-    void initializeImGuiFBO();
-    void resizeImGuiFBO(int width, int height);
-    void renderImGuiToFBO();
-    void blitImGuiFBOToWindow();
+    // OVERLAY MODE: FBO variables removed - ImGui renders directly to main window
+    // GLuint imguiFBO_ = 0;
+    // GLuint imguiFBOTexture_ = 0;
+    // GLuint imguiFBODepth_ = 0;
+    // int imguiFBOWidth_ = 0;
+    // int imguiFBOHeight_ = 0;
+    // bool imguiFBOInitialized_ = false;
+    // void initializeImGuiFBO();
+    // void resizeImGuiFBO(int width, int height);
+    void renderImGuiToFBO();  // No-op in overlay mode
+    void blitImGuiFBOToWindow();  // No-op in overlay mode
     
     bool autoRandomizeColors_;
     float colorRandomInterval_;

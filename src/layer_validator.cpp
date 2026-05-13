@@ -245,12 +245,12 @@ ValidationResult LayerValidator::validateModularLayerSystem() {
     
     // Validar shaders procedurales principales
     const std::vector<std::string> proceduralShaders = {
-        "procedural_header.glsl",
-        "procedural_helpers.glsl",
-        "procedural_shadertoy_bridge.glsl",
-        "procedural_main.glsl"
+        "procedural/procedural_header.glsl",
+        "procedural/procedural_helpers.glsl",
+        "procedural/procedural_shadertoy_bridge.glsl",
+        "procedural/procedural_main.glsl"
     };
-    
+
     for (const auto& shader : proceduralShaders) {
         auto shaderResult = validateShader(shader);
         if (!shaderResult.isValid) {
@@ -258,10 +258,10 @@ ValidationResult LayerValidator::validateModularLayerSystem() {
         }
         result.warnings.insert(result.warnings.end(), shaderResult.warnings.begin(), shaderResult.warnings.end());
     }
-    
+
     // Validar packs de shaders
     for (int i = 1; i <= 16; ++i) {
-        std::string packShader = "procedural_pack" + std::to_string(i) + ".glsl";
+        std::string packShader = "procedural/procedural_pack" + std::to_string(i) + ".glsl";
         auto shaderResult = validateShader(packShader);
         if (!shaderResult.isValid) {
             result.addWarning("Pack shader no encontrado: " + packShader);

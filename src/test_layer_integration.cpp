@@ -40,9 +40,9 @@ private:
         
         // Test shaders procedurales
         const std::vector<std::string> proceduralShaders = {
-            "procedural_header.glsl",
-            "procedural_helpers.glsl",
-            "procedural_main.glsl"
+            "procedural/procedural_header.glsl",
+            "procedural/procedural_helpers.glsl",
+            "procedural/procedural_main.glsl"
         };
         
         for (const auto& shader : proceduralShaders) {

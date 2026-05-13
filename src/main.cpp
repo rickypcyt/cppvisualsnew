@@ -63,9 +63,13 @@ public:
         static int lastDevice = -2;
 
         while (!visualizer_.shouldClose()) {
+            // CRITICAL for Wayland/Hyprland: Use timeout to prevent blocking
+            // glfwPollEvents() can block indefinitely in Wayland when windows are fullscreen
+            glfwWaitEventsTimeout(0.001);  // 1ms timeout - keeps loop responsive
+
             bool currentAudioEngineEnabled = visualizer_.getAudioEngineEnabled();
             int currentDevice = visualizer_.getSelectedDevice();
-            
+
             if (lastDevice == -2) {
                 lastDevice = currentDevice;
                 lastAudioEngineEnabled = currentAudioEngineEnabled;

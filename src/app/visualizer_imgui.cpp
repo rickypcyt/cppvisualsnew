@@ -378,13 +378,6 @@ void Visualizer::handleKeyboardInput() {
         if (currentTime - lastHPress > 0.5) { // 500ms debounce
             cleanMode_ = !cleanMode_;
             std::cout << "Clean mode toggled via H key: " << (cleanMode_ ? "ENABLED (UI hidden)" : "DISABLED (UI visible)") << std::endl;
-            if (imguiWindow_) {
-                if (cleanMode_) {
-                    glfwHideWindow(imguiWindow_);
-                } else {
-                    glfwShowWindow(imguiWindow_);
-                }
-            }
             lastHPress = currentTime;
         }
     }
@@ -393,17 +386,8 @@ void Visualizer::handleKeyboardInput() {
 void Visualizer::renderImGui() {
     PROFILE_FUNCTION();
 
-    // Clean mode: skip ALL ImGui rendering and context switching for maximum performance
+    // Clean mode: skip ALL ImGui rendering for maximum performance
     if (cleanMode_) {
-        // Ensure ImGui window is hidden when in clean mode
-        if (imguiWindow_ && glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE)) {
-            glfwHideWindow(imguiWindow_);
-        }
-        return;
-    }
-
-    // Skip rendering if ImGui window is hidden or not visible (eliminates 120ms+ context switch overhead)
-    if (imguiWindow_ && !glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE)) {
         return;
     }
 
@@ -414,61 +398,6 @@ void Visualizer::renderImGui() {
     }
     imguiUpdateTimer_ = 0.0f;
 
-    // Detect fullscreen mode on main window
-    bool mainWindowFullscreen = false;
-    if (window_) {
-        GLFWmonitor* monitor = glfwGetWindowMonitor(window_);
-        mainWindowFullscreen = (monitor != nullptr);
-    }
-
-    // Allow controls window even while main window is fullscreen if we are in multi-monitor mode
-    // OR if user manually toggled fullscreen (we detect this by checking if imgui window is also fullscreen)
-    bool imguiFullscreen = isImGuiWindowFullscreen();
-    bool allowControlsDuringFullscreen = multiMonitorMode_ || monitors_.size() >= 2 || imguiFullscreen;
-
-    const bool blockControlsForFullscreen = mainWindowFullscreen && !allowControlsDuringFullscreen;
-
-    // If main window is fullscreen and we are not explicitly allowed to show controls, hide the ImGui window
-    bool shouldHideControls = imguiWindow_ && blockControlsForFullscreen;
-    if (shouldHideControls) {
-        if (glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE)) {
-            glfwHideWindow(imguiWindow_);
-            imguiWindowNeedsFocus_ = true; // Focus next time we show it
-        }
-    } else if (imguiWindow_) {
-        if (!glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE)) {
-            glfwShowWindow(imguiWindow_);
-            imguiWindowNeedsFocus_ = true;
-        }
-    }
-
-    const bool controlsVisible = imguiWindow_ && glfwGetWindowAttrib(imguiWindow_, GLFW_VISIBLE);
-    const bool controlsIconified = imguiWindow_ && glfwGetWindowAttrib(imguiWindow_, GLFW_ICONIFIED);
-    const bool controlsFullscreen = isImGuiWindowFullscreen();
-    bool renderControlsWindow = controlsVisible && !controlsIconified && !controlsFullscreen && (!blockControlsForFullscreen);
-
-    // Only force focus when the window was previously hidden or flagged
-    if (renderControlsWindow && imguiWindowNeedsFocus_) {
-        glfwFocusWindow(imguiWindow_);
-        imguiWindowNeedsFocus_ = false;
-    }
-
-    // Ensure cursor mode remains free (Hyprland can latch to hidden windows)
-    if (renderControlsWindow) {
-        glfwSetInputMode(imguiWindow_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    }
-    
-    // Keep main window context active - we'll render to FBO instead of switching context
-    // This avoids expensive NVIDIA driver stalls from context switching
-    // Main window context is already current from the main render loop
-
-    // Always keep main window cursor unlocked as well
-    if (window_) {
-        glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    }
-
-    // FBO resize is handled by callback - no polling needed here
-
     // Start the Dear ImGui frame
     {
         PROFILE_SCOPE("imgui_new_frame");
@@ -476,7 +405,7 @@ void Visualizer::renderImGui() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
     }
-    
+
     // Ensure cursor is properly updated
     ImGuiIO& io = ImGui::GetIO();
     if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) {
@@ -486,96 +415,83 @@ void Visualizer::renderImGui() {
     // Handle keyboard input
     handleKeyboardInput();
 
-    if (!blockControlsForFullscreen) {
-        // Main control window
-        if (showImGuiWindow_) {
-            PROFILE_SCOPE("render_main_imgui_window");
-            renderMainImGuiWindow();
-        }
-
-        // Separate Visual control windows
-        if (showImGuiColorsWindow_) {
-            PROFILE_SCOPE("render_colors_window");
-            renderColorsWindow();
-        }
-        if (showImGuiProceduralWindow_) {
-            PROFILE_SCOPE("render_procedural_window");
-            renderProceduralWindow();
-        }
-        if (showImGuiPostProcessWindow_) {
-            PROFILE_SCOPE("render_post_process_window");
-            renderPostProcessWindow();
-        }
-
-        // Camera control window - always visible
-        {
-            PROFILE_SCOPE("render_camera_window");
-            renderCameraWindow();
-        }
-
-        // Current effects display window
-        if (showCurrentEffects_) {
-            PROFILE_SCOPE("render_current_effects");
-            renderCurrentEffectsDisplay();
-        }
-
-        // Render MIDI controls
-        {
-            PROFILE_SCOPE("render_midi_controls");
-            renderMIDIControls();
-        }
-
-        // Device selector window
-        if (showDeviceSelector_) {
-            PROFILE_SCOPE("render_device_selector");
-            renderDeviceSelectorImGui();
-        }
-
-        // Diagnostic info window
-        if (showDiagnosticInfo_) {
-            PROFILE_SCOPE("render_diagnostic");
-            renderDiagnosticImGui();
-        }
-
-        // Console mode window
-        if (showConsoleMode_) {
-            PROFILE_SCOPE("render_console");
-            renderConsoleImGui();
-        }
-
-        // FASE 0.4: Performance window
-        if (showPerformanceWindow_) {
-            PROFILE_SCOPE("render_performance");
-            renderPerformanceImGui();
-        }
-
-        // Shader Presets window
-        {
-            PROFILE_SCOPE("render_shader_presets");
-            renderShaderPresetsWindow();
-        }
-
-        // Render ImGui to FBO using main window context (no context switch!)
-        {
-            PROFILE_SCOPE("imgui_render");
-            ImGui::Render();
-        }
-        {
-            PROFILE_SCOPE("imgui_render_to_fbo");
-            GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_IMGUI_RENDER);
-            renderImGuiToFBO();
-            GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_IMGUI_RENDER);
-        }
-    } else {
-        // Skip drawing overlays entirely so fullscreen stays clean
-        ImGui::EndFrame();
+    // Main control window
+    if (showImGuiWindow_) {
+        PROFILE_SCOPE("render_main_imgui_window");
+        renderMainImGuiWindow();
     }
 
-    // Blit FBO to ImGui window and swap buffers (no fences to avoid stalls)
-    // Skip blitting when ImGui is fullscreen to avoid expensive context switch (60ms+ stall)
-    if (!blockControlsForFullscreen && renderControlsWindow && !controlsFullscreen) {
-        PROFILE_SCOPE("imgui_blit_to_window");
-        blitImGuiFBOToWindow();
+    // Colors window
+    if (showImGuiColorsWindow_) {
+        PROFILE_SCOPE("render_colors_window");
+        renderColorsWindow();
+    }
+
+    // Procedural window
+    if (showImGuiProceduralWindow_) {
+        PROFILE_SCOPE("render_procedural_window");
+        renderProceduralWindow();
+    }
+
+    // Post-process window
+    if (showImGuiPostProcessWindow_) {
+        PROFILE_SCOPE("render_postprocess_window");
+        renderPostProcessWindow();
+    }
+
+    // Camera window
+    if (showImGuiCameraWindow_) {
+        PROFILE_SCOPE("render_camera_window");
+        renderCameraWindow();
+    }
+
+    // Shader presets window
+    if (showShaderPresetsWindow_) {
+        PROFILE_SCOPE("render_shader_presets_window");
+        renderShaderPresetsWindow();
+    }
+
+    // Device selector
+    if (showDeviceSelector_) {
+        PROFILE_SCOPE("render_device_selector");
+        renderDeviceSelectorImGui();
+    }
+
+    // Diagnostic window
+    if (showDiagnosticInfo_) {
+        PROFILE_SCOPE("render_diagnostic_window");
+        renderDiagnosticImGui();
+    }
+
+    // Console window
+    if (showConsoleMode_) {
+        PROFILE_SCOPE("render_console_window");
+        renderConsoleImGui();
+    }
+
+    // Performance window
+    if (showPerformanceWindow_) {
+        PROFILE_SCOPE("render_performance_window");
+        renderPerformanceImGui();
+    }
+
+    // Current effects display (independent, controlled by 'I' key)
+    if (showCurrentEffects_) {
+        PROFILE_SCOPE("render_current_effects_display");
+        renderCurrentEffectsDisplay();
+    }
+
+    // OVERLAY MODE: Render ImGui directly to main window
+    // No context switch, no FBO, no blitting - just render as overlay
+    if (showImGuiWindow_ || showImGuiColorsWindow_ || showImGuiProceduralWindow_ ||
+        showImGuiPostProcessWindow_ || showImGuiCameraWindow_ || showShaderPresetsWindow_ ||
+        showDeviceSelector_ || showDiagnosticInfo_ || showConsoleMode_ || showPerformanceWindow_ ||
+        showCurrentEffects_) {
+        PROFILE_SCOPE("imgui_render");
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    } else {
+        ImGui::EndFrame();
     }
 }
 
@@ -2462,13 +2378,7 @@ void Visualizer::renderPerformanceImGui() {
     ImGui::Text("ImGui Performance Optimizations");
     if (ImGui::Checkbox("Reduce ImGui Window Size (500x800 -> 400x600)", &settingsManager_->imguiReduceWindowSize_)) {
         imguiNeedsRender_ = true;
-        // Reinitialize ImGui FBO with new size
-        if (imguiFBOInitialized_) {
-            glDeleteFramebuffers(1, &imguiFBO_);
-            glDeleteTextures(1, &imguiFBOTexture_);
-            imguiFBOInitialized_ = false;
-            initializeImGuiFBO();
-        }
+        // OVERLAY MODE: No FBO reinitialization needed
         saveCurrentSettings();
     }
     if (ImGui::Checkbox("GPU Copy Blit Optimization", &settingsManager_->imguiGpuCopyBlit_)) {
@@ -2589,195 +2499,11 @@ void Visualizer::handleMouseScroll(double xoffset, double yoffset) {
     }
 }
 
-// FBO-based ImGui rendering to avoid expensive context switching
-void Visualizer::initializeImGuiFBO() {
-    if (imguiFBOInitialized_) return;
-
-    // Use reduced size if optimization is enabled
-    if (settingsManager_->imguiReduceWindowSize_) {
-        imguiFBOWidth_ = 400;
-        imguiFBOHeight_ = 600;
-    } else {
-        imguiFBOWidth_ = 500;
-        imguiFBOHeight_ = 800;
-    }
-    
-    // Create framebuffer
-    glGenFramebuffers(1, &imguiFBO_);
-    glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO_);
-    
-    // Create color texture (use NEAREST to avoid any filtering/blur)
-    glGenTextures(1, &imguiFBOTexture_);
-    glBindTexture(GL_TEXTURE_2D, imguiFBOTexture_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imguiFBOWidth_, imguiFBOHeight_, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, imguiFBOTexture_, 0);
-    
-    // Create renderbuffer for depth (optional, but good for completeness)
-    glGenRenderbuffers(1, &imguiFBODepth_);
-    glBindRenderbuffer(GL_RENDERBUFFER, imguiFBODepth_);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, imguiFBOWidth_, imguiFBOHeight_);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, imguiFBODepth_);
-    
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "[IMGUI FBO] Failed to create complete FBO, status: " << status << std::endl;
-        // Cleanup
-        glDeleteFramebuffers(1, &imguiFBO_);
-        glDeleteTextures(1, &imguiFBOTexture_);
-        glDeleteRenderbuffers(1, &imguiFBODepth_);
-        imguiFBO_ = 0;
-        imguiFBOTexture_ = 0;
-        imguiFBODepth_ = 0;
-    } else {
-        imguiFBOInitialized_ = true;
-        std::cout << "[IMGUI FBO] Initialized " << imguiFBOWidth_ << "x" << imguiFBOHeight_ << std::endl;
-    }
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void Visualizer::resizeImGuiFBO(int width, int height) {
-    if (!imguiFBOInitialized_) {
-        initializeImGuiFBO();
-        return;
-    }
-    
-    if (width == imguiFBOWidth_ && height == imguiFBOHeight_) return;
-    
-    imguiFBOWidth_ = width;
-    imguiFBOHeight_ = height;
-    
-    // Resize texture (preserve NEAREST filtering)
-    glBindTexture(GL_TEXTURE_2D, imguiFBOTexture_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imguiFBOWidth_, imguiFBOHeight_, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    
-    // Resize renderbuffer
-    glBindRenderbuffer(GL_RENDERBUFFER, imguiFBODepth_);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, imguiFBOWidth_, imguiFBOHeight_);
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
+// OVERLAY MODE: FBO functions are no-ops - ImGui renders directly to main window
 void Visualizer::renderImGuiToFBO() {
-    if (!imguiFBOInitialized_) {
-        initializeImGuiFBO();
-    }
-    
-    // Bind FBO
-    glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO_);
-    glViewport(0, 0, imguiFBOWidth_, imguiFBOHeight_);
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    // ImGui is already rendered to draw data at this point
-    // We just need to render the draw data
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    
-    // Unbind FBO
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // No-op in overlay mode - ImGui renders directly in renderImGui()
 }
 
 void Visualizer::blitImGuiFBOToWindow() {
-    if (!imguiFBOInitialized_ || !imguiWindow_) return;
-    
-    // FAST PATH: No GPU sync, no fences - just blit and swap
-    // Fences were causing 28ms+ stalls. For audio-reactive visuals,
-    // dropping ImGui frames is better than stalling the main render loop.
-    
-    // Get window size
-    int fbWidth, fbHeight;
-    glfwGetFramebufferSize(imguiWindow_, &fbWidth, &fbHeight);
-    
-    // Ensure FBO matches window size
-    if (fbWidth != imguiFBOWidth_ || fbHeight != imguiFBOHeight_) {
-        resizeImGuiFBO(fbWidth, fbHeight);
-    }
-
-    // Switch to ImGui window context
-    GPUProfiler::getInstance().beforeContextSwitch();
-    glfwMakeContextCurrent(imguiWindow_);
-    GPUProfiler::getInstance().afterContextSwitch();
-
-    // GPU profiler: Blit start
-    GPUProfiler::getInstance().gpuZoneStart(GPUProfiler::ZONE_BLIT);
-
-    if (settingsManager_->imguiGpuCopyBlit_) {
-        // GPU copy optimization: Use glCopyImageSubData for faster copy
-        // This avoids the framebuffer read/write cycle and is more efficient
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, imguiFBO_);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glViewport(0, 0, fbWidth, fbHeight);
-
-        // Use a simple fullscreen quad with texture instead of blit
-        // This is often faster on some GPUs
-        // (Implementation would require a simple shader, for now use blit)
-        glBlitFramebuffer(0, 0, imguiFBOWidth_, imguiFBOHeight_,
-                          0, 0, fbWidth, fbHeight,
-                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
-    } else {
-        // Standard blit path
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, imguiFBO_);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glViewport(0, 0, fbWidth, fbHeight);
-
-        glBlitFramebuffer(0, 0, imguiFBOWidth_, imguiFBOHeight_,
-                          0, 0, fbWidth, fbHeight,
-                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
-    }
-
-    // GPU profiler: Blit end
-    GPUProfiler::getInstance().gpuZoneEnd(GPUProfiler::ZONE_BLIT);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    GPUProfiler::getInstance().beforeSwap();
-    
-    // Profile glfwSwapBuffers for ImGui window
-    auto swapStart = std::chrono::high_resolution_clock::now();
-    glfwSwapBuffers(imguiWindow_);
-    auto swapEnd = std::chrono::high_resolution_clock::now();
-    float swapTime = std::chrono::duration<float, std::milli>(swapEnd - swapStart).count();
-    
-    // Accumulate ImGui swap statistics
-    static float avgImguiSwapTime = 0.0f;
-    static int imguiSampleCount = 0;
-    static int imguiStallCount = 0;
-    
-    avgImguiSwapTime = (avgImguiSwapTime * imguiSampleCount + swapTime) / (imguiSampleCount + 1);
-    if (swapTime > 5.0f) imguiStallCount++;
-    imguiSampleCount++;
-    
-    // Log ImGui statistics every 60 frames
-    static int imguiStatCounter = 0;
-    if (imguiStatCounter++ % 60 == 0 && imguiSampleCount > 0) {
-        avgImguiSwapTime = 0.0f;
-        imguiSampleCount = 0;
-        imguiStallCount = 0;
-    }
-    
-    GPUProfiler::getInstance().afterSwap();
-    imguiDirty_ = false;
-
-    // Update ImGui window FPS tracking
-    static auto lastImGuiWindowTime = std::chrono::high_resolution_clock::now();
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float deltaTime = std::chrono::duration<float>(currentTime - lastImGuiWindowTime).count();
-    lastImGuiWindowTime = currentTime;
-    
-    imguiWindowFrameCount_++;
-    imguiWindowFPSTimer_ += deltaTime;
-    if (imguiWindowFPSTimer_ >= 0.5f) { // Update every 0.5 seconds
-        imguiWindowFPS_ = imguiWindowFrameCount_ / imguiWindowFPSTimer_;
-        imguiWindowFrameCount_ = 0;
-        imguiWindowFPSTimer_ = 0.0f;
-    }
-
-    // Switch back to main window context
-    GPUProfiler::getInstance().beforeContextSwitch();
-    glfwMakeContextCurrent(window_);
-    GPUProfiler::getInstance().afterContextSwitch();
+    // No-op in overlay mode - ImGui renders directly in renderImGui()
 }
