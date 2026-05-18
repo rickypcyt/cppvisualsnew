@@ -1674,6 +1674,7 @@ void Visualizer::endFrame() {
     // Fences are only used for profiling/debugging now
     
     // Profile glfwSwapBuffers to detect presentation stalls
+    PROFILE_SCOPE("glfw_swap_buffers");
     auto swapStart = std::chrono::high_resolution_clock::now();
     glfwSwapBuffers(window_);
     auto swapEnd = std::chrono::high_resolution_clock::now();
@@ -1817,6 +1818,7 @@ void Visualizer::updateAudioBuffer(const std::vector<float> &audioBuffer) {
 }
 
 void Visualizer::render() {
+    PROFILE_SCOPE("render_full_frame");
     // FIRST THING: Ensure main window context is current (cheap if already current)
     // This is the async context switch from the previous frame's ImGui blit
     if (glfwGetCurrentContext() != window_) {
@@ -2005,6 +2007,7 @@ void Visualizer::render() {
     }
 
     if (showProceduralLayer_) {
+        PROFILE_SCOPE("render_procedural_layer");
         auto proceduralStart = std::chrono::high_resolution_clock::now();
         renderProceduralLayer();
         auto proceduralEnd = std::chrono::high_resolution_clock::now();
@@ -2013,12 +2016,16 @@ void Visualizer::render() {
     }
 
     float intensityScale = std::clamp(globalIntensityEnvelope_, 0.0f, 2.0f);
-    renderModernCore();
+    {
+        PROFILE_SCOPE("render_modern_core");
+        renderModernCore();
+    }
 
     renderIdleSpinner(time_);
 
     // Render corner orbs at full window resolution (before post-processing)
     if (showCornerOrbs_) {
+        PROFILE_SCOPE("render_corner_orbs");
         // Set viewport to full window resolution for corner orbs
         glViewport(0, 0, windowWidth_, windowHeight_);
         renderCornerOrbs();
@@ -2027,7 +2034,10 @@ void Visualizer::render() {
     }
 
     // Render names slots OUTSIDE Post FX (text/marquee effects) - same level as corner orbs
-    renderNamesLayer();
+    {
+        PROFILE_SCOPE("render_names_layer");
+        renderNamesLayer();
+    }
 
     if (usePost) {
         postProcessor_.endCapture();
@@ -2063,6 +2073,7 @@ void Visualizer::render() {
         
         // If using resolution decoupling, upscale from render resolution to window resolution
         if (useResolutionDecoupling_) {
+            PROFILE_SCOPE("render_upscale");
             // Apply upscale using the post-processor's output texture
             renderUpscaledToWindow();
         }
@@ -2371,10 +2382,6 @@ bool Visualizer::setupOpenGL() {
     // No separate ImGui window - eliminates context switching and Wayland issues
     imguiWindow_ = nullptr;  // Explicitly set to null for overlay mode
     std::cout << "ImGui configured as overlay on main window" << std::endl;
-
-    // Enable vsync to limit FPS to monitor refresh rate (usually 60Hz)
-    // This prevents excessive GPU usage and power consumption
-    glfwSwapInterval(1);
 
     // Detect available monitors for multi-monitor support
     detectMonitors();

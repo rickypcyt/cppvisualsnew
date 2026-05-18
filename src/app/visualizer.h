@@ -229,8 +229,8 @@ private:
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
     
     // Render resolution decoupling (for fill-rate optimization)
-    int renderWidth_ = 1280;   // Fixed internal render resolution (720p 16:9)
-    int renderHeight_ = 720;
+    int renderWidth_ = 1920;   // Fixed internal render resolution (1080p 16:9)
+    int renderHeight_ = 1080;
     bool useResolutionDecoupling_ = false;  // Disable to always render at full resolution
     
     // Adaptive Resolution Scaling System (GPU Budget Control)
@@ -238,8 +238,8 @@ private:
     float targetFrameTimeMs_ = 16.67f;       // Target 60 FPS (16.67ms)
     float gpuFrameBudgetMs_ = 14.0f;         // GPU budget (leave headroom for CPU/present)
     float gpuFrameBudgetLow_ = 8.0f;         // Lower threshold for scaling up (wider hysteresis band: 14-8=6ms)
-    float resolutionScale_ = 0.5f;           // Start at 50% resolution for better performance
-    float minResolutionScale_ = 0.3f;        // Minimum scale (720p -> 216p for very slow hardware)
+    float resolutionScale_ = 0.5f;           // Start at 50% resolution (960p) for 60 FPS
+    float minResolutionScale_ = 0.4f;        // Minimum scale (768p for very slow hardware)
     float maxResolutionScale_ = 1.0f;        // Maximum scale (native)
     float resolutionScaleStep_ = 0.05f;      // Step size for scaling adjustments
     int consecutiveSlowFrames_ = 0;        // Count of frames exceeding budget
